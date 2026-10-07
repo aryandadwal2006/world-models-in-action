@@ -1,0 +1,8 @@
+# .gitignore
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+dm_control_repo/
+*.log
