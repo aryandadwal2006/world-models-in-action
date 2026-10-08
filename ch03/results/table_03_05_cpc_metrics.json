@@ -1,4 +1,5 @@
 {
+  "experiment_version": 2,
   "seeds": [
     0,
     1,
@@ -29,34 +30,36 @@
     "results_dir": "ch03/results",
     "checkpoints_dir": "checkpoints"
   },
+  "latent_normalization": "l2_unit",
+  "rollout_gradient_clip": 1.0,
   "summary": {
     "static_position_r2": [
-      -0.44322481922610474,
-      0.39675869703994776
+      0.6224608568091049,
+      0.26536127330087833
     ],
     "static_velocity_r2": [
-      -0.5058425073233822,
-      0.04781800421032026
+      -0.4065808962918734,
+      0.10329394454411064
     ],
     "context_position_r2": [
-      -2.6690788525359324,
-      3.6259732146947156e-16
+      0.8518973156381353,
+      0.05318471462208343
     ],
     "context_velocity_r2": [
-      -0.055189482663536626,
-      0.0
+      -0.6657925074688342,
+      0.3577793120614201
     ],
     "static_next_state_mean_r2": [
-      -4.932429628697021,
-      0.6530079632799711
+      -4.799521117867104,
+      0.3736012087518595
     ],
     "context_next_state_mean_r2": [
-      -2.8419569085983922,
-      4.440892098500626e-16
+      -4.977702897870515,
+      0.6403344986852142
     ],
     "cpc_gap_mean_r2": [
-      -265826222268.2495,
-      187220265809.59357
+      -98468.6512733657,
+      88515.04331589489
     ],
     "linear_gap_mean_r2": [
       -0.3786939912467952,
@@ -65,24 +68,24 @@
   },
   "per_seed_metrics": [
     {
-      "static_current_position_r2": 0.11747710177532444,
-      "static_current_velocity_r2": -0.5646711885044986,
-      "context_current_position_r2": -2.669078852535933,
-      "context_current_velocity_r2": -0.055189482663536626,
-      "static_next_state_mean_r2": -5.293490253969805,
-      "context_next_state_mean_r2": -2.841956908598392,
-      "static_next_state_position_r2": -10.015582502979969,
-      "static_next_state_velocity_r2": -0.5713980049596432,
-      "context_next_state_position_r2": -5.617179221895379,
-      "context_next_state_velocity_r2": -0.06673459530140469,
+      "static_current_position_r2": 0.8091458785256049,
+      "static_current_velocity_r2": -0.5482188376890909,
+      "context_current_position_r2": 0.8580251743840492,
+      "context_current_velocity_r2": -0.2589663871758616,
+      "static_next_state_mean_r2": -4.820498885258503,
+      "context_next_state_mean_r2": -5.402881822783176,
+      "static_next_state_position_r2": -9.151910960633977,
+      "static_next_state_velocity_r2": -0.4890868098830292,
+      "context_next_state_position_r2": -10.558822673220892,
+      "context_next_state_velocity_r2": -0.24694097234545953,
       "num_sequences": 32,
       "cpc_gap_r2_per_variable": [
-        -2689911748.0586553,
-        -15183839100.075623,
-        -51914.589462291086,
-        -5620378.666082687
+        -48784.77414056643,
+        -30481.50608132157,
+        -14.627656430740965,
+        -3099.546290245979
       ],
-      "cpc_gap_mean_r2": -4469855785.347456,
+      "cpc_gap_mean_r2": -20595.113542141182,
       "linear_gap_r2_per_variable": [
         0.667188614656082,
         0.8190729066245265,
@@ -92,24 +95,24 @@
       "linear_gap_mean_r2": -0.3786939912467952
     },
     {
-      "static_current_position_r2": -0.7419118740283825,
-      "static_current_velocity_r2": -0.5053112412377176,
-      "context_current_position_r2": -2.669078852535933,
-      "context_current_velocity_r2": -0.055189482663536626,
-      "static_next_state_mean_r2": -5.488007676846459,
-      "context_next_state_mean_r2": -2.8419569085983927,
-      "static_next_state_position_r2": -10.572143333280014,
-      "static_next_state_velocity_r2": -0.4038720204129047,
-      "context_next_state_position_r2": -5.61717922189538,
-      "context_next_state_velocity_r2": -0.06673459530140469,
+      "static_current_position_r2": 0.2471849583362845,
+      "static_current_velocity_r2": -0.3667212317352231,
+      "context_current_position_r2": 0.7839122201131346,
+      "context_current_velocity_r2": -0.6086706657418088,
+      "static_next_state_mean_r2": -4.331826870327398,
+      "context_next_state_mean_r2": -4.072683246393477,
+      "static_next_state_position_r2": -8.345378267362811,
+      "static_next_state_velocity_r2": -0.3182754732919839,
+      "context_next_state_position_r2": -7.687340578312794,
+      "context_next_state_velocity_r2": -0.45802591447415886,
       "num_sequences": 32,
       "cpc_gap_r2_per_variable": [
-        -275037750894.6148,
-        -1457341528840.5972,
-        -86587384.19678271,
-        -345714951.19052905
+        -846777.9428011106,
+        -42284.08773881284,
+        -9.424804401975264,
+        -59.36336818549061
       ],
-      "cpc_gap_mean_r2": -433202895517.6498,
+      "cpc_gap_mean_r2": -222282.7046781277,
       "linear_gap_r2_per_variable": [
         0.667188614656082,
         0.8190729066245265,
@@ -119,24 +122,24 @@
       "linear_gap_mean_r2": -0.3786939912467952
     },
     {
-      "static_current_position_r2": -0.7052396854252561,
-      "static_current_velocity_r2": -0.4475450922279305,
-      "context_current_position_r2": -2.6690788525359324,
-      "context_current_velocity_r2": -0.055189482663536626,
-      "static_next_state_mean_r2": -4.015790955274797,
-      "context_next_state_mean_r2": -2.841956908598392,
-      "static_next_state_position_r2": -7.63807032296259,
-      "static_next_state_velocity_r2": -0.3935115875870041,
-      "context_next_state_position_r2": -5.617179221895379,
-      "context_next_state_velocity_r2": -0.06673459530140469,
+      "static_current_position_r2": 0.8110517335654253,
+      "static_current_velocity_r2": -0.30480261945130627,
+      "context_current_position_r2": 0.9137545524172221,
+      "context_current_velocity_r2": -1.1297404694888322,
+      "static_next_state_mean_r2": -5.24623759801541,
+      "context_next_state_mean_r2": -5.457543624434891,
+      "static_next_state_position_r2": -10.224687882468032,
+      "static_next_state_velocity_r2": -0.2677873135627885,
+      "context_next_state_position_r2": -10.217540818288384,
+      "context_next_state_velocity_r2": -0.6975464305813972,
       "num_sequences": 32,
       "cpc_gap_r2_per_variable": [
-        -864615662800.139,
-        -565844100672.0671,
-        -1743349.916563057,
-        -8762155184.882915
+        -9817.046305593272,
+        -200157.25647211194,
+        -0.685290872994323,
+        -137.55433073467916
       ],
-      "cpc_gap_mean_r2": -359805915501.75134,
+      "cpc_gap_mean_r2": -52528.13559982822,
       "linear_gap_r2_per_variable": [
         0.667188614656082,
         0.8190729066245265,
