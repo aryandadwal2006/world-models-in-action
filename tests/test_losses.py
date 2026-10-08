@@ -59,8 +59,16 @@ class TestLosses(unittest.TestCase):
         # target = 0.9 * 1.0 + 0.1 * 2.0 = 1.1
         self.assertAlmostEqual(target.weight.data[0, 0].item(), 1.1, places=5)
 
-    def test_barlow_twins_identical_views_have_zero_loss(self):
-        loss = barlow_twins_loss(self.z1, self.z1, lambd=0.005)
+    def test_barlow_twins_identity_cross_correlation_has_zero_loss(self):
+        z = torch.tensor(
+            [
+                [-1.0, -1.0],
+                [-1.0, 1.0],
+                [1.0, -1.0],
+                [1.0, 1.0],
+            ]
+        )
+        loss = barlow_twins_loss(z, z, lambd=0.005)
         self.assertLess(loss.item(), 1e-8)
 
     def test_barlow_twins_requires_at_least_two_examples(self):
