@@ -110,8 +110,8 @@ class SimpleMAE(nn.Module):
         super().__init__()
         if img_size % patch_size != 0:
             raise ValueError("img_size must be divisible by patch_size")
-        if not 0.0 <= mask_ratio < 1.0:
-            raise ValueError("mask_ratio must be in [0, 1)")
+        if not 0.0 < mask_ratio < 1.0:
+            raise ValueError("mask_ratio must be in (0, 1)")
 
         self.img_size = img_size
         self.patch_size = patch_size
@@ -120,6 +120,8 @@ class SimpleMAE(nn.Module):
         self.latent_dim = latent_dim
         self.mask_ratio = mask_ratio
         self.num_patches = (img_size // patch_size) ** 2
+        if int(self.num_patches * (1.0 - mask_ratio)) < 1:
+            raise ValueError("mask_ratio must leave at least one visible patch")
         self.patch_dim = in_channels * patch_size * patch_size
 
         self.patch_embed = nn.Linear(self.patch_dim, embed_dim)
