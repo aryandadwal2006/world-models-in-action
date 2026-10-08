@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import os
 import sys
 
@@ -51,7 +52,7 @@ from worldmodels.train import (
     set_seed,
 )
 
-EXPERIMENT_VERSION = 3
+EXPERIMENT_VERSION = 4
 
 REQUIRED_TASKS = (
     ("cartpole_balance", 4),
@@ -64,6 +65,32 @@ METHOD_NAMES = (
     "VICReg",
     "Masked Autoencoder (MAE)",
 )
+
+# Finger's third position is the spinner hinge. Its rendered geometry has
+# 180-degree symmetry, so absolute angle is not identifiable from one frame.
+# Keep its variable-level score out of the cross-objective aggregate.
+POSITION_INDICES = {
+    "cartpole_balance": (0, 1),
+    "finger_spin": (0, 1),
+}
+VELOCITY_INDICES = {
+    "cartpole_balance": (2, 3),
+    "finger_spin": (3, 4, 5),
+}
+AGGREGATE_STATE_INDICES = {
+    task: POSITION_INDICES[task] + VELOCITY_INDICES[task]
+    for task, _ in REQUIRED_TASKS
+}
+EXCLUDED_STATE_VARIABLES = {
+    "finger_spin": {
+        "index": 2,
+        "name": "spinner_hinge_angle",
+        "reason": (
+            "The rendered spinner has pi-periodic symmetry; absolute "
+            "2*pi angle cannot be recovered from a static frame."
+        ),
+    }
+}
 
 
 def parse_args() -> argparse.Namespace:
@@ -172,8 +199,23 @@ def make_signature(
         },
         "probe": {
             "feature_standardization": True,
-            "angular_position_encoding": "sin_cos",
-            "angular_r2": "circular_chordal",
+            "angular_position_encoding": "sin_cos_with_rendered_period",
+            "angular_r2": "period_aware_circular_chordal",
+            "angular_position_periods": {
+                "cartpole_balance": {"1": float(np.pi * 2.0)},
+                "finger_spin": {"2": float(np.pi)},
+            },
+            "position_summary_indices": {
+                task: list(indices)
+                for task, indices in POSITION_INDICES.items()
+            },
+            "velocity_summary_indices": {
+                task: list(indices)
+                for task, indices in VELOCITY_INDICES.items()
+            },
+            "excluded_from_finger_spin_aggregate": EXCLUDED_STATE_VARIABLES[
+                "finger_spin"
+            ],
         },
         "datasets": dataset_metadata,
     }
@@ -194,55 +236,141 @@ def empty_progress(
     }
 
 
+def _resummarize_saved_result(task_name, result, legacy_full_turn_score=None):
+    """Update an existing seed result to aggregate only identifiable variables."""
+    raw = list(result.get("r2_per_variable", []))
+    expected_dim = dict(REQUIRED_TASKS)[task_name]
+    if len(raw) != expected_dim:
+        raise RuntimeError(
+            f"Cannot migrate {task_name} result: expected {expected_dim} "
+            f"per-variable scores, got {len(raw)}"
+        )
+
+    if task_name == "finger_spin":
+        angle_score = raw[2] if legacy_full_turn_score is None else legacy_full_turn_score
+        raw[2] = None
+        result["legacy_excluded_spinner_angle_r2_full_turn"] = (
+            None if angle_score is None else float(angle_score)
+        )
+        result["excluded_spinner_angle_r2_period_pi"] = None
+        result["excluded_state_variables"] = [EXCLUDED_STATE_VARIABLES[task_name]]
+    else:
+        result.pop("legacy_excluded_spinner_angle_r2_full_turn", None)
+        result.pop("excluded_spinner_angle_r2_period_pi", None)
+        result.pop("excluded_state_variables", None)
+
+    position_indices = POSITION_INDICES[task_name]
+    velocity_indices = VELOCITY_INDICES[task_name]
+    aggregate_indices = AGGREGATE_STATE_INDICES[task_name]
+    result["r2_per_variable"] = [
+        None if value is None else float(value)
+        for value in raw
+    ]
+    result["position_variable_indices"] = list(position_indices)
+    result["velocity_variable_indices"] = list(velocity_indices)
+    result["aggregate_state_variable_indices"] = list(aggregate_indices)
+    result["position_mean_r2"] = float(np.mean([raw[i] for i in position_indices]))
+    result["velocity_mean_r2"] = float(np.mean([raw[i] for i in velocity_indices]))
+    result["mean_r2"] = float(np.mean([raw[i] for i in aggregate_indices]))
+
+
+def _migrate_version3_progress(progress, signature):
+    """Migrate version-3 metrics without rerunning unchanged representations.
+
+    Finger Spin's old index-2 score used a full-turn metric. That score is
+    retained for provenance but removed from the published aggregate. Its
+    supervised reference is invalidated because its training target encoding
+    is now symmetry-aware; only those three runs must be retrained.
+    """
+    old_signature = progress.get("experiment")
+    if not isinstance(old_signature, dict) or old_signature.get("experiment_version") != 3:
+        return None
+
+    old_probe = {
+        "feature_standardization": True,
+        "angular_position_encoding": "sin_cos",
+        "angular_r2": "circular_chordal",
+    }
+    if old_signature.get("probe") != old_probe:
+        return None
+
+    old_core = copy.deepcopy(old_signature)
+    new_core = copy.deepcopy(signature)
+    old_core.pop("experiment_version", None)
+    new_core.pop("experiment_version", None)
+    old_core.pop("probe", None)
+    new_core.pop("probe", None)
+    if old_core != new_core:
+        return None
+
+    migrated = copy.deepcopy(progress)
+    supervised_name = METHOD_NAMES[0]
+    old_supervised = copy.deepcopy(
+        migrated["results"]["finger_spin"][supervised_name]
+    )
+    migrated.setdefault("legacy_results_before_period_fix", {})[
+        "finger_spin_supervised_reference"
+    ] = old_supervised
+
+    for task_name, _state_dim in REQUIRED_TASKS:
+        for method in METHOD_NAMES:
+            for seed_key, result in list(
+                migrated["results"][task_name][method].items()
+            ):
+                old_r2 = list(result.get("r2_per_variable", []))
+                legacy_score = (
+                    old_r2[2]
+                    if task_name == "finger_spin" and len(old_r2) == 6
+                    else None
+                )
+                _resummarize_saved_result(
+                    task_name,
+                    result,
+                    legacy_full_turn_score=legacy_score,
+                )
+
+    # The old supervised encoder was trained to predict the exact spinner
+    # angle despite the pi-symmetric image. Retrain only this reference on the
+    # corrected target transform; the other objectives never use state labels.
+    migrated["results"]["finger_spin"][supervised_name] = {}
+    migrated["experiment"] = signature
+    print(
+        "Migrated Table 3.4 progress: retained compatible metrics, excluded "
+        "the visually ambiguous spinner angle from aggregates, and queued only "
+        "the three Finger Spin supervised-reference seeds for retraining."
+    )
+    return migrated
+
+
 def load_progress(
     path,
     signature,
     fresh,
 ):
-    if (
-        fresh
-        or not os.path.exists(path)
-    ):
-        return empty_progress(
-            signature
-        )
+    if fresh or not os.path.exists(path):
+        return empty_progress(signature)
 
     try:
-        progress = load_json(
-            path
-        )
-    except Exception:
-        print(
-            "Existing Table 3.4 progress "
-            "could not be read; "
-            "starting a fresh run."
-        )
+        progress = load_json(path)
+    except Exception as exc:
+        raise RuntimeError(
+            f"Existing Table 3.4 progress cannot be read: {path}. "
+            "It was not overwritten."
+        ) from exc
 
-        return empty_progress(
-            signature
-        )
+    if progress.get("experiment") == signature:
+        print(f"Resuming compatible Table 3.4 progress -> {path}")
+        return progress
 
-    if (
-        progress.get("experiment")
-        != signature
-    ):
-        print(
-            "Existing Table 3.4 progress "
-            "is incompatible; "
-            "starting a fresh run."
-        )
+    migrated = _migrate_version3_progress(progress, signature)
+    if migrated is not None:
+        return migrated
 
-        return empty_progress(
-            signature
-        )
-
-    print(
-        f"Resuming compatible "
-        f"Table 3.4 progress -> {path}"
+    raise RuntimeError(
+        "Existing Table 3.4 progress is incompatible with this experiment. "
+        "It was not overwritten. Back up the progress file and inspect the "
+        "configuration before using --fresh."
     )
-
-    return progress
-
 
 def save_progress(
     progress,
@@ -293,34 +421,48 @@ def summarize_probe(
     result,
     state_dim,
 ):
-    r2 = np.asarray(
+    raw_r2 = np.asarray(
         result["r2_per_variable"],
         dtype=np.float64,
     )
-
-    if r2.shape != (state_dim,):
+    if raw_r2.shape != (state_dim,):
         raise ValueError(
-            f"Expected {state_dim} state R2 values, "
-            f"got {r2.shape}"
+            f"Expected {state_dim} state R2 values, got {raw_r2.shape}"
         )
 
-    n_position = state_dim // 2
+    task_name = {
+        dim: task
+        for task, dim in REQUIRED_TASKS
+    }[state_dim]
+    position_indices = POSITION_INDICES[task_name]
+    velocity_indices = VELOCITY_INDICES[task_name]
+    aggregate_indices = AGGREGATE_STATE_INDICES[task_name]
+    display_r2 = raw_r2.tolist()
+    result_fields = {}
+
+    if task_name in EXCLUDED_STATE_VARIABLES:
+        excluded_index = EXCLUDED_STATE_VARIABLES[task_name]["index"]
+        result_fields["excluded_state_variables"] = [
+            EXCLUDED_STATE_VARIABLES[task_name]
+        ]
+        result_fields["excluded_spinner_angle_r2_period_pi"] = float(
+            raw_r2[excluded_index]
+        )
+        display_r2[excluded_index] = None
 
     return {
-        "r2_per_variable": r2.tolist(),
-        "mean_r2": float(
-            np.mean(r2)
-        ),
+        "r2_per_variable": display_r2,
+        "mean_r2": float(np.mean(raw_r2[list(aggregate_indices)])),
         "position_mean_r2": float(
-            np.mean(
-                r2[:n_position]
-            )
+            np.mean(raw_r2[list(position_indices)])
         ),
         "velocity_mean_r2": float(
-            np.mean(
-                r2[n_position:]
-            )
+            np.mean(raw_r2[list(velocity_indices)])
         ),
+        "position_variable_indices": list(position_indices),
+        "velocity_variable_indices": list(velocity_indices),
+        "aggregate_state_variable_indices": list(aggregate_indices),
+        **result_fields,
     }
 
 
@@ -1072,6 +1214,22 @@ def main():
             "experiment_version": EXPERIMENT_VERSION,
             "config": vars(args),
             "experiment": signature,
+            "metric_contract": {
+                "position_indices_by_task": {
+                    task: list(indices)
+                    for task, indices in POSITION_INDICES.items()
+                },
+                "velocity_indices_by_task": {
+                    task: list(indices)
+                    for task, indices in VELOCITY_INDICES.items()
+                },
+                "excluded_state_variables": EXCLUDED_STATE_VARIABLES,
+                "note": (
+                    "Finger Spin's absolute spinner angle is excluded from "
+                    "aggregates because its image is pi-periodic. Historical "
+                    "full-turn scores are preserved only in the progress file."
+                ),
+            },
             "data": table,
         },
         final_path,
