@@ -6,7 +6,7 @@
   ],
   "data": {
     "cartpole_balance": {
-      "Supervised (Upper Bound)": {
+      "Supervised State-Prediction Reference": {
         "mean": -1.6213668982187908,
         "std": 0.013447507961421119,
         "scores": [
@@ -44,7 +44,7 @@
       }
     },
     "finger_spin": {
-      "Supervised (Upper Bound)": {
+      "Supervised State-Prediction Reference": {
         "mean": -0.04705073405057192,
         "std": 0.050186050611084,
         "scores": [

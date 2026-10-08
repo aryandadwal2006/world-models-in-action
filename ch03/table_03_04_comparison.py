@@ -4,7 +4,7 @@ Evaluates and compiles the representation quality comparison across four learnin
 1. Contrastive Learning (NT-Xent)
 2. Non-Contrastive Regularization (VICReg)
 3. Masked Autoencoding (MAE)
-4. Supervised Baseline (ConvEncoder trained directly on privileged physics states)
+4. Supervised State-Prediction Reference (ConvEncoder trained directly on privileged physics states)
 Evaluated across two DMC tasks: cartpole_balance and finger_spin.
 """
 
@@ -196,7 +196,7 @@ def main() -> None:
         val_loader = DataLoader(val_ds, batch_size=args.batch_size, shuffle=False)
 
         methods = {
-            "Supervised (Upper Bound)": lambda s: train_supervised_baseline(train_loader, val_loader, state_dim, args, device, s),
+            "Supervised State-Prediction Reference": lambda s: train_supervised_baseline(train_loader, val_loader, state_dim, args, device, s),
             "Contrastive (NT-Xent)": lambda s: train_contrastive_model(train_loader, val_loader, args, device, s),
             "VICReg": lambda s: train_vicreg_model(train_loader, val_loader, args, device, s),
             "Masked Autoencoder (MAE)": lambda s: train_mae_model(train_loader, val_loader, args, device, s),
@@ -221,13 +221,18 @@ def main() -> None:
     print("\n" + "=" * 80)
     print("Table 3.4 Objective Comparison: Linear Probe R^2 across Two Tasks (Mean ± Std)")
     print("=" * 80)
-    print(f"{'Method / Paradigm':<28} | {'Cartpole Balance (4-D)':<24} | {'Finger Spin (6-D)':<24}")
+    print(f"{'Method / Paradigm':<38} | {'Cartpole Balance (4-D)':<20} | {'Finger Spin (6-D)':<20}")
     print("-" * 80)
-    method_keys = ["Supervised (Upper Bound)", "Contrastive (NT-Xent)", "VICReg", "Masked Autoencoder (MAE)"]
+    method_keys = [
+        "Supervised State-Prediction Reference",
+        "Contrastive (NT-Xent)",
+        "VICReg",
+        "Masked Autoencoder (MAE)",
+    ]
     for m in method_keys:
         cp_str = f"{table_data['cartpole_balance'][m]['mean']:.3f} ± {table_data['cartpole_balance'][m]['std']:.3f}"
         fg_str = f"{table_data['finger_spin'][m]['mean']:.3f} ± {table_data['finger_spin'][m]['std']:.3f}"
-        print(f"{m:<28} | {cp_str:<24} | {fg_str:<24}")
+        print(f"{m:<38} | {cp_str:<20} | {fg_str:<20}")
     print("=" * 80)
 
     os.makedirs(args.results_dir, exist_ok=True)

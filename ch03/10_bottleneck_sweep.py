@@ -2,8 +2,10 @@
 
 Empirically tests the Information Bottleneck lens across latent dimensions
 d in {2, 4, 8, 16, 64, 256} on cartpole_balance (4 state variables) and cheetah_run (18 state variables).
-Verifies that linear probe R^2 saturates at a smaller bottleneck for cartpole than for cheetah,
-demonstrating that minimality is bounded by task state dimensionality (Figure 3.14).
+Demonstrates that task state dimensionality bounds the necessary minimal capacity
+(cartpole reaches peak probe R^2 earlier around d=8-16 than cheetah at d=16),
+while excessively large latent spaces (d=64, 256) suffer from finite-sample probe
+overparameterization penalties (Figure 3.14).
 """
 
 from __future__ import annotations

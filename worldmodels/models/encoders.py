@@ -141,7 +141,11 @@ class Encoder(nn.Module):
 
 
 class SimpleMAE(nn.Module):
-    """Lightweight patch-based Masked Autoencoder for 64x64 sensory observations."""
+    """Lightweight patch-based Masked Autoencoder (He et al., 2022).
+
+    Un-shuffles visible tokens and learnable mask tokens using ids_restore in the decoder,
+    while exposing a pooled latent bottleneck z for linear state probing.
+    """
 
     def __init__(
         self,
@@ -238,12 +242,21 @@ class SimpleMAE(nn.Module):
 
     def forward_decoder(
         self,
-        z: torch.Tensor,
+        encoded_visible: torch.Tensor,
         ids_restore: torch.Tensor,
     ) -> torch.Tensor:
-        """Reconstructs all patch tokens from latent code."""
-        rep_tokens = self.decoder_proj(z).unsqueeze(1).repeat(1, self.num_patches, 1)
-        tokens = rep_tokens + self.pos_embed
+        """Reconstructs all patch tokens by inserting learnable mask tokens and un-shuffling."""
+        b = encoded_visible.shape[0]
+        len_keep = encoded_visible.shape[1]
+        n = self.num_patches
+
+        # Append mask tokens to encoded visible tokens
+        mask_tokens = self.mask_token.repeat(b, n - len_keep, 1)
+        x_ = torch.cat([encoded_visible, mask_tokens], dim=1)
+
+        # Un-shuffle back to original 2D grid order using ids_restore
+        tokens = torch.gather(x_, dim=1, index=ids_restore.unsqueeze(-1).repeat(1, 1, self.embed_dim))
+        tokens = tokens + self.pos_embed
         decoded = self.decoder_transformer(tokens)
         pred_patches = self.pred_head(decoded)
         return pred_patches
@@ -251,8 +264,8 @@ class SimpleMAE(nn.Module):
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """Full MAE forward pass returning (loss, pred_patches, mask)."""
         patches = self.patchify(x)
-        z, _, mask, ids_restore = self.forward_encoder(x)
-        pred_patches = self.forward_decoder(z, ids_restore)
+        z, encoded_visible, mask, ids_restore = self.forward_encoder(x)
+        pred_patches = self.forward_decoder(encoded_visible, ids_restore)
         loss = masked_mse_loss(patches, pred_patches, mask)
         return loss, pred_patches, mask
 

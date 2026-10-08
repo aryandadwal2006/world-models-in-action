@@ -1,9 +1,11 @@
 """05_aliasing_diagnostic.py - Temporal aliasing diagnostic on DMC observations.
-
-Empirically tests Chapter 2's aliasing contract: single static frames carry sufficient
-information to linearly decode position variables, but lack velocity information.
-Stacking two consecutive frames provides the minimal temporal context required to recover
-velocity, resolving the representation bottleneck (Table 3.3).
+ 
+Empirically tests Chapter 2's aliasing hypothesis: does stacking two consecutive frames
+provide sufficient temporal context to linearly decode velocity?
+Under this experimental configuration (two immediately adjacent 64x64 frames with
+contrastive crop/jitter augmentation), linear probe results show that stacking did not
+substantially recover velocity (Table 3.3). This represents a measured negative result:
+frame adjacency alone under this contrastive objective is insufficient to linearly expose velocity.
 """
 
 from __future__ import annotations

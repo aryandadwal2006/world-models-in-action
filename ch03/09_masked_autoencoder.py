@@ -23,135 +23,8 @@ from torch.utils.data import DataLoader
 from worldmodels.data.dmc_data import DMCDataset, load_dataset_npz
 from worldmodels.eval.probes import evaluate_linear_probe
 from worldmodels.losses.reconstruction import masked_mse_loss
+from worldmodels.models.encoders import MAEEncoder, SimpleMAE
 from worldmodels.train import get_device, save_json, set_seed
-
-
-class SimpleMAE(nn.Module):
-    """Lightweight patch-based Masked Autoencoder for 64x64 sensory observations."""
-
-    def __init__(
-        self,
-        img_size: int = 64,
-        patch_size: int = 8,
-        in_channels: int = 3,
-        embed_dim: int = 64,
-        latent_dim: int = 16,
-        mask_ratio: float = 0.75,
-    ) -> None:
-        super().__init__()
-        self.img_size = img_size
-        self.patch_size = patch_size
-        self.in_channels = in_channels
-        self.embed_dim = embed_dim
-        self.latent_dim = latent_dim
-        self.mask_ratio = mask_ratio
-
-        self.num_patches = (img_size // patch_size) ** 2  # (64/8)^2 = 64
-        self.patch_dim = in_channels * patch_size * patch_size  # 3*8*8 = 192
-
-        # Patch projection and 1D learnable position embeddings
-        self.patch_embed = nn.Linear(self.patch_dim, embed_dim)
-        self.pos_embed = nn.Parameter(torch.randn(1, self.num_patches, embed_dim) * 0.02)
-
-        # Encoder backbone (2 Transformer encoder layers)
-        encoder_layer = nn.TransformerEncoderLayer(
-            d_model=embed_dim,
-            nhead=4,
-            dim_feedforward=embed_dim * 2,
-            batch_first=True,
-        )
-        self.encoder_transformer = nn.TransformerEncoder(encoder_layer, num_layers=2)
-
-        # Representation bottleneck: global average pool over visible tokens -> latent_dim
-        self.to_latent = nn.Linear(embed_dim, latent_dim)
-
-        # Decoder
-        self.decoder_proj = nn.Linear(latent_dim, embed_dim)
-        self.mask_token = nn.Parameter(torch.zeros(1, 1, embed_dim))
-        decoder_layer = nn.TransformerEncoderLayer(
-            d_model=embed_dim,
-            nhead=4,
-            dim_feedforward=embed_dim * 2,
-            batch_first=True,
-        )
-        self.decoder_transformer = nn.TransformerEncoder(decoder_layer, num_layers=1)
-        self.pred_head = nn.Linear(embed_dim, self.patch_dim)
-
-    def patchify(self, x: torch.Tensor) -> torch.Tensor:
-        """Converts (B, C, H, W) to (B, num_patches, patch_dim)."""
-        p = self.patch_size
-        b, c, h, w = x.shape
-        # (B, C, h//p, p, w//p, p) -> (B, (h//p)*(w//p), c*p*p)
-        x = x.reshape(b, c, h // p, p, w // p, p)
-        x = torch.einsum("bchpwq->bhwcpq", x)
-        patches = x.reshape(b, self.num_patches, self.patch_dim)
-        return patches
-
-    def unpatchify(self, patches: torch.Tensor) -> torch.Tensor:
-        """Converts (B, num_patches, patch_dim) back to (B, C, H, W)."""
-        p = self.patch_size
-        h = w = self.img_size // p
-        b = patches.shape[0]
-        x = patches.reshape(b, h, w, self.in_channels, p, p)
-        x = torch.einsum("bhwcpq->bchpwq", x)
-        imgs = x.reshape(b, self.in_channels, self.img_size, self.img_size)
-        return imgs
-
-    def forward_encoder(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
-        """Encodes visible patches, returning (z_latent, visible_tokens, mask, ids_restore)."""
-        patches = self.patchify(x)
-        tokens = self.patch_embed(patches) + self.pos_embed
-
-        b, n, d = tokens.shape
-        len_keep = int(n * (1.0 - self.mask_ratio))
-
-        # Random masking per sample
-        noise = torch.rand(b, n, device=x.device)
-        ids_shuffle = torch.argsort(noise, dim=1)
-        ids_restore = torch.argsort(ids_shuffle, dim=1)
-
-        ids_keep = ids_shuffle[:, :len_keep]
-        visible_tokens = torch.gather(tokens, dim=1, index=ids_keep.unsqueeze(-1).repeat(1, 1, d))
-
-        # Generate binary mask: 0 = visible, 1 = masked
-        mask = torch.ones(b, n, device=x.device)
-        mask[:, :len_keep] = 0.0
-        mask = torch.gather(mask, dim=1, index=ids_restore)
-
-        # Transformer encoder over visible tokens
-        encoded_visible = self.encoder_transformer(visible_tokens)
-        z = self.to_latent(encoded_visible.mean(dim=1))
-        return z, encoded_visible, mask, ids_restore
-
-    def forward_decoder(
-        self,
-        z: torch.Tensor,
-        ids_restore: torch.Tensor,
-    ) -> torch.Tensor:
-        """Reconstructs all patch tokens from latent code."""
-        b = z.shape[0]
-        # Re-expand latent code to all positions
-        rep_tokens = self.decoder_proj(z).unsqueeze(1).repeat(1, self.num_patches, 1)
-        tokens = rep_tokens + self.pos_embed
-        decoded = self.decoder_transformer(tokens)
-        pred_patches = self.pred_head(decoded)
-        return pred_patches
-
-    def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        """Full MAE forward pass returning (loss, pred_patches, mask)."""
-        patches = self.patchify(x)
-        z, _, mask, ids_restore = self.forward_encoder(x)
-        pred_patches = self.forward_decoder(z, ids_restore)
-        loss = masked_mse_loss(patches, pred_patches, mask)
-        return loss, pred_patches, mask
-
-    def encode(self, x: torch.Tensor) -> torch.Tensor:
-        """Inference encoder extracting latent code z without random masking."""
-        patches = self.patchify(x)
-        tokens = self.patch_embed(patches) + self.pos_embed
-        encoded = self.encoder_transformer(tokens)
-        z = self.to_latent(encoded.mean(dim=1))
-        return z
 
 
 def main() -> None:
@@ -218,15 +91,8 @@ def main() -> None:
             if epoch % 5 == 0 or epoch == args.epochs:
                 print(f"Seed {seed} | Epoch {epoch:02d}/{args.epochs:02d} | Masked MSE: {avg_loss:.5f}")
 
-        # Wrap encoder for linear probe
-        class _EncoderWrapper(nn.Module):
-            def __init__(self, mae: SimpleMAE):
-                super().__init__()
-                self.mae = mae
-            def forward(self, x: torch.Tensor) -> torch.Tensor:
-                return self.mae.encode(x)
-
-        probe_res = evaluate_linear_probe(_EncoderWrapper(model), train_loader, val_loader, device)
+        # Evaluate linear probe on frozen MAE latent representation
+        probe_res = evaluate_linear_probe(MAEEncoder(model), train_loader, val_loader, device)
         seed_probe_r2.append(probe_res["mean_r2"])
         print(f"Seed {seed} | MAE Linear Probe Mean R^2: {probe_res['mean_r2']:.4f}")
 

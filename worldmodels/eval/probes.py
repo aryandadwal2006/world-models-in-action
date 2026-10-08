@@ -15,13 +15,16 @@ import torch.nn as nn
 
 
 def compute_r2_score(y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
-    """Computes R^2 (coefficient of determination) score per column variable.
+    """Computes out-of-sample R^2 (coefficient of determination) score per column variable.
 
     Equation:
-        R^2_k = 1 - ( sum_i (y_{i, k} - \hat{y}_{i, k})^2 ) / ( sum_i (y_{i, k} - \bar{y}_k)^2 )
+        R^2_k = 1 - ( sum_i (y_{i, k} - \hat{y}_{i, k})^2 ) / ( sum_i (y_{i, k} - \bar{y}_{k, \text{eval}})^2 )
+
+    where \bar{y}_{k, \text{eval}} is the sample mean of y_true on the evaluation (e.g., validation) set.
+    When the predictor performs worse than predicting the evaluation-set mean, R^2 is negative.
 
     Args:
-        y_true: Ground truth target array of shape (N, K).
+        y_true: Ground truth target array of shape (N, K) from evaluation split.
         y_pred: Predicted target array of shape (N, K).
 
     Returns:
