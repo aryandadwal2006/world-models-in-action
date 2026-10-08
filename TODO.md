@@ -55,4 +55,4 @@ Based on *Chapter 3 Design — Representation Learning Before Generation (v3)*.
 - [x] Save all figures to `ch03/figures/` (B/W-safe, no color-only encoding)
 - [x] Save all machine-readable tables/results to `ch03/results/`
 - [x] Review discrepancies between design document and mathematical/experimental reality (`ch03/discrepancies_and_findings.md`)
-- [ ] Git commit and record commit hash
+- [x] Git commit and record commit hash (`b681bb8`)
