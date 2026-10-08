@@ -59,6 +59,12 @@ class TestEncoders(unittest.TestCase):
             state = enc.update(state, obs)
             self.assertEqual(state.shape, (1, recurrent_dim))
 
+    def test_mae_rejects_degenerate_mask_ratios(self):
+        with self.assertRaises(ValueError):
+            SimpleMAE(mask_ratio=0.0)
+        with self.assertRaises(ValueError):
+            SimpleMAE(mask_ratio=0.9999)
+
     def test_simple_mae_forward_and_reconstruction(self):
         mae = SimpleMAE(img_size=64, patch_size=8, latent_dim=self.latent_dim, mask_ratio=0.75)
         loss, pred_patches, mask = mae(self.x)
