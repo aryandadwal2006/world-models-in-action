@@ -139,8 +139,8 @@ def transform_state_targets_np(
 ) -> np.ndarray:
     """Transform raw state targets to linear-probe targets.
 
-    Ordinary variables remain unchanged. Each angular variable theta becomes
-    two targets: sin(theta), cos(theta).
+    Ordinary variables remain unchanged. An angle theta with period P becomes
+    sin(2*pi*theta/P), cos(2*pi*theta/P).
     """
     states = np.asarray(
         states,
@@ -245,7 +245,7 @@ def _decode_transformed_state_targets(
     angular_position_indices: Sequence[int],
     angular_position_periods: Optional[Dict[int, float]] = None,
 ) -> np.ndarray:
-    """Decode sin/cos target pairs back into canonical angles."""
+    """Decode sin/cos target pairs to a representative angle in each period."""
     transformed = np.asarray(
         transformed,
         dtype=np.float64,
@@ -378,13 +378,9 @@ def circular_r2_score(
 ) -> float:
     """Compute an R2-like score using squared chordal distance.
 
-    For angles theta:
-
-        d^2(theta_a, theta_b)
-            = 2 - 2 cos(theta_a - theta_b)
-
-    The baseline prediction is the circular-mean direction. The score is
-    invariant to adding any multiple of 2*pi to either angle.
+    For an angle with period P, compare phases 2*pi*theta/P using squared
+    chordal distance. The baseline prediction is the circular-mean direction.
+    The score is invariant to adding any integer multiple of P to either angle.
     """
     true = np.asarray(
         y_true,
