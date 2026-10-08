@@ -136,11 +136,21 @@ def barlow_twins_loss(
     Returns:
         Scalar Barlow Twins loss.
     """
+    if z1.ndim != 2 or z2.ndim != 2 or z1.shape != z2.shape:
+        raise ValueError("z1 and z2 must have the same shape (N, D)")
+    if z1.shape[0] < 2:
+        raise ValueError("Barlow Twins requires batch_size >= 2")
+    if lambd < 0:
+        raise ValueError("lambd must be non-negative")
+
     batch_size, dim = z1.shape
 
-    # Normalize along batch dimension: zero mean and unit variance
-    z1_norm = (z1 - z1.mean(dim=0)) / (z1.std(dim=0) + 1e-6)
-    z2_norm = (z2 - z2.mean(dim=0)) / (z2.std(dim=0) + 1e-6)
+    # Use population standard deviation so that the normalized diagonal
+    # correlation is 1 when the two views are identical.
+    std1 = z1.std(dim=0, unbiased=False).clamp_min(1e-6)
+    std2 = z2.std(dim=0, unbiased=False).clamp_min(1e-6)
+    z1_norm = (z1 - z1.mean(dim=0)) / std1
+    z2_norm = (z2 - z2.mean(dim=0)) / std2
 
     # Cross-correlation matrix C of shape (D, D)
     cross_corr = torch.matmul(z1_norm.T, z2_norm) / batch_size
