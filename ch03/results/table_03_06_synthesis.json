@@ -1,0 +1,34 @@
+{
+  "table": [
+    {
+      "objective": "Pretext (Rotation, Jigsaw)",
+      "paid_to_keep": "Geometric orientation / patch arrangement",
+      "may_discard": "Continuous state variables (velocities, fine pose)",
+      "invited_failure": "Nuisance alignment, shortcut learning"
+    },
+    {
+      "objective": "Contrastive (NT-Xent)",
+      "paid_to_keep": "View-invariant structures preserved across crops",
+      "may_discard": "High-frequency texture, absolute crop coordinates",
+      "invited_failure": "Aggressive crop aliasing, false negatives on video"
+    },
+    {
+      "objective": "Non-Contrastive (VICReg, SimSiam)",
+      "paid_to_keep": "Decorrelated dimensions with non-zero variance",
+      "may_discard": "Dimension redundancy, scale variance",
+      "invited_failure": "Weight collapse if variance hinge or stopgrad fails"
+    },
+    {
+      "objective": "Masked Autoencoding (MAE)",
+      "paid_to_keep": "Spatial redundancy required to restore masked patches",
+      "may_discard": "Abstract semantic boundaries (preserves pixel detail)",
+      "invited_failure": "Capacity wasted reconstructing predictable background"
+    },
+    {
+      "objective": "Temporal Contrastive (CPC)",
+      "paid_to_keep": "Slowly varying predictive latent dynamics",
+      "may_discard": "Unpredictable noise innovations",
+      "invited_failure": "Action-unconditioned stochastic ceiling"
+    }
+  ]
+}

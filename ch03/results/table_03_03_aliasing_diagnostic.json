@@ -1,0 +1,37 @@
+{
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "results": [
+    {
+      "variable": "cart_position",
+      "single_frame_mean": 0.13161182403564453,
+      "single_frame_std": 0.03969484161388392,
+      "stacked_frame_mean": 0.2638235290845235,
+      "stacked_frame_std": 0.04474885901584642
+    },
+    {
+      "variable": "pole_angle",
+      "single_frame_mean": -0.9418755372365316,
+      "single_frame_std": 0.06473735287160343,
+      "stacked_frame_mean": -0.8519336382548014,
+      "stacked_frame_std": 0.07881256427302331
+    },
+    {
+      "variable": "cart_velocity",
+      "single_frame_mean": 0.04895251989364624,
+      "single_frame_std": 0.004015365797026622,
+      "stacked_frame_mean": 0.040689567724863686,
+      "stacked_frame_std": 0.06042627268887201
+    },
+    {
+      "variable": "pole_angular_velocity",
+      "single_frame_mean": -3.1786778767903647,
+      "single_frame_std": 0.6903125510666857,
+      "stacked_frame_mean": -3.6613109906514487,
+      "stacked_frame_std": 0.04518920412244595
+    }
+  ]
+}

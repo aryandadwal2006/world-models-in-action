@@ -1,0 +1,20 @@
+{
+  "SimSiam (Stop-Gradient)": {
+    "r2_mean": -1.382745623588562,
+    "r2_std": 0.1872978867964093,
+    "latent_std_mean": 13.536384939526519,
+    "latent_std_std": 19.095954555144054
+  },
+  "BYOL (EMA Target)": {
+    "r2_mean": -1.2381882667541504,
+    "r2_std": 0.06620551088784427,
+    "latent_std_mean": 1.4379393188282847,
+    "latent_std_std": 2.020021135634347
+  },
+  "Barlow Twins (Cross-Corr)": {
+    "r2_mean": -1.281097372372945,
+    "r2_std": 0.008990691454716518,
+    "latent_std_mean": 0.14198032766580582,
+    "latent_std_std": 0.0664712392819763
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "batch_size": 8,
+  "dim": 16,
+  "temperature": 0.5,
+  "unrolled_loss": 2.593191385269165,
+  "vectorized_loss": 2.593191623687744,
+  "discrepancy": 2.384185791015625e-07,
+  "k_negatives": 14,
+  "log_k_plus_1": 2.70805020110221,
+  "mi_lower_bound": 0.11485857741446592
+}
