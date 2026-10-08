@@ -36,21 +36,61 @@ CANONICAL_ANGULAR_POSITION_INDICES = {
     18: tuple(range(2, 9)),
 }
 
+# Periods are properties of the rendered state variables, not merely of MuJoCo
+# joint types. The finger spinner has two identical, opposite caps and hidden
+# tip markers, so its rendered geometry is invariant under theta -> theta + pi.
+CANONICAL_ANGULAR_POSITION_PERIODS = {
+    4: {1: 2.0 * np.pi},
+    6: {2: np.pi},
+    18: {index: 2.0 * np.pi for index in range(2, 9)},
+}
+
 
 def infer_angular_position_indices(
     state_dim: int,
 ) -> Tuple[int, ...]:
     """Return canonical angular-position indices for Chapter 3 tasks."""
     try:
-        return tuple(
-            CANONICAL_ANGULAR_POSITION_INDICES[state_dim]
-        )
+        return tuple(CANONICAL_ANGULAR_POSITION_INDICES[state_dim])
     except KeyError as exc:
         raise ValueError(
             f"No canonical angular-position mapping exists for "
             f"state_dim={state_dim}; pass "
             "angular_position_indices explicitly"
         ) from exc
+
+
+def infer_angular_position_periods(
+    state_dim: int,
+) -> Dict[int, float]:
+    """Return the rendered angular period for each canonical angle."""
+    try:
+        return dict(CANONICAL_ANGULAR_POSITION_PERIODS[state_dim])
+    except KeyError as exc:
+        raise ValueError(
+            f"No canonical angular-period mapping exists for "
+            f"state_dim={state_dim}"
+        ) from exc
+
+
+def _normalize_angular_periods(
+    indices: Sequence[int],
+    angular_position_periods: Optional[Dict[int, float]] = None,
+    defaults: Optional[Dict[int, float]] = None,
+) -> Dict[int, float]:
+    """Validate periods and supply 2*pi for unspecified angles."""
+    supplied = {
+        int(index): float(period)
+        for index, period in (angular_position_periods or {}).items()
+    }
+    defaults = defaults or {}
+    result = {}
+    for index in indices:
+        period = supplied.get(index, defaults.get(index, 2.0 * np.pi))
+        if not np.isfinite(period) or period <= 0.0:
+            raise ValueError("Every angular period must be finite and positive")
+        result[index] = period
+    return result
 
 
 def _validate_angular_indices(
@@ -95,6 +135,7 @@ def expanded_state_dim(
 def transform_state_targets_np(
     states: np.ndarray,
     angular_position_indices: Sequence[int],
+    angular_position_periods: Optional[Dict[int, float]] = None,
 ) -> np.ndarray:
     """Transform raw state targets to linear-probe targets.
 
@@ -116,18 +157,27 @@ def transform_state_targets_np(
         angular_position_indices,
     )
 
+    try:
+        canonical_periods = infer_angular_position_periods(states.shape[1])
+    except ValueError:
+        canonical_periods = {}
+    periods = _normalize_angular_periods(
+        indices,
+        angular_position_periods,
+        canonical_periods,
+    )
     angular_set = set(indices)
     columns = []
 
     for index in range(states.shape[1]):
         if index in angular_set:
-            theta = states[:, index]
+            phase = (2.0 * np.pi / periods[index]) * states[:, index]
 
             columns.append(
-                np.sin(theta)[:, None]
+                np.sin(phase)[:, None]
             )
             columns.append(
-                np.cos(theta)[:, None]
+                np.cos(phase)[:, None]
             )
         else:
             columns.append(
@@ -143,6 +193,7 @@ def transform_state_targets_np(
 def transform_state_targets_torch(
     states: torch.Tensor,
     angular_position_indices: Sequence[int],
+    angular_position_periods: Optional[Dict[int, float]] = None,
 ) -> torch.Tensor:
     """Torch equivalent of ``transform_state_targets_np``."""
     if states.ndim != 2:
@@ -155,18 +206,27 @@ def transform_state_targets_torch(
         angular_position_indices,
     )
 
+    try:
+        canonical_periods = infer_angular_position_periods(states.shape[1])
+    except ValueError:
+        canonical_periods = {}
+    periods = _normalize_angular_periods(
+        indices,
+        angular_position_periods,
+        canonical_periods,
+    )
     angular_set = set(indices)
     columns = []
 
     for index in range(states.shape[1]):
         if index in angular_set:
-            theta = states[:, index : index + 1]
+            phase = (2.0 * np.pi / periods[index]) * states[:, index : index + 1]
 
             columns.append(
-                torch.sin(theta)
+                torch.sin(phase)
             )
             columns.append(
-                torch.cos(theta)
+                torch.cos(phase)
             )
         else:
             columns.append(
@@ -183,6 +243,7 @@ def _decode_transformed_state_targets(
     transformed: np.ndarray,
     state_dim: int,
     angular_position_indices: Sequence[int],
+    angular_position_periods: Optional[Dict[int, float]] = None,
 ) -> np.ndarray:
     """Decode sin/cos target pairs back into canonical angles."""
     transformed = np.asarray(
@@ -211,6 +272,15 @@ def _decode_transformed_state_targets(
             f"{expected_dim}, got {transformed.shape[1]}"
         )
 
+    try:
+        canonical_periods = infer_angular_position_periods(state_dim)
+    except ValueError:
+        canonical_periods = {}
+    periods = _normalize_angular_periods(
+        indices,
+        angular_position_periods,
+        canonical_periods,
+    )
     angular_set = set(indices)
 
     output = np.empty(
@@ -225,9 +295,10 @@ def _decode_transformed_state_targets(
             sin_theta = transformed[:, cursor]
             cos_theta = transformed[:, cursor + 1]
 
-            output[:, index] = np.arctan2(
-                sin_theta,
-                cos_theta,
+            output[:, index] = (
+                np.arctan2(sin_theta, cos_theta)
+                * periods[index]
+                / (2.0 * np.pi)
             )
 
             cursor += 2
@@ -303,6 +374,7 @@ def compute_r2_score(
 def circular_r2_score(
     y_true: np.ndarray,
     y_pred: np.ndarray,
+    period: float = 2.0 * np.pi,
 ) -> float:
     """Compute an R2-like score using squared chordal distance.
 
@@ -334,17 +406,23 @@ def circular_r2_score(
             "Angular targets cannot be empty"
         )
 
+    if not np.isfinite(period) or period <= 0.0:
+        raise ValueError("period must be finite and positive")
+
+    scale = 2.0 * np.pi / period
+    true_phase = scale * true
+    pred_phase = scale * pred
     resultant = np.mean(
         np.column_stack(
             [
-                np.sin(true),
-                np.cos(true),
+                np.sin(true_phase),
+                np.cos(true_phase),
             ]
         ),
         axis=0,
     )
 
-    mean_angle = float(
+    mean_phase = float(
         np.arctan2(
             resultant[0],
             resultant[1],
@@ -354,14 +432,14 @@ def circular_r2_score(
     numerator = float(
         np.sum(
             2.0
-            - 2.0 * np.cos(pred - true)
+            - 2.0 * np.cos(pred_phase - true_phase)
         )
     )
 
     denominator = float(
         np.sum(
             2.0
-            - 2.0 * np.cos(true - mean_angle)
+            - 2.0 * np.cos(true_phase - mean_phase)
         )
     )
 
@@ -379,6 +457,7 @@ def compute_structured_r2_score(
     y_true: np.ndarray,
     y_pred: np.ndarray,
     angular_position_indices: Sequence[int],
+    angular_position_periods: Optional[Dict[int, float]] = None,
 ) -> np.ndarray:
     """Compute one R2 score per original physical-state variable.
 
@@ -409,6 +488,15 @@ def compute_structured_r2_score(
         angular_position_indices,
     )
 
+    try:
+        canonical_periods = infer_angular_position_periods(y_true.shape[1])
+    except ValueError:
+        canonical_periods = {}
+    periods = _normalize_angular_periods(
+        indices,
+        angular_position_periods,
+        canonical_periods,
+    )
     angular_set = set(indices)
 
     result = np.empty(
@@ -434,6 +522,7 @@ def compute_structured_r2_score(
         result[index] = circular_r2_score(
             y_true[:, index],
             y_pred[:, index],
+            period=periods[index],
         )
 
     return result
@@ -655,15 +744,19 @@ class StateLinearProbe:
     def __init__(
         self,
         alpha: float = 1e-3,
-        angular_position_indices: Optional[
-            Sequence[int]
-        ] = None,
+        angular_position_indices: Optional[Sequence[int]] = None,
+        angular_position_periods: Optional[Dict[int, float]] = None,
     ) -> None:
         self.alpha = float(alpha)
 
         self.angular_position_indices = (
             tuple(angular_position_indices)
             if angular_position_indices is not None
+            else None
+        )
+        self.angular_position_periods = (
+            {int(k): float(v) for k, v in angular_position_periods.items()}
+            if angular_position_periods is not None
             else None
         )
 
@@ -687,6 +780,19 @@ class StateLinearProbe:
             self.angular_position_indices,
         )
 
+    def _periods(self, state_dim: int) -> Dict[int, float]:
+        indices = self._indices(state_dim)
+        if self.angular_position_periods is not None:
+            return _normalize_angular_periods(
+                indices,
+                self.angular_position_periods,
+            )
+        try:
+            defaults = infer_angular_position_periods(state_dim)
+        except ValueError:
+            defaults = {}
+        return _normalize_angular_periods(indices, defaults=defaults)
+
     def fit(
         self,
         x: np.ndarray,
@@ -708,11 +814,11 @@ class StateLinearProbe:
             self.state_dim
         )
 
-        y_transformed = (
-            transform_state_targets_np(
-                y,
-                indices,
-            )
+        periods = self._periods(self.state_dim)
+        y_transformed = transform_state_targets_np(
+            y,
+            indices,
+            angular_position_periods=periods,
         )
 
         self.probe.fit(
@@ -743,6 +849,7 @@ class StateLinearProbe:
             transformed,
             self.state_dim,
             indices,
+            angular_position_periods=self._periods(self.state_dim),
         )
 
     def score(
@@ -766,9 +873,8 @@ class StateLinearProbe:
             compute_structured_r2_score(
                 y,
                 y_pred,
-                self._indices(
-                    self.state_dim
-                ),
+                self._indices(self.state_dim),
+                angular_position_periods=self._periods(self.state_dim),
             )
         )
 
@@ -892,9 +998,11 @@ def evaluate_linear_probe(
             "angular_position_encoding": "sin_cos",
             "angular_r2": "circular_chordal",
             "angular_position_indices": list(
-                probe._indices(
-                    probe.state_dim
-                )
+                probe._indices(probe.state_dim)
             ),
+            "angular_position_periods": {
+                str(index): float(period)
+                for index, period in probe._periods(probe.state_dim).items()
+            },
         },
     }
