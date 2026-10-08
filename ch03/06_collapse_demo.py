@@ -80,7 +80,7 @@ def run_experiment(
             loss.backward()
             optimizer.step()
 
-        # Measure per-dimension standard deviation across validation / evaluation set
+        # Measure per-dimension standard deviation across the training sample pool.
         encoder.eval()
         all_z = []
         with torch.no_grad():
