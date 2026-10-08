@@ -204,7 +204,7 @@ Notation: each subsection lists **Goal** · **Beats** · **Equations** · **List
 Unchanged in every load-bearing respect — collapse is data-agnostic, and that is worth one sentence in the text: the trivial minimum exists for any joint-embedding objective on any data, which is why this section's experiments are the book's cheapest.
 **3.4.1 Demonstrating collapse.** Remove negatives, keep the attraction term, watch latents converge to a point while the loss hits zero (3 seeds, cartpole frames). Figure 3.9: per-dimension latent std over training, with vs. without negatives.
 **3.4.2 Three mechanisms in brief.** SimSiam (3.9, 3.10); BYOL EMA (3.11); Barlow Twins (3.12, 3.13). One mechanism + one equation + one paragraph each.
-**3.4.3 VICReg.** Deep treatment unchanged: variance hinge with named ε floor (3.14), invariance (3.15), covariance (3.16), total (3.17). Run `08_vicreg.py`; confirm the probe table matches 3.3's contrastive result within seed noise.
+**3.4.3 VICReg.** Deep treatment unchanged: variance hinge with named ε floor (3.14), invariance (3.15), covariance (3.16), total (3.17). Run `08_vicreg.py` as a standalone illustration of the three forces. Do not claim it should match Table 3.3 within seed noise: it uses a different training budget and sample cap, while Table 3.4 separately compares method families under a matched budget.
 **Figures:** 3.9 collapse curves · 3.10 Siamese family pipelines (redrawn, **credit: adapted from Gui et al.**) · 3.11 VICReg's three forces (original).
 **Tables:** 3.1 family comparison (rebuilt from the survey, **credit line**).
 **Callouts:** SIDEBAR "Is stop-gradient enough?" · WARNING: symmetric losses double compute.
