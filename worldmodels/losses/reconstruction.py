@@ -36,7 +36,8 @@ def masked_mse_loss(
     # Average loss over all masked patches
     mask_bool = mask.bool()
     if mask_bool.sum() == 0:
-        return torch.tensor(0.0, device=target_patches.device)
+        # Preserve a valid zero-gradient graph for direct callers.
+        return predicted_patches.sum() * 0.0
 
     loss = per_patch_loss[mask_bool].mean()
     return loss
