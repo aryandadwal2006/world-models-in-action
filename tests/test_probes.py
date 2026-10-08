@@ -12,6 +12,7 @@ from worldmodels.eval.probes import (
     compute_structured_r2_score,
     expanded_state_dim,
     infer_angular_position_indices,
+    infer_angular_position_periods,
     transform_state_targets_np,
 )
 
@@ -204,6 +205,32 @@ class TestProbes(unittest.TestCase):
             ),
             tuple(range(2, 9)),
         )
+
+    def test_finger_spinner_uses_pi_period(self):
+        periods = infer_angular_position_periods(6)
+        self.assertAlmostEqual(periods[2], np.pi)
+        self.assertAlmostEqual(
+            infer_angular_position_periods(4)[1],
+            2.0 * np.pi,
+        )
+
+    def test_pi_periodic_probe_decodes_rendered_orientation(self):
+        rng = np.random.default_rng(2026)
+        theta = rng.uniform(-np.pi, np.pi, size=500)
+        # The rendered spinner is symmetric under theta -> theta + pi.
+        x = np.column_stack([
+            np.sin(2.0 * theta),
+            np.cos(2.0 * theta),
+            rng.normal(size=len(theta)),
+        ])
+        y = theta[:, None]
+        probe = StateLinearProbe(
+            alpha=1e-8,
+            angular_position_indices=[0],
+            angular_position_periods={0: np.pi},
+        ).fit(x[:350], y[:350])
+        r2, _ = probe.score(x[350:], y[350:])
+        self.assertGreater(r2[0], 0.99)
 
     def test_sin_cos_expansion(self):
         states = np.array(
