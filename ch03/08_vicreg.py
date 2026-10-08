@@ -4,7 +4,7 @@ Trains ConvEncoder on DMC cartpole_balance frames using the three explicit non-c
 1. Invariance: Mean squared distance between positive views (Eq 3.15)
 2. Variance: Hinge loss maintaining feature variance above gamma (Eq 3.14)
 3. Covariance: Decorrelation penalty on off-diagonal feature covariance (Eq 3.16)
-Evaluates linear probe performance and logs metrics for Table 3.4.
+Runs the standalone VICReg experiment and records its own probe metrics. Table 3.4 uses a separate matched-budget comparison.
 """
 
 from __future__ import annotations
