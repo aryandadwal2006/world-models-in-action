@@ -5,7 +5,8 @@ Latent representations and predicted latents are L2-normalized. State probes
 use standardized features and circular evaluation for angular positions.
 
 The evaluation distinguishes current-state decoding, next-state prediction,
-and prediction through a real unobserved interval.
+and prediction through a real unobserved interval. Angular metrics respect the
+period of each rendered state variable.
 """
 
 from __future__ import annotations
@@ -408,7 +409,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument(
         "--gap-sequences",
         type=int,
-        default=128,
+        default=32,
         help="Maximum number of evenly spaced validation windows for gap scoring.",
     )
     p.add_argument(
