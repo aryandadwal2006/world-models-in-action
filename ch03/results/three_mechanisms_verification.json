@@ -13,8 +13,8 @@
   },
   "methods": {
     "SimSiam (Stop-Gradient)": {
-      "mean_r2": -1.2480682225440025,
-      "std_r2": 0.07801601214345012,
+      "mean_r2": -0.0002082536170710525,
+      "std_r2": 0.018695301104182008,
       "mean_effective_rank": 1.0237918168538842,
       "std_effective_rank": 0.011739512090871485,
       "mean_latent_std": 4.646208512907227,
@@ -22,42 +22,69 @@
       "seed_results": [
         {
           "r2_per_variable": [
-            0.6217750381982378,
-            -4.376480619053347,
-            -0.21697873912476218,
-            -0.6440114124085083
+            0.6075892368863245,
+            0.45323391621692155,
+            -0.27481231855229904,
+            -0.7210787227270699
           ],
-          "mean_r2": -1.153923933097095,
+          "mean_r2": 0.016233027955969315,
+          "probe": {
+            "type": "StateLinearProbe",
+            "feature_standardization": true,
+            "angular_position_encoding": "sin_cos",
+            "angular_r2": "circular_chordal",
+            "angular_position_indices": [
+              1
+            ]
+          },
           "effective_rank": 1.0377414768178388,
           "latent_std": 0.02941962517797947
         },
         {
           "r2_per_variable": [
-            0.587092018480412,
-            -4.786015026754967,
-            -0.3249118540883824,
-            -0.8560208333991066
+            0.5953424271538943,
+            0.46269440367146264,
+            -0.3230971115381054,
+            -0.8403808427263555
           ],
-          "mean_r2": -1.3449639239405111,
+          "mean_r2": -0.026360280859775986,
+          "probe": {
+            "type": "StateLinearProbe",
+            "feature_standardization": true,
+            "angular_position_encoding": "sin_cos",
+            "angular_r2": "circular_chordal",
+            "angular_position_indices": [
+              1
+            ]
+          },
           "effective_rank": 1.0246131049036655,
           "latent_std": 5.142940044403076
         },
         {
           "r2_per_variable": [
-            0.6203807416424718,
-            -4.477515145698256,
-            -0.2823885886413535,
-            -0.8417442496804686
+            0.6365382615826154,
+            0.5052738058627505,
+            -0.2652005358155989,
+            -0.8386015634193931
           ],
-          "mean_r2": -1.2453168105944015,
+          "mean_r2": 0.009502492052593514,
+          "probe": {
+            "type": "StateLinearProbe",
+            "feature_standardization": true,
+            "angular_position_encoding": "sin_cos",
+            "angular_r2": "circular_chordal",
+            "angular_position_indices": [
+              1
+            ]
+          },
           "effective_rank": 1.0090208688401485,
           "latent_std": 8.766265869140625
         }
       ]
     },
     "BYOL (EMA Target)": {
-      "mean_r2": -1.1532533467796335,
-      "std_r2": 0.11457416680653566,
+      "mean_r2": -0.05301132796695985,
+      "std_r2": 0.024211471318670016,
       "mean_effective_rank": 1.0557189522744224,
       "std_effective_rank": 0.020395996855858616,
       "mean_latent_std": 2.045805429418882,
@@ -65,42 +92,69 @@
       "seed_results": [
         {
           "r2_per_variable": [
-            0.4648426626212727,
-            -4.1616090739225795,
-            -0.21778436121179334,
-            -0.6754327062736258
+            0.455751331765209,
+            0.21165362096576068,
+            -0.28080710220963745,
+            -0.7299336571813766
           ],
-          "mean_r2": -1.1474958696966815,
+          "mean_r2": -0.0858339516650111,
+          "probe": {
+            "type": "StateLinearProbe",
+            "feature_standardization": true,
+            "angular_position_encoding": "sin_cos",
+            "angular_r2": "circular_chordal",
+            "angular_position_indices": [
+              1
+            ]
+          },
           "effective_rank": 1.0291103898835738,
           "latent_std": 0.036185555160045624
         },
         {
           "r2_per_variable": [
-            0.5805833698457114,
-            -4.585767757028416,
-            -0.3224633670686361,
-            -0.8578226252844265
+            0.5853275350756817,
+            0.4794991698651867,
+            -0.32051439863403797,
+            -0.8569367475442251
           ],
-          "mean_r2": -1.2963675948839417,
+          "mean_r2": -0.02815611030934867,
+          "probe": {
+            "type": "StateLinearProbe",
+            "feature_standardization": true,
+            "angular_position_encoding": "sin_cos",
+            "angular_r2": "circular_chordal",
+            "angular_position_indices": [
+              1
+            ]
+          },
           "effective_rank": 1.0786660202680463,
           "latent_std": 6.092276573181152
         },
         {
           "r2_per_variable": [
-            0.3806889334271297,
-            -3.853206602421608,
-            -0.07730241583674613,
-            -0.5137662182018838
+            0.35699113897759926,
+            0.24818635852054127,
+            -0.11575161647085785,
+            -0.6696015687333619
           ],
-          "mean_r2": -1.015896575758277,
+          "mean_r2": -0.04504392192651979,
+          "probe": {
+            "type": "StateLinearProbe",
+            "feature_standardization": true,
+            "angular_position_encoding": "sin_cos",
+            "angular_r2": "circular_chordal",
+            "angular_position_indices": [
+              1
+            ]
+          },
           "effective_rank": 1.059380446671647,
           "latent_std": 0.008954159915447235
         }
       ]
     },
     "Barlow Twins (Cross-Corr)": {
-      "mean_r2": -1.2637538294945154,
-      "std_r2": 0.04476378053875052,
+      "mean_r2": -0.014738498878169951,
+      "std_r2": 0.015245212970321888,
       "mean_effective_rank": 5.759664617399974,
       "std_effective_rank": 0.7762892471387972,
       "mean_latent_std": 0.1553084229429563,
@@ -108,34 +162,61 @@
       "seed_results": [
         {
           "r2_per_variable": [
-            0.72578803031476,
-            -4.691843315748313,
-            -0.3796500711593438,
-            -0.9620673529813935
+            0.7257116060910647,
+            0.5492039973482306,
+            -0.38044672948923774,
+            -0.9631494081273422
           ],
-          "mean_r2": -1.3269431773935727,
+          "mean_r2": -0.017170133544321176,
+          "probe": {
+            "type": "StateLinearProbe",
+            "feature_standardization": true,
+            "angular_position_encoding": "sin_cos",
+            "angular_r2": "circular_chordal",
+            "angular_position_indices": [
+              1
+            ]
+          },
           "effective_rank": 5.149646978099253,
           "latent_std": 0.15362635254859924
         },
         {
           "r2_per_variable": [
-            0.7341445857539577,
-            -4.392607072586811,
-            -0.42651855831509145,
-            -0.8303747299198316
+            0.7340049262857328,
+            0.5433993646949627,
+            -0.426790619505818,
+            -0.8304949489411204
           ],
-          "mean_r2": -1.2288389437669442,
+          "mean_r2": 0.005029680633439282,
+          "probe": {
+            "type": "StateLinearProbe",
+            "feature_standardization": true,
+            "angular_position_encoding": "sin_cos",
+            "angular_r2": "circular_chordal",
+            "angular_position_indices": [
+              1
+            ]
+          },
           "effective_rank": 5.274201203103144,
           "latent_std": 0.2723507881164551
         },
         {
           "r2_per_variable": [
-            0.713124778599058,
-            -4.35126117384973,
-            -0.4671002307899965,
-            -0.8366808432514474
+            0.703167311375906,
+            0.5044701415217334,
+            -0.49192688465431056,
+            -0.8440107431378407
           ],
-          "mean_r2": -1.235479367323029,
+          "mean_r2": -0.03207504372362796,
+          "probe": {
+            "type": "StateLinearProbe",
+            "feature_standardization": true,
+            "angular_position_encoding": "sin_cos",
+            "angular_r2": "circular_chordal",
+            "angular_position_indices": [
+              1
+            ]
+          },
           "effective_rank": 6.855145670997525,
           "latent_std": 0.039948128163814545
         }

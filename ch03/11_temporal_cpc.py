@@ -1,11 +1,8 @@
-"""11_temporal_cpc.py - Temporal CPC and honest missing-observation tests.
+"""Temporal CPC and missing-observation tests for Chapter 3.
 
 The CPC objective uses a causal GRU context and bilinear InfoNCE compatibility.
-Latent embeddings are L2-normalized so compatibility scores are bounded.
-
-An explicit one-step latent predictor is trained separately with MSE. Its output
-is also normalized before being fed back during recursive rollout, preventing
-the learned latent dynamics from numerically exploding.
+Latent representations and predicted latents are L2-normalized. State probes
+use standardized features and circular evaluation for angular positions.
 
 The evaluation distinguishes current-state decoding, next-state prediction,
 and prediction through a real unobserved interval.
@@ -17,7 +14,15 @@ import argparse
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+sys.path.insert(
+    0,
+    os.path.abspath(
+        os.path.join(
+            os.path.dirname(__file__),
+            "..",
+        )
+    ),
+)
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -27,12 +32,19 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset
 
 from worldmodels.data.dmc_data import load_dataset_npz
-from worldmodels.eval.probes import LinearProbe, compute_r2_score
+from worldmodels.eval.probes import (
+    StateLinearProbe,
+    compute_structured_r2_score,
+    infer_angular_position_indices,
+)
 from worldmodels.models.encoders import ConvEncoder
-from worldmodels.train import get_device, save_json, set_seed
+from worldmodels.train import (
+    get_device,
+    save_json,
+    set_seed,
+)
 
-
-EXPERIMENT_VERSION = 2
+EXPERIMENT_VERSION = 3
 
 
 class SequenceDataset(Dataset):
@@ -46,7 +58,9 @@ class SequenceDataset(Dataset):
         seq_len: int,
     ):
         if seq_len < 2:
-            raise ValueError("seq_len must be >= 2")
+            raise ValueError(
+                "seq_len must be >= 2"
+            )
 
         if not (
             len(frames)
@@ -54,7 +68,7 @@ class SequenceDataset(Dataset):
             == len(episode_ids)
         ):
             raise ValueError(
-                "frames, physics_states, and episode_ids "
+                "frames, states, and episode_ids "
                 "must have equal lengths"
             )
 
@@ -65,21 +79,33 @@ class SequenceDataset(Dataset):
 
         self.valid_indices = []
 
-        for start in range(0, len(frames) - seq_len + 1):
-            window = episode_ids[start : start + seq_len]
+        for start in range(
+            len(frames) - seq_len + 1
+        ):
+            window = episode_ids[
+                start : start + seq_len
+            ]
 
-            if np.all(window == window[0]):
-                self.valid_indices.append(start)
+            if np.all(
+                window == window[0]
+            ):
+                self.valid_indices.append(
+                    start
+                )
 
     def __len__(self):
-        return len(self.valid_indices)
+        return len(
+            self.valid_indices
+        )
 
     def __getitem__(self, index):
         start = self.valid_indices[index]
         end = start + self.seq_len
 
         images = (
-            torch.from_numpy(self.frames[start:end])
+            torch.from_numpy(
+                self.frames[start:end]
+            )
             .permute(0, 3, 1, 2)
             .float()
             / 255.0
@@ -96,18 +122,7 @@ class SequenceDataset(Dataset):
 
 
 class TemporalCPC(nn.Module):
-    """Causal GRU CPC model with numerically bounded latent dynamics.
-
-    The encoder output is L2-normalized. Consequently:
-
-        ||z_t||_2 = 1
-
-    for every latent representation.
-
-    The explicit predictor also returns a unit-normalized vector. This makes
-    recursive rollout stable because the GRU never receives an unbounded latent
-    magnitude merely because the predictor is iterated several times.
-    """
+    """Causal GRU CPC model with normalized latent prediction."""
 
     def __init__(
         self,
@@ -119,17 +134,20 @@ class TemporalCPC(nn.Module):
     ):
         super().__init__()
 
-        if latent_dim <= 0:
-            raise ValueError("latent_dim must be positive")
-
-        if context_dim <= 0:
-            raise ValueError("context_dim must be positive")
-
-        if k_steps <= 0:
-            raise ValueError("k_steps must be positive")
+        if min(
+            latent_dim,
+            context_dim,
+            k_steps,
+        ) <= 0:
+            raise ValueError(
+                "latent_dim, context_dim, and "
+                "k_steps must be positive"
+            )
 
         if temperature <= 0:
-            raise ValueError("temperature must be positive")
+            raise ValueError(
+                "temperature must be positive"
+            )
 
         self.encoder = encoder
         self.latent_dim = latent_dim
@@ -146,7 +164,10 @@ class TemporalCPC(nn.Module):
         self.w_k = nn.ParameterList(
             [
                 nn.Parameter(
-                    torch.randn(latent_dim, context_dim)
+                    torch.randn(
+                        latent_dim,
+                        context_dim,
+                    )
                     * 0.05
                 )
                 for _ in range(k_steps)
@@ -158,11 +179,14 @@ class TemporalCPC(nn.Module):
             latent_dim,
         )
 
-    def encode_sequence(self, x_seq):
-        """Encode a sequence into unit-normalized latent embeddings."""
+    def encode_sequence(
+        self,
+        x_seq,
+    ):
         if x_seq.ndim != 5:
             raise ValueError(
-                "Expected input shaped (B, T, C, H, W)"
+                "Expected input shaped "
+                "(B, T, C, H, W)"
             )
 
         b, t, c, h, w = x_seq.shape
@@ -189,22 +213,29 @@ class TemporalCPC(nn.Module):
             eps=1e-8,
         )
 
-    def predict_next_latent(self, c_t):
-        """Predict a unit-normalized next latent from GRU context."""
-        z_pred = self.predictor(c_t)
-
+    def predict_next_latent(
+        self,
+        c_t,
+    ):
+        """Predict a unit-normalized next latent."""
         return F.normalize(
-            z_pred,
+            self.predictor(c_t),
             p=2,
             dim=-1,
             eps=1e-8,
         )
 
-    def forward(self, x_seq):
-        """Compute CPC InfoNCE plus explicit one-step prediction loss."""
-        z_seq = self.encode_sequence(x_seq)
+    def forward(
+        self,
+        x_seq,
+    ):
+        z_seq = self.encode_sequence(
+            x_seq
+        )
 
-        c_seq, _ = self.gru(z_seq)
+        c_seq, _ = self.gru(
+            z_seq
+        )
 
         b, t, _ = z_seq.shape
 
@@ -232,12 +263,15 @@ class TemporalCPC(nn.Module):
         ):
             c_t = c_seq[:, t_idx]
 
-            z_next = z_seq[:, t_idx + 1]
+            z_next = z_seq[
+                :,
+                t_idx + 1,
+            ]
 
-            z_pred = self.predict_next_latent(c_t)
+            z_pred = self.predict_next_latent(
+                c_t
+            )
 
-            # The target is treated as the detached representation produced
-            # by the visual encoder. The predictor is trained to match it.
             forward_sum = (
                 forward_sum
                 + F.mse_loss(
@@ -248,18 +282,16 @@ class TemporalCPC(nn.Module):
 
             n_contexts += 1
 
-            for k in range(self.k_steps):
+            for k in range(
+                self.k_steps
+            ):
                 target = z_seq[
                     :,
                     t_idx + 1 + k,
                 ]
 
-                pred = c_t @ self.w_k[k].T
-
-                # Both target and predicted compatibility vector are
-                # normalized, bounding the dot-product range.
                 pred = F.normalize(
-                    pred,
+                    c_t @ self.w_k[k].T,
                     p=2,
                     dim=-1,
                     eps=1e-8,
@@ -284,14 +316,10 @@ class TemporalCPC(nn.Module):
 
                 n_cpc += 1
 
-        if n_contexts == 0:
+        if n_contexts == 0 or n_cpc == 0:
             raise ValueError(
-                "Sequence is too short for the configured CPC context"
-            )
-
-        if n_cpc == 0:
-            raise RuntimeError(
-                "CPC produced zero InfoNCE terms"
+                "Sequence is too short for "
+                "configured CPC context"
             )
 
         return (
@@ -301,126 +329,108 @@ class TemporalCPC(nn.Module):
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
+    p = argparse.ArgumentParser(
         description="Train temporal CPC on cartpole."
     )
 
-    parser.add_argument(
+    p.add_argument(
         "--seeds",
         type=int,
         nargs="+",
         default=[0, 1, 2],
     )
-
-    parser.add_argument(
+    p.add_argument(
         "--epochs",
         type=int,
         default=12,
     )
-
-    parser.add_argument(
+    p.add_argument(
         "--batch-size",
         type=int,
         default=32,
     )
-
-    parser.add_argument(
+    p.add_argument(
         "--lr",
         type=float,
         default=1e-3,
     )
-
-    parser.add_argument(
+    p.add_argument(
         "--seq-len",
         type=int,
         default=16,
     )
-
-    parser.add_argument(
+    p.add_argument(
         "--eval-seq-len",
         type=int,
         default=25,
     )
-
-    parser.add_argument(
+    p.add_argument(
         "--latent-dim",
         type=int,
         default=16,
     )
-
-    parser.add_argument(
+    p.add_argument(
         "--context-dim",
         type=int,
         default=32,
     )
-
-    parser.add_argument(
+    p.add_argument(
         "--k-steps",
         type=int,
         default=3,
     )
-
-    parser.add_argument(
+    p.add_argument(
         "--temperature",
         type=float,
         default=0.5,
     )
-
-    parser.add_argument(
+    p.add_argument(
         "--max-train-frames",
         type=int,
         default=4000,
     )
-
-    parser.add_argument(
+    p.add_argument(
         "--max-val-frames",
         type=int,
         default=1000,
     )
-
-    parser.add_argument(
+    p.add_argument(
         "--gap-start",
         type=int,
         default=6,
     )
-
-    parser.add_argument(
+    p.add_argument(
         "--gap-length",
         type=int,
         default=5,
     )
-
-    parser.add_argument(
+    p.add_argument(
         "--gap-sequences",
         type=int,
         default=32,
     )
-
-    parser.add_argument(
+    p.add_argument(
         "--data-dir",
         type=str,
         default="data",
     )
-
-    parser.add_argument(
+    p.add_argument(
         "--figures-dir",
         type=str,
         default="ch03/figures",
     )
-
-    parser.add_argument(
+    p.add_argument(
         "--results-dir",
         type=str,
         default="ch03/results",
     )
-
-    parser.add_argument(
+    p.add_argument(
         "--checkpoints-dir",
         type=str,
         default="checkpoints",
     )
 
-    return parser.parse_args()
+    return p.parse_args()
 
 
 def make_loader(
@@ -462,10 +472,14 @@ def extract_temporal_features(
 
     with torch.no_grad():
         for batch in loader:
-            images = batch["images"].to(device)
+            images = batch[
+                "images"
+            ].to(device)
 
             states = (
-                batch["physics_states"]
+                batch[
+                    "physics_states"
+                ]
                 .cpu()
                 .numpy()
             )
@@ -474,7 +488,9 @@ def extract_temporal_features(
                 images
             )
 
-            c_seq, _ = model.gru(z_seq)
+            c_seq, _ = model.gru(
+                z_seq
+            )
 
             z_all.append(
                 z_seq[
@@ -499,12 +515,16 @@ def extract_temporal_features(
             )
 
             next_y_all.append(
-                states[:, time_index + 1]
+                states[
+                    :,
+                    time_index + 1,
+                ]
             )
 
     if not z_all:
-        raise ValueError(
-            "Temporal feature loader produced no batches"
+        raise RuntimeError(
+            "Temporal feature loader "
+            "produced no batches"
         )
 
     return (
@@ -531,7 +551,7 @@ def fit_state_history_predictor(
     raw_states,
     raw_episode_ids,
 ):
-    """Fit a privileged linear state extrapolation baseline."""
+    """Fit an angle-aware linear state extrapolation baseline."""
     x = []
     y = []
 
@@ -559,12 +579,11 @@ def fit_state_history_predictor(
 
     if not x:
         raise RuntimeError(
-            "No valid consecutive state triples found"
+            "No valid consecutive "
+            "state triples found"
         )
 
-    probe = LinearProbe()
-
-    probe.fit(
+    return StateLinearProbe().fit(
         np.asarray(
             x,
             dtype=np.float64,
@@ -575,8 +594,6 @@ def fit_state_history_predictor(
         ),
     )
 
-    return probe
-
 
 def rollout_gap(
     model,
@@ -585,7 +602,7 @@ def rollout_gap(
     gap_end,
     state_probe,
 ):
-    """Roll the normalized learned latent dynamics through a gap."""
+    """Roll normalized latent dynamics through the missing interval."""
     model.eval()
 
     with torch.no_grad():
@@ -604,7 +621,6 @@ def rollout_gap(
 
         hidden = None
         c_current = None
-
         z_used = []
 
         for step in range(t):
@@ -616,20 +632,19 @@ def rollout_gap(
                     :,
                     step : step + 1,
                 ]
-
             else:
                 if c_current is None:
                     raise RuntimeError(
-                        "Missing context state at start of rollout gap"
+                        "Missing context state "
+                        "at gap start"
                     )
 
-                z_pred = (
+                z_in = (
                     model.predict_next_latent(
                         c_current
                     )
+                    .unsqueeze(1)
                 )
-
-                z_in = z_pred.unsqueeze(1)
 
             c_out, hidden = model.gru(
                 z_in,
@@ -647,16 +662,31 @@ def rollout_gap(
             dim=1,
         )
 
-    # The CPC predictor emits normalized latents, so they are in the same
-    # representation space used to fit this state probe.
+    latent_norms = torch.linalg.vector_norm(
+        z_rollout,
+        dim=-1,
+    )
+
+    if not torch.isfinite(
+        latent_norms
+    ).all():
+        raise FloatingPointError(
+            "Non-finite latent during "
+            "CPC rollout"
+        )
+
     pred_states = state_probe.predict(
-        z_rollout[0]
+        z_rollout[
+            0
+        ]
         .cpu()
         .numpy()
     )
 
     observed_states = state_probe.predict(
-        z_full[0]
+        z_full[
+            0
+        ]
         .cpu()
         .numpy()
     )
@@ -664,6 +694,9 @@ def rollout_gap(
     return (
         pred_states,
         observed_states,
+        float(
+            latent_norms.max().item()
+        ),
     )
 
 
@@ -673,7 +706,6 @@ def linear_extrapolation_gap(
     gap_start,
     gap_end,
 ):
-    """Recursively extrapolate the privileged physical-state baseline."""
     pred = np.full_like(
         true_states,
         np.nan,
@@ -681,8 +713,12 @@ def linear_extrapolation_gap(
     )
 
     history = [
-        true_states[gap_start - 2].copy(),
-        true_states[gap_start - 1].copy(),
+        true_states[
+            gap_start - 2
+        ].copy(),
+        true_states[
+            gap_start - 1
+        ].copy(),
     ]
 
     for step in range(
@@ -701,7 +737,9 @@ def linear_extrapolation_gap(
         )[0]
 
         pred[step] = next_state
-        history.append(next_state)
+        history.append(
+            next_state
+        )
 
     return pred
 
@@ -714,12 +752,12 @@ def evaluate_gap(
     args,
     device,
 ):
-    """Evaluate recursive latent prediction through a missing interval."""
     gap_true = []
     gap_cpc = []
     gap_linear = []
 
     first_figure_data = None
+    max_latent_norm = 0.0
 
     gap_end = (
         args.gap_start
@@ -733,10 +771,14 @@ def evaluate_gap(
             if sequence_index >= args.gap_sequences:
                 break
 
-            images = batch["images"].to(device)
+            images = batch[
+                "images"
+            ].to(device)
 
             states = (
-                batch["physics_states"]
+                batch[
+                    "physics_states"
+                ]
                 .cpu()
                 .numpy()
             )
@@ -744,14 +786,24 @@ def evaluate_gap(
             for sample_index in range(
                 len(images)
             ):
-                pred_states, observed_states = rollout_gap(
+                (
+                    pred_states,
+                    observed_states,
+                    sample_max_norm,
+                ) = rollout_gap(
                     model,
                     images[
-                        sample_index : sample_index + 1
+                        sample_index :
+                        sample_index + 1
                     ],
                     args.gap_start,
                     gap_end,
                     state_probe,
+                )
+
+                max_latent_norm = max(
+                    max_latent_norm,
+                    sample_max_norm,
                 )
 
                 linear = linear_extrapolation_gap(
@@ -782,7 +834,9 @@ def evaluate_gap(
 
                 if first_figure_data is None:
                     first_figure_data = {
-                        "states": states[sample_index],
+                        "states": states[
+                            sample_index
+                        ],
                         "cpc": pred_states,
                         "observed": observed_states,
                         "linear": linear,
@@ -802,7 +856,8 @@ def evaluate_gap(
 
     if not gap_true:
         raise RuntimeError(
-            "No sequences were available for gap evaluation"
+            "No sequences were available "
+            "for gap evaluation"
         )
 
     true = np.concatenate(
@@ -820,14 +875,20 @@ def evaluate_gap(
         axis=0,
     )
 
-    r2_cpc = compute_r2_score(
-        true,
-        cpc,
+    angular = infer_angular_position_indices(
+        true.shape[1]
     )
 
-    r2_linear = compute_r2_score(
+    r2_cpc = compute_structured_r2_score(
+        true,
+        cpc,
+        angular,
+    )
+
+    r2_linear = compute_structured_r2_score(
         true,
         linear,
+        angular,
     )
 
     return (
@@ -847,6 +908,9 @@ def evaluate_gap(
             "linear_gap_mean_r2": float(
                 np.mean(r2_linear)
             ),
+            "max_rollout_latent_norm": float(
+                max_latent_norm
+            ),
         },
         first_figure_data,
     )
@@ -857,7 +921,6 @@ def save_gap_figure(
     args,
     output_path,
 ):
-    """Save Figure 3.16 for the first evaluated sequence."""
     states = data["states"]
     cpc = data["cpc"]
     observed = data["observed"]
@@ -924,7 +987,10 @@ def save_gap_figure(
         label="Privileged State Extrapolation",
     )
 
-    frame_only = observed[:, 0].copy()
+    frame_only = observed[
+        :,
+        0,
+    ].copy()
 
     frame_only[
         args.gap_start : gap_end
@@ -987,81 +1053,37 @@ def main() -> None:
             "At least one seed is required"
         )
 
-    if args.epochs <= 0:
-        raise ValueError(
-            "epochs must be positive"
-        )
-
-    if args.batch_size < 2:
-        raise ValueError(
-            "batch-size must be at least 2"
-        )
-
-    if args.lr <= 0:
-        raise ValueError(
-            "lr must be positive"
-        )
-
-    if args.latent_dim <= 0:
-        raise ValueError(
-            "latent-dim must be positive"
-        )
-
-    if args.context_dim <= 0:
-        raise ValueError(
-            "context-dim must be positive"
-        )
-
-    if args.k_steps <= 0:
-        raise ValueError(
-            "k-steps must be positive"
-        )
-
-    if args.temperature <= 0:
-        raise ValueError(
-            "temperature must be positive"
-        )
-
-    if args.max_train_frames <= 0:
-        raise ValueError(
-            "max-train-frames must be positive"
-        )
-
-    if args.max_val_frames <= 0:
-        raise ValueError(
-            "max-val-frames must be positive"
-        )
-
-    if args.gap_start < 2:
-        raise ValueError(
-            "gap-start must be at least 2"
-        )
-
-    if args.gap_length <= 0:
-        raise ValueError(
-            "gap-length must be positive"
-        )
-
-    if args.gap_sequences <= 0:
-        raise ValueError(
-            "gap-sequences must be positive"
-        )
-
-    if args.eval_seq_len <= (
-        args.gap_start
-        + args.gap_length
+    if (
+        args.epochs <= 0
+        or args.batch_size < 2
+        or args.lr <= 0
     ):
         raise ValueError(
-            "eval-seq-len is too short for "
-            "the configured gap"
+            "Invalid optimization settings"
         )
 
-    if args.eval_seq_len <= 9:
+    if (
+        args.seq_len < 6
+        or args.k_steps < 1
+        or args.eval_seq_len
+        <= args.gap_start + args.gap_length
+    ):
         raise ValueError(
-            "eval-seq-len must be greater than 9"
+            "Invalid sequence or gap settings"
         )
 
-    set_seed(args.seeds[0])
+    if (
+        args.gap_start < 2
+        or args.gap_length <= 0
+        or args.gap_sequences <= 0
+    ):
+        raise ValueError(
+            "Invalid gap settings"
+        )
+
+    set_seed(
+        args.seeds[0]
+    )
 
     device = get_device()
 
@@ -1079,29 +1101,29 @@ def main() -> None:
         )
     )
 
-    train_frames = train_raw["frames"][
-        : args.max_train_frames
-    ]
+    train_frames = train_raw[
+        "frames"
+    ][: args.max_train_frames]
 
-    train_states = train_raw["physics_states"][
-        : args.max_train_frames
-    ]
+    train_states = train_raw[
+        "physics_states"
+    ][: args.max_train_frames]
 
-    train_episode_ids = train_raw["episode_ids"][
-        : args.max_train_frames
-    ]
+    train_episode_ids = train_raw[
+        "episode_ids"
+    ][: args.max_train_frames]
 
-    val_frames = val_raw["frames"][
-        : args.max_val_frames
-    ]
+    val_frames = val_raw[
+        "frames"
+    ][: args.max_val_frames]
 
-    val_states = val_raw["physics_states"][
-        : args.max_val_frames
-    ]
+    val_states = val_raw[
+        "physics_states"
+    ][: args.max_val_frames]
 
-    val_episode_ids = val_raw["episode_ids"][
-        : args.max_val_frames
-    ]
+    val_episode_ids = val_raw[
+        "episode_ids"
+    ][: args.max_val_frames]
 
     train_ds = SequenceDataset(
         train_frames,
@@ -1117,19 +1139,23 @@ def main() -> None:
         args.eval_seq_len,
     )
 
-    if len(train_ds) == 0:
+    if (
+        len(train_ds) == 0
+        or len(eval_ds) == 0
+    ):
         raise RuntimeError(
-            "No valid episode-safe training sequences were found"
-        )
-
-    if len(eval_ds) == 0:
-        raise RuntimeError(
-            "No valid episode-safe evaluation sequences were found"
+            "No valid episode-safe sequences found"
         )
 
     history_probe = fit_state_history_predictor(
         train_states,
         train_episode_ids,
+    )
+
+    angular_indices = (
+        infer_angular_position_indices(
+            train_states.shape[1]
+        )
     )
 
     seed_metrics = []
@@ -1145,18 +1171,10 @@ def main() -> None:
             shuffle=True,
         )
 
-        eval_loader = make_loader(
-            eval_ds,
-            args.batch_size,
-            shuffle=False,
-        )
-
-        encoder = ConvEncoder(
-            latent_dim=args.latent_dim
-        ).to(device)
-
         model = TemporalCPC(
-            encoder,
+            ConvEncoder(
+                latent_dim=args.latent_dim
+            ).to(device),
             latent_dim=args.latent_dim,
             context_dim=args.context_dim,
             k_steps=args.k_steps,
@@ -1178,13 +1196,15 @@ def main() -> None:
             total_examples = 0
 
             for batch in train_loader:
-                images = batch[
-                    "images"
-                ].to(device)
+                loss = model(
+                    batch[
+                        "images"
+                    ].to(device)
+                )
 
-                loss = model(images)
-
-                if not torch.isfinite(loss):
+                if not torch.isfinite(
+                    loss
+                ):
                     raise FloatingPointError(
                         f"Non-finite CPC loss at "
                         f"seed={seed}, epoch={epoch}"
@@ -1200,30 +1220,33 @@ def main() -> None:
 
                 optimizer.step()
 
-                batch_size = len(images)
+                n = len(
+                    batch[
+                        "images"
+                    ]
+                )
 
                 total += (
                     float(loss.item())
-                    * batch_size
+                    * n
                 )
 
-                total_examples += batch_size
+                total_examples += n
 
             if total_examples == 0:
                 raise RuntimeError(
-                    "CPC DataLoader produced zero examples"
+                    "CPC DataLoader produced "
+                    "zero examples"
                 )
 
-            average_loss = (
-                total
-                / total_examples
-            )
-
-            if epoch % 4 == 0 or epoch == args.epochs:
+            if (
+                epoch % 4 == 0
+                or epoch == args.epochs
+            ):
                 print(
                     f"Seed {seed} | "
                     f"Epoch {epoch:02d}/{args.epochs:02d} | "
-                    f"Loss {average_loss:.4f}"
+                    f"Loss {total / total_examples:.4f}"
                 )
 
         train_z, train_c, train_y, train_next_y = (
@@ -1250,44 +1273,60 @@ def main() -> None:
             )
         )
 
-        static_probe = LinearProbe().fit(
+        static_probe = StateLinearProbe(
+            angular_position_indices=angular_indices
+        ).fit(
             train_z,
             train_y,
         )
 
-        context_probe = LinearProbe().fit(
+        context_probe = StateLinearProbe(
+            angular_position_indices=angular_indices
+        ).fit(
             train_c,
             train_y,
         )
 
-        static_next_probe = LinearProbe().fit(
+        static_next_probe = StateLinearProbe(
+            angular_position_indices=angular_indices
+        ).fit(
             train_z,
             train_next_y,
         )
 
-        context_next_probe = LinearProbe().fit(
+        context_next_probe = StateLinearProbe(
+            angular_position_indices=angular_indices
+        ).fit(
             train_c,
             train_next_y,
         )
 
-        static_current_r2, _ = static_probe.score(
-            val_z,
-            val_y,
+        static_current_r2, _ = (
+            static_probe.score(
+                val_z,
+                val_y,
+            )
         )
 
-        context_current_r2, _ = context_probe.score(
-            val_c,
-            val_y,
+        context_current_r2, _ = (
+            context_probe.score(
+                val_c,
+                val_y,
+            )
         )
 
-        static_next_r2, _ = static_next_probe.score(
-            val_z,
-            val_next_y,
+        static_next_r2, _ = (
+            static_next_probe.score(
+                val_z,
+                val_next_y,
+            )
         )
 
-        context_next_r2, _ = context_next_probe.score(
-            val_c,
-            val_next_y,
+        context_next_r2, _ = (
+            context_next_probe.score(
+                val_c,
+                val_next_y,
+            )
         )
 
         gap_stats, figure_data = evaluate_gap(
@@ -1359,7 +1398,7 @@ def main() -> None:
                 "seed": seed,
                 "experiment_version": EXPERIMENT_VERSION,
                 "latent_normalization": "l2_unit",
-                "rollout_gradient_clip": 1.0,
+                "gradient_clip_norm": 1.0,
             },
             os.path.join(
                 args.checkpoints_dir,
@@ -1386,7 +1425,9 @@ def main() -> None:
             f"gap CPC="
             f"{gap_stats['cpc_gap_mean_r2']:.3f}, "
             f"linear="
-            f"{gap_stats['linear_gap_mean_r2']:.3f}"
+            f"{gap_stats['linear_gap_mean_r2']:.3f} | "
+            f"max ||z||="
+            f"{gap_stats['max_rollout_latent_norm']:.6f}"
         )
 
     if first_figure_data is not None:
@@ -1455,8 +1496,11 @@ def main() -> None:
             "experiment_version": EXPERIMENT_VERSION,
             "seeds": args.seeds,
             "config": vars(args),
+            "angular_position_indices": list(
+                angular_indices
+            ),
             "latent_normalization": "l2_unit",
-            "rollout_gradient_clip": 1.0,
+            "gradient_clip_norm": 1.0,
             "summary": summary,
             "per_seed_metrics": seed_metrics,
         },

@@ -1,24 +1,20 @@
-"""table_03_04_comparison.py - Compare representation objectives.
-
-Compares supervised state prediction, NT-Xent, VICReg, and MAE on cartpole
-balance and finger spin.
-
-The experiment checkpoints after every seed so an interrupted long CPU run can
-resume without discarding completed measurements.
-
-The supervised reference standardizes its privileged training targets during
-optimization. This conditioning is internal to the supervised reference;
-self-supervised methods never receive physics-state targets during training.
-"""
+"""Compare representation objectives for Table 3.4."""
 
 from __future__ import annotations
 
 import argparse
 import os
 import sys
-from typing import Dict, List, Tuple
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+sys.path.insert(
+    0,
+    os.path.abspath(
+        os.path.join(
+            os.path.dirname(__file__),
+            "..",
+        )
+    ),
+)
 
 import numpy as np
 import torch
@@ -31,7 +27,13 @@ from worldmodels.data.dmc_data import (
     load_dataset_npz,
     metadata_from_dataset,
 )
-from worldmodels.eval.probes import evaluate_linear_probe
+from worldmodels.eval.probes import (
+    expanded_state_dim,
+    evaluate_linear_probe,
+    infer_angular_position_indices,
+    transform_state_targets_np,
+    transform_state_targets_torch,
+)
 from worldmodels.losses.contrastive import (
     nt_xent_loss,
     vicreg_loss,
@@ -49,13 +51,13 @@ from worldmodels.train import (
     set_seed,
 )
 
+EXPERIMENT_VERSION = 3
 
-EXPERIMENT_VERSION = 2
-POSITION_VARIABLES = 2
 REQUIRED_TASKS = (
     ("cartpole_balance", 4),
     ("finger_spin", 6),
 )
+
 METHOD_NAMES = (
     "Supervised State-Prediction Reference",
     "Contrastive (NT-Xent)",
@@ -133,17 +135,16 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--fresh",
         action="store_true",
-        help="Discard any compatible progress file and start over.",
     )
 
     return parser.parse_args()
 
 
-def make_experiment_signature(
-    args: argparse.Namespace,
-    dataset_metadata: Dict[str, Dict[str, object]],
-) -> Dict[str, object]:
-    """Return everything needed to identify a Table 3.4 run."""
+def make_signature(
+    args,
+    dataset_metadata,
+):
+    """Identify every choice that affects Table 3.4."""
     return {
         "experiment_version": EXPERIMENT_VERSION,
         "epochs": int(args.epochs),
@@ -156,18 +157,31 @@ def make_experiment_signature(
         "max_val_samples": int(
             args.max_val_samples
         ),
-        "seeds": [int(seed) for seed in args.seeds],
-        "tasks": [task for task, _ in REQUIRED_TASKS],
+        "seeds": [
+            int(seed)
+            for seed in args.seeds
+        ],
+        "tasks": [
+            name
+            for name, _ in REQUIRED_TASKS
+        ],
         "augmentation": {
             "max_shift": 3,
             "brightness_range": 0.1,
             "contrast_range": 0.1,
         },
+        "probe": {
+            "feature_standardization": True,
+            "angular_position_encoding": "sin_cos",
+            "angular_r2": "circular_chordal",
+        },
         "datasets": dataset_metadata,
     }
 
 
-def empty_progress(signature: Dict[str, object]) -> Dict[str, object]:
+def empty_progress(
+    signature,
+):
     return {
         "experiment": signature,
         "results": {
@@ -180,42 +194,60 @@ def empty_progress(signature: Dict[str, object]) -> Dict[str, object]:
     }
 
 
-def load_or_initialize_progress(
-    path: str,
-    signature: Dict[str, object],
-    fresh: bool,
-) -> Dict[str, object]:
-    """Load compatible progress or create a new checkpoint."""
-    if fresh or not os.path.exists(path):
-        return empty_progress(signature)
+def load_progress(
+    path,
+    signature,
+    fresh,
+):
+    if (
+        fresh
+        or not os.path.exists(path)
+    ):
+        return empty_progress(
+            signature
+        )
 
     try:
-        progress = load_json(path)
+        progress = load_json(
+            path
+        )
     except Exception:
         print(
-            "Existing Table 3.4 progress could not be read; "
+            "Existing Table 3.4 progress "
+            "could not be read; "
             "starting a fresh run."
         )
-        return empty_progress(signature)
 
-    if progress.get("experiment") != signature:
-        print(
-            "Existing Table 3.4 progress is from a different "
-            "experiment configuration; starting a fresh run."
+        return empty_progress(
+            signature
         )
-        return empty_progress(signature)
+
+    if (
+        progress.get("experiment")
+        != signature
+    ):
+        print(
+            "Existing Table 3.4 progress "
+            "is incompatible; "
+            "starting a fresh run."
+        )
+
+        return empty_progress(
+            signature
+        )
 
     print(
-        f"Resuming compatible Table 3.4 progress -> {path}"
+        f"Resuming compatible "
+        f"Table 3.4 progress -> {path}"
     )
 
     return progress
 
 
 def save_progress(
-    progress: Dict[str, object],
-    path: str,
-) -> None:
+    progress,
+    path,
+):
     os.makedirs(
         os.path.dirname(
             os.path.abspath(path)
@@ -251,13 +283,16 @@ def make_loaders(
         shuffle=False,
     )
 
-    return train_loader, val_loader
+    return (
+        train_loader,
+        val_loader,
+    )
 
 
 def summarize_probe(
-    result: dict,
-    state_dim: int,
-) -> dict:
+    result,
+    state_dim,
+):
     r2 = np.asarray(
         result["r2_per_variable"],
         dtype=np.float64,
@@ -265,54 +300,53 @@ def summarize_probe(
 
     if r2.shape != (state_dim,):
         raise ValueError(
-            f"Expected {state_dim} R^2 values, got {r2.shape}"
+            f"Expected {state_dim} state R2 values, "
+            f"got {r2.shape}"
         )
 
     n_position = state_dim // 2
-
-    position = float(
-        np.mean(
-            r2[:n_position]
-        )
-    )
-
-    velocity = float(
-        np.mean(
-            r2[n_position:]
-        )
-    )
 
     return {
         "r2_per_variable": r2.tolist(),
         "mean_r2": float(
             np.mean(r2)
         ),
-        "position_mean_r2": position,
-        "velocity_mean_r2": velocity,
+        "position_mean_r2": float(
+            np.mean(
+                r2[:n_position]
+            )
+        ),
+        "velocity_mean_r2": float(
+            np.mean(
+                r2[n_position:]
+            )
+        ),
     }
 
 
-def training_target_statistics(
+def transformed_training_statistics(
     train_loader,
-) -> Tuple[torch.Tensor, torch.Tensor]:
-    """Compute target standardization statistics from privileged train labels."""
-    dataset = train_loader.dataset
-
+    angular_indices,
+):
+    """Compute train statistics in the transformed supervised target space."""
     states = np.asarray(
-        dataset.physics_states,
+        train_loader.dataset.physics_states,
         dtype=np.float64,
     )
 
-    mean = states.mean(
-        axis=0
+    targets = transform_state_targets_np(
+        states,
+        angular_indices,
     )
 
-    std = states.std(
+    mean = targets.mean(
         axis=0
     )
 
     std = np.maximum(
-        std,
+        targets.std(
+            axis=0
+        ),
         1e-6,
     )
 
@@ -334,8 +368,19 @@ def train_supervised(
     device,
     seed,
 ):
-    """Train the supervised reference with standardized targets."""
+    """Train the privileged supervised state-prediction reference."""
     set_seed(seed)
+
+    angular_indices = (
+        infer_angular_position_indices(
+            state_dim
+        )
+    )
+
+    target_dim = expanded_state_dim(
+        state_dim,
+        angular_indices,
+    )
 
     encoder = ConvEncoder(
         latent_dim=args.latent_dim
@@ -343,37 +388,58 @@ def train_supervised(
 
     head = nn.Linear(
         args.latent_dim,
-        state_dim,
+        target_dim,
     ).to(device)
 
     optimizer = torch.optim.Adam(
-        list(encoder.parameters())
-        + list(head.parameters()),
+        list(
+            encoder.parameters()
+        )
+        + list(
+            head.parameters()
+        ),
         lr=args.lr,
     )
 
     target_mean, target_std = (
-        training_target_statistics(
-            train_loader
+        transformed_training_statistics(
+            train_loader,
+            angular_indices,
         )
     )
 
-    target_mean = target_mean.to(device)
-    target_std = target_std.to(device)
+    target_mean = target_mean.to(
+        device
+    )
 
-    for _ in range(args.epochs):
+    target_std = target_std.to(
+        device
+    )
+
+    for _ in range(
+        args.epochs
+    ):
         encoder.train()
         head.train()
 
         for batch in train_loader:
-            x = batch["image"].to(device)
+            x = batch[
+                "image"
+            ].to(device)
 
             y = batch[
                 "physics_state"
             ].to(device)
 
-            y_scaled = (
-                y - target_mean
+            target = (
+                transform_state_targets_torch(
+                    y,
+                    angular_indices,
+                )
+            )
+
+            target = (
+                target - target_mean
             ) / target_std
 
             pred = head(
@@ -382,22 +448,20 @@ def train_supervised(
 
             loss = nn.functional.mse_loss(
                 pred,
-                y_scaled,
+                target,
             )
 
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
 
-    result = evaluate_linear_probe(
-        encoder,
-        train_loader,
-        val_loader,
-        device,
-    )
-
     return summarize_probe(
-        result,
+        evaluate_linear_probe(
+            encoder,
+            train_loader,
+            val_loader,
+            device,
+        ),
         state_dim,
     )
 
@@ -410,7 +474,7 @@ def train_contrastive(
     seed,
     state_dim,
 ):
-    """Train the NT-Xent representation reference."""
+    """Train the NT-Xent reference."""
     set_seed(seed)
 
     encoder = ConvEncoder(
@@ -424,8 +488,12 @@ def train_contrastive(
     ).to(device)
 
     optimizer = torch.optim.Adam(
-        list(encoder.parameters())
-        + list(projector.parameters()),
+        list(
+            encoder.parameters()
+        )
+        + list(
+            projector.parameters()
+        ),
         lr=args.lr,
     )
 
@@ -435,12 +503,16 @@ def train_contrastive(
         contrast_range=0.1,
     )
 
-    for _ in range(args.epochs):
+    for _ in range(
+        args.epochs
+    ):
         encoder.train()
         projector.train()
 
         for batch in train_loader:
-            x = batch["image"].to(device)
+            x = batch[
+                "image"
+            ].to(device)
 
             v1, v2 = pipeline(x)
 
@@ -457,15 +529,13 @@ def train_contrastive(
             loss.backward()
             optimizer.step()
 
-    result = evaluate_linear_probe(
-        encoder,
-        train_loader,
-        val_loader,
-        device,
-    )
-
     return summarize_probe(
-        result,
+        evaluate_linear_probe(
+            encoder,
+            train_loader,
+            val_loader,
+            device,
+        ),
         state_dim,
     )
 
@@ -478,7 +548,7 @@ def train_vicreg(
     seed,
     state_dim,
 ):
-    """Train the VICReg representation reference."""
+    """Train the VICReg reference."""
     set_seed(seed)
 
     encoder = ConvEncoder(
@@ -492,8 +562,12 @@ def train_vicreg(
     ).to(device)
 
     optimizer = torch.optim.Adam(
-        list(encoder.parameters())
-        + list(projector.parameters()),
+        list(
+            encoder.parameters()
+        )
+        + list(
+            projector.parameters()
+        ),
         lr=args.lr,
     )
 
@@ -503,12 +577,16 @@ def train_vicreg(
         contrast_range=0.1,
     )
 
-    for _ in range(args.epochs):
+    for _ in range(
+        args.epochs
+    ):
         encoder.train()
         projector.train()
 
         for batch in train_loader:
-            x = batch["image"].to(device)
+            x = batch[
+                "image"
+            ].to(device)
 
             v1, v2 = pipeline(x)
 
@@ -525,15 +603,13 @@ def train_vicreg(
             loss.backward()
             optimizer.step()
 
-    result = evaluate_linear_probe(
-        encoder,
-        train_loader,
-        val_loader,
-        device,
-    )
-
     return summarize_probe(
-        result,
+        evaluate_linear_probe(
+            encoder,
+            train_loader,
+            val_loader,
+            device,
+        ),
         state_dim,
     )
 
@@ -546,7 +622,7 @@ def train_mae(
     seed,
     state_dim,
 ):
-    """Train and evaluate the masked autoencoder reference."""
+    """Train the MAE reference."""
     set_seed(seed)
 
     model = SimpleMAE(
@@ -559,11 +635,15 @@ def train_mae(
         lr=args.lr,
     )
 
-    for _ in range(args.epochs):
+    for _ in range(
+        args.epochs
+    ):
         model.train()
 
         for batch in train_loader:
-            x = batch["image"].to(device)
+            x = batch[
+                "image"
+            ].to(device)
 
             loss, _, _ = model(x)
 
@@ -571,29 +651,30 @@ def train_mae(
             loss.backward()
             optimizer.step()
 
-    result = evaluate_linear_probe(
-        MAEEncoder(model),
-        train_loader,
-        val_loader,
-        device,
-    )
-
     return summarize_probe(
-        result,
+        evaluate_linear_probe(
+            MAEEncoder(model),
+            train_loader,
+            val_loader,
+            device,
+        ),
         state_dim,
     )
 
 
 def build_final_table(
-    progress: Dict[str, object],
+    progress,
     args,
-) -> Dict[str, object]:
-    """Convert per-seed progress into the manuscript-facing table schema."""
+):
     table = {}
 
-    results = progress["results"]
+    results = progress[
+        "results"
+    ]
 
-    for task_name, state_dim in REQUIRED_TASKS:
+    for task_name, state_dim in (
+        REQUIRED_TASKS
+    ):
         table[task_name] = {}
 
         for method in METHOD_NAMES:
@@ -608,19 +689,23 @@ def build_final_table(
 
                 if result is None:
                     raise RuntimeError(
-                        f"Missing result for "
-                        f"{task_name} / "
-                        f"{method} / "
-                        f"seed={seed}"
+                        f"Missing {task_name} / "
+                        f"{method} / seed={seed}"
                     )
 
-                seed_results.append(result)
+                seed_results.append(
+                    result
+                )
 
-            table[task_name][method] = {
+            table[
+                task_name
+            ][method] = {
                 "position_mean": float(
                     np.mean(
                         [
-                            r["position_mean_r2"]
+                            r[
+                                "position_mean_r2"
+                            ]
                             for r in seed_results
                         ]
                     )
@@ -628,7 +713,9 @@ def build_final_table(
                 "position_std": float(
                     np.std(
                         [
-                            r["position_mean_r2"]
+                            r[
+                                "position_mean_r2"
+                            ]
                             for r in seed_results
                         ]
                     )
@@ -636,7 +723,9 @@ def build_final_table(
                 "velocity_mean": float(
                     np.mean(
                         [
-                            r["velocity_mean_r2"]
+                            r[
+                                "velocity_mean_r2"
+                            ]
                             for r in seed_results
                         ]
                     )
@@ -644,7 +733,9 @@ def build_final_table(
                 "velocity_std": float(
                     np.std(
                         [
-                            r["velocity_mean_r2"]
+                            r[
+                                "velocity_mean_r2"
+                            ]
                             for r in seed_results
                         ]
                     )
@@ -652,7 +743,9 @@ def build_final_table(
                 "mean_r2": float(
                     np.mean(
                         [
-                            r["mean_r2"]
+                            r[
+                                "mean_r2"
+                            ]
                             for r in seed_results
                         ]
                     )
@@ -660,7 +753,9 @@ def build_final_table(
                 "std_r2": float(
                     np.std(
                         [
-                            r["mean_r2"]
+                            r[
+                                "mean_r2"
+                            ]
                             for r in seed_results
                         ]
                     )
@@ -671,61 +766,26 @@ def build_final_table(
     return table
 
 
-def print_current_table(
-    progress: Dict[str, object],
+def complete(
+    progress,
     args,
-) -> None:
-    """Print only completed rows currently available."""
-    results = progress["results"]
+):
+    results = progress[
+        "results"
+    ]
 
-    print("\nCompleted Table 3.4 measurements")
-
-    for task_name, _state_dim in REQUIRED_TASKS:
-        for method in METHOD_NAMES:
-            completed = results[
-                task_name
-            ][method]
-
-            if not completed:
-                continue
-
-            for seed in args.seeds:
-                result = completed.get(
-                    str(seed)
-                )
-
-                if result is None:
-                    continue
-
-                print(
-                    f"{task_name} | "
-                    f"{method} | "
-                    f"seed={seed} | "
-                    f"position="
-                    f"{result['position_mean_r2']:.3f} | "
-                    f"velocity="
-                    f"{result['velocity_mean_r2']:.3f}"
-                )
+    return all(
+        str(seed)
+        in results[
+            task
+        ][method]
+        for task, _ in REQUIRED_TASKS
+        for method in METHOD_NAMES
+        for seed in args.seeds
+    )
 
 
-def all_results_complete(
-    progress: Dict[str, object],
-    args,
-) -> bool:
-    results = progress["results"]
-
-    for task_name, _state_dim in REQUIRED_TASKS:
-        for method in METHOD_NAMES:
-            for seed in args.seeds:
-                if str(seed) not in results[
-                    task_name
-                ][method]:
-                    return False
-
-    return True
-
-
-def main() -> None:
+def main():
     args = parse_args()
 
     if not args.seeds:
@@ -733,34 +793,14 @@ def main() -> None:
             "At least one seed is required"
         )
 
-    if args.epochs <= 0:
+    if (
+        args.epochs <= 0
+        or args.batch_size <= 0
+        or args.lr <= 0
+        or args.latent_dim <= 0
+    ):
         raise ValueError(
-            "epochs must be positive"
-        )
-
-    if args.batch_size <= 0:
-        raise ValueError(
-            "batch-size must be positive"
-        )
-
-    if args.lr <= 0:
-        raise ValueError(
-            "lr must be positive"
-        )
-
-    if args.latent_dim <= 0:
-        raise ValueError(
-            "latent-dim must be positive"
-        )
-
-    if args.max_train_samples <= 0:
-        raise ValueError(
-            "max-train-samples must be positive"
-        )
-
-    if args.max_val_samples <= 0:
-        raise ValueError(
-            "max-val-samples must be positive"
+            "Invalid optimization settings"
         )
 
     device = get_device()
@@ -776,10 +816,11 @@ def main() -> None:
     )
 
     dataset_cache = {}
-
     dataset_metadata = {}
 
-    for task_name, _state_dim in REQUIRED_TASKS:
+    for task_name, _state_dim in (
+        REQUIRED_TASKS
+    ):
         train_path = os.path.join(
             args.data_dir,
             f"dmc_{task_name}_train.npz",
@@ -790,14 +831,12 @@ def main() -> None:
             f"dmc_{task_name}_val.npz",
         )
 
-        if not os.path.exists(train_path):
+        if (
+            not os.path.exists(train_path)
+            or not os.path.exists(val_path)
+        ):
             raise FileNotFoundError(
-                f"Missing dataset: {train_path}"
-            )
-
-        if not os.path.exists(val_path):
-            raise FileNotFoundError(
-                f"Missing dataset: {val_path}"
+                f"Missing dataset for {task_name}"
             )
 
         train_raw = load_dataset_npz(
@@ -826,34 +865,37 @@ def main() -> None:
             val_raw,
         )
 
-    signature = make_experiment_signature(
+    signature = make_signature(
         args,
         dataset_metadata,
     )
 
-    progress = load_or_initialize_progress(
+    progress = load_progress(
         progress_path,
         signature,
         args.fresh,
     )
 
-    if args.fresh:
-        save_progress(
-            progress,
-            progress_path,
-        )
+    save_progress(
+        progress,
+        progress_path,
+    )
 
     task_methods = {
-        "Supervised State-Prediction Reference": train_supervised,
-        "Contrastive (NT-Xent)": train_contrastive,
-        "VICReg": train_vicreg,
-        "Masked Autoencoder (MAE)": train_mae,
+        METHOD_NAMES[0]: train_supervised,
+        METHOD_NAMES[1]: train_contrastive,
+        METHOD_NAMES[2]: train_vicreg,
+        METHOD_NAMES[3]: train_mae,
     }
 
-    for task_name, state_dim in REQUIRED_TASKS:
-        train_raw, val_raw = dataset_cache[
-            task_name
-        ]
+    for task_name, state_dim in (
+        REQUIRED_TASKS
+    ):
+        train_raw, val_raw = (
+            dataset_cache[
+                task_name
+            ]
+        )
 
         n_train = min(
             len(train_raw["frames"]),
@@ -866,29 +908,39 @@ def main() -> None:
         )
 
         train_ds = DMCDataset(
-            train_raw["frames"][:n_train],
-            train_raw["physics_states"][:n_train],
-            train_raw["episode_ids"][:n_train],
+            train_raw["frames"][
+                :n_train
+            ],
+            train_raw["physics_states"][
+                :n_train
+            ],
+            train_raw["episode_ids"][
+                :n_train
+            ],
         )
 
         val_ds = DMCDataset(
-            val_raw["frames"][:n_val],
-            val_raw["physics_states"][:n_val],
-            val_raw["episode_ids"][:n_val],
+            val_raw["frames"][
+                :n_val
+            ],
+            val_raw["physics_states"][
+                :n_val
+            ],
+            val_raw["episode_ids"][
+                :n_val
+            ],
         )
 
         for method in METHOD_NAMES:
-            train_fn = task_methods[
-                method
-            ]
-
             for seed in args.seeds:
-                seed_key = str(seed)
+                key = str(seed)
 
-                existing = progress[
-                    "results"
-                ][task_name][method].get(
-                    seed_key
+                existing = (
+                    progress[
+                        "results"
+                    ][task_name][method].get(
+                        key
+                    )
                 )
 
                 if existing is not None:
@@ -920,10 +972,10 @@ def main() -> None:
                     )
                 )
 
-                if method == (
-                    "Supervised State-Prediction Reference"
-                ):
-                    result = train_fn(
+                if method == METHOD_NAMES[0]:
+                    result = task_methods[
+                        method
+                    ](
                         train_loader,
                         val_loader,
                         state_dim,
@@ -932,7 +984,9 @@ def main() -> None:
                         seed,
                     )
                 else:
-                    result = train_fn(
+                    result = task_methods[
+                        method
+                    ](
                         train_loader,
                         val_loader,
                         args,
@@ -944,7 +998,7 @@ def main() -> None:
                 progress[
                     "results"
                 ][task_name][method][
-                    seed_key
+                    key
                 ] = result
 
                 save_progress(
@@ -963,35 +1017,14 @@ def main() -> None:
                     f"{result['velocity_mean_r2']:.3f}"
                 )
 
-    print_current_table(
-        progress,
-        args,
-    )
-
-    if not all_results_complete(
+    if not complete(
         progress,
         args,
     ):
-        completed = 0
-        total = (
-            len(REQUIRED_TASKS)
-            * len(METHOD_NAMES)
-            * len(args.seeds)
-        )
-
-        for task_name, _state_dim in REQUIRED_TASKS:
-            for method in METHOD_NAMES:
-                completed += len(
-                    progress[
-                        "results"
-                    ][task_name][method]
-                )
-
         print(
-            f"\nTable 3.4 incomplete: "
-            f"{completed}/{total} seed-runs complete."
+            "Table 3.4 incomplete; "
+            "progress is safely checkpointed."
         )
-
         return
 
     table = build_final_table(
@@ -1000,7 +1033,8 @@ def main() -> None:
     )
 
     print(
-        "\nTable 3.4: position and velocity probe R^2"
+        "\nTable 3.4: "
+        "position and velocity probe R^2"
     )
 
     for method in METHOD_NAMES:
@@ -1044,7 +1078,9 @@ def main() -> None:
     )
 
     print(
-        f"\nSaved final Table 3.4 results -> {final_path}"
+        "\nSaved final Table 3.4 results -> "
+        "ch03/results/"
+        "table_03_04_objective_comparison.json"
     )
 
 
