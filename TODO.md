@@ -56,3 +56,17 @@ Based on *Chapter 3 Design — Representation Learning Before Generation (v3)*.
 - [x] Save all machine-readable tables/results to `ch03/results/`
 - [x] Review discrepancies between design document and mathematical/experimental reality (`ch03/discrepancies_and_findings.md`)
 - [x] Git commit and record commit hash (`b681bb8`)
+
+## 6. Scientific Code & Review Audit Resolutions
+- [x] **R² Metric Formulation:** Corrected denominator in docs to evaluation target mean $\bar{y}_{\text{eval}}$ matching `compute_r2_score` in [probes.py](file:///d:/world-models-in-action/worldmodels/eval/probes.py)
+- [x] **Aliasing Diagnostic:** Accurately characterized Table 3.3 as an empirical negative result (2 adjacent frames under spatial-crop contrastive learning do not recover velocity due to subpixel displacement) in [05_aliasing_diagnostic.py](file:///d:/world-models-in-action/ch03/05_aliasing_diagnostic.py) and [discrepancies_and_findings.md](file:///d:/world-models-in-action/ch03/discrepancies_and_findings.md)
+- [x] **Physics vs. Probe Claims:** Disentangled theoretical MuJoCo rendering construction from empirical Ridge probe $R^2$ scores
+- [x] **Supervised Baseline Naming:** Renamed "Supervised Baseline (Upper Bound)" to "Supervised State-Prediction Reference" across [table_03_04_comparison.py](file:///d:/world-models-in-action/ch03/table_03_04_comparison.py), result JSON, and documentation
+- [x] **NT-Xent vs. VICReg Claim:** Calibrated claim to specific evaluation setting (DMC frames, ConvEncoder, 12 epochs) and emphasized decomposed position vs. velocity breakdown
+- [x] **Bottleneck Sweep:** Corrected monotonic plateau hypothesis to concave capacity curve documenting finite-sample probe overparameterization in [10_bottleneck_sweep.py](file:///d:/world-models-in-action/ch03/10_bottleneck_sweep.py)
+- [x] **Temporal CPC Latent Predictor:** Resolved methodology for Figure 3.16 in [11_temporal_cpc.py](file:///d:/world-models-in-action/ch03/11_temporal_cpc.py) by explicitly training an MSE latent predictor $P(c_t) \approx z_{t+1}$ bridging InfoNCE discrimination to Chapter 4 JEPA
+- [x] **Numerical Precision:** Corrected CPC Table 3.5 numbers in documentation to exact measured values ($0.711 \pm 0.024$ static pos, $0.706 \pm 0.097$ context pos)
+- [x] **Action Uncertainty:** Clarified that transition ambiguity arises from hidden actions under a random policy, not MuJoCo physical stochasticity
+- [x] **MAE Architecture:** Unified [09_masked_autoencoder.py](file:///d:/world-models-in-action/ch03/09_masked_autoencoder.py) with canonical un-shuffling decoder (`ids_restore` + mask tokens) from [encoders.py](file:///d:/world-models-in-action/worldmodels/models/encoders.py)
+- [x] All 25 unit tests passing in `tests/`
+
