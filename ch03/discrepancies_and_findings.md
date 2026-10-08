@@ -85,10 +85,11 @@ Do not merge results from the standalone VICReg/MAE runs with Table 3.4: they us
 
 ## 3. Required validation and run order
 
-1. Switch to audit/chapter3-methodology-fixes and run the test suite using the repository's .venv Python. Tests have been added for the angular period and Table 3.4 migration. No passing result is claimed here; verify locally.
+1. Switch to audit/chapter3-methodology-fixes and run the test suite using the repository's .venv Python. Tests have been added for the angular period, Table 3.4 migration, Barlow normalization, and MAE edge cases. No passing result is claimed here; verify locally.
 2. Run the inexpensive Finger Spin target-distribution diagnostic (standard deviation, quantiles, and episode counts for the exact train/validation subsets used in Table 3.4). This is needed because the saved distal-angle R² values are approximately −15 to −23 even in the supervised reference. Review these values before using an aggregate Finger Spin position score in the manuscript.
-3. After the target-distribution check, run ch03/table_03_04_comparison.py. It should migrate version-3 progress, retain compatible results, and retrain only Finger Spin's supervised-reference seeds 0, 1 and 2. Do not pass --fresh.
-4. Run ch03/11_temporal_cpc.py --evaluate-checkpoints. This reuses all three trained CPC checkpoints and recomputes metrics using evenly spaced validation windows; it must not train epochs.
-5. Run ch03/12_assemble_encoder.py as the final integration check.
+3. Run ch03/07_three_mechanisms.py once to regenerate the coherent anti-collapse comparison after the Barlow Twins normalization fix.
+4. After the target-distribution check, run ch03/table_03_04_comparison.py. It should migrate version-3 progress, retain compatible results, and retrain only Finger Spin's supervised-reference seeds 0, 1 and 2. Do not pass --fresh.
+5. Run ch03/11_temporal_cpc.py --evaluate-checkpoints. This reuses all three trained CPC checkpoints and recomputes metrics using evenly spaced validation windows; it must not train epochs.
+6. Run ch03/12_assemble_encoder.py as the final integration check.
 
-Do not recollect data or rerun contrastive, aliasing, VICReg, MAE or bottleneck experiments merely to obtain the corrected table and CPC gap metrics. Rerun ch03/07_three_mechanisms.py once because the Barlow Twins normalization was corrected; it regenerates the coherent three-method comparison.
+Do not recollect data or rerun contrastive, aliasing, VICReg, MAE or bottleneck experiments merely to obtain the corrected table and CPC gap metrics.
