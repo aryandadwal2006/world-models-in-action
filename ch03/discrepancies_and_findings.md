@@ -77,9 +77,10 @@ Do not merge results from the standalone VICReg/MAE runs with Table 3.4: they us
 
 ## 3. Required validation and run order
 
-1. Switch to audit/chapter3-methodology-fixes and run the test suite using the repository's .venv Python. No passing result is claimed here; verify locally.
-2. Run ch03/table_03_04_comparison.py. It should migrate version-3 progress, retain compatible results, and retrain only Finger Spin's supervised-reference seeds 0, 1 and 2.
-3. Run ch03/11_temporal_cpc.py --evaluate-checkpoints. This reuses all three trained CPC checkpoints and recomputes metrics using evenly spaced validation windows; it must not train epochs.
-4. Run ch03/12_assemble_encoder.py as the final integration check.
+1. Switch to audit/chapter3-methodology-fixes and run the test suite using the repository's .venv Python. Tests have been added for the angular period and Table 3.4 migration. No passing result is claimed here; verify locally.
+2. Run the inexpensive Finger Spin target-distribution diagnostic (standard deviation, quantiles, and episode counts for the exact train/validation subsets used in Table 3.4). This is needed because the saved distal-angle R² values are approximately −15 to −23 even in the supervised reference. Review these values before using an aggregate Finger Spin position score in the manuscript.
+3. After the target-distribution check, run ch03/table_03_04_comparison.py. It should migrate version-3 progress, retain compatible results, and retrain only Finger Spin's supervised-reference seeds 0, 1 and 2. Do not pass --fresh.
+4. Run ch03/11_temporal_cpc.py --evaluate-checkpoints. This reuses all three trained CPC checkpoints and recomputes metrics using evenly spaced validation windows; it must not train epochs.
+5. Run ch03/12_assemble_encoder.py as the final integration check.
 
-Before making any final prose claim about the Finger Spin comparison, also print the validation target standard deviation and range for each of the six stored state coordinates and inspect the per-variable R² values. That check is cheap and does not train a model. Do not recollect data or rerun the completed contrastive, aliasing, collapse, VICReg, MAE or bottleneck experiments merely to obtain the corrected table and CPC gap metrics.
+Do not recollect data or rerun the completed contrastive, aliasing, collapse, VICReg, MAE or bottleneck experiments merely to obtain the corrected table and CPC gap metrics.
