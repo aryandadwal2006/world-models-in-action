@@ -81,7 +81,7 @@ world-models-in-action/
 └── requirements.txt              # torch, numpy, matplotlib; dm_control pinned (script 01 only)
 ```
 
-Rules: every numbered listing is an excerpt of a named file; cueballs; every script runs on CPU in under ~10 minutes **after** the one-time data collection (§2.2); every quantitative script accepts `--seed`; the book reports mean ± std over seeds 0, 1, 2.
+Rules: every numbered listing is an excerpt of a named file; short teaching examples should be CPU-accessible; the full three-seed objective comparison, latent-capacity sweep, and CPC sequence experiment can take substantially longer than ten minutes on CPU. Data collection is cached, experiment outputs are recorded, and resumable experiments must skip completed compatible runs. Every quantitative result reports mean ± standard deviation over seeds 0, 1, 2.
 
 ### 2.2 Data: the DeepMind Control Suite
 Decision: **use the benchmark the field uses; do not build a world.** Chapter 3 renders frames from `dm_control.suite` (MuJoCo physics; Tunyasuvunakool et al. 2020, cited in a footnote at first use) and treats the simulator's physics state as privileged evaluation-only ground truth.
@@ -91,10 +91,10 @@ Decision: **use the benchmark the field uses; do not build a world.** Chapter 3 
 | Task | State dim | Role in ch3 |
 |------|-----------|-------------|
 | `cartpole_balance` | 4 | Primary. Every core experiment (contrastive training, collapse, VICReg, MAE, aliasing, CPC) runs here. Small state → probe tables stay readable; renders are cheap. |
-| `finger_spin` | 4 (pos/vel/touch) | Second row in the objective-comparison table 3.4 — shows the conclusions are not cartpole-specific without multiplying runtimes. |
+| `finger_spin` | 6 (3 generalized positions + 3 generalized velocities) | Secondary task in objective-comparison table 3.4. Its spinner hinge angle is not uniquely identifiable from a single rendered frame because the spinner geometry is symmetric under a half-turn; report that variable separately and exclude it from aggregate position scores. |
 | `cheetah_run` | 18 | Hard end of the bottleneck sweep only: the plateau should move to larger d. Also the honest "this is harder than it looks" frame in figure 3.2. |
 
-**Data specification:** 64×64 RGB frames (small enough for CPU training, large enough that the pole/finger/cheetah are legible); ~30k training frames and ~5k validation frames per task, collected as episodes under a uniform random policy within the action spec; each frame stored with its physics state (positions and velocities via the task's observation, which concatenates `qpos`/`qvel`-derived quantities) and episode boundaries. `01_collect_dmc_data.py` writes one `.npz` per task; all other scripts read the cache. Collection is seeded and version-pinned so the cache is reproducible.
+**Data specification:** 64×64 RGB frames; ~30k training frames and ~5k validation frames per task, collected as episodes under a uniform random policy within the action spec. Each frame is stored with the raw MuJoCo generalized positions followed by generalized velocities (`qpos` then `qvel`) and an episode ID. The state is collected directly from the simulator physics, not from the task's observation dictionary. `01_collect_dmc_data.py` writes one `.npz` per split; all other scripts read the cache. Collection is seeded and simulator versions are recorded.
 
 **The evaluation-only ground-truth rule, stated in the text:** the physics state is never an input to any representation-learning objective. It appears in exactly three places: the linear probe's targets, the forward-prediction test's targets, and the supervised baseline of table 3.4. A sidebar in 3.1 says why this mirrors the real setting — a robot streams pixels, not `qpos` — and why it is fairer than v2's generator, where we controlled both sides of the comparison.
 
