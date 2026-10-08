@@ -194,6 +194,7 @@ def main() -> None:
     os.makedirs(args.results_dir, exist_ok=True)
     save_json(
         {
+            "experiment_version": 2,
             "seeds": args.seeds,
             "config": {
                 "epochs": args.epochs,
@@ -201,6 +202,15 @@ def main() -> None:
                 "learning_rate": args.lr,
                 "latent_dim": args.latent_dim,
                 "max_train_samples": args.max_train_samples,
+                "augmentation": {
+                    "max_shift": 3,
+                    "brightness_range": 0.1,
+                    "contrast_range": 0.1,
+                },
+                "barlow_twins": {
+                    "lambda": 0.005,
+                    "batch_standard_deviation_unbiased": false,
+                },
             },
             "methods": summary,
         },
