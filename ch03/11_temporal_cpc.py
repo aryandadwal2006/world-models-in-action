@@ -29,7 +29,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader, Dataset, Subset
 
 from worldmodels.data.dmc_data import load_dataset_npz
 from worldmodels.eval.probes import (
@@ -40,11 +40,12 @@ from worldmodels.eval.probes import (
 from worldmodels.models.encoders import ConvEncoder
 from worldmodels.train import (
     get_device,
+    load_json,
     save_json,
     set_seed,
 )
 
-EXPERIMENT_VERSION = 3
+EXPERIMENT_VERSION = 4
 
 
 class SequenceDataset(Dataset):
@@ -407,7 +408,13 @@ def parse_args() -> argparse.Namespace:
     p.add_argument(
         "--gap-sequences",
         type=int,
-        default=32,
+        default=128,
+        help="Maximum number of evenly spaced validation windows for gap scoring.",
+    )
+    p.add_argument(
+        "--evaluate-checkpoints",
+        action="store_true",
+        help="Evaluate existing checkpoints without retraining the CPC model.",
     )
     p.add_argument(
         "--data-dir",
@@ -455,6 +462,108 @@ def make_loader(
         batch_size=batch_size,
         shuffle=False,
     )
+
+
+def evenly_spaced_subset(dataset, max_items: int):
+    """Select validation windows across the full dataset, not only its start."""
+    if max_items <= 0:
+        raise ValueError("max_items must be positive")
+    if len(dataset) == 0:
+        raise ValueError("Cannot select from an empty sequence dataset")
+
+    n_items = min(len(dataset), max_items)
+    indices = np.linspace(
+        0,
+        len(dataset) - 1,
+        num=n_items,
+        dtype=np.int64,
+    )
+    indices = np.unique(indices)
+    return Subset(dataset, indices.tolist())
+
+
+def validate_checkpoint_evaluation(args) -> dict:
+    """Check that cached CPC checkpoints match the original training run."""
+    metrics_path = os.path.join(
+        args.results_dir,
+        "table_03_05_cpc_metrics.json",
+    )
+    if not os.path.isfile(metrics_path):
+        raise FileNotFoundError(
+            f"Cannot validate existing run: missing {metrics_path}"
+        )
+
+    saved_metrics = load_json(metrics_path)
+    if saved_metrics.get("seeds") != args.seeds:
+        raise ValueError(
+            "Requested seeds do not match the saved CPC run: "
+            f"{args.seeds} vs {saved_metrics.get('seeds')}"
+        )
+
+    saved_config = saved_metrics.get("config", {})
+    training_fields = (
+        "epochs",
+        "batch_size",
+        "lr",
+        "seq_len",
+        "eval_seq_len",
+        "latent_dim",
+        "context_dim",
+        "k_steps",
+        "temperature",
+        "max_train_frames",
+        "max_val_frames",
+        "gap_start",
+        "gap_length",
+    )
+    mismatches = {
+        field: (saved_config.get(field), getattr(args, field))
+        for field in training_fields
+        if saved_config.get(field) != getattr(args, field)
+    }
+    if mismatches:
+        raise ValueError(
+            "Existing checkpoint training configuration does not match "
+            f"the requested evaluation: {mismatches}"
+        )
+
+    for seed in args.seeds:
+        checkpoint_path = os.path.join(
+            args.checkpoints_dir,
+            f"temporal_cpc_seed_{seed}.pt",
+        )
+        if not os.path.isfile(checkpoint_path):
+            raise FileNotFoundError(
+                f"Missing CPC checkpoint for seed {seed}: {checkpoint_path}"
+            )
+        checkpoint = torch.load(
+            checkpoint_path,
+            map_location="cpu",
+            weights_only=True,
+        )
+        expected = {
+            "seed": seed,
+            "latent_dim": args.latent_dim,
+            "context_dim": args.context_dim,
+            "k_steps": args.k_steps,
+            "temperature": args.temperature,
+        }
+        mismatches = {
+            key: (checkpoint.get(key), value)
+            for key, value in expected.items()
+            if checkpoint.get(key) != value
+        }
+        if mismatches:
+            raise ValueError(
+                f"Checkpoint for seed {seed} has incompatible metadata: "
+                f"{mismatches}"
+            )
+        if "model_state_dict" not in checkpoint:
+            raise ValueError(
+                f"Checkpoint for seed {seed} has no model_state_dict"
+            )
+
+    return saved_metrics
 
 
 def extract_temporal_features(
@@ -1081,9 +1190,16 @@ def main() -> None:
             "Invalid gap settings"
         )
 
-    set_seed(
-        args.seeds[0]
-    )
+    set_seed(args.seeds[0])
+
+    if args.evaluate_checkpoints:
+        saved_metrics = validate_checkpoint_evaluation(args)
+        print(
+            "Evaluation-only mode: validated existing CPC checkpoints; "
+            "no model training will be performed."
+        )
+    else:
+        saved_metrics = None
 
     device = get_device()
 
@@ -1158,6 +1274,15 @@ def main() -> None:
         )
     )
 
+    gap_eval_ds = evenly_spaced_subset(
+        eval_ds,
+        args.gap_sequences,
+    )
+    print(
+        f"Gap evaluation will sample {len(gap_eval_ds)} evenly spaced "
+        f"windows from {len(eval_ds)} eligible validation windows."
+    )
+
     seed_metrics = []
     first_figure_data = None
 
@@ -1181,73 +1306,73 @@ def main() -> None:
             temperature=args.temperature,
         ).to(device)
 
-        optimizer = torch.optim.Adam(
-            model.parameters(),
-            lr=args.lr,
-        )
+        if args.evaluate_checkpoints:
+            checkpoint_path = os.path.join(
+                args.checkpoints_dir,
+                f"temporal_cpc_seed_{seed}.pt",
+            )
+            checkpoint = torch.load(
+                checkpoint_path,
+                map_location=device,
+                weights_only=True,
+            )
+            model.load_state_dict(
+                checkpoint["model_state_dict"],
+                strict=True,
+            )
+            print(
+                f"Seed {seed} | loaded existing checkpoint; "
+                "skipping training."
+            )
+        else:
+            optimizer = torch.optim.Adam(
+                model.parameters(),
+                lr=args.lr,
+            )
 
-        for epoch in range(
-            1,
-            args.epochs + 1,
-        ):
-            model.train()
+            for epoch in range(
+                1,
+                args.epochs + 1,
+            ):
+                model.train()
 
-            total = 0.0
-            total_examples = 0
+                total = 0.0
+                total_examples = 0
 
-            for batch in train_loader:
-                loss = model(
-                    batch[
-                        "images"
-                    ].to(device)
-                )
-
-                if not torch.isfinite(
-                    loss
-                ):
-                    raise FloatingPointError(
-                        f"Non-finite CPC loss at "
-                        f"seed={seed}, epoch={epoch}"
+                for batch in train_loader:
+                    loss = model(
+                        batch["images"].to(device)
                     )
 
-                optimizer.zero_grad()
-                loss.backward()
+                    if not torch.isfinite(loss):
+                        raise FloatingPointError(
+                            f"Non-finite CPC loss at "
+                            f"seed={seed}, epoch={epoch}"
+                        )
 
-                torch.nn.utils.clip_grad_norm_(
-                    model.parameters(),
-                    max_norm=1.0,
-                )
+                    optimizer.zero_grad()
+                    loss.backward()
+                    torch.nn.utils.clip_grad_norm_(
+                        model.parameters(),
+                        max_norm=1.0,
+                    )
+                    optimizer.step()
 
-                optimizer.step()
+                    n = len(batch["images"])
+                    total += float(loss.item()) * n
+                    total_examples += n
 
-                n = len(
-                    batch[
-                        "images"
-                    ]
-                )
+                if total_examples == 0:
+                    raise RuntimeError(
+                        "CPC DataLoader produced zero examples"
+                    )
 
-                total += (
-                    float(loss.item())
-                    * n
-                )
-
-                total_examples += n
-
-            if total_examples == 0:
-                raise RuntimeError(
-                    "CPC DataLoader produced "
-                    "zero examples"
-                )
-
-            if (
-                epoch % 4 == 0
-                or epoch == args.epochs
-            ):
-                print(
-                    f"Seed {seed} | "
-                    f"Epoch {epoch:02d}/{args.epochs:02d} | "
-                    f"Loss {total / total_examples:.4f}"
-                )
+                if epoch % 4 == 0 or epoch == args.epochs:
+                    print(
+                        f"Seed {seed} | "
+                        f"Epoch {epoch:02d}/{args.epochs:02d} | "
+                        f"Loss {total / total_examples:.4f}"
+                    )
 
         train_z, train_c, train_y, train_next_y = (
             extract_temporal_features(
@@ -1332,7 +1457,7 @@ def main() -> None:
         gap_stats, figure_data = evaluate_gap(
             model,
             make_loader(
-                eval_ds,
+                gap_eval_ds,
                 1,
                 shuffle=False,
             ),
@@ -1388,23 +1513,24 @@ def main() -> None:
             exist_ok=True,
         )
 
-        torch.save(
-            {
-                "model_state_dict": model.state_dict(),
-                "latent_dim": args.latent_dim,
-                "context_dim": args.context_dim,
-                "k_steps": args.k_steps,
-                "temperature": args.temperature,
-                "seed": seed,
-                "experiment_version": EXPERIMENT_VERSION,
-                "latent_normalization": "l2_unit",
-                "gradient_clip_norm": 1.0,
-            },
-            os.path.join(
-                args.checkpoints_dir,
-                f"temporal_cpc_seed_{seed}.pt",
-            ),
-        )
+        if not args.evaluate_checkpoints:
+            torch.save(
+                {
+                    "model_state_dict": model.state_dict(),
+                    "latent_dim": args.latent_dim,
+                    "context_dim": args.context_dim,
+                    "k_steps": args.k_steps,
+                    "temperature": args.temperature,
+                    "seed": seed,
+                    "experiment_version": EXPERIMENT_VERSION,
+                    "latent_normalization": "l2_unit",
+                    "gradient_clip_norm": 1.0,
+                },
+                os.path.join(
+                    args.checkpoints_dir,
+                    f"temporal_cpc_seed_{seed}.pt",
+                ),
+            )
 
         print(
             f"Seed {seed} | "
@@ -1496,6 +1622,17 @@ def main() -> None:
             "experiment_version": EXPERIMENT_VERSION,
             "seeds": args.seeds,
             "config": vars(args),
+            "evaluation": {
+                "gap_sampling": "evenly spaced over eligible validation windows",
+                "gap_sequence_count": len(gap_eval_ds),
+                "eligible_validation_windows": len(eval_ds),
+                "checkpoint_only": bool(args.evaluate_checkpoints),
+                "prior_metrics_config": (
+                    saved_metrics.get("config")
+                    if saved_metrics is not None
+                    else None
+                ),
+            },
             "angular_position_indices": list(
                 angular_indices
             ),
