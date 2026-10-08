@@ -214,6 +214,15 @@ class TestProbes(unittest.TestCase):
             2.0 * np.pi,
         )
 
+    def test_circular_score_respects_pi_period(self):
+        true = np.array([-1.4, -0.5, 0.2, 1.45])
+        pred = true + np.pi
+        self.assertAlmostEqual(
+            circular_r2_score(true, pred, period=np.pi),
+            1.0,
+            places=10,
+        )
+
     def test_pi_periodic_probe_decodes_rendered_orientation(self):
         rng = np.random.default_rng(2026)
         theta = rng.uniform(-np.pi, np.pi, size=500)
