@@ -1,11 +1,9 @@
 """05_aliasing_diagnostic.py - Temporal aliasing diagnostic on DMC observations.
- 
-Empirically tests Chapter 2's aliasing hypothesis: does stacking two consecutive frames
-provide sufficient temporal context to linearly decode velocity?
-Under this experimental configuration (two immediately adjacent 64x64 frames with
-contrastive crop/jitter augmentation), linear probe results show that stacking did not
-substantially recover velocity (Table 3.3). This represents a measured negative result:
-frame adjacency alone under this contrastive objective is insufficient to linearly expose velocity.
+
+The experiment compares a single-frame encoder with an encoder receiving two
+immediately consecutive frames. Strict temporal stacks never cross episode
+boundaries. The hypothesis is stated before measurement; the script reports the
+observed result without presupposing that two-frame stacking will recover velocity.
 """
 
 from __future__ import annotations
@@ -28,15 +26,26 @@ from worldmodels.models.encoders import ConvEncoder, ProjectionHead
 from worldmodels.train import get_device, save_json, set_seed
 
 
+VARIABLE_NAMES = [
+    "cart_position",
+    "pole_angle",
+    "cart_velocity",
+    "pole_angular_velocity",
+]
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run temporal aliasing diagnostic.")
-    parser.add_argument("--seeds", type=int, nargs="+", default=[0, 1, 2], help="List of seeds to evaluate.")
-    parser.add_argument("--epochs", type=int, default=12, help="Training epochs per encoder.")
-    parser.add_argument("--batch-size", type=int, default=32, help="Batch size.")
-    parser.add_argument("--lr", type=float, default=1e-3, help="Learning rate.")
-    parser.add_argument("--latent-dim", type=int, default=16, help="Latent dimensionality.")
-    parser.add_argument("--data-dir", type=str, default="data", help="Data directory.")
-    parser.add_argument("--results-dir", type=str, default="ch03/results", help="Results directory.")
+    parser.add_argument("--seeds", type=int, nargs="+", default=[0, 1, 2])
+    parser.add_argument("--epochs", type=int, default=12)
+    parser.add_argument("--batch-size", type=int, default=32)
+    parser.add_argument("--lr", type=float, default=1e-3)
+    parser.add_argument("--latent-dim", type=int, default=16)
+    parser.add_argument("--temperature", type=float, default=0.5)
+    parser.add_argument("--max-train-samples", type=int, default=2000)
+    parser.add_argument("--max-val-samples", type=int, default=500)
+    parser.add_argument("--data-dir", type=str, default="data")
+    parser.add_argument("--results-dir", type=str, default="ch03/results")
     return parser.parse_args()
 
 
@@ -48,118 +57,137 @@ def train_and_eval(
     args: argparse.Namespace,
     device: torch.device,
 ) -> dict:
-    """Trains a contrastive encoder on either single or stacked frames and evaluates linear probe."""
-    import gc
-    gc.collect()
     set_seed(seed)
 
-    n_train = min(len(train_raw["frames"]), 2000)
-    n_val = min(len(val_raw["frames"]), 500)
+    n_train = min(len(train_raw["frames"]), args.max_train_samples)
+    n_val = min(len(val_raw["frames"]), args.max_val_samples)
 
     train_ds = DMCDataset(
         frames=train_raw["frames"][:n_train],
         physics_states=train_raw["physics_states"][:n_train],
         episode_ids=train_raw["episode_ids"][:n_train],
         frame_stack=frame_stack,
+        strict_frame_stack=(frame_stack > 1),
     )
     val_ds = DMCDataset(
         frames=val_raw["frames"][:n_val],
         physics_states=val_raw["physics_states"][:n_val],
         episode_ids=val_raw["episode_ids"][:n_val],
         frame_stack=frame_stack,
+        strict_frame_stack=(frame_stack > 1),
     )
 
-    train_loader = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True)
+    generator = torch.Generator()
+    generator.manual_seed(seed)
+    train_loader = DataLoader(
+        train_ds,
+        batch_size=args.batch_size,
+        shuffle=True,
+        generator=generator,
+    )
     val_loader = DataLoader(val_ds, batch_size=args.batch_size, shuffle=False)
 
-    in_channels = 3 * frame_stack
-    encoder = ConvEncoder(in_channels=in_channels, latent_dim=args.latent_dim).to(device)
-    proj_head = ProjectionHead(in_dim=args.latent_dim, hidden_dim=64, out_dim=args.latent_dim).to(device)
-
+    encoder = ConvEncoder(in_channels=3 * frame_stack, latent_dim=args.latent_dim).to(device)
+    proj_head = ProjectionHead(
+        in_dim=args.latent_dim,
+        hidden_dim=64,
+        out_dim=args.latent_dim,
+    ).to(device)
     optimizer = torch.optim.Adam(
         list(encoder.parameters()) + list(proj_head.parameters()),
         lr=args.lr,
     )
-    view_pipeline = ViewPipeline(max_shift=3, brightness_range=0.1, contrast_range=0.1)
+    pipeline = ViewPipeline(max_shift=3, brightness_range=0.1, contrast_range=0.1)
 
-    for epoch in range(1, args.epochs + 1):
+    for _ in range(args.epochs):
         encoder.train()
         proj_head.train()
         for batch in train_loader:
             images = batch["image"].to(device)
-            v1, v2 = view_pipeline(images)
+            v1, v2 = pipeline(images)
             p1 = proj_head(encoder(v1))
             p2 = proj_head(encoder(v2))
-            loss = nt_xent_loss(p1, p2, temperature=0.5)
-
+            loss = nt_xent_loss(p1, p2, temperature=args.temperature)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
 
-    probe_res = evaluate_linear_probe(encoder, train_loader, val_loader, device)
-    return probe_res
+    return evaluate_linear_probe(encoder, train_loader, val_loader, device)
 
 
 def main() -> None:
     args = parse_args()
     device = get_device()
 
-    train_file = os.path.join(args.data_dir, "dmc_cartpole_balance_train.npz")
-    val_file = os.path.join(args.data_dir, "dmc_cartpole_balance_val.npz")
+    train_raw = load_dataset_npz(
+        os.path.join(args.data_dir, "dmc_cartpole_balance_train.npz")
+    )
+    val_raw = load_dataset_npz(
+        os.path.join(args.data_dir, "dmc_cartpole_balance_val.npz")
+    )
 
-    train_raw = load_dataset_npz(train_file)
-    val_raw = load_dataset_npz(val_file)
+    single_results = []
+    stacked_results = []
 
-    var_names = ["cart_position", "pole_angle", "cart_velocity", "pole_angular_velocity"]
-
-    single_frame_results = []
-    stacked_frame_results = []
-
-    print(f"=== Running Aliasing Diagnostic across seeds {args.seeds} ===")
+    print(f"=== Aliasing diagnostic across seeds {args.seeds} ===")
     for seed in args.seeds:
-        print(f"\n--- Seed {seed} ---")
-        print("Training Single-Frame (1-frame) Encoder...")
-        res_1 = train_and_eval(1, seed, train_raw, val_raw, args, device)
-        single_frame_results.append(res_1["r2_per_variable"])
-        print(f"  1-Frame Probe R^2: {dict(zip(var_names, [round(x, 4) for x in res_1['r2_per_variable']]))}")
+        single = train_and_eval(1, seed, train_raw, val_raw, args, device)
+        stacked = train_and_eval(2, seed, train_raw, val_raw, args, device)
+        single_results.append(single["r2_per_variable"])
+        stacked_results.append(stacked["r2_per_variable"])
 
-        print("Training Stacked-Frame (2-frame) Encoder...")
-        res_2 = train_and_eval(2, seed, train_raw, val_raw, args, device)
-        stacked_frame_results.append(res_2["r2_per_variable"])
-        print(f"  2-Frame Probe R^2: {dict(zip(var_names, [round(x, 4) for x in res_2['r2_per_variable']]))}")
+        print("Seed", seed)
+        print("  single:", dict(zip(VARIABLE_NAMES, np.round(single["r2_per_variable"], 4))))
+        print("  stacked:", dict(zip(VARIABLE_NAMES, np.round(stacked["r2_per_variable"], 4))))
 
-    single_arr = np.array(single_frame_results)  # (num_seeds, 4)
-    stacked_arr = np.array(stacked_frame_results)  # (num_seeds, 4)
+    single_arr = np.asarray(single_results, dtype=np.float64)
+    stacked_arr = np.asarray(stacked_results, dtype=np.float64)
+    delta_arr = stacked_arr - single_arr
 
-    mean_single = np.mean(single_arr, axis=0)
-    std_single = np.std(single_arr, axis=0)
-
-    mean_stacked = np.mean(stacked_arr, axis=0)
-    std_stacked = np.std(stacked_arr, axis=0)
-
-    print("\n" + "=" * 65)
-    print("Table 3.3 Aliasing Diagnostic: Probe R^2 (Mean ± Std over 3 seeds)")
-    print("=" * 65)
-    print(f"{'State Variable':<25} | {'Single-Frame (1-frame)':<18} | {'Stacked-Frame (2-frame)':<18}")
-    print("-" * 65)
-    table_rows = []
-    for i, var in enumerate(var_names):
-        s1 = f"{mean_single[i]:.3f} ± {std_single[i]:.3f}"
-        s2 = f"{mean_stacked[i]:.3f} ± {std_stacked[i]:.3f}"
-        print(f"{var:<25} | {s1:<18} | {s2:<18}")
-        table_rows.append({
-            "variable": var,
-            "single_frame_mean": float(mean_single[i]),
-            "single_frame_std": float(std_single[i]),
-            "stacked_frame_mean": float(mean_stacked[i]),
-            "stacked_frame_std": float(std_stacked[i]),
+    rows = []
+    for i, name in enumerate(VARIABLE_NAMES):
+        rows.append({
+            "variable": name,
+            "single_frame_mean": float(single_arr[:, i].mean()),
+            "single_frame_std": float(single_arr[:, i].std()),
+            "stacked_frame_mean": float(stacked_arr[:, i].mean()),
+            "stacked_frame_std": float(stacked_arr[:, i].std()),
+            "delta_mean": float(delta_arr[:, i].mean()),
+            "delta_std": float(delta_arr[:, i].std()),
         })
-    print("=" * 65)
+
+    print("\nTable 3.3 Aliasing Diagnostic")
+    for row in rows:
+        print(
+            f"{row['variable']:<24} "
+            f"single={row['single_frame_mean']:.3f} ± {row['single_frame_std']:.3f} "
+            f"stacked={row['stacked_frame_mean']:.3f} ± {row['stacked_frame_std']:.3f} "
+            f"delta={row['delta_mean']:+.3f}"
+        )
 
     os.makedirs(args.results_dir, exist_ok=True)
-    out_json = os.path.join(args.results_dir, "table_03_03_aliasing_diagnostic.json")
-    save_json({"seeds": args.seeds, "results": table_rows}, out_json)
-    print(f"Saved Table 3.3 results -> {out_json}")
+    save_json(
+        {
+            "seeds": args.seeds,
+            "config": {
+                "epochs": args.epochs,
+                "batch_size": args.batch_size,
+                "learning_rate": args.lr,
+                "latent_dim": args.latent_dim,
+                "temperature": args.temperature,
+                "max_train_samples": args.max_train_samples,
+                "max_val_samples": args.max_val_samples,
+                "max_shift": 3,
+                "brightness_range": 0.1,
+                "contrast_range": 0.1,
+                "strict_frame_stack": True,
+            },
+            "per_seed_single_frame_r2": single_results,
+            "per_seed_stacked_frame_r2": stacked_results,
+            "results": rows,
+        },
+        os.path.join(args.results_dir, "table_03_03_aliasing_diagnostic.json"),
+    )
 
 
 if __name__ == "__main__":

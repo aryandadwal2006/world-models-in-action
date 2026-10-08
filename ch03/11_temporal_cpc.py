@@ -1,13 +1,10 @@
-"""11_temporal_cpc.py - Temporal Contrastive Predictive Coding (CPC) and trajectory tests.
+"""11_temporal_cpc.py - Temporal CPC and honest missing-observation tests.
 
-Bridges representation learning to predictive world modeling:
-1. Encodes sequence frames into representations z_t via ConvEncoder.
-2. Aggregates past history into context c_t via causal recurrent model (GRU).
-3. Optimizes future latent compatibility f(z_{t+k}, c_t) = exp(z_{t+k}^T W_k c_t) via InfoNCE (Eq 3.20).
-4. Employs an explicit 1-step MSE latent predictor P(c_t) \approx z_{t+1} (bridging to Chapter 4 JEPA).
-5. Evaluates two temporal tests:
-   - Unobserved interval tracking: Predicts through dropped-frame gap via P(c_t) (Figure 3.16).
-   - Multi-step forward state prediction (Table 3.5).
+The CPC objective uses a causal GRU context and bilinear InfoNCE compatibility.
+An explicit one-step latent predictor is trained separately with MSE so it can
+actually be used for autoregressive latent rollout. The evaluation distinguishes
+current-state decoding, next-state prediction, and prediction through a real
+unobserved interval.
 """
 
 from __future__ import annotations
@@ -15,6 +12,7 @@ from __future__ import annotations
 import argparse
 import os
 import sys
+from typing import Dict, List, Tuple
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
@@ -32,333 +30,439 @@ from worldmodels.train import get_device, save_json, set_seed
 
 
 class SequenceDataset(Dataset):
-    """Dataset yielding contiguous trajectory slices for temporal CPC."""
+    """Yield episode-safe contiguous sequence windows."""
 
-    def __init__(
-        self,
-        frames: np.ndarray,
-        physics_states: np.ndarray,
-        episode_ids: np.ndarray,
-        seq_len: int = 16,
-    ) -> None:
+    def __init__(self, frames, physics_states, episode_ids, seq_len: int):
+        if seq_len < 2:
+            raise ValueError("seq_len must be >= 2")
         self.frames = frames
         self.physics_states = physics_states
         self.episode_ids = episode_ids
         self.seq_len = seq_len
-
-        # Gather all valid starting indices within the same episode
         self.valid_indices = []
-        for i in range(len(frames) - seq_len):
-            if episode_ids[i] == episode_ids[i + seq_len - 1]:
-                self.valid_indices.append(i)
+        for start in range(0, len(frames) - seq_len + 1):
+            window = episode_ids[start : start + seq_len]
+            if np.all(window == window[0]):
+                self.valid_indices.append(start)
 
-    def __len__(self) -> int:
+    def __len__(self):
         return len(self.valid_indices)
 
-    def __getitem__(self, idx: int) -> dict:
-        start = self.valid_indices[idx]
+    def __getitem__(self, index):
+        start = self.valid_indices[index]
         end = start + self.seq_len
-
-        # (T, H, W, C) -> (T, C, H, W) float32 in [0, 1]
-        seq_frames = torch.from_numpy(self.frames[start:end]).permute(0, 3, 1, 2).float() / 255.0
-        seq_phys = torch.from_numpy(self.physics_states[start:end]).float()
-
-        return {
-            "images": seq_frames,
-            "physics_states": seq_phys,
-        }
+        images = (
+            torch.from_numpy(self.frames[start:end])
+            .permute(0, 3, 1, 2)
+            .float()
+            / 255.0
+        )
+        states = torch.from_numpy(self.physics_states[start:end]).float()
+        return {"images": images, "physics_states": states}
 
 
 class TemporalCPC(nn.Module):
-    """Contrastive Predictive Coding architecture for visual sequences."""
+    """Causal GRU context model with InfoNCE and an explicit latent predictor."""
 
-    def __init__(
-        self,
-        encoder: ConvEncoder,
-        latent_dim: int = 16,
-        context_dim: int = 32,
-        k_steps: int = 3,
-    ) -> None:
+    def __init__(self, encoder, latent_dim=16, context_dim=32, k_steps=3, temperature=0.5):
         super().__init__()
         self.encoder = encoder
         self.latent_dim = latent_dim
         self.context_dim = context_dim
         self.k_steps = k_steps
-
+        self.temperature = temperature
         self.gru = nn.GRU(latent_dim, context_dim, batch_first=True)
-        # Bilinear compatibility matrices W_k for k in {1..k_steps} (InfoNCE discrimination)
         self.w_k = nn.ParameterList([
             nn.Parameter(torch.randn(latent_dim, context_dim) * 0.05)
             for _ in range(k_steps)
         ])
-        # Explicit forward predictor mapping context c_t -> next latent z_{t+1} (MSE loss)
         self.predictor = nn.Linear(context_dim, latent_dim)
 
-    def encode_sequence(self, x_seq: torch.Tensor) -> torch.Tensor:
-        """Encodes (B, T, C, H, W) images into latent sequences (B, T, D)."""
+    def encode_sequence(self, x_seq):
         b, t, c, h, w = x_seq.shape
-        x_flat = x_seq.view(b * t, c, h, w)
-        z_flat = self.encoder(x_flat)
-        return z_flat.view(b, t, self.latent_dim)
+        z = self.encoder(x_seq.reshape(b * t, c, h, w))
+        return z.reshape(b, t, self.latent_dim)
 
-    def predict_next_latent(self, c_t: torch.Tensor) -> torch.Tensor:
-        """Predicts next latent code z_{t+1} from context c_t via explicit MSE predictor."""
+    def predict_next_latent(self, c_t):
         return self.predictor(c_t)
 
-    def forward(self, x_seq: torch.Tensor) -> torch.Tensor:
-        """Computes combined multi-step InfoNCE loss and 1-step MSE forward prediction loss."""
-        z_seq = self.encode_sequence(x_seq)  # (B, T, D)
-        b, t, d = z_seq.shape
+    def forward(self, x_seq):
+        z_seq = self.encode_sequence(x_seq)
+        c_seq, _ = self.gru(z_seq)
+        b, t, _ = z_seq.shape
+        if b < 2:
+            raise ValueError("CPC InfoNCE requires batch_size >= 2")
 
-        # Run GRU over history
-        c_seq, _ = self.gru(z_seq)  # (B, T, C_dim)
+        cpc_sum = torch.tensor(0.0, device=x_seq.device)
+        forward_sum = torch.tensor(0.0, device=x_seq.device)
+        n_contexts = 0
+        n_cpc = 0
 
-        loss_cpc = torch.tensor(0.0, device=x_seq.device)
-        loss_mse = torch.tensor(0.0, device=x_seq.device)
-        count = 0
-
-        # For each time step t_idx that has k_steps future steps available
         for t_idx in range(4, t - self.k_steps):
-            c_t = c_seq[:, t_idx]  # (B, C_dim)
-
-            # 1. 1-step explicit MSE predictor loss: P(c_t) \approx z_{t+1}
+            c_t = c_seq[:, t_idx]
             z_next = z_seq[:, t_idx + 1]
-            z_pred_mse = self.predictor(c_t)
-            loss_mse += F.mse_loss(z_pred_mse, z_next)
+            z_pred = self.predictor(c_t)
+            forward_sum = forward_sum + F.mse_loss(z_pred, z_next.detach())
+            n_contexts += 1
 
-            # 2. Multi-step bilinear InfoNCE compatibility loss: f(z_{t+k}, c_t) = z^T W_k c
             for k in range(self.k_steps):
-                z_target = z_seq[:, t_idx + 1 + k]  # (B, D)
-                W = self.w_k[k]  # (D, C_dim)
-
-                pred_z = torch.matmul(c_t, W.T)  # (B, D)
-                logits = torch.matmul(pred_z, z_target.T)  # (B, B)
+                target = z_seq[:, t_idx + 1 + k]
+                pred = c_t @ self.w_k[k].T
+                logits = (pred @ target.T) / self.temperature
                 labels = torch.arange(b, device=x_seq.device)
+                cpc_sum = cpc_sum + F.cross_entropy(logits, labels)
+                n_cpc += 1
 
-                loss_cpc += F.cross_entropy(logits, labels)
-                count += 1
+        if n_contexts == 0:
+            raise ValueError("Sequence is too short for the configured CPC context")
+        return cpc_sum / n_cpc + forward_sum / n_contexts
 
-        total_loss = (loss_cpc / max(count, 1)) + (loss_mse / max(count // self.k_steps, 1))
-        return total_loss
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Train temporal CPC on cartpole.")
+    parser.add_argument("--seeds", type=int, nargs="+", default=[0, 1, 2])
+    parser.add_argument("--epochs", type=int, default=12)
+    parser.add_argument("--batch-size", type=int, default=32)
+    parser.add_argument("--lr", type=float, default=1e-3)
+    parser.add_argument("--seq-len", type=int, default=16)
+    parser.add_argument("--eval-seq-len", type=int, default=25)
+    parser.add_argument("--latent-dim", type=int, default=16)
+    parser.add_argument("--context-dim", type=int, default=32)
+    parser.add_argument("--k-steps", type=int, default=3)
+    parser.add_argument("--temperature", type=float, default=0.5)
+    parser.add_argument("--max-train-frames", type=int, default=4000)
+    parser.add_argument("--max-val-frames", type=int, default=1000)
+    parser.add_argument("--gap-start", type=int, default=6)
+    parser.add_argument("--gap-length", type=int, default=5)
+    parser.add_argument("--gap-sequences", type=int, default=32)
+    parser.add_argument("--data-dir", type=str, default="data")
+    parser.add_argument("--figures-dir", type=str, default="ch03/figures")
+    parser.add_argument("--results-dir", type=str, default="ch03/results")
+    parser.add_argument("--checkpoints-dir", type=str, default="checkpoints")
+    return parser.parse_args()
+
+
+def make_loader(dataset, batch_size, seed=None, shuffle=False):
+    if shuffle:
+        generator = torch.Generator()
+        generator.manual_seed(seed)
+        return DataLoader(dataset, batch_size=batch_size, shuffle=True, generator=generator)
+    return DataLoader(dataset, batch_size=batch_size, shuffle=False)
+
+
+def extract_temporal_features(model, loader, device, time_index=8):
+    z_all, c_all, y_all, next_y_all = [], [], [], []
+    model.eval()
+    with torch.no_grad():
+        for batch in loader:
+            images = batch["images"].to(device)
+            states = batch["physics_states"].cpu().numpy()
+            z_seq = model.encode_sequence(images)
+            c_seq, _ = model.gru(z_seq)
+            z_all.append(z_seq[:, time_index].cpu().numpy())
+            c_all.append(c_seq[:, time_index].cpu().numpy())
+            y_all.append(states[:, time_index])
+            next_y_all.append(states[:, time_index + 1])
+    return (
+        np.concatenate(z_all, axis=0),
+        np.concatenate(c_all, axis=0),
+        np.concatenate(y_all, axis=0),
+        np.concatenate(next_y_all, axis=0),
+    )
+
+
+def fit_state_history_predictor(raw_frames, raw_states, raw_episode_ids):
+    x, y = [], []
+    for i in range(1, len(raw_states) - 1):
+        if raw_episode_ids[i - 1] == raw_episode_ids[i] == raw_episode_ids[i + 1]:
+            x.append(np.concatenate([raw_states[i - 1], raw_states[i]]))
+            y.append(raw_states[i + 1])
+    probe = LinearProbe()
+    probe.fit(np.asarray(x, dtype=np.float64), np.asarray(y, dtype=np.float64))
+    return probe
+
+
+def rollout_gap(model, sample_images, gap_start, gap_end, state_probe):
+    """Roll a learned latent predictor through the missing interval."""
+    model.eval()
+    with torch.no_grad():
+        z_full = model.encode_sequence(sample_images)
+        _, t, _ = z_full.shape
+        if not (0 < gap_start < gap_end <= t):
+            raise ValueError("Invalid gap interval")
+
+        h = None
+        c_current = None
+        z_used = []
+        for step in range(t):
+            if step < gap_start or step >= gap_end:
+                z_in = z_full[:, step : step + 1]
+            else:
+                z_pred = model.predict_next_latent(c_current)
+                z_in = z_pred.unsqueeze(1)
+            c_out, h = model.gru(z_in, h)
+            c_current = c_out[:, 0]
+            z_used.append(z_in[:, 0])
+        z_rollout = torch.stack(z_used, dim=1)
+
+    pred_states = state_probe.predict(z_rollout[0].cpu().numpy())
+    observed_states = state_probe.predict(z_full[0].cpu().numpy())
+    return pred_states, observed_states
+
+
+def linear_extrapolation_gap(history_probe, true_states, gap_start, gap_end):
+    pred = np.full_like(true_states, np.nan, dtype=np.float64)
+    history = [true_states[gap_start - 2].copy(), true_states[gap_start - 1].copy()]
+    for step in range(gap_start, gap_end):
+        x = np.concatenate([history[-2], history[-1]])[None, :]
+        next_state = history_probe.predict(x)[0]
+        pred[step] = next_state
+        history.append(next_state)
+    return pred
+
+
+def evaluate_gap(model, gap_loader, state_probe, history_probe, args, device):
+    gap_true, gap_cpc, gap_linear = [], [], []
+    first_figure_data = None
+    gap_end = args.gap_start + args.gap_length
+
+    with torch.no_grad():
+        for sequence_index, batch in enumerate(gap_loader):
+            if sequence_index >= args.gap_sequences:
+                break
+            images = batch["images"].to(device)
+            states = batch["physics_states"].cpu().numpy()
+            for sample_index in range(len(images)):
+                pred_states, observed_states = rollout_gap(
+                    model,
+                    images[sample_index : sample_index + 1],
+                    args.gap_start,
+                    gap_end,
+                    state_probe,
+                )
+                linear = linear_extrapolation_gap(
+                    history_probe,
+                    states[sample_index],
+                    args.gap_start,
+                    gap_end,
+                )
+                gap_true.append(states[sample_index, args.gap_start:gap_end])
+                gap_cpc.append(pred_states[args.gap_start:gap_end])
+                gap_linear.append(linear[args.gap_start:gap_end])
+                if first_figure_data is None:
+                    first_figure_data = {
+                        "states": states[sample_index],
+                        "cpc": pred_states,
+                        "observed": observed_states,
+                        "linear": linear,
+                    }
+                if len(gap_true) >= args.gap_sequences:
+                    break
+            if len(gap_true) >= args.gap_sequences:
+                break
+
+    true = np.concatenate(gap_true, axis=0)
+    cpc = np.concatenate(gap_cpc, axis=0)
+    linear = np.concatenate(gap_linear, axis=0)
+    r2_cpc = compute_r2_score(true, cpc)
+    r2_linear = compute_r2_score(true, linear)
+    return (
+        {
+            "num_sequences": int(len(gap_true)),
+            "cpc_gap_r2_per_variable": r2_cpc.tolist(),
+            "cpc_gap_mean_r2": float(np.mean(r2_cpc)),
+            "linear_gap_r2_per_variable": r2_linear.tolist(),
+            "linear_gap_mean_r2": float(np.mean(r2_linear)),
+        },
+        first_figure_data,
+    )
+
+
+def save_gap_figure(data, args, output_path):
+    states = data["states"]
+    cpc = data["cpc"]
+    observed = data["observed"]
+    linear = data["linear"]
+    gap_end = args.gap_start + args.gap_length
+    t = np.arange(len(states))
+
+    fig, ax = plt.subplots(figsize=(7.5, 3.6))
+    ax.plot(t, states[:, 0], linestyle="-", linewidth=2.0, label="Ground Truth")
+
+    cpc_gap = np.full(len(states), np.nan)
+    cpc_gap[args.gap_start:gap_end] = cpc[args.gap_start:gap_end, 0]
+    ax.plot(t, cpc_gap, linestyle="--", linewidth=1.8, label="CPC Latent Rollout")
+
+    linear_gap = np.full(len(states), np.nan)
+    linear_gap[args.gap_start:gap_end] = linear[args.gap_start:gap_end, 0]
+    ax.plot(t, linear_gap, linestyle="-.", linewidth=1.5, label="Privileged State Extrapolation")
+
+    frame_only = observed[:, 0].copy()
+    frame_only[args.gap_start:gap_end] = np.nan
+    ax.plot(t, frame_only, linestyle=":", marker="o", markersize=3.5, label="Frame-Only Re-entry")
+
+    ax.axvspan(args.gap_start, gap_end - 1, alpha=0.2, label="Unobserved Interval")
+    ax.set_xlabel("Time Step $t$")
+    ax.set_ylabel("Cart Position")
+    ax.set_title("Unobserved Interval Test: Five Missing Frames")
+    ax.grid(True, linestyle="--", alpha=0.3)
+    ax.legend(fontsize=8)
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=300, bbox_inches="tight")
+    plt.close()
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Temporal CPC training and gap tracking.")
-    parser.add_argument("--seeds", type=int, nargs="+", default=[0, 1, 2], help="Random seeds.")
-    parser.add_argument("--epochs", type=int, default=12, help="Training epochs.")
-    parser.add_argument("--batch-size", type=int, default=32, help="Batch size.")
-    parser.add_argument("--lr", type=float, default=1e-3, help="Learning rate.")
-    parser.add_argument("--seq-len", type=int, default=16, help="Sequence window length.")
-    parser.add_argument("--latent-dim", type=int, default=16, help="Latent dimensionality.")
-    parser.add_argument("--context-dim", type=int, default=32, help="Context GRU dimension.")
-    parser.add_argument("--data-dir", type=str, default="data", help="Data directory.")
-    parser.add_argument("--figures-dir", type=str, default="ch03/figures", help="Figures directory.")
-    parser.add_argument("--results-dir", type=str, default="ch03/results", help="Results directory.")
-    args = parser.parse_args()
+    args = parse_args()
+    if args.eval_seq_len <= max(args.gap_start + args.gap_length, 9):
+        raise ValueError("eval-seq-len is too short for the configured gap and probes")
 
     device = get_device()
-    train_file = os.path.join(args.data_dir, "dmc_cartpole_balance_train.npz")
-    val_file = os.path.join(args.data_dir, "dmc_cartpole_balance_val.npz")
+    train_raw = load_dataset_npz(os.path.join(args.data_dir, "dmc_cartpole_balance_train.npz"))
+    val_raw = load_dataset_npz(os.path.join(args.data_dir, "dmc_cartpole_balance_val.npz"))
 
-    train_raw = load_dataset_npz(train_file)
-    val_raw = load_dataset_npz(val_file)
+    train_frames = train_raw["frames"][: args.max_train_frames]
+    train_states = train_raw["physics_states"][: args.max_train_frames]
+    train_episode_ids = train_raw["episode_ids"][: args.max_train_frames]
+    val_frames = val_raw["frames"][: args.max_val_frames]
+    val_states = val_raw["physics_states"][: args.max_val_frames]
+    val_episode_ids = val_raw["episode_ids"][: args.max_val_frames]
 
-    train_ds = SequenceDataset(
-        frames=train_raw["frames"][:4000],
-        physics_states=train_raw["physics_states"][:4000],
-        episode_ids=train_raw["episode_ids"][:4000],
-        seq_len=args.seq_len,
-    )
-    val_ds = SequenceDataset(
-        frames=val_raw["frames"][:1000],
-        physics_states=val_raw["physics_states"][:1000],
-        episode_ids=val_raw["episode_ids"][:1000],
-        seq_len=args.seq_len,
-    )
+    train_ds = SequenceDataset(train_frames, train_states, train_episode_ids, args.seq_len)
+    eval_ds = SequenceDataset(val_frames, val_states, val_episode_ids, args.eval_seq_len)
+    if len(train_ds) == 0 or len(eval_ds) == 0:
+        raise RuntimeError("No valid episode-safe sequences were found")
 
-    train_loader = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True)
-    val_loader = DataLoader(val_ds, batch_size=args.batch_size, shuffle=False)
-
-    seed_table_metrics = []
-
-    print(f"=== Training Temporal CPC across seeds {args.seeds} ===")
+    history_probe = fit_state_history_predictor(train_frames, train_states, train_episode_ids)
+    seed_metrics = []
+    first_figure_data = None
 
     for seed in args.seeds:
         set_seed(seed)
-        encoder = ConvEncoder(in_channels=3, latent_dim=args.latent_dim).to(device)
-        cpc = TemporalCPC(
-            encoder=encoder,
+        train_loader = make_loader(train_ds, args.batch_size, seed=seed, shuffle=True)
+        eval_loader = make_loader(eval_ds, args.batch_size, shuffle=False)
+
+        encoder = ConvEncoder(latent_dim=args.latent_dim).to(device)
+        model = TemporalCPC(
+            encoder,
             latent_dim=args.latent_dim,
             context_dim=args.context_dim,
-            k_steps=3,
+            k_steps=args.k_steps,
+            temperature=args.temperature,
         ).to(device)
-
-        optimizer = torch.optim.Adam(cpc.parameters(), lr=args.lr)
+        optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
 
         for epoch in range(1, args.epochs + 1):
-            cpc.train()
-            total_loss = 0.0
+            model.train()
+            total = 0.0
             for batch in train_loader:
-                x_seq = batch["images"].to(device)
-                loss = cpc(x_seq)
-
-                optimizer.zero_grad()
-                loss.backward()
-                optimizer.step()
-                total_loss += loss.item() * len(x_seq)
-
-            avg_loss = total_loss / len(train_ds)
+                loss = model(batch["images"].to(device))
+                optimizer.zero_grad(); loss.backward(); optimizer.step()
+                total += float(loss.item()) * len(batch["images"])
             if epoch % 4 == 0 or epoch == args.epochs:
-                print(f"Seed {seed} | Epoch {epoch:02d}/{args.epochs:02d} | CPC InfoNCE Loss: {avg_loss:.4f}")
+                print(f"Seed {seed} | Epoch {epoch:02d}/{args.epochs:02d} | Loss {total / len(train_ds):.4f}")
 
-        # Evaluate Probes:
-        # 1. State from Context c_t vs State from Static Frame z_t
-        cpc.eval()
-        train_z, train_c, train_y, train_next_y = [], [], [], []
-        val_z, val_c, val_y, val_next_y = [], [], [], []
+        train_z, train_c, train_y, train_next_y = extract_temporal_features(
+            model, make_loader(train_ds, args.batch_size, shuffle=False), device
+        )
+        val_z, val_c, val_y, val_next_y = extract_temporal_features(
+            model, make_loader(eval_ds, args.batch_size, shuffle=False), device
+        )
 
-        with torch.no_grad():
-            for batch in train_loader:
-                imgs = batch["images"].to(device)
-                phys = batch["physics_states"].numpy()
-                z_s = cpc.encode_sequence(imgs)
-                c_s, _ = cpc.gru(z_s)
-                # middle step index 8
-                train_z.append(z_s[:, 8].cpu().numpy())
-                train_c.append(c_s[:, 8].cpu().numpy())
-                train_y.append(phys[:, 8])
-                train_next_y.append(phys[:, 9])
+        static_probe = LinearProbe().fit(train_z, train_y)
+        context_probe = LinearProbe().fit(train_c, train_y)
+        static_next_probe = LinearProbe().fit(train_z, train_next_y)
+        context_next_probe = LinearProbe().fit(train_c, train_next_y)
 
-            for batch in val_loader:
-                imgs = batch["images"].to(device)
-                phys = batch["physics_states"].numpy()
-                z_s = cpc.encode_sequence(imgs)
-                c_s, _ = cpc.gru(z_s)
-                val_z.append(z_s[:, 8].cpu().numpy())
-                val_c.append(c_s[:, 8].cpu().numpy())
-                val_y.append(phys[:, 8])
-                val_next_y.append(phys[:, 9])
+        static_current_r2, _ = static_probe.score(val_z, val_y)
+        context_current_r2, _ = context_probe.score(val_c, val_y)
+        static_next_r2, _ = static_next_probe.score(val_z, val_next_y)
+        context_next_r2, _ = context_next_probe.score(val_c, val_next_y)
 
-        tr_z, val_z = np.concatenate(train_z, 0), np.concatenate(val_z, 0)
-        tr_c, val_c = np.concatenate(train_c, 0), np.concatenate(val_c, 0)
-        tr_y, val_y = np.concatenate(train_y, 0), np.concatenate(val_y, 0)
-        tr_ny, val_ny = np.concatenate(train_next_y, 0), np.concatenate(val_next_y, 0)
+        gap_stats, figure_data = evaluate_gap(
+            model,
+            make_loader(eval_ds, 1, shuffle=False),
+            static_probe,
+            history_probe,
+            args,
+            device,
+        )
+        if first_figure_data is None:
+            first_figure_data = figure_data
 
-        # Probe on static frame z_t
-        probe_static = LinearProbe().fit(tr_z, tr_y)
-        r2_static, mean_static = probe_static.score(val_z, val_y)
+        seed_result = {
+            "static_current_position_r2": float(static_current_r2[0]),
+            "static_current_velocity_r2": float(static_current_r2[2]),
+            "context_current_position_r2": float(context_current_r2[0]),
+            "context_current_velocity_r2": float(context_current_r2[2]),
+            "static_next_state_mean_r2": float(np.mean(static_next_r2)),
+            "context_next_state_mean_r2": float(np.mean(context_next_r2)),
+            "static_next_state_position_r2": float(np.mean(static_next_r2[:2])),
+            "static_next_state_velocity_r2": float(np.mean(static_next_r2[2:])),
+            "context_next_state_position_r2": float(np.mean(context_next_r2[:2])),
+            "context_next_state_velocity_r2": float(np.mean(context_next_r2[2:])),
+            **gap_stats,
+        }
+        seed_metrics.append(seed_result)
 
-        # Probe on context c_t (should capture velocity and history!)
-        probe_context = LinearProbe().fit(tr_c, tr_y)
-        r2_context, mean_context = probe_context.score(val_c, val_y)
+        os.makedirs(args.checkpoints_dir, exist_ok=True)
+        torch.save(
+            {
+                "model_state_dict": model.state_dict(),
+                "latent_dim": args.latent_dim,
+                "context_dim": args.context_dim,
+                "k_steps": args.k_steps,
+                "temperature": args.temperature,
+                "seed": seed,
+            },
+            os.path.join(args.checkpoints_dir, f"temporal_cpc_seed_{seed}.pt"),
+        )
 
-        # Forward prediction test: predict next state s_{t+1} from c_t
-        fwd_probe = LinearProbe().fit(tr_c, tr_ny)
-        r2_fwd, mean_fwd = fwd_probe.score(val_c, val_ny)
+        print(
+            f"Seed {seed} | current static pos={static_current_r2[0]:.3f}, "
+            f"vel={static_current_r2[2]:.3f} | "
+            f"context pos={context_current_r2[0]:.3f}, vel={context_current_r2[2]:.3f}"
+        )
+        print(
+            f"Seed {seed} | next-state static={np.mean(static_next_r2):.3f}, "
+            f"context={np.mean(context_next_r2):.3f} | "
+            f"gap CPC={gap_stats['cpc_gap_mean_r2']:.3f}, "
+            f"linear={gap_stats['linear_gap_mean_r2']:.3f}"
+        )
 
-        seed_table_metrics.append({
-            "pos_static": float(r2_static[0]),
-            "vel_static": float(r2_static[2]),
-            "pos_context": float(r2_context[0]),
-            "vel_context": float(r2_context[2]),
-            "forward_pred_r2": float(mean_fwd),
-        })
+    if first_figure_data is not None:
+        os.makedirs(args.figures_dir, exist_ok=True)
+        save_gap_figure(
+            first_figure_data,
+            args,
+            os.path.join(args.figures_dir, "fig03_16_gap_tracking.png"),
+        )
 
-        print(f"Seed {seed} | Static pos R^2: {r2_static[0]:.3f}, vel R^2: {r2_static[2]:.3f}")
-        print(f"Seed {seed} | Context pos R^2: {r2_context[0]:.3f}, vel R^2: {r2_context[2]:.3f}")
-        print(f"Seed {seed} | Next-state Forward Pred R^2: {mean_fwd:.3f}")
+    def mean_std(key):
+        values = np.asarray([m[key] for m in seed_metrics], dtype=np.float64)
+        return float(values.mean()), float(values.std())
 
-        # Visual Demonstration for Figure 3.16: Unobserved interval test
-        if seed == args.seeds[0]:
-            # Pick a contiguous test sequence of 25 frames
-            sample_seq = val_ds[0]["images"].unsqueeze(0).to(device)  # (1, T, C, H, W)
-            sample_phys = val_ds[0]["physics_states"].numpy()  # (T, 4)
-            T = sample_seq.shape[1]
-
-            # Let gap be from step 6 to 11 (5 dropped frames)
-            gap_start, gap_end = 6, 11
-            with torch.no_grad():
-                z_full = cpc.encode_sequence(sample_seq)  # (1, T, D)
-                c_full, _ = cpc.gru(z_full)
-
-                # Context-guided latent rollout across the gap:
-                # Up to gap_start, feed true z; inside gap, autoregressively feed predicted z
-                # generated by the explicitly trained MSE latent predictor P(c_t):
-                c_rollout = []
-                z_rollout = []
-                h = None
-                for step in range(T):
-                    if step < gap_start or step >= gap_end:
-                        z_in = z_full[:, step : step + 1]
-                    else:
-                        # Unobserved interval: advance using explicit MSE forward predictor
-                        z_pred = cpc.predict_next_latent(c_rollout[-1]).unsqueeze(1)
-                        z_in = z_pred
-
-                    c_out, h = cpc.gru(z_in, h)
-                    c_rollout.append(c_out[:, 0])
-                    z_rollout.append(z_in[:, 0].cpu().numpy())
-
-            # Decode cart position using fitted probe on MSE-predicted latents
-            z_seq_np = np.concatenate(z_rollout, axis=0)  # (T, D)
-            pred_gap_states = probe_static.predict(z_seq_np)  # (T, 4)
-
-            # Frame-only re-entry baseline (set to NaN during gap)
-            frame_only_states = pred_gap_states.copy()
-            frame_only_states[gap_start:gap_end] = np.nan
-
-            # True cart position
-            true_pos = sample_phys[:, 0]
-            pred_gap_pos = pred_gap_states[:, 0]
-
-            fig, ax = plt.subplots(figsize=(7.5, 3.6))
-            t_axis = np.arange(T)
-
-            ax.plot(t_axis, true_pos, color="black", linestyle="-", linewidth=2.0, label="Ground Truth Position")
-            ax.plot(t_axis, pred_gap_pos, color="black", linestyle="--", linewidth=1.8, label="Predictor Latent Rollout $P(c_t)$")
-            ax.plot(t_axis, frame_only_states[:, 0], color="black", linestyle=":", marker="o", markersize=4, label="Frame-Only Re-entry")
-
-            # Highlight dropped frame interval
-            ax.axvspan(gap_start, gap_end - 1, color="gray", alpha=0.25, label="Unobserved Interval (Dropped Frames)")
-
-            ax.set_title("Unobserved Interval Test: Tracking Through Missing Observations", fontsize=10, pad=8)
-            ax.set_xlabel("Time Step $t$", fontsize=9)
-            ax.set_ylabel("Cart Position", fontsize=9)
-            ax.grid(True, linestyle="--", alpha=0.3)
-            ax.legend(frameon=True, fontsize=8)
-
-            os.makedirs(args.figures_dir, exist_ok=True)
-            fig_path = os.path.join(args.figures_dir, "fig03_16_gap_tracking.png")
-            plt.savefig(fig_path, dpi=300, bbox_inches="tight")
-            plt.close()
-            print(f"Saved Figure 3.16 -> {fig_path}")
-
-    # Output Table 3.5
-    print("\n" + "=" * 70)
-    print("Table 3.5 Static vs Temporal Representations (Mean ± Std over 3 seeds)")
-    print("=" * 70)
-    p_stat = np.mean([m["pos_static"] for m in seed_table_metrics])
-    p_stat_s = np.std([m["pos_static"] for m in seed_table_metrics])
-    v_stat = np.mean([m["vel_static"] for m in seed_table_metrics])
-    v_stat_s = np.std([m["vel_static"] for m in seed_table_metrics])
-
-    p_ctx = np.mean([m["pos_context"] for m in seed_table_metrics])
-    p_ctx_s = np.std([m["pos_context"] for m in seed_table_metrics])
-    v_ctx = np.mean([m["vel_context"] for m in seed_table_metrics])
-    v_ctx_s = np.std([m["vel_context"] for m in seed_table_metrics])
-
-    fwd = np.mean([m["forward_pred_r2"] for m in seed_table_metrics])
-    fwd_s = np.std([m["forward_pred_r2"] for m in seed_table_metrics])
-
-    print(f"Static Single-Frame z_t : Position R^2 = {p_stat:.3f} ± {p_stat_s:.3f} | Velocity R^2 = {v_stat:.3f} ± {v_stat_s:.3f}")
-    print(f"CPC Context c_t         : Position R^2 = {p_ctx:.3f} ± {p_ctx_s:.3f} | Velocity R^2 = {v_ctx:.3f} ± {v_ctx_s:.3f}")
-    print(f"Next-State Forward Pred : Mean R^2     = {fwd:.3f} ± {fwd_s:.3f}")
-    print("=" * 70)
+    summary = {
+        "static_position_r2": mean_std("static_current_position_r2"),
+        "static_velocity_r2": mean_std("static_current_velocity_r2"),
+        "context_position_r2": mean_std("context_current_position_r2"),
+        "context_velocity_r2": mean_std("context_current_velocity_r2"),
+        "static_next_state_mean_r2": mean_std("static_next_state_mean_r2"),
+        "context_next_state_mean_r2": mean_std("context_next_state_mean_r2"),
+        "cpc_gap_mean_r2": mean_std("cpc_gap_mean_r2"),
+        "linear_gap_mean_r2": mean_std("linear_gap_mean_r2"),
+    }
 
     os.makedirs(args.results_dir, exist_ok=True)
-    out_json = os.path.join(args.results_dir, "table_03_05_cpc_metrics.json")
-    save_json({"seeds": args.seeds, "metrics": seed_table_metrics}, out_json)
-    print(f"Saved Table 3.5 results -> {out_json}")
+    save_json(
+        {
+            "seeds": args.seeds,
+            "config": vars(args),
+            "summary": summary,
+            "per_seed_metrics": seed_metrics,
+        },
+        os.path.join(args.results_dir, "table_03_05_cpc_metrics.json"),
+    )
 
 
 if __name__ == "__main__":

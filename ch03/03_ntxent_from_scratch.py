@@ -1,8 +1,8 @@
-"""03_ntxent_from_scratch.py - First-principles mathematical derivation of NT-Xent / InfoNCE.
+"""03_ntxent_from_scratch.py - Verify the NT-Xent implementation.
 
-Explicitly computes cosine similarity, softmax positive identification, cross-entropy,
-and gradient decomposition without library abstractions, verifying correctness against
-the vectorized loss in worldmodels.losses.contrastive (Equations 3.3-3.7).
+The script checks the explicit pairwise definition against the vectorized
+implementation, verifies that their gradients agree, and reports the nominal
+InfoNCE lower-bound quantity under the sampling convention used in the chapter.
 """
 
 from __future__ import annotations
@@ -14,9 +14,7 @@ import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-import numpy as np
 import torch
-import torch.nn.functional as F
 
 from worldmodels.losses.contrastive import nt_xent_loss
 from worldmodels.train import save_json, set_seed
@@ -27,95 +25,85 @@ def ntxent_unrolled_reference(
     z2: torch.Tensor,
     temperature: float = 0.5,
 ) -> torch.Tensor:
-    """Explicit loop-based implementation of NT-Xent matching Equation 3.5 definition directly."""
-    batch_size, dim = z1.shape
-    # Normalize
-    z1_norm = z1 / torch.norm(z1, p=2, dim=1, keepdim=True)
-    z2_norm = z2 / torch.norm(z2, p=2, dim=1, keepdim=True)
+    """Direct loop-based implementation of the NT-Xent definition."""
+    if z1.ndim != 2 or z2.ndim != 2 or z1.shape != z2.shape:
+        raise ValueError("z1 and z2 must have the same shape (N, D)")
+    if temperature <= 0:
+        raise ValueError("temperature must be positive")
 
-    # 2N views: 0..N-1 are view 1, N..2N-1 are view 2
+    z1_norm = z1 / torch.linalg.vector_norm(z1, dim=1, keepdim=True)
+    z2_norm = z2 / torch.linalg.vector_norm(z2, dim=1, keepdim=True)
     all_z = torch.cat([z1_norm, z2_norm], dim=0)
-    total_samples = 2 * batch_size
+    n = z1.shape[0]
 
-    loss_sum = 0.0
-
-    for i in range(total_samples):
-        # Identify positive index: for i < N it is i + N; for i >= N it is i - N
-        positive_idx = (i + batch_size) if i < batch_size else (i - batch_size)
-
-        # Numerator: exp( sim(z_i, z_pos) / tau )
-        sim_pos = torch.dot(all_z[i], all_z[positive_idx]) / temperature
-        numerator = torch.exp(sim_pos)
-
-        # Denominator: sum_{k != i} exp( sim(z_i, z_k) / tau )
-        denominator = 0.0
-        for k in range(total_samples):
+    losses = []
+    for i in range(2 * n):
+        positive_idx = i + n if i < n else i - n
+        logits = []
+        for k in range(2 * n):
             if k == i:
                 continue
-            sim_k = torch.dot(all_z[i], all_z[k]) / temperature
-            denominator += torch.exp(sim_k)
+            logits.append(torch.dot(all_z[i], all_z[k]) / temperature)
+        logits = torch.stack(logits)
+        positive_position = positive_idx if positive_idx < i else positive_idx - 1
+        losses.append(-logits[positive_position] + torch.logsumexp(logits, dim=0))
 
-        # -log( numerator / denominator )
-        pair_loss = -torch.log(numerator / denominator)
-        loss_sum += pair_loss
-
-    return loss_sum / total_samples
+    return torch.stack(losses).mean()
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Verify NT-Xent loss from first principles.")
-    parser.add_argument("--seed", type=int, default=0, help="Random seed.")
-    parser.add_argument("--batch-size", type=int, default=8, help="Batch size N.")
-    parser.add_argument("--dim", type=int, default=16, help="Representation dimension D.")
-    parser.add_argument("--temperature", type=float, default=0.5, help="Temperature tau.")
-    parser.add_argument("--results-dir", type=str, default="ch03/results", help="Directory for results.")
+    parser = argparse.ArgumentParser(description="Verify NT-Xent from first principles.")
+    parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument("--batch-size", type=int, default=8)
+    parser.add_argument("--dim", type=int, default=16)
+    parser.add_argument("--temperature", type=float, default=0.5)
+    parser.add_argument("--results-dir", type=str, default="ch03/results")
     args = parser.parse_args()
 
     set_seed(args.seed)
 
-    # Generate synthetic representation batches
-    z1 = torch.randn(args.batch_size, args.dim, requires_grad=True)
-    z2 = torch.randn(args.batch_size, args.dim, requires_grad=True)
+    z1_ref = torch.randn(args.batch_size, args.dim, requires_grad=True)
+    z2_ref = torch.randn(args.batch_size, args.dim, requires_grad=True)
+    z1_vec = z1_ref.detach().clone().requires_grad_(True)
+    z2_vec = z2_ref.detach().clone().requires_grad_(True)
 
-    # 1. Unrolled definition loss
-    loss_ref = ntxent_unrolled_reference(z1, z2, temperature=args.temperature)
+    loss_ref = ntxent_unrolled_reference(z1_ref, z2_ref, args.temperature)
+    loss_vec = nt_xent_loss(z1_vec, z2_vec, args.temperature)
 
-    # 2. Vectorized production loss
-    loss_vec = nt_xent_loss(z1, z2, temperature=args.temperature)
+    grad_ref = torch.autograd.grad(loss_ref, z1_ref, retain_graph=False)[0]
+    grad_vec = torch.autograd.grad(loss_vec, z1_vec, retain_graph=False)[0]
 
-    discrepancy = float(torch.abs(loss_ref - loss_vec).item())
-    print(f"Unrolled Equation 3.5 Loss: {loss_ref.item():.6f}")
-    print(f"Vectorized NT-Xent Loss:    {loss_vec.item():.6f}")
-    print(f"Absolute Discrepancy:      {discrepancy:.8e}")
+    loss_discrepancy = float(torch.abs(loss_ref - loss_vec).item())
+    grad_discrepancy = float(torch.max(torch.abs(grad_ref - grad_vec)).item())
 
-    # Theoretical bounds check: I(z1; z2) >= log(K+1) - L, where K = 2(N - 1) negatives
     k_negatives = 2 * (args.batch_size - 1)
-    log_k_plus_1 = math.log(k_negatives + 1)
-    mi_lower_bound = log_k_plus_1 - loss_vec.item()
+    nominal_bound = math.log(k_negatives + 1) - float(loss_vec.item())
 
-    print(f"Number of negatives K:     {k_negatives}")
-    print(f"log(K + 1) Bound Ceiling:  {log_k_plus_1:.4f}")
-    print(f"Estimated MI Lower Bound:  {mi_lower_bound:.4f}")
+    print(f"Unrolled loss:       {loss_ref.item():.8f}")
+    print(f"Vectorized loss:     {loss_vec.item():.8f}")
+    print(f"Loss discrepancy:    {loss_discrepancy:.3e}")
+    print(f"Max gradient delta:  {grad_discrepancy:.3e}")
+    print(f"K negatives:         {k_negatives}")
+    print(f"Nominal log(K+1)-L:  {nominal_bound:.6f}")
 
-    results = {
-        "batch_size": args.batch_size,
-        "dim": args.dim,
-        "temperature": args.temperature,
-        "unrolled_loss": float(loss_ref.item()),
-        "vectorized_loss": float(loss_vec.item()),
-        "discrepancy": discrepancy,
-        "k_negatives": k_negatives,
-        "log_k_plus_1": log_k_plus_1,
-        "mi_lower_bound": mi_lower_bound,
-    }
+    if loss_discrepancy >= 1e-6 or grad_discrepancy >= 1e-6:
+        raise AssertionError("Reference and vectorized NT-Xent implementations disagree")
 
     os.makedirs(args.results_dir, exist_ok=True)
-    out_file = os.path.join(args.results_dir, "ntxent_verification.json")
-    save_json(results, out_file)
-    print(f"Saved verification metrics -> {out_file}")
-
-    assert discrepancy < 1e-6, f"Discrepancy too large: {discrepancy}"
-    print("Mathematical equivalence verified successfully.")
+    save_json(
+        {
+            "batch_size": args.batch_size,
+            "dim": args.dim,
+            "temperature": args.temperature,
+            "unrolled_loss": float(loss_ref.item()),
+            "vectorized_loss": float(loss_vec.item()),
+            "loss_discrepancy": loss_discrepancy,
+            "max_gradient_discrepancy": grad_discrepancy,
+            "k_negatives": k_negatives,
+            "nominal_log_k_plus_1_minus_loss": nominal_bound,
+        },
+        os.path.join(args.results_dir, "ntxent_verification.json"),
+    )
 
 
 if __name__ == "__main__":

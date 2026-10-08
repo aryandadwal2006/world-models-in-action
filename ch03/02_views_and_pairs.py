@@ -1,9 +1,4 @@
-"""02_views_and_pairs.py - View generation and contrastive pair pipeline demonstration.
-
-Illustrates how spatial translation (random crop shift) and photometric perturbation
-(intensity jitter) transform a single sensory observation into positive view pairs (v_1, v_2),
-while distinct temporal instances serve as negative distractors (Figure 3.4).
-"""
+"""02_views_and_pairs.py - Visualize the Chapter 3 contrastive pair pipeline."""
 
 from __future__ import annotations
 
@@ -14,7 +9,6 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import matplotlib.pyplot as plt
-import numpy as np
 import torch
 
 from worldmodels.data.augment import ViewPipeline
@@ -23,10 +17,15 @@ from worldmodels.train import set_seed
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Demonstrate view generation pipeline.")
-    parser.add_argument("--seed", type=int, default=0, help="Random seed.")
-    parser.add_argument("--data-file", type=str, default="data/dmc_cartpole_balance_train.npz", help="Dataset path.")
-    parser.add_argument("--figures-dir", type=str, default="ch03/figures", help="Directory for figures.")
+    parser = argparse.ArgumentParser(description="Demonstrate contrastive view generation.")
+    parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument(
+        "--data-file",
+        type=str,
+        default="data/dmc_cartpole_balance_train.npz",
+    )
+    parser.add_argument("--anchor-index", type=int, default=42)
+    parser.add_argument("--figures-dir", type=str, default="ch03/figures")
     return parser.parse_args()
 
 
@@ -34,38 +33,49 @@ def main() -> None:
     args = parse_args()
     set_seed(args.seed)
 
-    if not os.path.exists(args.data_file):
-        raise FileNotFoundError(
-            f"Dataset cache {args.data_file} not found. Run ch03/01_collect_dmc_data.py first."
-        )
-
     data = load_dataset_npz(args.data_file)
-    frames = data["frames"]  # (N, 64, 64, 3)
+    frames = data["frames"]
+    episode_ids = data["episode_ids"]
+    anchor_idx = args.anchor_index
+    if not (0 <= anchor_idx < len(frames)):
+        raise IndexError("anchor-index is outside the dataset")
 
-    # Pick an anchor frame and a distinct negative frame
-    anchor_idx = 42
-    negative_idx = 142
+    anchor_episode = episode_ids[anchor_idx]
+    different_episode = [
+        int(i) for i in range(len(frames)) if episode_ids[i] != anchor_episode
+    ]
+    if not different_episode:
+        raise RuntimeError("Dataset contains no frame from a different episode")
+    negative_idx = different_episode[0]
 
-    anchor_frame = torch.from_numpy(frames[anchor_idx]).permute(2, 0, 1).float().unsqueeze(0) / 255.0
-    negative_frame = torch.from_numpy(frames[negative_idx]).permute(2, 0, 1).float().unsqueeze(0) / 255.0
+    anchor = (
+        torch.from_numpy(frames[anchor_idx])
+        .permute(2, 0, 1)
+        .float()
+        .unsqueeze(0)
+        / 255.0
+    )
+    negative = (
+        torch.from_numpy(frames[negative_idx])
+        .permute(2, 0, 1)
+        .float()
+        .unsqueeze(0)
+        / 255.0
+    )
 
     pipeline = ViewPipeline(max_shift=3, brightness_range=0.1, contrast_range=0.1)
-
-    view_1, view_2 = pipeline(anchor_frame)
+    view_1, view_2 = pipeline(anchor)
 
     os.makedirs(args.figures_dir, exist_ok=True)
-
     fig, axes = plt.subplots(1, 4, figsize=(9.5, 2.6))
     panels = [
-        (anchor_frame[0], "Anchor Observation\n$x_i$"),
-        (view_1[0], "Augmented View 1\n$v_i^{(1)}$ (Positive)"),
-        (view_2[0], "Augmented View 2\n$v_i^{(2)}$ (Positive)"),
-        (negative_frame[0], "Distinct Instance\n$x_j$ (Negative)"),
+        (anchor[0], "Anchor Observation\n$x_i$"),
+        (view_1[0], "Augmented View 1\n$v_i^{(1)}$"),
+        (view_2[0], "Augmented View 2\n$v_i^{(2)}$"),
+        (negative[0], "Different Episode\n$x_j$"),
     ]
-
-    for ax, (img_tensor, title) in zip(axes, panels):
-        img_np = img_tensor.permute(1, 2, 0).clamp(0, 1).cpu().numpy()
-        ax.imshow(img_np)
+    for ax, (image, title) in zip(axes, panels):
+        ax.imshow(image.permute(1, 2, 0).clamp(0, 1).numpy())
         ax.set_title(title, fontsize=10, pad=6)
         ax.axis("off")
 
