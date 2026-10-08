@@ -4,34 +4,95 @@
     1,
     2
   ],
+  "config": {
+    "epochs": 12,
+    "batch_size": 32,
+    "learning_rate": 0.001,
+    "latent_dim": 16,
+    "temperature": 0.5,
+    "max_train_samples": 2000,
+    "max_val_samples": 500,
+    "max_shift": 3,
+    "brightness_range": 0.1,
+    "contrast_range": 0.1,
+    "strict_frame_stack": true
+  },
+  "per_seed_single_frame_r2": [
+    [
+      0.4125874455544325,
+      -14.465933373158842,
+      -1.087397774334319,
+      -0.6716340721736067
+    ],
+    [
+      0.6321752656632078,
+      -10.39372222377944,
+      -0.024689238022312265,
+      -0.4468083887131129
+    ],
+    [
+      0.7000969032787885,
+      -13.819631286761725,
+      -0.3423110657043622,
+      -0.5104824200057863
+    ]
+  ],
+  "per_seed_stacked_frame_r2": [
+    [
+      0.694478723988757,
+      -13.691866248132097,
+      -0.7939291414443681,
+      -0.512626076824064
+    ],
+    [
+      0.41272974353370884,
+      -11.405393519938638,
+      -0.6012917626764838,
+      -0.44242426585022887
+    ],
+    [
+      0.39405498677673845,
+      -13.17462142785788,
+      -0.12580537589523066,
+      -0.7259609303402954
+    ]
+  ],
   "results": [
     {
       "variable": "cart_position",
-      "single_frame_mean": 0.13161182403564453,
-      "single_frame_std": 0.03969484161388392,
-      "stacked_frame_mean": 0.2638235290845235,
-      "stacked_frame_std": 0.04474885901584642
+      "single_frame_mean": 0.5816198714988096,
+      "single_frame_std": 0.12269829659120934,
+      "stacked_frame_mean": 0.5004211514330681,
+      "stacked_frame_std": 0.13743105601146063,
+      "delta_mean": -0.08119872006574151,
+      "delta_std": 0.2591659624483445
     },
     {
       "variable": "pole_angle",
-      "single_frame_mean": -0.9418755372365316,
-      "single_frame_std": 0.06473735287160343,
-      "stacked_frame_mean": -0.8519336382548014,
-      "stacked_frame_std": 0.07881256427302331
+      "single_frame_mean": -12.893095627900003,
+      "single_frame_std": 1.7869111443380397,
+      "stacked_frame_mean": -12.757293731976205,
+      "stacked_frame_std": 0.9789828696170807,
+      "delta_mean": 0.1358018959237969,
+      "delta_std": 0.8130949060622764
     },
     {
       "variable": "cart_velocity",
-      "single_frame_mean": 0.04895251989364624,
-      "single_frame_std": 0.004015365797026622,
-      "stacked_frame_mean": 0.040689567724863686,
-      "stacked_frame_std": 0.06042627268887201
+      "single_frame_mean": -0.4847993593536645,
+      "single_frame_std": 0.4453946142900842,
+      "stacked_frame_mean": -0.5070087600053609,
+      "stacked_frame_std": 0.2807897255568087,
+      "delta_mean": -0.022209400651696336,
+      "delta_std": 0.3932722768497107
     },
     {
       "variable": "pole_angular_velocity",
-      "single_frame_mean": -3.1786778767903647,
-      "single_frame_std": 0.6903125510666857,
-      "stacked_frame_mean": -3.6613109906514487,
-      "stacked_frame_std": 0.04518920412244595
+      "single_frame_mean": -0.5429749602975019,
+      "single_frame_std": 0.09461666825257277,
+      "stacked_frame_mean": -0.5603370910048627,
+      "stacked_frame_std": 0.12056952540106869,
+      "delta_mean": -0.017362130707360812,
+      "delta_std": 0.15365483047644785
     }
   ]
 }
