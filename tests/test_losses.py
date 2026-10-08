@@ -84,11 +84,14 @@ class TestLosses(unittest.TestCase):
 
     def test_masked_mse_loss_empty_mask(self):
         target = torch.ones(2, 4, 8)
-        pred = torch.zeros(2, 4, 8)
+        pred = torch.zeros(2, 4, 8, requires_grad=True)
         mask = torch.zeros(2, 4)
 
         loss = masked_mse_loss(target, pred, mask)
         self.assertEqual(loss.item(), 0.0)
+        loss.backward()
+        self.assertIsNotNone(pred.grad)
+        self.assertEqual(pred.grad.abs().sum().item(), 0.0)
 
 
 if __name__ == "__main__":
