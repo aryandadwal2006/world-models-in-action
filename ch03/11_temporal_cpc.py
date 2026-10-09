@@ -49,7 +49,7 @@ from worldmodels.train import (
     set_seed,
 )
 
-EXPERIMENT_VERSION = 4
+EXPERIMENT_VERSION = 5
 
 
 class SequenceDataset(Dataset):
@@ -1521,6 +1521,7 @@ def main() -> None:
                     "temperature": args.temperature,
                     "seed": seed,
                     "experiment_version": EXPERIMENT_VERSION,
+                    "sample_selection": "episode_stratified_sequence_starts_across_full_split",
                     "latent_normalization": "l2_unit",
                     "gradient_clip_norm": 1.0,
                 },
@@ -1636,6 +1637,7 @@ def main() -> None:
                 angular_indices
             ),
             "latent_normalization": "l2_unit",
+            "sample_selection": "episode_stratified_sequence_starts_across_full_split",
             "gradient_clip_norm": 1.0,
             "summary": summary,
             "per_seed_metrics": seed_metrics,
