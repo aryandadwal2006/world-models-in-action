@@ -1,65 +1,94 @@
-# Chapter 3 Audit Findings — Sampling Bias and Corrective Run Plan
+# Chapter 3 Audit Findings — Corrected Runs and Interpretation
 
-**Audit basis:** committed results at main commit 230b298b9d1ed031e69e6987bb9c2a2e88bc8086 (8 October 2026), the user-provided target-distribution diagnostic, and source changes on branch audit/chapter3-methodology-fixes. The corrective branch has not yet been tested locally. No corrected experiment results are claimed here.
+**Audited branch:** `audit/chapter3-methodology-fixes`  
+**Experiment commit reviewed:** `7d4c77feb7e7e15bf8cb6b7ca3a1cd5ff411f559`  
+**Basis:** source and committed JSON/figure/checkpoint artifacts on the branch, plus the author's local run log supplied on 9 October 2026. The reviewer inspected the committed source and results but did not execute the repository locally.
 
-## 1. Confirmed issues
+## 1. Execution and sampling status
 
-### 1.1 The capped validation sets were prefixes, not representative subsets
+The corrected rerun completed through `ch03/12_assemble_encoder.py`. The author's Windows run reports **44 tests passed** (4.23 seconds after the Python-boolean fix), followed by successful completion of the remaining experiment scripts and the Chapter 1 encoder-contract smoke test. GitHub Actions has no run for this commit, so the test evidence is the local log, not remote CI.
 
-The user's diagnostic deliberately loaded the first 3,500 training rows and first 1,000 validation rows from Finger Spin. Those subsets contained 4 training episodes and only 1 validation episode.
+The data-only diagnostic reports 30 training episodes and 5 validation episodes per task. With the 3,500-frame/1,000-frame caps used by the diagnostic, the selected sample contains 116–117 training frames per episode and 200 validation frames per episode. The old prefix-based experiment metrics have been archived or replaced where the scripts version their results.
 
-For the first 1,000 validation frames, the spinner angle had standard deviation 0.117 and range approximately [-3.585, -2.856]. In the first 3,500 training frames, its standard deviation was 2.020 and range approximately [-3.778, 4.916]. The distal position also had a shifted marginal distribution: training median 0.870 versus validation median -1.507. The validation subset therefore sampled a much narrower, different portion of the dynamics than the training subset.
+The branch head is `7d4c77f`; `main` remains at `230b298b`. The corrected results are therefore on the audit branch and are not yet merged into the default branch.
 
-This is not a theoretical concern: several Chapter 3 scripts use expressions such as frames[:n_val] before constructing the dataset. The same pattern affects Table 3.4, the aliasing diagnostic, standalone VICReg/MAE, the bottleneck sweep, and the original CPC sequence dataset. Their old probe scores and gap scores should be treated as superseded, not interpreted as final generalization performance.
+## 2. Corrected findings
 
-### 1.2 Correct sampling must preserve episode structure
+### 2.1 Episode-prefix sampling was a real source of bias
 
-Source fix on the audit branch:
-- A shared selector allocates a sample budget across episode IDs and chooses frames evenly within each episode.
-- DMCDataset accepts original-array sample indices, so the samples can be distributed across the full dataset without slicing away the underlying temporal context.
-- The aliasing experiment selects only valid stack centres whose required history lies in one episode.
-- CPC constructs episode-safe sequence windows from the full split and selects sequence starts across episodes, retaining each sequence's contiguous frames.
-- Table 3.4 bumps its experiment version, archives the old progress results, and clears the active result slots so no version-3 score can be accidentally reused.
-- A reproducible data-only diagnostic was added as ch03/00_audit_dataset_sampling.py.
+The previous first-3,500 training-frame subset covered only 4 episodes; the first-1,000 validation-frame subset covered 1 episode. On Finger Spin, the old validation prefix had spinner-angle standard deviation 0.117, versus 2.020 in the training prefix, and the distal-position medians differed substantially. This could distort both training and held-out probe metrics.
 
-These changes affect the training samples as well as evaluation samples. As a result, the saved representations from prefix-sampled runs are not a valid substitute for rerunning the experiments under the corrected sampling contract.
+The corrected sampler spreads capped samples across episode IDs and within-episode time. For temporal stacks and CPC, it selects valid centres/sequence starts from the full original arrays while keeping the actual windows contiguous and episode-safe. This is the correct fix for the demonstrated prefix bias.
 
-### 1.3 Finger Spin's spinner angle is separately unidentifiable from static pixels
+### 2.2 Two-frame stacking did not recover velocity in this setup
 
-The stored state is raw MuJoCo qpos followed by qvel. Finger Spin therefore has six target coordinates, not the old design note's four-dimensional "pos/vel/touch" state. Its spinner geometry has half-turn symmetry, so a single rendered image cannot uniquely identify the absolute 2π-periodic hinge coordinate. See the upstream [finger.xml](https://github.com/google-deepmind/dm_control/blob/main/dm_control/suite/finger.xml) and [finger.py](https://github.com/google-deepmind/dm_control/blob/main/dm_control/suite/finger.py).
+Corrected Table 3.3 reports:
 
-The audit-branch probe uses a π-periodic representation/score for that coordinate; the Table 3.4 aggregate excludes it and retains the old full-turn score only for provenance. This symmetry correction does not solve the independent prefix-sampling bias.
+| Variable | Single frame | Two-frame stack | Mean change |
+|---|---:|---:|---:|
+| Cart position | 0.714 ± 0.040 | 0.707 ± 0.010 | −0.007 |
+| Pole angle | 0.612 ± 0.069 | 0.586 ± 0.064 | −0.026 |
+| Cart velocity | 0.006 ± 0.004 | 0.009 ± 0.007 | +0.002 |
+| Pole angular velocity | −0.367 ± 0.001 | −0.375 ± 0.006 | −0.007 |
 
-### 1.4 Barlow Twins normalization was also inconsistent
+The tested two-frame, 12-epoch contrastive setup does **not** support a claim that frame stacking recovered velocity. The cart-velocity change is tiny; angular-velocity decoding remains worse than the mean baseline. This is a negative or limited result about this particular representation, temporal spacing, image resolution, augmentation, and training budget. It does not prove that velocity is fundamentally unrecoverable from multiple frames.
 
-The old implementation standardized each projection dimension with sample standard deviation (denominator N−1) while dividing the cross-correlation matrix by N. The corrected loss uses population standard deviation, validates the batch shape/size, and has tests for a zero-loss identity cross-correlation matrix. Existing three-mechanism Barlow Twins results are superseded and must be regenerated.
+A single static image has no explicit time-difference signal, but appearance and dynamics may still be statistically correlated with velocity. Treat velocity identifiability as an empirical question, not an impossibility guaranteed by the renderer.
 
-### 1.5 Table 3.4 is a method-family comparison, not an objective-only ablation
+### 2.3 Contrastive learning and objective comparison
 
-The supervised reference, contrastive and VICReg methods use a convolutional encoder, while MAE uses a patch-transformer encoder/decoder. The corrected manuscript notes describe this as a comparison of complete configurations under the stated budget. The code changes do not make it a loss-only ablation.
+The corrected standalone contrastive runs on Cartpole report per-seed mean probe (R^2) values 0.260, 0.241, and 0.270. Position is substantially more decodable than velocity. These values use the corrected episode-stratified sample and supersede the prefix-sampled results.
 
-## 2. What to do with old results
+Corrected Table 3.4 (mean ± standard deviation across three seeds) reports:
 
-Until the corrected runs finish, do not quote old validation metrics from the following artifacts as final Chapter 3 evidence:
+| Method | Cartpole position | Cartpole velocity | Finger position | Finger velocity |
+|---|---:|---:|---:|---:|
+| Supervised state-prediction reference | 0.981 ± 0.000 | −0.273 ± 0.012 | 0.995 ± 0.001 | −0.114 ± 0.010 |
+| Contrastive (NT-Xent) | 0.672 ± 0.001 | −0.187 ± 0.005 | 0.714 ± 0.029 | −0.007 ± 0.002 |
+| VICReg | 0.649 ± 0.022 | −0.183 ± 0.006 | 0.679 ± 0.040 | −0.005 ± 0.004 |
+| Masked autoencoder | 0.164 ± 0.030 | −0.113 ± 0.004 | 0.305 ± 0.012 | −0.010 ± 0.003 |
 
-- Table 3.3 aliasing probe values and the associated per-variable conclusion.
-- Table 3.4 values for either task.
-- The standalone contrastive linear-probe values from ch03/04_train_contrastive.py.
-- Standalone VICReg/MAE probe metrics.
-- Bottleneck-sweep (R^2) curve.
-- CPC current/next-state probe values and gap tracking values.
-- The three-mechanism comparison, because both its training subset and Barlow loss implementation changed.
-- The collapse-demo latent-standard-deviation curve, because the selected training examples changed.
+Negative (R^2) means worse than predicting the validation-set mean. These values suggest that position is substantially more decodable from one frame than velocity for every method tested. They do not by themselves establish a causal explanation for why velocity is hard to recover.
 
-The cached datasets themselves are still reusable. Do not recollect them.
+**Interpretation constraint:** the table compares complete method configurations, not loss functions in isolation. The supervised, contrastive, and VICReg arms use a convolutional encoder, while MAE uses a patch-transformer encoder/decoder. Further, the reported supervised-reference metric is a fresh frozen-feature linear probe after training the encoder with a supervised state head; it is **not** the direct held-out score of that trained head. Do not describe it as an oracle or upper bound without reporting the trained head's own held-out performance.
 
-## 3. Exact validation and rerun order
+Finger Spin's stored state has six coordinates (three qpos followed by three qvel). The absolute spinner hinge angle is excluded from the aggregate because the rendered geometry is half-turn symmetric; its identifiable orientation is π-periodic. This correction is encoded in the metric contract.
 
-1. Switch to audit/chapter3-methodology-fixes.
-2. Run the unit test suite: .venv Python with -m pytest tests -q.
-3. Run ch03/00_audit_dataset_sampling.py. Check that the selected training/validation sample counts cover the full episode sets, and that no one episode takes the whole capped sample budget.
-4. Run the corrected, capped-sample experiments once each: ch03/04_train_contrastive.py for seeds 0, 1 and 2; ch03/05_aliasing_diagnostic.py; ch03/06_collapse_demo.py; ch03/07_three_mechanisms.py; ch03/08_vicreg.py; ch03/09_masked_autoencoder.py; ch03/10_bottleneck_sweep.py; and ch03/table_03_04_comparison.py.
-5. Run ch03/11_temporal_cpc.py without --evaluate-checkpoints so the trained CPC models use the corrected sequence sample selection as well; the evaluation-only flag is now a diagnostic option for existing checkpoints, not the final corrected training result.
-6. Run ch03/12_assemble_encoder.py as the final integration check.
+### 2.4 VICReg, MAE, bottleneck, and collapse observations
 
-For Table 3.4, do not pass --fresh: the updated migration archives version-3 metrics and queues the full table under the new sampling contract. Old progress values cannot be retained as valid scores because they were evaluated on prefix-only subsets.
+- Standalone VICReg reports mean probe (R^2=0.248 pm 0.005); standalone MAE reports (0.025 pm 0.018) while its masked reconstruction MSE falls to about 0.002. This is consistent with reconstruction quality and linear state decodability measuring different things. Do not compare these standalone numbers directly to Table 3.4 as if all budgets and configurations were identical.
+- In the bottleneck sweep, Cartpole scores rise from about −0.008 at (d=2) to 0.321 at (d=64), then are essentially flat/slightly lower at 0.317 for (d=256). Cheetah rises from 0.060 at (d=2) to 0.422 at (d=256); a plateau is not demonstrated for Cheetah within the tested range.
+- The collapse demonstration gives latent standard deviation about (7\times10^{-5}) to (9\times10^{-5}) for attraction-only training versus about 2.30–2.90 for the contrastive condition in these runs.
+- The three-mechanism experiment reports effective rank (1.220 pm 0.269) for SimSiam, (1.064 pm 0.029) for BYOL, and (5.986 pm 0.739) for Barlow Twins. Barlow Twins uses more latent directions in this experiment, but its effective rank is still well below the 16-dimensional embedding size. Effective rank is evidence about spectrum concentration, not by itself proof of total collapse or its absence.
+
+These results are descriptive teaching experiments with three seeds and modest training budgets, not a broad benchmark of SSL methods.
+
+### 2.5 CPC is informative but its gap metric needs a stronger evaluation
+
+The corrected CPC run trained all three seeds and saved the checkpoints. Its results are:
+
+- Current Cartpole-position probe: static 0.789 ± 0.007; context 0.828 ± 0.010.
+- Current Cartpole-velocity probe: static 0.007 ± 0.004; context 0.143 ± 0.083.
+- Mean next-state probe (R^2): static 0.227 ± 0.021; context 0.277 ± 0.049.
+- Five-step missing-interval CPC rollout: −3.094, −0.196, and −0.539 per seed; mean −1.276 ± 1.293.
+- Privileged state extrapolation baseline: mean (R^2=0.823), identical across seeds because it is one shared state-space baseline, not a seed-varying model.
+
+This supports a tentative statement that temporal context helps decode some state variables and improves mean next-state probe scores in this setup, while the learned latent rollout performs poorly on the current gap test. It does **not** establish a robust failure magnitude: only 32 validation windows are used per seed, and the first seed is a large negative outlier. The privileged baseline receives true qpos/qvel history, while CPC receives rendered frames; the comparison is intentionally asymmetric and must be labelled as such, not presented as a like-for-like model comparison. Re-evaluate the existing CPC checkpoints on a larger gap-window sample before making a strong quantitative claim.
+
+The printed maximum rollout latent norm of approximately 1 is guaranteed by explicit L2 normalization in the model. It is an implementation sanity check, not independent evidence that rollout dynamics are stable.
+
+### 2.6 Encoder assembly
+
+The final script reports successful verification of an observation tensor shaped `(1, 3, 64, 64)` and a persistent state shaped `(1, 32)` over 10 frames. This checks the Chapter 1 wrapper/checkpoint interface; it does not validate long-horizon prediction quality or the CPC rollout.
+
+## 3. Recommended remaining scientific checks
+
+1. Re-evaluate the already trained CPC checkpoints on at least 200 gap windows (no retraining needed) and report per-seed and per-variable metrics. Keep the privileged-baseline caveat explicit.
+2. If Table 3.4 describes the supervised arm as a predictive reference or ceiling, add the trained supervised head's direct held-out metrics beside the independent frozen-feature probe results; do not silently conflate them.
+3. In the chapter prose, report the negative result for two-frame stacking honestly. Do not claim the current experiment demonstrates velocity recovery.
+4. Keep the Table 3.4 method-family comparison caveat and report all negative velocity scores rather than omitting them.
+5. Before using any values in the book, ensure figure captions, prose, and result tables all reflect the corrected JSON artifacts on this branch.
+
+## 4. Artifact and CI status
+
+The experiment JSON files, updated figures, and checkpoints are committed on the audit branch. No GitHub Actions runs were found for the reviewed commit; the author's local 44-test pass and terminal log are the available execution record. `main` has not been updated by this branch.
