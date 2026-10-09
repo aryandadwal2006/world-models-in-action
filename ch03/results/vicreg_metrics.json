@@ -4,17 +4,18 @@
     1,
     2
   ],
-  "mean_r2": 0.02397701045562377,
-  "std_r2": 0.11094516968025152,
+  "mean_r2": 0.2482440203448606,
+  "std_r2": 0.0054770808299334115,
+  "sample_selection": "episode_stratified_even_within_episode",
   "seed_results": [
     {
       "r2_per_variable": [
-        0.738745364606114,
-        0.5133069789837117,
-        -0.33596331802478985,
-        -0.3236176939235451
+        0.8168069245662724,
+        0.5653596197111357,
+        -0.008890873021404566,
+        -0.3648337768161982
       ],
-      "mean_r2": 0.14811783291037267,
+      "mean_r2": 0.2521104736099513,
       "probe": {
         "type": "StateLinearProbe",
         "feature_standardization": true,
@@ -22,17 +23,20 @@
         "angular_r2": "circular_chordal",
         "angular_position_indices": [
           1
-        ]
+        ],
+        "angular_position_periods": {
+          "1": 6.283185307179586
+        }
       }
     },
     {
       "r2_per_variable": [
-        0.0715257649277109,
-        0.5729754053644509,
-        -0.5730521090604141,
-        -0.5562089014168248
+        0.7787526647403847,
+        0.5607817102783013,
+        -0.005290233517114107,
+        -0.3722510938736705
       ],
-      "mean_r2": -0.12118996004626928,
+      "mean_r2": 0.24049826190697532,
       "probe": {
         "type": "StateLinearProbe",
         "feature_standardization": true,
@@ -40,17 +44,20 @@
         "angular_r2": "circular_chordal",
         "angular_position_indices": [
           1
-        ]
+        ],
+        "angular_position_periods": {
+          "1": 6.283185307179586
+        }
       }
     },
     {
       "r2_per_variable": [
-        0.7274629572084368,
-        0.5271037472195415,
-        -0.37275158468660297,
-        -0.7018024857303036
+        0.8511188783965313,
+        0.5100348834143702,
+        0.007343982164905505,
+        -0.36000444190518643
       ],
-      "mean_r2": 0.045003158502767926,
+      "mean_r2": 0.25212332551765515,
       "probe": {
         "type": "StateLinearProbe",
         "feature_standardization": true,
@@ -58,7 +65,10 @@
         "angular_r2": "circular_chordal",
         "angular_position_indices": [
           1
-        ]
+        ],
+        "angular_position_periods": {
+          "1": 6.283185307179586
+        }
       }
     }
   ]

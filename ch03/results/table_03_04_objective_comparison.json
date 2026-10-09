@@ -1,5 +1,5 @@
 {
-  "experiment_version": 3,
+  "experiment_version": 5,
   "config": {
     "seeds": [
       0,
@@ -18,7 +18,7 @@
     "fresh": false
   },
   "experiment": {
-    "experiment_version": 3,
+    "experiment_version": 5,
     "epochs": 12,
     "batch_size": 64,
     "lr": 0.001,
@@ -39,10 +39,45 @@
       "brightness_range": 0.1,
       "contrast_range": 0.1
     },
+    "sample_selection": "episode_stratified_even_within_episode",
     "probe": {
       "feature_standardization": true,
-      "angular_position_encoding": "sin_cos",
-      "angular_r2": "circular_chordal"
+      "angular_position_encoding": "sin_cos_with_rendered_period",
+      "angular_r2": "period_aware_circular_chordal",
+      "angular_position_periods": {
+        "cartpole_balance": {
+          "1": 6.283185307179586
+        },
+        "finger_spin": {
+          "2": 3.141592653589793
+        }
+      },
+      "position_summary_indices": {
+        "cartpole_balance": [
+          0,
+          1
+        ],
+        "finger_spin": [
+          0,
+          1
+        ]
+      },
+      "velocity_summary_indices": {
+        "cartpole_balance": [
+          2,
+          3
+        ],
+        "finger_spin": [
+          3,
+          4,
+          5
+        ]
+      },
+      "excluded_from_finger_spin_aggregate": {
+        "index": 2,
+        "name": "spinner_hinge_angle",
+        "reason": "The rendered spinner has pi-periodic symmetry; absolute 2*pi angle cannot be recovered from a static frame."
+      }
     },
     "datasets": {
       "cartpole_balance": {
@@ -111,375 +146,862 @@
       }
     }
   },
+  "metric_contract": {
+    "position_indices_by_task": {
+      "cartpole_balance": [
+        0,
+        1
+      ],
+      "finger_spin": [
+        0,
+        1
+      ]
+    },
+    "velocity_indices_by_task": {
+      "cartpole_balance": [
+        2,
+        3
+      ],
+      "finger_spin": [
+        3,
+        4,
+        5
+      ]
+    },
+    "excluded_state_variables": {
+      "finger_spin": {
+        "index": 2,
+        "name": "spinner_hinge_angle",
+        "reason": "The rendered spinner has pi-periodic symmetry; absolute 2*pi angle cannot be recovered from a static frame."
+      }
+    },
+    "note": "Finger Spin's absolute spinner angle is excluded from aggregates because its image is pi-periodic. Historical full-turn scores are preserved only in the progress file."
+  },
   "data": {
     "cartpole_balance": {
       "Supervised State-Prediction Reference": {
-        "position_mean": 0.9670608153951289,
-        "position_std": 0.01091893636710349,
-        "velocity_mean": -1.8488932368823683,
-        "velocity_std": 0.11280655834697745,
-        "mean_r2": -0.4409162107436198,
-        "std_r2": 0.05113944462601612,
+        "position_mean": 0.9805785396132531,
+        "position_std": 0.00030611176019521946,
+        "velocity_mean": -0.2729407245385012,
+        "velocity_std": 0.011989857711270417,
+        "mean_r2": 0.35381890753737594,
+        "std_r2": 0.005858593882083414,
         "seed_results": [
           {
             "r2_per_variable": [
-              0.9224854016329068,
-              0.9822362047981597,
-              -2.529747646702513,
-              -0.8988261476707791
+              0.9941311609838297,
+              0.9676496132322442,
+              -0.1205614113232576,
+              -0.4577126255276931
             ],
-            "mean_r2": -0.38096304698555633,
-            "position_mean_r2": 0.9523608032155333,
-            "velocity_mean_r2": -1.7142868971866458
+            "mean_r2": 0.3458766843412808,
+            "position_mean_r2": 0.980890387108037,
+            "velocity_mean_r2": -0.28913701842547535,
+            "position_variable_indices": [
+              0,
+              1
+            ],
+            "velocity_variable_indices": [
+              2,
+              3
+            ],
+            "aggregate_state_variable_indices": [
+              0,
+              1,
+              2,
+              3
+            ]
           },
           {
             "r2_per_variable": [
-              0.9704390818736259,
-              0.9865720637729688,
-              -3.087445674884335,
-              -0.8932553230357132
+              0.9937571371224767,
+              0.966568017808792,
+              -0.08344631382061429,
+              -0.4375451470684073
             ],
-            "mean_r2": -0.5059224630683633,
-            "position_mean_r2": 0.9785055728232974,
-            "velocity_mean_r2": -1.990350498960024
+            "mean_r2": 0.3598334235105618,
+            "position_mean_r2": 0.9801625774656344,
+            "velocity_mean_r2": -0.2604957304445108,
+            "position_variable_indices": [
+              0,
+              1
+            ],
+            "velocity_variable_indices": [
+              2,
+              3
+            ],
+            "aggregate_state_variable_indices": [
+              0,
+              1,
+              2,
+              3
+            ]
           },
           {
             "r2_per_variable": [
-              0.9671485278862358,
-              0.9734836124068758,
-              -2.7101072658327814,
-              -0.973977363168089
+              0.9943473019095578,
+              0.9670180066226179,
+              -0.08908601961220408,
+              -0.4492928298788308
             ],
-            "mean_r2": -0.4358631221769397,
-            "position_mean_r2": 0.9703160701465559,
-            "velocity_mean_r2": -1.8420423145004352
+            "mean_r2": 0.3557466147602852,
+            "position_mean_r2": 0.9806826542660878,
+            "velocity_mean_r2": -0.26918942474551744,
+            "position_variable_indices": [
+              0,
+              1
+            ],
+            "velocity_variable_indices": [
+              2,
+              3
+            ],
+            "aggregate_state_variable_indices": [
+              0,
+              1,
+              2,
+              3
+            ]
           }
         ]
       },
       "Contrastive (NT-Xent)": {
-        "position_mean": -0.0646459567620515,
-        "position_std": 0.7799057378271905,
-        "velocity_mean": -0.49205539765492956,
-        "velocity_std": 0.02457572047090476,
-        "mean_r2": -0.27835067720849055,
-        "std_r2": 0.3792113591873056,
+        "position_mean": 0.6717439936588993,
+        "position_std": 0.0010491091405127248,
+        "velocity_mean": -0.18717997767166436,
+        "velocity_std": 0.00546650991996489,
+        "mean_r2": 0.24228200799361743,
+        "std_r2": 0.003251533092093035,
         "seed_results": [
           {
             "r2_per_variable": [
-              0.3135265106210252,
-              0.6762317865956784,
-              -0.2878039217157129,
-              -0.7559497774326098
+              0.7565861013834922,
+              0.5842734510563554,
+              -0.008422153306411717,
+              -0.37823149670894995
             ],
-            "mean_r2": -0.013498850482904778,
-            "position_mean_r2": 0.4948791486083518,
-            "velocity_mean_r2": -0.5218768495741614
+            "mean_r2": 0.2385514756061215,
+            "position_mean_r2": 0.6704297762199238,
+            "velocity_mean_r2": -0.19332682500768084,
+            "position_variable_indices": [
+              0,
+              1
+            ],
+            "velocity_variable_indices": [
+              2,
+              3
+            ],
+            "aggregate_state_variable_indices": [
+              0,
+              1,
+              2,
+              3
+            ]
           },
           {
             "r2_per_variable": [
-              0.46560097670005285,
-              0.49188474957577044,
-              -0.34587428776140383,
-              -0.6393317054521124
+              0.7036051622506183,
+              0.6423896352704817,
+              0.009599045009711538,
+              -0.36969148877611535
             ],
-            "mean_r2": -0.006930066734423229,
-            "position_mean_r2": 0.47874286313791165,
-            "velocity_mean_r2": -0.4926029966067581
+            "mean_r2": 0.24647558843867406,
+            "position_mean_r2": 0.67299739876055,
+            "velocity_mean_r2": -0.1800462218832019,
+            "position_variable_indices": [
+              0,
+              1
+            ],
+            "velocity_variable_indices": [
+              2,
+              3
+            ],
+            "aggregate_state_variable_indices": [
+              0,
+              1,
+              2,
+              3
+            ]
           },
           {
             "r2_per_variable": [
-              -2.9106165841886438,
-              0.575496820123808,
-              -0.37091490321277343,
-              -0.5524577903549652
+              0.746011720685974,
+              0.5975978913064734,
+              0.004103237052854314,
+              -0.38043700930107494
             ],
-            "mean_r2": -0.8146231144081437,
-            "position_mean_r2": -1.167559882032418,
-            "velocity_mean_r2": -0.46168634678386933
+            "mean_r2": 0.24181895993605668,
+            "position_mean_r2": 0.6718048059962237,
+            "velocity_mean_r2": -0.1881668861241103,
+            "position_variable_indices": [
+              0,
+              1
+            ],
+            "velocity_variable_indices": [
+              2,
+              3
+            ],
+            "aggregate_state_variable_indices": [
+              0,
+              1,
+              2,
+              3
+            ]
           }
         ]
       },
       "VICReg": {
-        "position_mean": 0.6163421180816001,
-        "position_std": 0.0672593792625943,
-        "velocity_mean": -0.4771578250493776,
-        "velocity_std": 0.09543998038164109,
-        "mean_r2": 0.06959214651611127,
-        "std_r2": 0.03975895911684743,
+        "position_mean": 0.6490670705828078,
+        "position_std": 0.022437581212009772,
+        "velocity_mean": -0.18337967534894206,
+        "velocity_std": 0.005520053513570283,
+        "mean_r2": 0.23284369761693288,
+        "std_r2": 0.008459996455917477,
         "seed_results": [
           {
             "r2_per_variable": [
-              0.7215966857141594,
-              0.5933678812914052,
-              -0.7095858374542243,
-              -0.5112940343403336
+              0.8053074789863555,
+              0.5196310596934188,
+              -0.0020257022830860727,
+              -0.370958556336916
             ],
-            "mean_r2": 0.02352117380275165,
-            "position_mean_r2": 0.6574822835027823,
-            "velocity_mean_r2": -0.610439935897279
+            "mean_r2": 0.23798857001494306,
+            "position_mean_r2": 0.6624692693398871,
+            "velocity_mean_r2": -0.18649212931000103,
+            "position_variable_indices": [
+              0,
+              1
+            ],
+            "velocity_variable_indices": [
+              2,
+              3
+            ],
+            "aggregate_state_variable_indices": [
+              0,
+              1,
+              2,
+              3
+            ]
           },
           {
             "r2_per_variable": [
-              0.7079156362341981,
-              0.3350841483164948,
-              -0.427469348861949,
-              -0.3566809161948832
+              0.8152759814650055,
+              0.5192737640795628,
+              -0.026592183836920302,
+              -0.34945486756736543
             ],
-            "mean_r2": 0.06471237987346518,
-            "position_mean_r2": 0.5214998922753464,
-            "velocity_mean_r2": -0.3920751325284161
+            "mean_r2": 0.23962567353507064,
+            "position_mean_r2": 0.6672748727722841,
+            "velocity_mean_r2": -0.18802352570214287,
+            "position_variable_indices": [
+              0,
+              1
+            ],
+            "velocity_variable_indices": [
+              2,
+              3
+            ],
+            "aggregate_state_variable_indices": [
+              0,
+              1,
+              2,
+              3
+            ]
           },
           {
             "r2_per_variable": [
-              0.8218452099581777,
-              0.5182431469751654,
-              -0.5248491757987046,
-              -0.33306763764617053
+              0.7266096203582935,
+              0.508304518914211,
+              0.010468711445629109,
+              -0.3617154535149938
             ],
-            "mean_r2": 0.12054288587211698,
-            "position_mean_r2": 0.6700441784666715,
-            "velocity_mean_r2": -0.42895840672243757
+            "mean_r2": 0.22091684930078492,
+            "position_mean_r2": 0.6174570696362522,
+            "velocity_mean_r2": -0.17562337103468234,
+            "position_variable_indices": [
+              0,
+              1
+            ],
+            "velocity_variable_indices": [
+              2,
+              3
+            ],
+            "aggregate_state_variable_indices": [
+              0,
+              1,
+              2,
+              3
+            ]
           }
         ]
       },
       "Masked Autoencoder (MAE)": {
-        "position_mean": -0.7668226162271182,
-        "position_std": 0.03277528966658801,
-        "velocity_mean": -0.1192820223226257,
-        "velocity_std": 0.012717417389782703,
-        "mean_r2": -0.44305231927487193,
-        "std_r2": 0.01712933683524206,
+        "position_mean": 0.16408899523446432,
+        "position_std": 0.029522837749448978,
+        "velocity_mean": -0.1126276520884451,
+        "velocity_std": 0.0035224293398960866,
+        "mean_r2": 0.025730671573009612,
+        "std_r2": 0.016370864895350296,
         "seed_results": [
           {
             "r2_per_variable": [
-              -1.7131827235332597,
-              0.16881367297171412,
-              -0.08059063813255252,
-              -0.19329136611165154
+              0.1449644121545578,
+              0.12152363929812982,
+              -0.01431873046136345,
+              -0.2147193986160678
             ],
-            "mean_r2": -0.45456276370143744,
-            "position_mean_r2": -0.7721845252807729,
-            "velocity_mean_r2": -0.13694100212210203
+            "mean_r2": 0.009362480593814088,
+            "position_mean_r2": 0.1332440257263438,
+            "velocity_mean_r2": -0.11451906453871563,
+            "position_variable_indices": [
+              0,
+              1
+            ],
+            "velocity_variable_indices": [
+              2,
+              3
+            ],
+            "aggregate_state_variable_indices": [
+              0,
+              1,
+              2,
+              3
+            ]
           },
           {
             "r2_per_variable": [
-              -1.7415499740769564,
-              0.29301041200146816,
-              -0.04456411694121143,
-              -0.18224666782009868
+              0.19061650623736603,
+              0.2171440291903668,
+              -0.005628808308614008,
+              -0.209753058138902
             ],
-            "mean_r2": -0.41883758670919957,
-            "position_mean_r2": -0.7242697810377441,
-            "velocity_mean_r2": -0.11340539238065506
+            "mean_r2": 0.04809466724505421,
+            "position_mean_r2": 0.20388026771386641,
+            "velocity_mean_r2": -0.107690933223758,
+            "position_variable_indices": [
+              0,
+              1
+            ],
+            "velocity_variable_indices": [
+              2,
+              3
+            ],
+            "aggregate_state_variable_indices": [
+              0,
+              1,
+              2,
+              3
+            ]
           },
           {
             "r2_per_variable": [
-              -1.7374427913596437,
-              0.12941570663396806,
-              -0.03363572378403634,
-              -0.18136362114620375
+              0.1573732881882116,
+              0.15291209633815384,
+              -0.00876539892286754,
+              -0.22258051808285573
             ],
-            "mean_r2": -0.45575660741397894,
-            "position_mean_r2": -0.8040135423628378,
-            "velocity_mean_r2": -0.10749967246512004
+            "mean_r2": 0.019734866880160545,
+            "position_mean_r2": 0.15514269226318272,
+            "velocity_mean_r2": -0.11567295850286163,
+            "position_variable_indices": [
+              0,
+              1
+            ],
+            "velocity_variable_indices": [
+              2,
+              3
+            ],
+            "aggregate_state_variable_indices": [
+              0,
+              1,
+              2,
+              3
+            ]
           }
         ]
       }
     },
     "finger_spin": {
       "Supervised State-Prediction Reference": {
-        "position_mean": -63.74496687841853,
-        "position_std": 11.08407580186987,
-        "velocity_mean": -0.6245723730065381,
-        "velocity_std": 0.24326068367855175,
-        "mean_r2": -32.18476962571253,
-        "std_r2": 5.477257434776154,
+        "position_mean": 0.9950508484773547,
+        "position_std": 0.0008846781997709223,
+        "velocity_mean": -0.11427148940253917,
+        "velocity_std": 0.009861810985960008,
+        "mean_r2": 0.3294574457494184,
+        "std_r2": 0.005995686190190181,
         "seed_results": [
           {
             "r2_per_variable": [
-              0.7058243005611509,
-              -14.932640173407007,
-              -188.91936413563,
-              -0.045092724110470384,
-              -0.14263537253858782,
-              -0.7046719687616583
+              0.9980676323900718,
+              0.9943816879238924,
+              null,
+              -0.059952287416424,
+              -0.09499127062965074,
+              -0.16606208299599046
             ],
-            "mean_r2": -34.00643001231443,
-            "position_mean_r2": -67.71539333615861,
-            "velocity_mean_r2": -0.2974666884702388
+            "mean_r2": 0.3342887358543798,
+            "position_mean_r2": 0.9962246601569821,
+            "velocity_mean_r2": -0.10700188034735507,
+            "position_variable_indices": [
+              0,
+              1
+            ],
+            "velocity_variable_indices": [
+              3,
+              4,
+              5
+            ],
+            "aggregate_state_variable_indices": [
+              0,
+              1,
+              3,
+              4,
+              5
+            ],
+            "excluded_state_variables": [
+              {
+                "index": 2,
+                "name": "spinner_hinge_angle",
+                "reason": "The rendered spinner has pi-periodic symmetry; absolute 2*pi angle cannot be recovered from a static frame."
+              }
+            ],
+            "excluded_spinner_angle_r2_period_pi": 0.9992873575345714
           },
           {
             "r2_per_variable": [
-              0.7765726404400172,
-              -14.081985891891264,
-              -211.37127158406005,
-              -0.029970207173384278,
-              -0.11315826150835528,
-              -1.9444161939721316
+              0.9972337554409468,
+              0.9924440841828863,
+              null,
+              -0.0804589916471865,
+              -0.09730306656484244,
+              -0.2068797609906663
             ],
-            "mean_r2": -37.7940382496942,
-            "position_mean_r2": -74.89222827850377,
-            "velocity_mean_r2": -0.6958482208846237
+            "mean_r2": 0.32100720408422756,
+            "position_mean_r2": 0.9948389198119165,
+            "velocity_mean_r2": -0.12821393973423176,
+            "position_variable_indices": [
+              0,
+              1
+            ],
+            "velocity_variable_indices": [
+              3,
+              4,
+              5
+            ],
+            "aggregate_state_variable_indices": [
+              0,
+              1,
+              3,
+              4,
+              5
+            ],
+            "excluded_state_variables": [
+              {
+                "index": 2,
+                "name": "spinner_hinge_angle",
+                "reason": "The rendered spinner has pi-periodic symmetry; absolute 2*pi angle cannot be recovered from a static frame."
+              }
+            ],
+            "excluded_spinner_angle_r2_period_pi": 0.9992497713471726
           },
           {
             "r2_per_variable": [
-              0.8859348421145916,
-              -14.901349760367705,
-              -131.86642214352653,
-              -0.03003214713245539,
-              -0.12111362196603048,
-              -2.4900608598957694
+              0.9970850788046474,
+              0.9910928521216836,
+              null,
+              -0.07037836995342905,
+              -0.09222903829887308,
+              -0.16018853612578998
             ],
-            "mean_r2": -24.753840615128983,
-            "position_mean_r2": -48.627279020593214,
-            "velocity_mean_r2": -0.8804022096647518
+            "mean_r2": 0.3330763973096478,
+            "position_mean_r2": 0.9940889654631655,
+            "velocity_mean_r2": -0.1075986481260307,
+            "position_variable_indices": [
+              0,
+              1
+            ],
+            "velocity_variable_indices": [
+              3,
+              4,
+              5
+            ],
+            "aggregate_state_variable_indices": [
+              0,
+              1,
+              3,
+              4,
+              5
+            ],
+            "excluded_state_variables": [
+              {
+                "index": 2,
+                "name": "spinner_hinge_angle",
+                "reason": "The rendered spinner has pi-periodic symmetry; absolute 2*pi angle cannot be recovered from a static frame."
+              }
+            ],
+            "excluded_spinner_angle_r2_period_pi": 0.9993532404601321
           }
         ]
       },
       "Contrastive (NT-Xent)": {
-        "position_mean": -63.67468727601263,
-        "position_std": 2.74996696346432,
-        "velocity_mean": -0.0961002675067959,
-        "velocity_std": 0.059491828960953085,
-        "mean_r2": -31.885393771759713,
-        "std_r2": 1.3454607717188334,
+        "position_mean": 0.7141759755045852,
+        "position_std": 0.029138916003704034,
+        "velocity_mean": -0.007098129131670812,
+        "velocity_std": 0.0020321289637829803,
+        "mean_r2": 0.2814115127228316,
+        "std_r2": 0.012150558740842704,
         "seed_results": [
           {
             "r2_per_variable": [
-              0.722788150305165,
-              -17.81400655901631,
-              -162.45988612319118,
-              -0.0060302030326593314,
-              -0.011151537560917024,
-              -0.5230452497611129
+              0.9169552956469138,
+              0.441862395031423,
+              null,
+              -0.011321253206161508,
+              -0.010163776282134496,
+              -0.006758583002302476
             ],
-            "mean_r2": -30.015221920376167,
-            "position_mean_r2": -59.85036817730077,
-            "velocity_mean_r2": -0.1800756634515631
+            "mean_r2": 0.2661148156375477,
+            "position_mean_r2": 0.6794088453391685,
+            "velocity_mean_r2": -0.00941453749686616,
+            "position_variable_indices": [
+              0,
+              1
+            ],
+            "velocity_variable_indices": [
+              3,
+              4,
+              5
+            ],
+            "aggregate_state_variable_indices": [
+              0,
+              1,
+              3,
+              4,
+              5
+            ],
+            "excluded_state_variables": [
+              {
+                "index": 2,
+                "name": "spinner_hinge_angle",
+                "reason": "The rendered spinner has pi-periodic symmetry; absolute 2*pi angle cannot be recovered from a static frame."
+              }
+            ],
+            "excluded_spinner_angle_r2_period_pi": 0.9975136627736932
           },
           {
             "r2_per_variable": [
-              -0.23786478287021362,
-              -19.069779272109432,
-              -179.28858027537407,
-              -0.00201215103245711,
-              -0.009705746937024973,
-              -0.13719796129889605
+              0.9535236345856919,
+              0.5479125254886289,
+              null,
+              -0.009229075492483085,
+              -0.00920078940906488,
+              -0.003809197515141749
             ],
-            "mean_r2": -33.12419003160368,
-            "position_mean_r2": -66.19874144345124,
-            "velocity_mean_r2": -0.049638619756126046
+            "mean_r2": 0.29583941953152626,
+            "position_mean_r2": 0.7507180800371605,
+            "velocity_mean_r2": -0.007413020805563238,
+            "position_variable_indices": [
+              0,
+              1
+            ],
+            "velocity_variable_indices": [
+              3,
+              4,
+              5
+            ],
+            "aggregate_state_variable_indices": [
+              0,
+              1,
+              3,
+              4,
+              5
+            ],
+            "excluded_state_variables": [
+              {
+                "index": 2,
+                "name": "spinner_hinge_angle",
+                "reason": "The rendered spinner has pi-periodic symmetry; absolute 2*pi angle cannot be recovered from a static frame."
+              }
+            ],
+            "excluded_spinner_angle_r2_period_pi": 0.9966306869999644
           },
           {
             "r2_per_variable": [
-              0.8638916120119624,
-              -18.919394610126073,
-              -176.8693536237435,
-              -0.002435942336606267,
-              -0.021242094235130127,
-              -0.15208152136635933
+              0.9532623979783867,
+              0.4715396042964667,
+              null,
+              -0.009182489614717904,
+              -0.004965113416040667,
+              0.000747115753009453
             ],
-            "mean_r2": -32.51676936329929,
-            "position_mean_r2": -64.97495220728588,
-            "velocity_mean_r2": -0.05858651931269857
+            "mean_r2": 0.28228030299942086,
+            "position_mean_r2": 0.7124010011374267,
+            "velocity_mean_r2": -0.00446682909258304,
+            "position_variable_indices": [
+              0,
+              1
+            ],
+            "velocity_variable_indices": [
+              3,
+              4,
+              5
+            ],
+            "aggregate_state_variable_indices": [
+              0,
+              1,
+              3,
+              4,
+              5
+            ],
+            "excluded_state_variables": [
+              {
+                "index": 2,
+                "name": "spinner_hinge_angle",
+                "reason": "The rendered spinner has pi-periodic symmetry; absolute 2*pi angle cannot be recovered from a static frame."
+              }
+            ],
+            "excluded_spinner_angle_r2_period_pi": 0.9947689630440831
           }
         ]
       },
       "VICReg": {
-        "position_mean": -67.43870754196486,
-        "position_std": 11.59102512381059,
-        "velocity_mean": -0.0871959060362928,
-        "velocity_std": 0.034308933963159885,
-        "mean_r2": -33.76295172400057,
-        "std_r2": 5.788349998815178,
+        "position_mean": 0.6787252752211913,
+        "position_std": 0.04002895677308735,
+        "velocity_mean": -0.005297394588502806,
+        "velocity_std": 0.0039034152444534153,
+        "mean_r2": 0.2683116733353749,
+        "std_r2": 0.014283090297836627,
         "seed_results": [
           {
             "r2_per_variable": [
-              0.7268832305188968,
-              -18.426462315060316,
-              -228.4857206168439,
-              -0.019066011463744204,
-              -0.03950263239776741,
-              -0.20837529401432486
+              0.9829453212845155,
+              0.48473373330249037,
+              null,
+              -0.016814133194023917,
+              -0.012360756988496702,
+              -0.0015601170409311749
             ],
-            "mean_r2": -41.07537393987686,
-            "position_mean_r2": -82.06176656712844,
-            "velocity_mean_r2": -0.08898131262527882
+            "mean_r2": 0.28738880947271084,
+            "position_mean_r2": 0.733839527293503,
+            "velocity_mean_r2": -0.010245002407817264,
+            "position_variable_indices": [
+              0,
+              1
+            ],
+            "velocity_variable_indices": [
+              3,
+              4,
+              5
+            ],
+            "aggregate_state_variable_indices": [
+              0,
+              1,
+              3,
+              4,
+              5
+            ],
+            "excluded_state_variables": [
+              {
+                "index": 2,
+                "name": "spinner_hinge_angle",
+                "reason": "The rendered spinner has pi-periodic symmetry; absolute 2*pi angle cannot be recovered from a static frame."
+              }
+            ],
+            "excluded_spinner_angle_r2_period_pi": 0.9450311326635451
           },
           {
             "r2_per_variable": [
-              0.5374428991102586,
-              -25.058460287297976,
-              -136.6154749171973,
-              -0.006141060893853023,
-              -0.025170592332428132,
-              -0.353571654647697
+              0.9684412992971013,
+              0.31150835266089505,
+              null,
+              -0.010063104991205885,
+              -0.010459064668835616,
+              0.005690365745674941
             ],
-            "mean_r2": -26.920229268876497,
-            "position_mean_r2": -53.712164101795004,
-            "velocity_mean_r2": -0.12829443595799273
+            "mean_r2": 0.2530235696087259,
+            "position_mean_r2": 0.6399748259789981,
+            "velocity_mean_r2": -0.004943934638122187,
+            "position_variable_indices": [
+              0,
+              1
+            ],
+            "velocity_variable_indices": [
+              3,
+              4,
+              5
+            ],
+            "aggregate_state_variable_indices": [
+              0,
+              1,
+              3,
+              4,
+              5
+            ],
+            "excluded_state_variables": [
+              {
+                "index": 2,
+                "name": "spinner_hinge_angle",
+                "reason": "The rendered spinner has pi-periodic symmetry; absolute 2*pi angle cannot be recovered from a static frame."
+              }
+            ],
+            "excluded_spinner_angle_r2_period_pi": 0.9418078819448759
           },
           {
             "r2_per_variable": [
-              0.5914606624339491,
-              -26.468589729083995,
-              -173.74944680426336,
-              -0.004890770333932037,
-              -0.029693398667811177,
-              -0.09835173957507748
+              0.971132644832011,
+              0.35359029995013525,
+              null,
+              -0.010809609227316663,
+              -0.010487087067956313,
+              0.01918695613656607
             ],
-            "mean_r2": -33.293251963248366,
-            "position_mean_r2": -66.54219195697114,
-            "velocity_mean_r2": -0.0443119695256069
+            "mean_r2": 0.26452264092468786,
+            "position_mean_r2": 0.6623614723910731,
+            "velocity_mean_r2": -0.0007032467195689692,
+            "position_variable_indices": [
+              0,
+              1
+            ],
+            "velocity_variable_indices": [
+              3,
+              4,
+              5
+            ],
+            "aggregate_state_variable_indices": [
+              0,
+              1,
+              3,
+              4,
+              5
+            ],
+            "excluded_state_variables": [
+              {
+                "index": 2,
+                "name": "spinner_hinge_angle",
+                "reason": "The rendered spinner has pi-periodic symmetry; absolute 2*pi angle cannot be recovered from a static frame."
+              }
+            ],
+            "excluded_spinner_angle_r2_period_pi": 0.9366787266380299
           }
         ]
       },
       "Masked Autoencoder (MAE)": {
-        "position_mean": -62.007640715342696,
-        "position_std": 2.981608668347161,
-        "velocity_mean": -0.04843896988120649,
-        "velocity_std": 0.011466085653222774,
-        "mean_r2": -31.028039842611957,
-        "std_r2": 1.4958253315326342,
+        "position_mean": 0.3045742141358288,
+        "position_std": 0.011655454504944384,
+        "velocity_mean": -0.01043704006134405,
+        "velocity_std": 0.0027363012193460713,
+        "mean_r2": 0.11556746161752508,
+        "std_r2": 0.0054266808395726255,
         "seed_results": [
           {
             "r2_per_variable": [
-              -0.6269741814353684,
-              -15.005070763573194,
-              -182.04835911150136,
-              -0.005339307227254064,
-              -0.007855611619439262,
-              -0.1804960221783125
+              0.6694777182803322,
+              -0.07983698136786832,
+              null,
+              -0.008879387395356542,
+              -0.004964819892996575,
+              -0.010876955453630321
             ],
-            "mean_r2": -32.97901583292249,
-            "position_mean_r2": -65.89346801883664,
-            "velocity_mean_r2": -0.06456364700833528
+            "mean_r2": 0.11298391483409609,
+            "position_mean_r2": 0.29482036845623194,
+            "velocity_mean_r2": -0.008240387580661146,
+            "position_variable_indices": [
+              0,
+              1
+            ],
+            "velocity_variable_indices": [
+              3,
+              4,
+              5
+            ],
+            "aggregate_state_variable_indices": [
+              0,
+              1,
+              3,
+              4,
+              5
+            ],
+            "excluded_state_variables": [
+              {
+                "index": 2,
+                "name": "spinner_hinge_angle",
+                "reason": "The rendered spinner has pi-periodic symmetry; absolute 2*pi angle cannot be recovered from a static frame."
+              }
+            ],
+            "excluded_spinner_angle_r2_period_pi": 0.3656684131353555
           },
           {
             "r2_per_variable": [
-              0.22568495048167525,
-              -15.070199822496313,
-              -161.09617304608582,
-              -0.009001200201629977,
-              -0.011210035115952088,
-              -0.10537117912710392
+              0.7010465165869735,
+              -0.05912935176748335,
+              null,
+              -0.004939352141763109,
+              -0.005138147388296543,
+              -0.01625161353566984
             ],
-            "mean_r2": -29.344378388757523,
-            "position_mean_r2": -58.64689597270015,
-            "velocity_mean_r2": -0.041860804814895326
+            "mean_r2": 0.12311761035075212,
+            "position_mean_r2": 0.32095858240974506,
+            "velocity_mean_r2": -0.008776371021909831,
+            "position_variable_indices": [
+              0,
+              1
+            ],
+            "velocity_variable_indices": [
+              3,
+              4,
+              5
+            ],
+            "aggregate_state_variable_indices": [
+              0,
+              1,
+              3,
+              4,
+              5
+            ],
+            "excluded_state_variables": [
+              {
+                "index": 2,
+                "name": "spinner_hinge_angle",
+                "reason": "The rendered spinner has pi-periodic symmetry; absolute 2*pi angle cannot be recovered from a static frame."
+              }
+            ],
+            "excluded_spinner_angle_r2_period_pi": 0.5604897785935752
           },
           {
             "r2_per_variable": [
-              -0.6810800965633474,
-              -14.707029459770233,
-              -169.05956490714036,
-              -0.003535406180220857,
-              -0.0025919573471016033,
-              -0.11055000993384412
+              0.6425804221600704,
+              -0.04669303907705169,
+              null,
+              -0.022313858324538804,
+              -0.010935093524361283,
+              -0.009634132895483427
             ],
-            "mean_r2": -30.760725306155848,
-            "position_mean_r2": -61.48255815449131,
-            "velocity_mean_r2": -0.03889245782038886
+            "mean_r2": 0.11060085966772704,
+            "position_mean_r2": 0.29794369154150935,
+            "velocity_mean_r2": -0.014294361581461171,
+            "position_variable_indices": [
+              0,
+              1
+            ],
+            "velocity_variable_indices": [
+              3,
+              4,
+              5
+            ],
+            "aggregate_state_variable_indices": [
+              0,
+              1,
+              3,
+              4,
+              5
+            ],
+            "excluded_state_variables": [
+              {
+                "index": 2,
+                "name": "spinner_hinge_angle",
+                "reason": "The rendered spinner has pi-periodic symmetry; absolute 2*pi angle cannot be recovered from a static frame."
+              }
+            ],
+            "excluded_spinner_angle_r2_period_pi": 0.6659347391441696
           }
         ]
       }

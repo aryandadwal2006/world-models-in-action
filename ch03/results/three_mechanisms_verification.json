@@ -1,4 +1,5 @@
 {
+  "experiment_version": 2,
   "seeds": [
     0,
     1,
@@ -9,25 +10,35 @@
     "batch_size": 64,
     "learning_rate": 0.001,
     "latent_dim": 16,
-    "max_train_samples": 3000
+    "max_train_samples": 3000,
+    "sample_selection": "episode_stratified_even_within_episode",
+    "augmentation": {
+      "max_shift": 3,
+      "brightness_range": 0.1,
+      "contrast_range": 0.1
+    },
+    "barlow_twins": {
+      "lambda": 0.005,
+      "batch_standard_deviation_unbiased": false
+    }
   },
   "methods": {
     "SimSiam (Stop-Gradient)": {
-      "mean_r2": -0.0002082536170710525,
-      "std_r2": 0.018695301104182008,
-      "mean_effective_rank": 1.0237918168538842,
-      "std_effective_rank": 0.011739512090871485,
-      "mean_latent_std": 4.646208512907227,
-      "std_latent_std": 3.5840551738171023,
+      "mean_r2": 0.16090815789626597,
+      "std_r2": 0.04131660734522925,
+      "mean_effective_rank": 1.2198502556794195,
+      "std_effective_rank": 0.26900368338975955,
+      "mean_latent_std": 3.2117994299624115,
+      "std_latent_std": 4.527002276633587,
       "seed_results": [
         {
           "r2_per_variable": [
-            0.6075892368863245,
-            0.45323391621692155,
-            -0.27481231855229904,
-            -0.7210787227270699
+            0.6020472402116461,
+            0.29042761772219094,
+            -0.015009546248790695,
+            -0.33763302472774726
           ],
-          "mean_r2": 0.016233027955969315,
+          "mean_r2": 0.13495807173932478,
           "probe": {
             "type": "StateLinearProbe",
             "feature_standardization": true,
@@ -35,19 +46,22 @@
             "angular_r2": "circular_chordal",
             "angular_position_indices": [
               1
-            ]
+            ],
+            "angular_position_periods": {
+              "1": 6.283185307179586
+            }
           },
-          "effective_rank": 1.0377414768178388,
-          "latent_std": 0.02941962517797947
+          "effective_rank": 1.5998308253043576,
+          "latent_std": 0.0008973299991339445
         },
         {
           "r2_per_variable": [
-            0.5953424271538943,
-            0.46269440367146264,
-            -0.3230971115381054,
-            -0.8403808427263555
+            0.7131127342042526,
+            0.5075971681269145,
+            -0.00542283589092718,
+            -0.3384021041261138
           ],
-          "mean_r2": -0.026360280859775986,
+          "mean_r2": 0.21922124057853148,
           "probe": {
             "type": "StateLinearProbe",
             "feature_standardization": true,
@@ -55,19 +69,22 @@
             "angular_r2": "circular_chordal",
             "angular_position_indices": [
               1
-            ]
+            ],
+            "angular_position_periods": {
+              "1": 6.283185307179586
+            }
           },
-          "effective_rank": 1.0246131049036655,
-          "latent_std": 5.142940044403076
+          "effective_rank": 1.0138741162911786,
+          "latent_std": 9.613937377929688
         },
         {
           "r2_per_variable": [
-            0.6365382615826154,
-            0.5052738058627505,
-            -0.2652005358155989,
-            -0.8386015634193931
+            0.5386756504592569,
+            0.3120756977363619,
+            -0.0007765426198620418,
+            -0.33579416009199003
           ],
-          "mean_r2": 0.009502492052593514,
+          "mean_r2": 0.12854516137094169,
           "probe": {
             "type": "StateLinearProbe",
             "feature_standardization": true,
@@ -75,29 +92,32 @@
             "angular_r2": "circular_chordal",
             "angular_position_indices": [
               1
-            ]
+            ],
+            "angular_position_periods": {
+              "1": 6.283185307179586
+            }
           },
-          "effective_rank": 1.0090208688401485,
-          "latent_std": 8.766265869140625
+          "effective_rank": 1.0458458254427225,
+          "latent_std": 0.020563581958413124
         }
       ]
     },
     "BYOL (EMA Target)": {
-      "mean_r2": -0.05301132796695985,
-      "std_r2": 0.024211471318670016,
-      "mean_effective_rank": 1.0557189522744224,
-      "std_effective_rank": 0.020395996855858616,
-      "mean_latent_std": 2.045805429418882,
-      "std_latent_std": 2.861308782730646,
+      "mean_r2": 0.16242489633243884,
+      "std_r2": 0.06219126940556671,
+      "mean_effective_rank": 1.0638124649125753,
+      "std_effective_rank": 0.028977600097441027,
+      "mean_latent_std": 1.9880057697494824,
+      "std_latent_std": 2.7807533855165656,
       "seed_results": [
         {
           "r2_per_variable": [
-            0.455751331765209,
-            0.21165362096576068,
-            -0.28080710220963745,
-            -0.7299336571813766
+            0.6615931886265878,
+            0.462044666987134,
+            -0.007971257006961663,
+            -0.34637082563613664
           ],
-          "mean_r2": -0.0858339516650111,
+          "mean_r2": 0.19232394324265584,
           "probe": {
             "type": "StateLinearProbe",
             "feature_standardization": true,
@@ -105,19 +125,22 @@
             "angular_r2": "circular_chordal",
             "angular_position_indices": [
               1
-            ]
+            ],
+            "angular_position_periods": {
+              "1": 6.283185307179586
+            }
           },
-          "effective_rank": 1.0291103898835738,
-          "latent_std": 0.036185555160045624
+          "effective_rank": 1.0656431467079654,
+          "latent_std": 0.03411148488521576
         },
         {
           "r2_per_variable": [
-            0.5853275350756817,
-            0.4794991698651867,
-            -0.32051439863403797,
-            -0.8569367475442251
+            0.6962100782423449,
+            0.5311624755432844,
+            9.324465749183108e-05,
+            -0.35103567015739223
           ],
-          "mean_r2": -0.02815611030934867,
+          "mean_r2": 0.2191075320714322,
           "probe": {
             "type": "StateLinearProbe",
             "feature_standardization": true,
@@ -125,19 +148,22 @@
             "angular_r2": "circular_chordal",
             "angular_position_indices": [
               1
-            ]
+            ],
+            "angular_position_periods": {
+              "1": 6.283185307179586
+            }
           },
-          "effective_rank": 1.0786660202680463,
-          "latent_std": 6.092276573181152
+          "effective_rank": 1.0274423864720095,
+          "latent_std": 5.920558929443359
         },
         {
           "r2_per_variable": [
-            0.35699113897759926,
-            0.24818635852054127,
-            -0.11575161647085785,
-            -0.6696015687333619
+            0.4835440554965523,
+            0.1295459865547649,
+            -0.004644093307438313,
+            -0.30507309401096494
           ],
-          "mean_r2": -0.04504392192651979,
+          "mean_r2": 0.0758432136832285,
           "probe": {
             "type": "StateLinearProbe",
             "feature_standardization": true,
@@ -145,29 +171,32 @@
             "angular_r2": "circular_chordal",
             "angular_position_indices": [
               1
-            ]
+            ],
+            "angular_position_periods": {
+              "1": 6.283185307179586
+            }
           },
-          "effective_rank": 1.059380446671647,
-          "latent_std": 0.008954159915447235
+          "effective_rank": 1.0983518615577508,
+          "latent_std": 0.009346894919872284
         }
       ]
     },
     "Barlow Twins (Cross-Corr)": {
-      "mean_r2": -0.014738498878169951,
-      "std_r2": 0.015245212970321888,
-      "mean_effective_rank": 5.759664617399974,
-      "std_effective_rank": 0.7762892471387972,
-      "mean_latent_std": 0.1553084229429563,
-      "std_latent_std": 0.09488544359339966,
+      "mean_r2": 0.2281921983603027,
+      "std_r2": 0.014233763772485227,
+      "mean_effective_rank": 5.985502955367132,
+      "std_effective_rank": 0.738806034668524,
+      "mean_latent_std": 0.27631592750549316,
+      "std_latent_std": 0.243941710744192,
       "seed_results": [
         {
           "r2_per_variable": [
-            0.7257116060910647,
-            0.5492039973482306,
-            -0.38044672948923774,
-            -0.9631494081273422
+            0.7562024730968047,
+            0.5505294409344992,
+            -0.01133082891776982,
+            -0.36637724425610196
           ],
-          "mean_r2": -0.017170133544321176,
+          "mean_r2": 0.23225596021435801,
           "probe": {
             "type": "StateLinearProbe",
             "feature_standardization": true,
@@ -175,19 +204,22 @@
             "angular_r2": "circular_chordal",
             "angular_position_indices": [
               1
-            ]
+            ],
+            "angular_position_periods": {
+              "1": 6.283185307179586
+            }
           },
-          "effective_rank": 5.149646978099253,
-          "latent_std": 0.15362635254859924
+          "effective_rank": 6.569212068639761,
+          "latent_std": 0.11864672601222992
         },
         {
           "r2_per_variable": [
-            0.7340049262857328,
-            0.5433993646949627,
-            -0.426790619505818,
-            -0.8304949489411204
+            0.7062499654173596,
+            0.532754707014258,
+            -0.01726843624298846,
+            -0.3853901406793656
           ],
-          "mean_r2": 0.005029680633439282,
+          "mean_r2": 0.20908652387731586,
           "probe": {
             "type": "StateLinearProbe",
             "feature_standardization": true,
@@ -195,19 +227,22 @@
             "angular_r2": "circular_chordal",
             "angular_position_indices": [
               1
-            ]
+            ],
+            "angular_position_periods": {
+              "1": 6.283185307179586
+            }
           },
-          "effective_rank": 5.274201203103144,
-          "latent_std": 0.2723507881164551
+          "effective_rank": 4.943172357403846,
+          "latent_std": 0.6208884716033936
         },
         {
           "r2_per_variable": [
-            0.703167311375906,
-            0.5044701415217334,
-            -0.49192688465431056,
-            -0.8440107431378407
+            0.7819077012817282,
+            0.56987814596464,
+            -0.012117339341893185,
+            -0.3667320639475382
           ],
-          "mean_r2": -0.03207504372362796,
+          "mean_r2": 0.2432341109892342,
           "probe": {
             "type": "StateLinearProbe",
             "feature_standardization": true,
@@ -215,10 +250,13 @@
             "angular_r2": "circular_chordal",
             "angular_position_indices": [
               1
-            ]
+            ],
+            "angular_position_periods": {
+              "1": 6.283185307179586
+            }
           },
-          "effective_rank": 6.855145670997525,
-          "latent_std": 0.039948128163814545
+          "effective_rank": 6.4441244400577915,
+          "latent_std": 0.08941258490085602
         }
       ]
     }
