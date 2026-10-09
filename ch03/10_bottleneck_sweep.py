@@ -20,7 +20,11 @@ import torch
 from torch.utils.data import DataLoader
 
 from worldmodels.data.augment import ViewPipeline
-from worldmodels.data.dmc_data import DMCDataset, load_dataset_npz
+from worldmodels.data.dmc_data import (
+    DMCDataset,
+    load_dataset_npz,
+    select_episode_stratified_indices,
+)
 from worldmodels.eval.probes import evaluate_linear_probe
 from worldmodels.losses.contrastive import nt_xent_loss
 from worldmodels.models.encoders import ConvEncoder, ProjectionHead
@@ -75,15 +79,23 @@ def main() -> None:
         val_raw = load_dataset_npz(os.path.join(args.data_dir, f"dmc_{task_name}_val.npz"))
         n_train = min(len(train_raw["frames"]), args.max_train_samples)
         n_val = min(len(val_raw["frames"]), args.max_val_samples)
+        train_indices = select_episode_stratified_indices(
+            train_raw["episode_ids"], n_train
+        )
+        val_indices = select_episode_stratified_indices(
+            val_raw["episode_ids"], n_val
+        )
         train_ds = DMCDataset(
-            train_raw["frames"][:n_train],
-            train_raw["physics_states"][:n_train],
-            train_raw["episode_ids"][:n_train],
+            train_raw["frames"],
+            train_raw["physics_states"],
+            train_raw["episode_ids"],
+            sample_indices=train_indices,
         )
         val_ds = DMCDataset(
-            val_raw["frames"][:n_val],
-            val_raw["physics_states"][:n_val],
-            val_raw["episode_ids"][:n_val],
+            val_raw["frames"],
+            val_raw["physics_states"],
+            val_raw["episode_ids"],
+            sample_indices=val_indices,
         )
 
         task_data = {
@@ -92,6 +104,7 @@ def main() -> None:
             "mean_r2": [],
             "std_r2": [],
             "r2_matrix": [],
+            "sample_selection": "episode_stratified_even_within_episode",
         }
         for d in args.dims:
             scores = []
