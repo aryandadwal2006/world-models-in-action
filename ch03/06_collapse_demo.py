@@ -20,7 +20,11 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader
 
 from worldmodels.data.augment import ViewPipeline
-from worldmodels.data.dmc_data import DMCDataset, load_dataset_npz
+from worldmodels.data.dmc_data import (
+    DMCDataset,
+    load_dataset_npz,
+    select_episode_stratified_indices,
+)
 from worldmodels.losses.contrastive import nt_xent_loss
 from worldmodels.models.encoders import ConvEncoder, ProjectionHead
 from worldmodels.train import get_device, save_json, set_seed
@@ -102,11 +106,15 @@ def main() -> None:
     train_file = os.path.join(args.data_dir, "dmc_cartpole_balance_train.npz")
     train_raw = load_dataset_npz(train_file)
     n_train = min(len(train_raw["frames"]), 3000)
+    train_indices = select_episode_stratified_indices(
+        train_raw["episode_ids"], n_train
+    )
 
     train_ds = DMCDataset(
-        frames=train_raw["frames"][:n_train],
-        physics_states=train_raw["physics_states"][:n_train],
-        episode_ids=train_raw["episode_ids"][:n_train],
+        frames=train_raw["frames"],
+        physics_states=train_raw["physics_states"],
+        episode_ids=train_raw["episode_ids"],
+        sample_indices=train_indices,
     )
     train_loader = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True)
 
@@ -169,6 +177,7 @@ def main() -> None:
     save_json({
         "seeds": args.seeds,
         "epochs": args.epochs,
+        "sample_selection": "episode_stratified_even_within_episode",
         "collapse_mean_std": [float(x) for x in np.mean(col_arr, axis=0)],
         "contrastive_mean_std": [float(x) for x in np.mean(con_arr, axis=0)],
     }, res_path)
