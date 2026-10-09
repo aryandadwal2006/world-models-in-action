@@ -21,7 +21,11 @@ import torch
 from torch.utils.data import DataLoader
 
 from worldmodels.data.augment import ViewPipeline
-from worldmodels.data.dmc_data import DMCDataset, load_dataset_npz
+from worldmodels.data.dmc_data import (
+    DMCDataset,
+    load_dataset_npz,
+    select_episode_stratified_indices,
+)
 from worldmodels.eval.probes import evaluate_linear_probe
 from worldmodels.losses.contrastive import vicreg_loss
 from worldmodels.models.encoders import ConvEncoder, ProjectionHead
@@ -56,16 +60,20 @@ def main() -> None:
 
     n_train = min(len(train_raw["frames"]), 4000)
     n_val = min(len(val_raw["frames"]), 1000)
+    train_indices = select_episode_stratified_indices(train_raw["episode_ids"], n_train)
+    val_indices = select_episode_stratified_indices(val_raw["episode_ids"], n_val)
 
     train_ds = DMCDataset(
-        frames=train_raw["frames"][:n_train],
-        physics_states=train_raw["physics_states"][:n_train],
-        episode_ids=train_raw["episode_ids"][:n_train],
+        frames=train_raw["frames"],
+        physics_states=train_raw["physics_states"],
+        episode_ids=train_raw["episode_ids"],
+        sample_indices=train_indices,
     )
     val_ds = DMCDataset(
-        frames=val_raw["frames"][:n_val],
-        physics_states=val_raw["physics_states"][:n_val],
-        episode_ids=val_raw["episode_ids"][:n_val],
+        frames=val_raw["frames"],
+        physics_states=val_raw["physics_states"],
+        episode_ids=val_raw["episode_ids"],
+        sample_indices=val_indices,
     )
 
     train_loader = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True)
@@ -171,6 +179,7 @@ def main() -> None:
         "seeds": args.seeds,
         "mean_r2": mean_r2,
         "std_r2": std_r2,
+        "sample_selection": "episode_stratified_even_within_episode",
         "seed_results": seed_results,
     }, out_json)
     print(f"Saved VICReg results -> {out_json}")
