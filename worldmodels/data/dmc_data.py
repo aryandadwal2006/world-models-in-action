@@ -237,18 +237,23 @@ def select_episode_stratified_indices(
             break
         active_groups = next_active
 
-    per_group = [
-        group[
-            np.linspace(
+    per_group = []
+    for group_index, group in enumerate(groups):
+        n_selected = allocations[group_index]
+        if n_selected <= 0:
+            continue
+        if n_selected == 1:
+            per_group.append(
+                group[len(group) // 2 : len(group) // 2 + 1]
+            )
+        else:
+            positions = np.linspace(
                 0,
                 len(group) - 1,
-                num=allocations[group_index],
+                num=n_selected,
                 dtype=np.int64,
             )
-        ]
-        for group_index, group in enumerate(groups)
-        if allocations[group_index] > 0
-    ]
+            per_group.append(group[positions])
 
     selected = []
     depth = 0
