@@ -19,7 +19,11 @@ import torch
 from torch.utils.data import DataLoader
 
 from worldmodels.data.augment import ViewPipeline
-from worldmodels.data.dmc_data import DMCDataset, load_dataset_npz
+from worldmodels.data.dmc_data import (
+    DMCDataset,
+    load_dataset_npz,
+    select_episode_stratified_indices,
+)
 from worldmodels.eval.probes import evaluate_linear_probe
 from worldmodels.losses.contrastive import nt_xent_loss
 from worldmodels.models.encoders import ConvEncoder, ProjectionHead
@@ -59,22 +63,43 @@ def train_and_eval(
 ) -> dict:
     set_seed(seed)
 
-    n_train = min(len(train_raw["frames"]), args.max_train_samples)
-    n_val = min(len(val_raw["frames"]), args.max_val_samples)
+    def valid_centres(raw):
+        episode_ids = raw["episode_ids"]
+        if frame_stack == 1:
+            return np.arange(len(episode_ids), dtype=np.int64)
+        centres = []
+        for index in range(frame_stack - 1, len(episode_ids)):
+            start = index - frame_stack + 1
+            if np.all(episode_ids[start : index + 1] == episode_ids[index]):
+                centres.append(index)
+        return np.asarray(centres, dtype=np.int64)
+
+    train_candidates = valid_centres(train_raw)
+    val_candidates = valid_centres(val_raw)
+    n_train = min(len(train_candidates), args.max_train_samples)
+    n_val = min(len(val_candidates), args.max_val_samples)
+    train_indices = select_episode_stratified_indices(
+        train_raw["episode_ids"], n_train, candidate_indices=train_candidates
+    )
+    val_indices = select_episode_stratified_indices(
+        val_raw["episode_ids"], n_val, candidate_indices=val_candidates
+    )
 
     train_ds = DMCDataset(
-        frames=train_raw["frames"][:n_train],
-        physics_states=train_raw["physics_states"][:n_train],
-        episode_ids=train_raw["episode_ids"][:n_train],
+        frames=train_raw["frames"],
+        physics_states=train_raw["physics_states"],
+        episode_ids=train_raw["episode_ids"],
         frame_stack=frame_stack,
         strict_frame_stack=(frame_stack > 1),
+        sample_indices=train_indices,
     )
     val_ds = DMCDataset(
-        frames=val_raw["frames"][:n_val],
-        physics_states=val_raw["physics_states"][:n_val],
-        episode_ids=val_raw["episode_ids"][:n_val],
+        frames=val_raw["frames"],
+        physics_states=val_raw["physics_states"],
+        episode_ids=val_raw["episode_ids"],
         frame_stack=frame_stack,
         strict_frame_stack=(frame_stack > 1),
+        sample_indices=val_indices,
     )
 
     generator = torch.Generator()
@@ -181,6 +206,7 @@ def main() -> None:
                 "brightness_range": 0.1,
                 "contrast_range": 0.1,
                 "strict_frame_stack": True,
+                "sample_selection": "episode_stratified_even_within_episode",
             },
             "per_seed_single_frame_r2": single_results,
             "per_seed_stacked_frame_r2": stacked_results,
