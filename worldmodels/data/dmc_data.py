@@ -159,6 +159,88 @@ def metadata_from_dataset(data_dict: Dict[str, np.ndarray]) -> Dict[str, object]
     return json.loads(str(value))
 
 
+def select_episode_stratified_indices(
+    episode_ids: np.ndarray,
+    max_samples: Optional[int],
+    candidate_indices: Optional[np.ndarray] = None,
+) -> np.ndarray:
+    """Choose deterministic indices spread across episode IDs.
+
+    Within each episode, samples are selected evenly along that episode's
+    candidate indices. Across episodes, selection proceeds round-robin so a
+    long early episode does not consume the full sample budget.
+
+    candidate_indices is useful for temporal stacks/sequences: pass only valid
+    frame centres or sequence starts, and returned values remain indices into
+    the original, unmodified arrays.
+    """
+    episode_ids = np.asarray(episode_ids)
+    if episode_ids.ndim != 1:
+        raise ValueError("episode_ids must be one-dimensional")
+
+    if candidate_indices is None:
+        candidates = np.arange(len(episode_ids), dtype=np.int64)
+    else:
+        candidates = np.asarray(candidate_indices, dtype=np.int64)
+        if candidates.ndim != 1:
+            raise ValueError("candidate_indices must be one-dimensional")
+        if np.any(candidates < 0) or np.any(candidates >= len(episode_ids)):
+            raise ValueError("candidate_indices contains an out-of-range index")
+        candidates = np.unique(candidates)
+
+    if max_samples is None or max_samples >= len(candidates):
+        return candidates.copy()
+    if max_samples <= 0:
+        raise ValueError("max_samples must be positive")
+    if len(candidates) == 0:
+        return candidates
+
+    episode_values = np.unique(episode_ids[candidates])
+    groups = [
+        candidates[episode_ids[candidates] == episode]
+        for episode in episode_values
+    ]
+    groups = [group for group in groups if len(group)]
+
+    if max_samples < len(groups):
+        group_positions = np.linspace(
+            0, len(groups) - 1, num=max_samples, dtype=np.int64
+        )
+        selected = []
+        for group_index in group_positions:
+            group = groups[int(group_index)]
+            selected.append(group[len(group) // 2])
+        return np.sort(np.asarray(selected, dtype=np.int64))
+
+    per_group = [
+        group[
+            np.linspace(
+                0,
+                len(group) - 1,
+                num=min(len(group), int(np.ceil(max_samples / len(groups)))),
+                dtype=np.int64,
+            )
+        ]
+        for group in groups
+    ]
+
+    selected = []
+    depth = 0
+    while len(selected) < max_samples:
+        added_this_round = False
+        for group in per_group:
+            if depth < len(group):
+                selected.append(int(group[depth]))
+                added_this_round = True
+                if len(selected) == max_samples:
+                    break
+        if not added_this_round:
+            break
+        depth += 1
+
+    return np.sort(np.asarray(selected, dtype=np.int64))
+
+
 class DMCDataset(Dataset):
     """Dataset exposing frames and evaluation-only physics states.
 
@@ -174,6 +256,7 @@ class DMCDataset(Dataset):
         episode_ids: Optional[np.ndarray] = None,
         frame_stack: int = 1,
         strict_frame_stack: bool = False,
+        sample_indices: Optional[np.ndarray] = None,
     ) -> None:
         if frame_stack < 1:
             raise ValueError("frame_stack must be >= 1")
@@ -197,9 +280,31 @@ class DMCDataset(Dataset):
                 window_episodes = self.episode_ids[start : index + 1]
                 if np.all(window_episodes == window_episodes[-1]):
                     valid_indices.append(index)
-            self._indices = np.asarray(valid_indices, dtype=np.int64)
+            base_indices = np.asarray(valid_indices, dtype=np.int64)
         else:
-            self._indices = None
+            base_indices = np.arange(len(frames), dtype=np.int64)
+
+        if sample_indices is None:
+            self._indices = (
+                base_indices
+                if strict_frame_stack and frame_stack > 1
+                else None
+            )
+        else:
+            selected = np.asarray(sample_indices, dtype=np.int64)
+            if selected.ndim != 1:
+                raise ValueError("sample_indices must be one-dimensional")
+            if len(np.unique(selected)) != len(selected):
+                raise ValueError("sample_indices must not contain duplicates")
+            if np.any(selected < 0) or np.any(selected >= len(frames)):
+                raise ValueError("sample_indices contains an out-of-range index")
+            if strict_frame_stack and frame_stack > 1:
+                if not np.isin(selected, base_indices).all():
+                    raise ValueError(
+                        "sample_indices contains a frame centre that crosses "
+                        "an episode boundary"
+                    )
+            self._indices = selected
 
     def __len__(self) -> int:
         return len(self._indices) if self._indices is not None else len(self.frames)
