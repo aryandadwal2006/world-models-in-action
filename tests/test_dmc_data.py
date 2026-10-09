@@ -39,6 +39,21 @@ class TestDMCData(unittest.TestCase):
             4,
         )
 
+    def test_short_episodes_do_not_waste_sample_budget(self):
+        episode_ids = np.array([0] + [1] * 20 + [2] * 20)
+        selected = select_episode_stratified_indices(
+            episode_ids,
+            max_samples=20,
+        )
+        self.assertEqual(len(selected), 20)
+        counts = {
+            episode: int(np.sum(episode_ids[selected] == episode))
+            for episode in np.unique(episode_ids)
+        }
+        self.assertEqual(counts[0], 1)
+        self.assertEqual(counts[1], 10)
+        self.assertEqual(counts[2], 9)
+
     def test_sample_indices_preserve_original_temporal_stacks(self):
         selected = np.array([8, 11, 18], dtype=np.int64)
         ds = DMCDataset(
