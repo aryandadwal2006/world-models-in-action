@@ -5,7 +5,7 @@ import unittest
 import numpy as np
 import torch
 
-from worldmodels.data.dmc_data import DMCDataset
+from worldmodels.data.dmc_data import DMCDataset, select_episode_stratified_indices
 
 
 class TestDMCData(unittest.TestCase):
@@ -22,6 +22,44 @@ class TestDMCData(unittest.TestCase):
         self.assertEqual(item["image"].shape, (3, 64, 64))
         self.assertEqual(item["physics_state"].shape, (4,))
         self.assertTrue(torch.is_tensor(item["image"]))
+
+    def test_episode_stratified_indices_cover_both_episodes(self):
+        selected = select_episode_stratified_indices(
+            self.episode_ids,
+            max_samples=8,
+        )
+        self.assertEqual(len(selected), 8)
+        self.assertEqual(set(self.episode_ids[selected]), {0, 1})
+        self.assertEqual(
+            int(np.sum(self.episode_ids[selected] == 0)),
+            4,
+        )
+        self.assertEqual(
+            int(np.sum(self.episode_ids[selected] == 1)),
+            4,
+        )
+
+    def test_sample_indices_preserve_original_temporal_stacks(self):
+        selected = np.array([8, 11, 18], dtype=np.int64)
+        ds = DMCDataset(
+            self.frames,
+            self.physics,
+            self.episode_ids,
+            frame_stack=2,
+            strict_frame_stack=True,
+            sample_indices=selected,
+        )
+        self.assertEqual(len(ds), 3)
+        np.testing.assert_array_equal(
+            [int(ds[i]["index"].item()) for i in range(len(ds))],
+            selected,
+        )
+        self.assertTrue(
+            torch.equal(
+                ds[1]["image"][:3],
+                torch.from_numpy(self.frames[10]).permute(2, 0, 1).float() / 255.0,
+            )
+        )
 
     def test_non_strict_stacking_preserves_length(self):
         ds = DMCDataset(self.frames, self.physics, self.episode_ids, frame_stack=2)
