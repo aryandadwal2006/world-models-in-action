@@ -218,7 +218,7 @@ def main() -> None:
                 },
                 "barlow_twins": {
                     "lambda": 0.005,
-                    "batch_standard_deviation_unbiased": false,
+                    "batch_standard_deviation_unbiased": False,
                 },
             },
             "methods": summary,
