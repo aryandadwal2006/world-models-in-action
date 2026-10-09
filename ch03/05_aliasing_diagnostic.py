@@ -205,7 +205,10 @@ def main() -> None:
                 "max_shift": 3,
                 "brightness_range": 0.1,
                 "contrast_range": 0.1,
-                "strict_frame_stack": True,
+                "strict_frame_stack_by_stack_size": {
+                    "1": False,
+                    "2": True,
+                },
                 "sample_selection": "episode_stratified_even_within_episode",
             },
             "per_seed_single_frame_r2": single_results,
