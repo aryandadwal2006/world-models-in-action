@@ -32,7 +32,10 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset, Subset
 
-from worldmodels.data.dmc_data import load_dataset_npz
+from worldmodels.data.dmc_data import (
+    load_dataset_npz,
+    select_episode_stratified_indices,
+)
 from worldmodels.eval.probes import (
     StateLinearProbe,
     compute_structured_r2_score,
@@ -58,6 +61,7 @@ class SequenceDataset(Dataset):
         physics_states,
         episode_ids,
         seq_len: int,
+        max_sequences: int | None = None,
     ):
         if seq_len < 2:
             raise ValueError(
@@ -91,9 +95,14 @@ class SequenceDataset(Dataset):
             if np.all(
                 window == window[0]
             ):
-                self.valid_indices.append(
-                    start
-                )
+                self.valid_indices.append(start)
+
+        if max_sequences is not None and len(self.valid_indices) > max_sequences:
+            self.valid_indices = select_episode_stratified_indices(
+                self.episode_ids,
+                max_sequences,
+                candidate_indices=np.asarray(self.valid_indices, dtype=np.int64),
+            ).tolist()
 
     def __len__(self):
         return len(
@@ -1218,35 +1227,22 @@ def main() -> None:
         )
     )
 
-    train_frames = train_raw[
-        "frames"
-    ][: args.max_train_frames]
+    # Keep the original time series intact. SequenceDataset selects a fixed
+    # number of valid windows across episodes without breaking temporal order.
+    train_frames = train_raw["frames"]
+    train_states = train_raw["physics_states"]
+    train_episode_ids = train_raw["episode_ids"]
 
-    train_states = train_raw[
-        "physics_states"
-    ][: args.max_train_frames]
-
-    train_episode_ids = train_raw[
-        "episode_ids"
-    ][: args.max_train_frames]
-
-    val_frames = val_raw[
-        "frames"
-    ][: args.max_val_frames]
-
-    val_states = val_raw[
-        "physics_states"
-    ][: args.max_val_frames]
-
-    val_episode_ids = val_raw[
-        "episode_ids"
-    ][: args.max_val_frames]
+    val_frames = val_raw["frames"]
+    val_states = val_raw["physics_states"]
+    val_episode_ids = val_raw["episode_ids"]
 
     train_ds = SequenceDataset(
         train_frames,
         train_states,
         train_episode_ids,
         args.seq_len,
+        max_sequences=args.max_train_frames,
     )
 
     eval_ds = SequenceDataset(
@@ -1254,6 +1250,7 @@ def main() -> None:
         val_states,
         val_episode_ids,
         args.eval_seq_len,
+        max_sequences=args.max_val_frames,
     )
 
     if (
@@ -1624,7 +1621,8 @@ def main() -> None:
             "seeds": args.seeds,
             "config": vars(args),
             "evaluation": {
-                "gap_sampling": "evenly spaced over eligible validation windows",
+                "sample_selection": "episode-stratified sequence starts across full split",
+                "gap_sampling": "evenly spaced over episode-stratified eligible validation windows",
                 "gap_sequence_count": len(gap_eval_ds),
                 "eligible_validation_windows": len(eval_ds),
                 "checkpoint_only": bool(args.evaluate_checkpoints),
