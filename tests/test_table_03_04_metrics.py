@@ -44,7 +44,7 @@ class TestTable0304Metrics(unittest.TestCase):
             [EXCLUDED_STATE_VARIABLES["finger_spin"]],
         )
 
-    def test_version3_migration_requeues_only_finger_supervised_runs(self):
+    def test_version3_migration_archives_all_biased_sampling_results(self):
         old_signature = {
             "experiment_version": 3,
             "probe": {
@@ -88,21 +88,21 @@ class TestTable0304Metrics(unittest.TestCase):
 
         self.assertIsNotNone(migrated)
         self.assertEqual(migrated["experiment"], new_signature)
+        for task, _state_dim in REQUIRED_TASKS:
+            for method in METHOD_NAMES:
+                self.assertEqual(
+                    migrated["results"][task][method],
+                    {},
+                )
+
+        legacy = migrated["legacy_results_before_sampling_fix"]["version3_results"]
         self.assertEqual(
-            migrated["results"]["finger_spin"][
-                METHOD_NAMES[0]
-            ],
-            {},
-        )
-        self.assertIn(
-            "finger_spin_supervised_reference",
-            migrated["legacy_results_before_period_fix"],
-        )
-        retained = migrated["results"]["finger_spin"][METHOD_NAMES[1]]["0"]
-        self.assertIsNone(retained["r2_per_variable"][2])
-        self.assertEqual(
-            retained["legacy_excluded_spinner_angle_r2_full_turn"],
+            legacy["finger_spin"][METHOD_NAMES[1]]["0"]["r2_per_variable"][2],
             -1000.0,
+        )
+        self.assertEqual(
+            len(legacy["cartpole_balance"][METHOD_NAMES[0]]["0"]["r2_per_variable"]),
+            4,
         )
 
 
