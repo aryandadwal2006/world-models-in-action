@@ -23,14 +23,18 @@ import torch
 from torch.utils.data import DataLoader
 
 from worldmodels.data.augment import ViewPipeline
-from worldmodels.data.dmc_data import DMCDataset, load_dataset_npz
+from worldmodels.data.dmc_data import (
+    DMCDataset,
+    load_dataset_npz,
+    select_episode_stratified_indices,
+)
 from worldmodels.eval.probes import evaluate_linear_probe, extract_features
 from worldmodels.losses.contrastive import nt_xent_loss
 from worldmodels.models.encoders import ConvEncoder, ProjectionHead
 from worldmodels.train import get_device, load_json, save_json, set_seed
 
 
-EXPERIMENT_VERSION = 2
+EXPERIMENT_VERSION = 3
 AGGREGATE_SEEDS = (0, 1, 2)
 VAL_SAMPLE_CAP = 1000
 
@@ -120,6 +124,7 @@ def build_experiment_config(args: argparse.Namespace) -> Dict[str, object]:
         "temperature": float(args.temperature),
         "max_train_samples": int(args.max_train_samples),
         "max_val_samples": VAL_SAMPLE_CAP,
+        "sample_selection": "episode_stratified_even_within_episode",
         "augmentation": {
             "max_shift": 3,
             "brightness_range": 0.1,
@@ -538,16 +543,27 @@ def main() -> None:
     if n_val <= 0:
         raise ValueError("Validation dataset contains no usable frames")
 
+    train_indices = select_episode_stratified_indices(
+        train_raw["episode_ids"],
+        n_train,
+    )
+    val_indices = select_episode_stratified_indices(
+        val_raw["episode_ids"],
+        n_val,
+    )
+
     train_dataset = DMCDataset(
-        frames=train_raw["frames"][:n_train],
-        physics_states=train_raw["physics_states"][:n_train],
-        episode_ids=train_raw["episode_ids"][:n_train],
+        frames=train_raw["frames"],
+        physics_states=train_raw["physics_states"],
+        episode_ids=train_raw["episode_ids"],
+        sample_indices=train_indices,
     )
 
     val_dataset = DMCDataset(
-        frames=val_raw["frames"][:n_val],
-        physics_states=val_raw["physics_states"][:n_val],
-        episode_ids=val_raw["episode_ids"][:n_val],
+        frames=val_raw["frames"],
+        physics_states=val_raw["physics_states"],
+        episode_ids=val_raw["episode_ids"],
+        sample_indices=val_indices,
     )
 
     train_generator = torch.Generator()
