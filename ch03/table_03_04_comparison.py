@@ -27,6 +27,7 @@ from worldmodels.data.dmc_data import (
     DMCDataset,
     load_dataset_npz,
     metadata_from_dataset,
+    select_episode_stratified_indices,
 )
 from worldmodels.eval.probes import (
     expanded_state_dim,
@@ -52,7 +53,7 @@ from worldmodels.train import (
     set_seed,
 )
 
-EXPERIMENT_VERSION = 4
+EXPERIMENT_VERSION = 5
 
 REQUIRED_TASKS = (
     ("cartpole_balance", 4),
@@ -197,6 +198,7 @@ def make_signature(
             "brightness_range": 0.1,
             "contrast_range": 0.1,
         },
+        "sample_selection": "episode_stratified_even_within_episode",
         "probe": {
             "feature_standardization": True,
             "angular_position_encoding": "sin_cos_with_rendered_period",
@@ -275,12 +277,12 @@ def _resummarize_saved_result(task_name, result, legacy_full_turn_score=None):
 
 
 def _migrate_version3_progress(progress, signature):
-    """Migrate version-3 metrics without rerunning unchanged representations.
+    """Archive version-3 results because their train/validation sampling was biased.
 
-    Finger Spin's old index-2 score used a full-turn metric. That score is
-    retained for provenance but removed from the published aggregate. Its
-    supervised reference is invalidated because its training target encoding
-    is now symmetry-aware; only those three runs must be retrained.
+    Version-3 runs trained and evaluated on the first N frames. In particular,
+    the old validation subsets could contain only one episode. Those metrics
+    cannot be repaired by changing aggregation, so archive them for provenance
+    and queue every run under episode-stratified sampling.
     """
     old_signature = progress.get("experiment")
     if not isinstance(old_signature, dict) or old_signature.get("experiment_version") != 3:
@@ -300,47 +302,22 @@ def _migrate_version3_progress(progress, signature):
     new_core.pop("experiment_version", None)
     old_core.pop("probe", None)
     new_core.pop("probe", None)
+    new_core.pop("sample_selection", None)
     if old_core != new_core:
         return None
 
     migrated = copy.deepcopy(progress)
-    supervised_name = METHOD_NAMES[0]
-    old_supervised = copy.deepcopy(
-        migrated["results"]["finger_spin"][supervised_name]
-    )
-    migrated.setdefault("legacy_results_before_period_fix", {})[
-        "finger_spin_supervised_reference"
-    ] = old_supervised
-
-    for task_name, _state_dim in REQUIRED_TASKS:
-        for method in METHOD_NAMES:
-            for seed_key, result in list(
-                migrated["results"][task_name][method].items()
-            ):
-                old_r2 = list(result.get("r2_per_variable", []))
-                legacy_score = (
-                    old_r2[2]
-                    if task_name == "finger_spin" and len(old_r2) == 6
-                    else None
-                )
-                _resummarize_saved_result(
-                    task_name,
-                    result,
-                    legacy_full_turn_score=legacy_score,
-                )
-
-    # The old supervised encoder was trained to predict the exact spinner
-    # angle despite the pi-symmetric image. Retrain only this reference on the
-    # corrected target transform; the other objectives never use state labels.
-    migrated["results"]["finger_spin"][supervised_name] = {}
+    migrated.setdefault("legacy_results_before_sampling_fix", {})[
+        "version3_results"
+    ] = copy.deepcopy(migrated.get("results", {}))
+    migrated["results"] = empty_progress(signature)["results"]
     migrated["experiment"] = signature
     print(
-        "Migrated Table 3.4 progress: retained compatible metrics, excluded "
-        "the visually ambiguous spinner angle from aggregates, and queued only "
-        "the three Finger Spin supervised-reference seeds for retraining."
+        "Archived version-3 Table 3.4 metrics. Because the validation samples "
+        "could come from one episode, all Table 3.4 runs are queued for a "
+        "fresh evaluation under episode-stratified sampling."
     )
     return migrated
-
 
 def load_progress(
     path,
@@ -475,6 +452,9 @@ def transformed_training_statistics(
         train_loader.dataset.physics_states,
         dtype=np.float64,
     )
+    selected_indices = getattr(train_loader.dataset, "_indices", None)
+    if selected_indices is not None:
+        states = states[selected_indices]
 
     targets = transform_state_targets_np(
         states,
@@ -1049,28 +1029,25 @@ def main():
             args.max_val_samples,
         )
 
+        train_indices = select_episode_stratified_indices(
+            train_raw["episode_ids"], n_train
+        )
+        val_indices = select_episode_stratified_indices(
+            val_raw["episode_ids"], n_val
+        )
+
         train_ds = DMCDataset(
-            train_raw["frames"][
-                :n_train
-            ],
-            train_raw["physics_states"][
-                :n_train
-            ],
-            train_raw["episode_ids"][
-                :n_train
-            ],
+            train_raw["frames"],
+            train_raw["physics_states"],
+            train_raw["episode_ids"],
+            sample_indices=train_indices,
         )
 
         val_ds = DMCDataset(
-            val_raw["frames"][
-                :n_val
-            ],
-            val_raw["physics_states"][
-                :n_val
-            ],
-            val_raw["episode_ids"][
-                :n_val
-            ],
+            val_raw["frames"],
+            val_raw["physics_states"],
+            val_raw["episode_ids"],
+            sample_indices=val_indices,
         )
 
         for method in METHOD_NAMES:
