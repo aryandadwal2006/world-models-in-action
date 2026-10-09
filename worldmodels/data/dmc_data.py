@@ -212,16 +212,42 @@ def select_episode_stratified_indices(
             selected.append(group[len(group) // 2])
         return np.sort(np.asarray(selected, dtype=np.int64))
 
+    allocations = [0] * len(groups)
+    active_groups = list(range(len(groups)))
+    remaining = int(max_samples)
+    while remaining > 0 and active_groups:
+        base = remaining // len(active_groups)
+        extra = remaining % len(active_groups)
+        next_active = []
+        for rank, group_index in enumerate(active_groups):
+            quota = base + (1 if rank < extra else 0)
+            if quota <= 0:
+                next_active.append(group_index)
+                continue
+            available = len(groups[group_index]) - allocations[group_index]
+            take = min(available, quota)
+            allocations[group_index] += take
+            remaining -= take
+            if allocations[group_index] < len(groups[group_index]):
+                next_active.append(group_index)
+        if len(next_active) == len(active_groups) and all(
+            allocations[index] >= len(groups[index])
+            for index in next_active
+        ):
+            break
+        active_groups = next_active
+
     per_group = [
         group[
             np.linspace(
                 0,
                 len(group) - 1,
-                num=min(len(group), int(np.ceil(max_samples / len(groups)))),
+                num=allocations[group_index],
                 dtype=np.int64,
             )
         ]
-        for group in groups
+        for group_index, group in enumerate(groups)
+        if allocations[group_index] > 0
     ]
 
     selected = []
