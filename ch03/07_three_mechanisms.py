@@ -20,7 +20,11 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 
 from worldmodels.data.augment import ViewPipeline
-from worldmodels.data.dmc_data import DMCDataset, load_dataset_npz
+from worldmodels.data.dmc_data import (
+    DMCDataset,
+    load_dataset_npz,
+    select_episode_stratified_indices,
+)
 from worldmodels.eval.probes import evaluate_linear_probe
 from worldmodels.losses.contrastive import (
     barlow_twins_loss,
@@ -153,10 +157,14 @@ def main() -> None:
     train_raw = load_dataset_npz(os.path.join(args.data_dir, "dmc_cartpole_balance_train.npz"))
     val_raw = load_dataset_npz(os.path.join(args.data_dir, "dmc_cartpole_balance_val.npz"))
     n_train = min(len(train_raw["frames"]), args.max_train_samples)
+    train_indices = select_episode_stratified_indices(
+        train_raw["episode_ids"], n_train
+    )
     train_ds = DMCDataset(
-        train_raw["frames"][:n_train],
-        train_raw["physics_states"][:n_train],
-        train_raw["episode_ids"][:n_train],
+        train_raw["frames"],
+        train_raw["physics_states"],
+        train_raw["episode_ids"],
+        sample_indices=train_indices,
     )
     val_ds = DMCDataset(
         val_raw["frames"], val_raw["physics_states"], val_raw["episode_ids"]
@@ -202,6 +210,7 @@ def main() -> None:
                 "learning_rate": args.lr,
                 "latent_dim": args.latent_dim,
                 "max_train_samples": args.max_train_samples,
+                "sample_selection": "episode_stratified_even_within_episode",
                 "augmentation": {
                     "max_shift": 3,
                     "brightness_range": 0.1,
