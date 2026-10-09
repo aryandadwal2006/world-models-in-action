@@ -1,95 +1,65 @@
-# Chapter 3 Audit Findings — Current Reproducibility and Metric Review
+# Chapter 3 Audit Findings — Sampling Bias and Corrective Run Plan
 
-**Audit basis:** repository state at 230b298b9d1ed031e69e6987bb9c2a2e88bc8086 (results saved 2026-10-08), plus the corrective source changes on branch audit/chapter3-methodology-fixes. This document supersedes numerical conclusions in the older draft. It does not claim that the corrective branch has already passed local tests or that its regenerated Table 3.4/CPC outputs have been run.
+**Audit basis:** committed results at main commit 230b298b9d1ed031e69e6987bb9c2a2e88bc8086 (8 October 2026), the user-provided target-distribution diagnostic, and source changes on branch audit/chapter3-methodology-fixes. The corrective branch has not yet been tested locally. No corrected experiment results are claimed here.
 
 ## 1. Confirmed issues
 
-### 1.1 The Finger Spin state contract was documented incorrectly
+### 1.1 The capped validation sets were prefixes, not representative subsets
 
-worldmodels/data/dmc_data.py stores [qpos, qvel] directly from MuJoCo. The collected Finger Spin target therefore has six values: three generalized positions followed by three generalized velocities. It is not the four-dimensional “pos/vel/touch” target described in the previous version of chapter_03_design.md. The design file has been corrected on the audit branch.
+The user's diagnostic deliberately loaded the first 3,500 training rows and first 1,000 validation rows from Finger Spin. Those subsets contained 4 training episodes and only 1 validation episode.
 
-The task's own observation implementation uses proximal/distal angles, spinner-tip position, velocities, and (in the official observation) touch values; it does not expose the raw spinner hinge angle as an observed position. In the collection code, however, raw qpos is deliberately used as privileged evaluation truth. The manuscript must distinguish that privileged target from the pixels and from the suite's observation dictionary.
+For the first 1,000 validation frames, the spinner angle had standard deviation 0.117 and range approximately [-3.585, -2.856]. In the first 3,500 training frames, its standard deviation was 2.020 and range approximately [-3.778, 4.916]. The distal position also had a shifted marginal distribution: training median 0.870 versus validation median -1.507. The validation subset therefore sampled a much narrower, different portion of the dynamics than the training subset.
 
-### 1.2 The absolute spinner hinge angle is not identifiable from the rendered frame
+This is not a theoretical concern: several Chapter 3 scripts use expressions such as frames[:n_val] before constructing the dataset. The same pattern affects Table 3.4, the aliasing diagnostic, standalone VICReg/MAE, the bottleneck sweep, and the original CPC sequence dataset. Their old probe scores and gap scores should be treated as superseded, not interpreted as final generalization performance.
 
-In the official DMC model, the spinner has two identical caps placed at opposite offsets (cap1 and cap2) and a symmetric cylinder decoration. The Finger Spin task also sets the alpha of the tip and target sites to zero. The rendered geometry is therefore invariant to a half-turn of the spinner: its absolute 2π-periodic hinge coordinate is not uniquely recoverable from one static frame. See the upstream [finger.xml](https://github.com/google-deepmind/dm_control/blob/main/dm_control/suite/finger.xml) and [finger.py](https://github.com/google-deepmind/dm_control/blob/main/dm_control/suite/finger.py).
+### 1.2 Correct sampling must preserve episode structure
 
-The previous Table 3.4 included this coordinate in its Finger Spin position average. That one variable had very large negative scores (roughly −130 to −230 per seed in saved results), overwhelming the other coordinates and yielding position averages around −60 to −80. Those aggregate values are not defensible as a comparison of representation objectives.
+Source fix on the audit branch:
+- A shared selector allocates a sample budget across episode IDs and chooses frames evenly within each episode.
+- DMCDataset accepts original-array sample indices, so the samples can be distributed across the full dataset without slicing away the underlying temporal context.
+- The aliasing experiment selects only valid stack centres whose required history lies in one episode.
+- CPC constructs episode-safe sequence windows from the full split and selects sequence starts across episodes, retaining each sequence's contiguous frames.
+- Table 3.4 bumps its experiment version, archives the old progress results, and clears the active result slots so no version-3 score can be accidentally reused.
+- A reproducible data-only diagnostic was added as ch03/00_audit_dataset_sampling.py.
 
-**Correction on the audit branch:** the probe now treats this rendered orientation as π-periodic when it is used for angle-aware training/evaluation; Table 3.4 preserves the legacy full-turn score for audit provenance but excludes this unidentifiable variable from aggregate position/overall scores. The three Finger Spin supervised-reference runs are invalidated and will be retrained with the corrected target encoding. The other nine Finger Spin objective runs are retained; their per-variable outputs do not depend on the spinner-angle output column of the independently fitted multi-target Ridge probe.
+These changes affect the training samples as well as evaluation samples. As a result, the saved representations from prefix-sampled runs are not a valid substitute for rerunning the experiments under the corrected sampling contract.
 
-### 1.3 Temporal CPC gap scores were sampled from only the beginning of validation
+### 1.3 Finger Spin's spinner angle is separately unidentifiable from static pixels
 
-The old evaluate_gap took the first 32 eligible windows from a sequential DataLoader. The windows overlap and come from the beginning of the validation trajectory, where target variation can be unrepresentative. The saved gap scores were:
+The stored state is raw MuJoCo qpos followed by qvel. Finger Spin therefore has six target coordinates, not the old design note's four-dimensional "pos/vel/touch" state. Its spinner geometry has half-turn symmetry, so a single rendered image cannot uniquely identify the absolute 2π-periodic hinge coordinate. See the upstream [finger.xml](https://github.com/google-deepmind/dm_control/blob/main/dm_control/suite/finger.xml) and [finger.py](https://github.com/google-deepmind/dm_control/blob/main/dm_control/suite/finger.py).
 
-- CPC gap mean R²: seed values approximately −106,939, −231,451, and −2,171.
-- Linear state-history gap mean R²: approximately −1,015.93 for every seed.
+The audit-branch probe uses a π-periodic representation/score for that coordinate; the Table 3.4 aggregate excludes it and retains the old full-turn score only for provenance. This symmetry correction does not solve the independent prefix-sampling bias.
 
-These results are not suitable for the manuscript. Their magnitude is especially sensitive to evaluation-window selection and local target variance; they do not establish a general failure of CPC.
+### 1.4 Barlow Twins normalization was also inconsistent
 
-**Correction on the audit branch:** ch03/11_temporal_cpc.py selects a deterministic, evenly spaced set of validation windows across the eligible sequence dataset, records that sampling policy, and supports --evaluate-checkpoints. This lets the existing trained CPC checkpoints be re-evaluated without retraining the CPC models. The old gap scores must remain labelled superseded until the revised evaluation is run.
-
-### 1.4 Table 3.4 and the chapter notes were stale
-
-The saved Table 3.4 JSON and progress file used probe version 3. Their cartpole results are still usable with the existing state-angle convention; their Finger Spin spinner-angle aggregate is not. The old findings in this file mixed results from multiple earlier runs and must not be quoted. The design file also promised every script would finish in under ten minutes on CPU, which the complete multi-seed comparison, capacity sweep and CPC experiment do not satisfy; that promise has been corrected.
+The old implementation standardized each projection dimension with sample standard deviation (denominator N−1) while dividing the cross-correlation matrix by N. The corrected loss uses population standard deviation, validates the batch shape/size, and has tests for a zero-loss identity cross-correlation matrix. Existing three-mechanism Barlow Twins results are superseded and must be regenerated.
 
 ### 1.5 Table 3.4 is a method-family comparison, not an objective-only ablation
 
-The supervised reference is an end-to-end convolutional encoder plus a state prediction head; contrastive and VICReg use convolutional encoders plus projection heads; MAE uses a patch-transformer encoder and decoder. The runs share the Table 3.4 sample/epoch budget, but not identical architecture or optimization path. The manuscript must compare the measured configurations and must not attribute every difference solely to the loss function. No code change can turn this existing experiment into a fully architecture-controlled ablation without designing and running a new experiment.
+The supervised reference, contrastive and VICReg methods use a convolutional encoder, while MAE uses a patch-transformer encoder/decoder. The corrected manuscript notes describe this as a comparison of complete configurations under the stated budget. The code changes do not make it a loss-only ablation.
 
-### 1.6 Barlow Twins used the wrong standard-deviation convention
+## 2. What to do with old results
 
-The previous implementation standardized each projection dimension using PyTorch's default sample standard deviation (denominator N−1) but then divided the cross-correlation matrix by N. For perfectly identical and decorrelated normalized views, this makes the diagonal approximately (N−1)/N rather than 1, so the stated Barlow Twins objective's diagonal target was not matched by the normalization. The implementation on this audit branch uses population standard deviation (denominator N), validates the batch shape/size, and has tests for an identity cross-correlation matrix. The old Barlow Twins results in three_mechanisms_verification.json are superseded and must be regenerated by rerunning ch03/07_three_mechanisms.py; do not report the old Barlow effective-rank/probe result as the corrected implementation's result.
+Until the corrected runs finish, do not quote old validation metrics from the following artifacts as final Chapter 3 evidence:
 
-## 2. Results from the saved runs that remain relevant
+- Table 3.3 aliasing probe values and the associated per-variable conclusion.
+- Table 3.4 values for either task.
+- The standalone contrastive linear-probe values from ch03/04_train_contrastive.py.
+- Standalone VICReg/MAE probe metrics.
+- Bottleneck-sweep (R^2) curve.
+- CPC current/next-state probe values and gap tracking values.
+- The three-mechanism comparison, because both its training subset and Barlow loss implementation changed.
+- The collapse-demo latent-standard-deviation curve, because the selected training examples changed.
 
-Unless noted otherwise, these are the current main-branch outputs, not regenerated outputs from the audit branch.
+The cached datasets themselves are still reusable. Do not recollect them.
 
-### 2.1 Table 3.3: single frame versus two stacked frames
+## 3. Exact validation and rerun order
 
-Means ± population standard deviation over seeds 0, 1 and 2:
-
-| State variable | Single frame | Two-frame stack | Difference |
-|---|---:|---:|---:|
-| Cart position | 0.582 ± 0.123 | 0.500 ± 0.137 | −0.081 |
-| Pole angle | 0.595 ± 0.031 | 0.564 ± 0.050 | −0.031 |
-| Cart velocity | −0.485 ± 0.445 | −0.507 ± 0.281 | −0.022 |
-| Pole angular velocity | −0.543 ± 0.095 | −0.560 ± 0.121 | −0.017 |
-
-Under this exact setup, two-frame stacking did not improve the velocity probes. State this as the measured result, not as proof that stacking can never recover motion.
-
-### 2.2 Table 3.4: what can be said before the corrected outputs are generated
-
-The existing cartpole position/velocity summaries under the matched Table 3.4 setup (12 epochs, 3,500 training frames, 1,000 validation frames, seeds 0–2) are:
-
-| Objective | Position mean R² | Velocity mean R² |
-|---|---:|---:|
-| Supervised State-Prediction Reference | 0.967 ± 0.011 | −1.849 ± 0.113 |
-| Contrastive (NT-Xent) | −0.065 ± 0.780 | −0.492 ± 0.025 |
-| VICReg | 0.616 ± 0.067 | −0.477 ± 0.095 |
-| Masked Autoencoder (MAE) | −0.767 ± 0.033 | −0.119 ± 0.013 |
-
-For Finger Spin, the old supervised-reference row must be retrained. The saved non-supervised per-variable outputs, re-aggregated across qpos indices 0–1 while excluding the unidentifiable spinner coordinate at index 2, still produce poor position summaries: contrastive about −9.08 ± 0.45, VICReg about −11.35 ± 1.79, and MAE about −7.64 ± 0.17. These summaries are dominated by the distal-angle score at index 1 (about −15 to −23 per seed). Do **not** present those averages as clean cross-objective rankings until the validation marginal distributions and per-variable predictions are inspected. A small target variance can make R² strongly negative; the metric must be reported with variable-level context.
-
-The Table 3.4 corrective script migrates compatible progress instead of discarding it, archives the legacy results, and queues only the three Finger Spin supervised-reference runs. Do not pass --fresh.
-
-### 2.3 Other experiments
-
-- **VICReg standalone experiment:** saved aggregate probe R² = 0.024 ± 0.111.
-- **MAE standalone experiment:** saved aggregate probe R² = −0.552 ± 0.024. Masked reconstruction loss decreased during training, but reconstruction quality is not evidence by itself that the latent is sufficient for state estimation.
-- **Anti-collapse mechanisms:** saved mean effective rank was about 1.02 for SimSiam, 1.06 for BYOL, and 5.76 for Barlow Twins in the old run. The old Barlow Twins result is superseded because its feature standardization was inconsistent with the 1/N cross-correlation denominator; rerun ch03/07_three_mechanisms.py on the audit branch before reporting a three-method comparison. The SimSiam/BYOL saved values remain provisional results for these settings, not a universal ranking.
-- **Latent bottleneck sweep:** cartpole R² means for d = [2, 4, 8, 16, 64, 256] were [−0.252, −0.068, −0.094, −0.012, −0.499, −3.345]. Cheetah means were [−0.090, 0.075, −0.014, 0.208, 0.304, 0.328]. The current evidence does not support a claim that performance monotonically rises and plateaus at the task's state dimension. It shows little positive cartpole decodability in this setup and a steadier rise for cheetah.
-- **NT-Xent implementation check:** unrolled and vectorized losses agreed to within 2.4e−7; maximum gradient difference was 7.5e−9.
-
-Do not merge results from the standalone VICReg/MAE runs with Table 3.4: they use different training budgets and data caps.
-
-## 3. Required validation and run order
-
-1. Switch to audit/chapter3-methodology-fixes and run the test suite using the repository's .venv Python. Tests have been added for the angular period, Table 3.4 migration, Barlow normalization, and MAE edge cases. No passing result is claimed here; verify locally.
-2. Run the inexpensive Finger Spin target-distribution diagnostic (standard deviation, quantiles, and episode counts for the exact train/validation subsets used in Table 3.4). This is needed because the saved distal-angle R² values are approximately −15 to −23 even in the supervised reference. Review these values before using an aggregate Finger Spin position score in the manuscript.
-3. Run ch03/07_three_mechanisms.py once to regenerate the coherent anti-collapse comparison after the Barlow Twins normalization fix.
-4. After the target-distribution check, run ch03/table_03_04_comparison.py. It should migrate version-3 progress, retain compatible results, and retrain only Finger Spin's supervised-reference seeds 0, 1 and 2. Do not pass --fresh.
-5. Run ch03/11_temporal_cpc.py --evaluate-checkpoints. This reuses all three trained CPC checkpoints and recomputes metrics using evenly spaced validation windows; it must not train epochs.
+1. Switch to audit/chapter3-methodology-fixes.
+2. Run the unit test suite: .venv Python with -m pytest tests -q.
+3. Run ch03/00_audit_dataset_sampling.py. Check that the selected training/validation sample counts cover the full episode sets, and that no one episode takes the whole capped sample budget.
+4. Run the corrected, capped-sample experiments once each: ch03/04_train_contrastive.py for seeds 0, 1 and 2; ch03/05_aliasing_diagnostic.py; ch03/06_collapse_demo.py; ch03/07_three_mechanisms.py; ch03/08_vicreg.py; ch03/09_masked_autoencoder.py; ch03/10_bottleneck_sweep.py; and ch03/table_03_04_comparison.py.
+5. Run ch03/11_temporal_cpc.py without --evaluate-checkpoints so the trained CPC models use the corrected sequence sample selection as well; the evaluation-only flag is now a diagnostic option for existing checkpoints, not the final corrected training result.
 6. Run ch03/12_assemble_encoder.py as the final integration check.
 
-Do not recollect data or rerun contrastive, aliasing, VICReg, MAE or bottleneck experiments merely to obtain the corrected table and CPC gap metrics.
+For Table 3.4, do not pass --fresh: the updated migration archives version-3 metrics and queues the full table under the new sampling contract. Old progress values cannot be retained as valid scores because they were evaluated on prefix-only subsets.
