@@ -1,8 +1,9 @@
 # Chapter 3 Audit Findings — Corrected Runs and Interpretation
 
-**Audited branch:** `audit/chapter3-methodology-fixes`  
-**Experiment commit reviewed:** `7d4c77feb7e7e15bf8cb6b7ca3a1cd5ff411f559`  
-**Basis:** source and committed JSON/figure/checkpoint artifacts on the branch, plus the author's local run log supplied on 9 October 2026. The reviewer inspected the committed source and results but did not execute the repository locally.
+**Original experiment-result commit:** `7d4c77feb7e7e15bf8cb6b7ca3a1cd5ff411f559`  
+**Corrected design/findings on the original audit branch:** most recently inspected at `e659756d7f5a99be91e16be46270fd52cf2d1b2e`.  
+**Publication-readiness follow-up:** `audit/chapter3-publication-readiness`; see `ch03/publication_readiness_audit.md`.  
+**Basis:** committed source, JSON/figure/checkpoint artifacts and the author's local run log supplied on 9 October 2026. The previously reported 44-test pass is the author's local result; the audit reviewer did not execute that run.
 
 ## 1. Execution and sampling status
 
@@ -10,7 +11,7 @@ The corrected rerun completed through `ch03/12_assemble_encoder.py`. The author'
 
 The data-only diagnostic reports 30 training episodes and 5 validation episodes per task. With the 3,500-frame/1,000-frame caps used by the diagnostic, the selected sample contains 116–117 training frames per episode and 200 validation frames per episode. The old prefix-based experiment metrics have been archived or replaced where the scripts version their results.
 
-The branch head is `7d4c77f`; `main` remains at `230b298b`. The corrected results are therefore on the audit branch and are not yet merged into the default branch.
+At the time of the follow-up inspection, `audit/chapter3-methodology-fixes` had advanced to `e659756d7f5a99be91e16be46270fd52cf2d1b2e` in two commits after `7d4c77f`. The default branch remained at `230b298b9d1ed031e69e6987bb9c2a2e88bc8086`; neither audit branch is merged into `main`. The separate `audit/chapter3-publication-readiness` branch contains the additional CPC-evaluation fixes. The original 32-window CPC values below remain the historical committed measurements until a new checkpoint-only evaluation produces replacement measurements.
 
 ## 2. Corrected findings
 
@@ -73,7 +74,7 @@ The corrected CPC run trained all three seeds and saved the checkpoints. Its res
 - Five-step missing-interval CPC rollout: −3.094, −0.196, and −0.539 per seed; mean −1.276 ± 1.293.
 - Privileged state extrapolation baseline: mean (R^2=0.823), identical across seeds because it is one shared state-space baseline, not a seed-varying model.
 
-This supports a tentative statement that temporal context helps decode some state variables and improves mean next-state probe scores in this setup, while the learned latent rollout performs poorly on the current gap test. It does **not** establish a robust failure magnitude: only 32 validation windows are used per seed, and the first seed is a large negative outlier. The privileged baseline receives true qpos/qvel history, while CPC receives rendered frames; the comparison is intentionally asymmetric and must be labelled as such, not presented as a like-for-like model comparison. Re-evaluate the existing CPC checkpoints on a larger gap-window sample before making a strong quantitative claim.
+This supports a tentative statement that temporal context helps decode some state variables and improves mean next-state probe scores in this setup, while the learned latent rollout performs poorly on the current gap test. It does **not** establish a robust failure magnitude: only 32 validation windows are used per seed, and the first seed is a large negative outlier. The privileged baseline receives true qpos/qvel history, while CPC receives rendered frames; the comparison is intentionally asymmetric and must be labelled as such, not presented as a like-for-like model comparison. Re-evaluate the existing CPC checkpoints on at least 200 non-overlapping, episode-safe gap windows per seed before making a strong quantitative claim. The checkpoint-only evaluator, metadata checks, per-variable/per-episode outputs, and a dedicated selection test have been added on `audit/chapter3-publication-readiness`; neither the new test nor the 200-window evaluation has been executed by the audit reviewer.
 
 The printed maximum rollout latent norm of approximately 1 is guaranteed by explicit L2 normalization in the model. It is an implementation sanity check, not independent evidence that rollout dynamics are stable.
 
@@ -84,7 +85,7 @@ The final script reports successful verification of an observation tensor shaped
 ## 3. Recommended remaining scientific checks
 
 1. Re-evaluate the already trained CPC checkpoints on at least 200 gap windows (no retraining needed) and report per-seed and per-variable metrics. Keep the privileged-baseline caveat explicit.
-2. If Table 3.4 describes the supervised arm as a predictive reference or ceiling, add the trained supervised head's direct held-out metrics beside the independent frozen-feature probe results; do not silently conflate them.
+2. Label the Table 3.4 supervised row as a state-label-trained encoder followed by an independent frozen-feature probe. The existing result is not the trained prediction head's direct held-out metric. Only rerun that supervised arm if the chapter specifically needs to claim or tabulate trained-head predictive performance.
 3. In the chapter prose, report the negative result for two-frame stacking honestly. Do not claim the current experiment demonstrates velocity recovery.
 4. Keep the Table 3.4 method-family comparison caveat and report all negative velocity scores rather than omitting them.
 5. Before using any values in the book, ensure figure captions, prose, and result tables all reflect the corrected JSON artifacts on this branch.
