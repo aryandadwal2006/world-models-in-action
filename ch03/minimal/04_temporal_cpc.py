@@ -44,7 +44,7 @@ def main():
 
     torch.manual_seed(args.seed)
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    loader = DataLoader(Sequences(length=16), batch_size=32, shuffle=True, drop_last=True)
+    loader = DataLoader(Sequences(length=16), batch_size=8, shuffle=True, drop_last=True)
     model = CPC().to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 
