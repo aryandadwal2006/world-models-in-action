@@ -1,11 +1,7 @@
-# .gitignore
 .venv/
 __pycache__/
 *.pyc
 *.pyo
 .pytest_cache/
-dm_control_repo/
 *.log
-
-# Outputs from the short book-facing demos
 ch03/minimal/*.pt

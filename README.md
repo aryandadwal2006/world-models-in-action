@@ -1,15 +1,33 @@
 # World Models in Action
 
-Book companion code for learning how world models represent observations, predict dynamics, and support decisions.
+A compact educational companion for learning the core ideas behind visual representations and predictive world models.
 
-## Start here
+## Start with Chapter 3
 
-**Readers should begin with the short Chapter 3 examples:** [`ch03/minimal/`](ch03/minimal/README.md). They are deliberately small and focus on the mechanism being taught.
+Read [the short examples](ch03/minimal/README.md) in order:
 
-The longer scripts directly under `ch03/` are the research/reference implementation. They retain experiment configuration, sampling safeguards, diagnostics, metrics, and figure generation so that the reported results can be audited. They are not intended to be read linearly in a book chapter.
+1. Contrastive learning with NT-Xent
+2. VICReg without negative pairs
+3. Masked-pixel prediction
+4. Temporal CPC with a causal GRU
 
-## Chapter 3 evidence
+The scripts are intentionally short. They focus on the model, objective, and training loop rather than experiment orchestration.
 
-The reference experiments compare contrastive learning, VICReg, masked reconstruction, and temporal CPC. Their saved measurements are under `ch03/results/`. The temporal missing-observation test is a negative and seed-sensitive result; see [the publication-readiness audit](ch03/publication_readiness_audit.md) before repeating or quoting any number.
+## Run
 
-The minimal scripts are teaching implementations and **do not reproduce the exact checkpoints or metrics** in the reference artifacts. Use the reference scripts and committed JSON files for exact experimental reproduction.
+Use Python 3.11 or newer with PyTorch and NumPy:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+python ch03/minimal/01_contrastive.py
+```
+
+Run the other examples by changing the script name. They use the included Cartpole Balance training cache at `data/dmc_cartpole_balance_train.npz`; no data collection or checkpoint download is required.
+
+## Read the findings
+
+[Chapter 3 results and interpretation](ch03/RESULTS.md) summarizes what the reference experiments support and where they failed. The short scripts are **teaching implementations**, not bit-for-bit reproductions of the reported experiments.
+
+The full research/audit implementation, experiment metadata, checkpoints, tests, and figure-generation scripts remain on the separate [`audit/chapter3-publication-readiness` branch](https://github.com/aryandadwal2006/world-models-in-action/tree/audit/chapter3-publication-readiness). This branch is the book-facing code, not the full audit workspace.
