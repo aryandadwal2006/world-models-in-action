@@ -146,6 +146,12 @@
       }
     }
   },
+  "publication_method_labels": {
+    "Supervised State-Prediction Reference": "Supervised-pretrained encoder + frozen-feature linear probe",
+    "Contrastive (NT-Xent)": "Contrastive (NT-Xent)",
+    "VICReg": "VICReg",
+    "Masked Autoencoder (MAE)": "Masked Autoencoder (MAE)"
+  },
   "metric_contract": {
     "position_indices_by_task": {
       "cartpole_balance": [
