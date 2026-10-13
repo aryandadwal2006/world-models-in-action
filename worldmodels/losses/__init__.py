@@ -1,12 +1,12 @@
 """Loss functions for self-supervised representation learning."""
 
-from worldmodels.losses.contrastive import (
+from worldmodels.losses.ntxent import nt_xent_loss
+from worldmodels.losses.noncontrastive import (
     barlow_twins_loss,
-    nt_xent_loss,
     simsiam_loss,
     update_target_ema,
-    vicreg_loss,
 )
+from worldmodels.losses.vicreg import vicreg_loss
 from worldmodels.losses.reconstruction import masked_mse_loss
 
 __all__ = [
