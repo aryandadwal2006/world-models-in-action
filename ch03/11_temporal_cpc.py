@@ -50,6 +50,13 @@ from worldmodels.train import (
 )
 
 EXPERIMENT_VERSION = 5
+GAP_EVALUATION_CONTRACT_VERSION = 2
+CARTPOLE_STATE_NAMES = (
+    "cart_position",
+    "pole_angle",
+    "cart_velocity",
+    "pole_angular_velocity",
+)
 
 
 class SequenceDataset(Dataset):
@@ -427,6 +434,16 @@ def parse_args() -> argparse.Namespace:
         help="Evaluate existing checkpoints without retraining the CPC model.",
     )
     p.add_argument(
+        "--evaluation-output",
+        type=str,
+        default=None,
+        help=(
+            "Optional new JSON path for checkpoint-only evaluation. "
+            "The existing committed metrics file is used as the checkpoint "
+            "configuration reference and is never overwritten."
+        ),
+    )
+    p.add_argument(
         "--data-dir",
         type=str,
         default="data",
@@ -474,22 +491,107 @@ def make_loader(
     )
 
 
-def evenly_spaced_subset(dataset, max_items: int):
-    """Select validation windows across the full dataset, not only its start."""
+def episode_stratified_nonoverlapping_subset(
+    dataset: SequenceDataset,
+    max_items: int,
+) -> Subset:
+    """Select episode-balanced validation windows without temporal overlap.
+
+    Candidate starts are chosen greedily so consecutive selected windows
+    within an episode are separated by at least seq_len frames. Selection is
+    then balanced across episode IDs by the shared data utility.
+    """
     if max_items <= 0:
         raise ValueError("max_items must be positive")
     if len(dataset) == 0:
         raise ValueError("Cannot select from an empty sequence dataset")
 
-    n_items = min(len(dataset), max_items)
-    indices = np.linspace(
-        0,
-        len(dataset) - 1,
-        num=n_items,
-        dtype=np.int64,
+    candidate_starts = []
+    start_to_dataset_index = {}
+    last_start_by_episode = {}
+
+    for dataset_index, raw_start in enumerate(dataset.valid_indices):
+        start = int(raw_start)
+        episode = int(dataset.episode_ids[start])
+        last_start = last_start_by_episode.get(episode)
+
+        if last_start is None or start - last_start >= dataset.seq_len:
+            candidate_starts.append(start)
+            start_to_dataset_index[start] = dataset_index
+            last_start_by_episode[episode] = start
+
+    if len(candidate_starts) < max_items:
+        raise ValueError(
+            f"Requested {max_items} non-overlapping episode-safe windows, "
+            f"but only {len(candidate_starts)} are available."
+        )
+
+    selected_starts = select_episode_stratified_indices(
+        dataset.episode_ids,
+        max_items,
+        candidate_indices=np.asarray(candidate_starts, dtype=np.int64),
     )
-    indices = np.unique(indices)
-    return Subset(dataset, indices.tolist())
+    selected_indices = [
+        start_to_dataset_index[int(start)]
+        for start in selected_starts
+    ]
+
+    if len(selected_indices) != max_items:
+        raise RuntimeError(
+            f"Requested {max_items} gap windows but selected "
+            f"{len(selected_indices)}."
+        )
+
+    return Subset(dataset, selected_indices)
+
+
+def gap_window_metadata(
+    dataset: SequenceDataset,
+    subset: Subset,
+) -> dict:
+    """Describe and validate the selected gap windows for reproducibility."""
+    starts = [
+        int(dataset.valid_indices[int(index)])
+        for index in subset.indices
+    ]
+    episodes = [
+        int(dataset.episode_ids[start])
+        for start in starts
+    ]
+
+    if len(starts) != len(set(starts)):
+        raise RuntimeError("Gap evaluation selected duplicate window starts")
+
+    counts = {}
+    starts_by_episode = {}
+    for start, episode in zip(starts, episodes):
+        end = start + dataset.seq_len
+        if not np.all(dataset.episode_ids[start:end] == episode):
+            raise RuntimeError(
+                f"Gap window [{start}, {end}) crosses an episode boundary"
+            )
+        counts[str(episode)] = counts.get(str(episode), 0) + 1
+        starts_by_episode.setdefault(episode, []).append(start)
+
+    for episode, episode_starts in starts_by_episode.items():
+        episode_starts.sort()
+        if any(
+            right - left < dataset.seq_len
+            for left, right in zip(
+                episode_starts,
+                episode_starts[1:],
+            )
+        ):
+            raise RuntimeError(
+                f"Gap windows overlap in episode {episode}"
+            )
+
+    return {
+        "start_indices": starts,
+        "episode_ids": episodes,
+        "episode_counts": dict(sorted(counts.items())),
+        "overlapping_windows": False,
+    }
 
 
 def validate_checkpoint_evaluation(args) -> dict:
@@ -1140,7 +1242,8 @@ def save_gap_figure(
     )
 
     ax.set_title(
-        "Unobserved Interval Test: Five Missing Frames"
+        f"Illustrative gap trace: one validation window, "
+        f"{args.gap_length} missing frames"
     )
 
     ax.grid(
@@ -1171,6 +1274,19 @@ def main() -> None:
         raise ValueError(
             "At least one seed is required"
         )
+
+    if args.evaluation_output is not None:
+        if not args.evaluate_checkpoints:
+            raise ValueError(
+                "--evaluation-output is allowed only with "
+                "--evaluate-checkpoints so training results are not "
+                "accidentally redirected."
+            )
+        if os.path.exists(args.evaluation_output):
+            raise FileExistsError(
+                f"Refusing to overwrite existing evaluation output: "
+                f"{args.evaluation_output}"
+            )
 
     if (
         args.epochs <= 0
@@ -1253,9 +1369,21 @@ def main() -> None:
         max_sequences=args.max_val_frames,
     )
 
+    # Gap evaluation has its own complete candidate set. Do not cap it at the
+    # 1,000 windows used for the state probes: the gap metric needs enough
+    # non-overlapping held-out windows to be stable and reproducible.
+    gap_candidates_ds = SequenceDataset(
+        val_frames,
+        val_states,
+        val_episode_ids,
+        args.eval_seq_len,
+        max_sequences=None,
+    )
+
     if (
         len(train_ds) == 0
         or len(eval_ds) == 0
+        or len(gap_candidates_ds) == 0
     ):
         raise RuntimeError(
             "No valid episode-safe sequences found"
@@ -1272,13 +1400,19 @@ def main() -> None:
         )
     )
 
-    gap_eval_ds = evenly_spaced_subset(
-        eval_ds,
+    gap_eval_ds = episode_stratified_nonoverlapping_subset(
+        gap_candidates_ds,
         args.gap_sequences,
     )
+    gap_metadata = gap_window_metadata(
+        gap_candidates_ds,
+        gap_eval_ds,
+    )
     print(
-        f"Gap evaluation will sample {len(gap_eval_ds)} evenly spaced "
-        f"windows from {len(eval_ds)} eligible validation windows."
+        f"Gap evaluation will score {len(gap_eval_ds)} non-overlapping "
+        f"episode-safe windows from {len(gap_candidates_ds)} eligible "
+        f"validation windows across {len(gap_metadata['episode_counts'])} "
+        "episodes."
     )
 
     seed_metrics = []
@@ -1584,6 +1718,29 @@ def main() -> None:
             float(values.std()),
         )
 
+    def per_variable_summary(metric_key):
+        return {
+            name: {
+                "mean": float(
+                    np.mean(
+                        [
+                            metric[metric_key][index]
+                            for metric in seed_metrics
+                        ]
+                    )
+                ),
+                "std": float(
+                    np.std(
+                        [
+                            metric[metric_key][index]
+                            for metric in seed_metrics
+                        ]
+                    )
+                ),
+            }
+            for index, name in enumerate(CARTPOLE_STATE_NAMES)
+        }
+
     summary = {
         "static_position_r2": mean_std(
             "static_current_position_r2"
@@ -1609,6 +1766,12 @@ def main() -> None:
         "linear_gap_mean_r2": mean_std(
             "linear_gap_mean_r2"
         ),
+        "cpc_gap_r2_per_variable": per_variable_summary(
+            "cpc_gap_r2_per_variable"
+        ),
+        "linear_gap_r2_per_variable": per_variable_summary(
+            "linear_gap_r2_per_variable"
+        ),
     }
 
     os.makedirs(
@@ -1616,16 +1779,42 @@ def main() -> None:
         exist_ok=True,
     )
 
+    result_path = (
+        args.evaluation_output
+        or os.path.join(
+            args.results_dir,
+            "table_03_05_cpc_metrics.json",
+        )
+    )
+    os.makedirs(
+        os.path.dirname(os.path.abspath(result_path)),
+        exist_ok=True,
+    )
+
     save_json(
         {
             "experiment_version": EXPERIMENT_VERSION,
+            "gap_evaluation_contract_version": GAP_EVALUATION_CONTRACT_VERSION,
             "seeds": args.seeds,
             "config": vars(args),
             "evaluation": {
                 "sample_selection": "episode-stratified sequence starts across full split",
-                "gap_sampling": "evenly spaced over episode-stratified eligible validation windows",
+                "gap_sampling": (
+                    "episode-stratified non-overlapping contiguous windows "
+                    "selected from all eligible validation starts"
+                ),
                 "gap_sequence_count": len(gap_eval_ds),
-                "eligible_validation_windows": len(eval_ds),
+                "eligible_validation_windows": len(gap_candidates_ds),
+                "probe_validation_windows": len(eval_ds),
+                "gap_window_start_indices": gap_metadata["start_indices"],
+                "gap_window_episode_ids": gap_metadata["episode_ids"],
+                "gap_window_episode_counts": gap_metadata["episode_counts"],
+                "gap_windows_overlap": gap_metadata["overlapping_windows"],
+                "gap_baseline_scope": (
+                    "One state-history model is fitted on the training split "
+                    "and shared across CPC seeds. Its zero across-seed "
+                    "standard deviation is not an independent seed estimate."
+                ),
                 "checkpoint_only": bool(args.evaluate_checkpoints),
                 "prior_metrics_config": (
                     saved_metrics.get("config")
@@ -1642,11 +1831,9 @@ def main() -> None:
             "summary": summary,
             "per_seed_metrics": seed_metrics,
         },
-        os.path.join(
-            args.results_dir,
-            "table_03_05_cpc_metrics.json",
-        ),
+        result_path,
     )
+    print(f"Saved CPC metrics -> {result_path}")
 
 
 if __name__ == "__main__":
