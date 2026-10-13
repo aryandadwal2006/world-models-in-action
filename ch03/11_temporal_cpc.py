@@ -426,7 +426,10 @@ def parse_args() -> argparse.Namespace:
         "--gap-sequences",
         type=int,
         default=32,
-        help="Maximum number of evenly spaced validation windows for gap scoring.",
+        help=(
+            "Number of episode-balanced, non-overlapping validation windows "
+            "for gap scoring."
+        ),
     )
     p.add_argument(
         "--evaluate-checkpoints",
