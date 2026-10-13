@@ -67,6 +67,17 @@ METHOD_NAMES = (
     "Masked Autoencoder (MAE)",
 )
 
+# Keep internal/progress-file keys backward compatible; manuscript-facing
+# labels describe the metric actually reported for the supervised arm.
+METHOD_DISPLAY_NAMES = {
+    "Supervised State-Prediction Reference": (
+        "Supervised-pretrained encoder + frozen-feature linear probe"
+    ),
+    "Contrastive (NT-Xent)": "Contrastive (NT-Xent)",
+    "VICReg": "VICReg",
+    "Masked Autoencoder (MAE)": "Masked Autoencoder (MAE)",
+}
+
 # Finger's third position is the spinner hinge. Its rendered geometry has
 # 180-degree symmetry, so absolute angle is not identifiable from one frame.
 # Keep its variable-level score out of the cross-objective aggregate.
@@ -1165,8 +1176,12 @@ def main():
             "finger_spin"
         ][method]
 
+        display_name = METHOD_DISPLAY_NAMES.get(
+            method,
+            method,
+        )
         print(
-            f"{method:<38} | "
+            f"{display_name:<58} | "
             f"CP pos "
             f"{cp['position_mean']:.3f} ± "
             f"{cp['position_std']:.3f} | "
@@ -1191,6 +1206,7 @@ def main():
             "experiment_version": EXPERIMENT_VERSION,
             "config": vars(args),
             "experiment": signature,
+            "publication_method_labels": METHOD_DISPLAY_NAMES,
             "metric_contract": {
                 "position_indices_by_task": {
                     task: list(indices)
