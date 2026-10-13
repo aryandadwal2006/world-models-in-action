@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 class Frames(Dataset):
     """Episode-balanced sample of cached frames."""
-    def __init__(self, split="train", limit=1024):
+    def __init__(self, split="train", limit=512):
         path = ROOT / "data" / f"dmc_cartpole_balance_{split}.npz"
         with np.load(path) as data:
             self.frames = data["frames"]
@@ -42,7 +42,7 @@ class Frames(Dataset):
 
 class Sequences(Dataset):
     """Contiguous windows that never cross an episode boundary."""
-    def __init__(self, split="train", length=16, limit=512):
+    def __init__(self, split="train", length=16, limit=128):
         path = ROOT / "data" / f"dmc_cartpole_balance_{split}.npz"
         with np.load(path) as data:
             self.frames = data["frames"]
