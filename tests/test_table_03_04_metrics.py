@@ -5,6 +5,7 @@ import unittest
 
 from ch03.table_03_04_comparison import (
     EXCLUDED_STATE_VARIABLES,
+    METHOD_DISPLAY_NAMES,
     METHOD_NAMES,
     REQUIRED_TASKS,
     _migrate_version3_progress,
@@ -13,6 +14,13 @@ from ch03.table_03_04_comparison import (
 
 
 class TestTable0304Metrics(unittest.TestCase):
+    def test_supervised_row_label_matches_the_reported_metric(self):
+        self.assertIn("Supervised State-Prediction Reference", METHOD_NAMES)
+        self.assertEqual(
+            METHOD_DISPLAY_NAMES["Supervised State-Prediction Reference"],
+            "Supervised-pretrained encoder + frozen-feature linear probe",
+        )
+
     def test_finger_spinner_angle_is_excluded_from_aggregate(self):
         result = {
             "r2_per_variable": [
