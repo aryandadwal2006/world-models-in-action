@@ -972,10 +972,12 @@ def evaluate_gap(
     history_probe,
     args,
     device,
+    gap_episode_ids,
 ):
     gap_true = []
     gap_cpc = []
     gap_linear = []
+    per_episode_arrays = {}
 
     first_figure_data = None
     max_latent_norm = 0.0
@@ -1034,24 +1036,35 @@ def evaluate_gap(
                     gap_end,
                 )
 
-                gap_true.append(
-                    states[
-                        sample_index,
-                        args.gap_start : gap_end,
-                    ]
-                )
+                gap_true_window = states[
+                    sample_index,
+                    args.gap_start : gap_end,
+                ]
+                gap_cpc_window = pred_states[
+                    args.gap_start : gap_end
+                ]
+                gap_linear_window = linear[
+                    args.gap_start : gap_end
+                ]
 
-                gap_cpc.append(
-                    pred_states[
-                        args.gap_start : gap_end
-                    ]
+                window_index = len(gap_true)
+                if window_index >= len(gap_episode_ids):
+                    raise RuntimeError(
+                        "Gap-window episode metadata is shorter than "
+                        "the evaluated window set"
+                    )
+                episode_id = int(gap_episode_ids[window_index])
+                episode_arrays = per_episode_arrays.setdefault(
+                    episode_id,
+                    {"true": [], "cpc": [], "linear": []},
                 )
+                episode_arrays["true"].append(gap_true_window)
+                episode_arrays["cpc"].append(gap_cpc_window)
+                episode_arrays["linear"].append(gap_linear_window)
 
-                gap_linear.append(
-                    linear[
-                        args.gap_start : gap_end
-                    ]
-                )
+                gap_true.append(gap_true_window)
+                gap_cpc.append(gap_cpc_window)
+                gap_linear.append(gap_linear_window)
 
                 if first_figure_data is None:
                     first_figure_data = {
@@ -1112,11 +1125,36 @@ def evaluate_gap(
         angular,
     )
 
+    per_episode_metrics = {}
+    for episode_id, arrays in sorted(per_episode_arrays.items()):
+        episode_true = np.concatenate(arrays["true"], axis=0)
+        episode_cpc = np.concatenate(arrays["cpc"], axis=0)
+        episode_linear = np.concatenate(arrays["linear"], axis=0)
+        episode_cpc_r2 = compute_structured_r2_score(
+            episode_true,
+            episode_cpc,
+            angular,
+        )
+        episode_linear_r2 = compute_structured_r2_score(
+            episode_true,
+            episode_linear,
+            angular,
+        )
+        per_episode_metrics[str(episode_id)] = {
+            "num_sequences": len(arrays["true"]),
+            "cpc_gap_r2_per_variable": episode_cpc_r2.tolist(),
+            "cpc_gap_mean_r2": float(np.mean(episode_cpc_r2)),
+            "linear_gap_r2_per_variable": episode_linear_r2.tolist(),
+            "linear_gap_mean_r2": float(np.mean(episode_linear_r2)),
+        }
+
     return (
         {
             "num_sequences": int(
                 len(gap_true)
             ),
+            "num_episodes": len(per_episode_metrics),
+            "per_episode_metrics": per_episode_metrics,
             "cpc_gap_r2_per_variable": (
                 r2_cpc.tolist()
             ),
@@ -1597,6 +1635,7 @@ def main() -> None:
             history_probe,
             args,
             device,
+            gap_metadata["episode_ids"],
         )
 
         if first_figure_data is None:
