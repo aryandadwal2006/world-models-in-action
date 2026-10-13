@@ -9,7 +9,7 @@
 
 **Not ready for final quantitative claims in the chapter yet.** The broad descriptive experiments can be drafted with their current limitations and valid negative results preserved, but the missing-interval/CPC result should remain provisional until the saved checkpoints have been scored on at least 200 non-overlapping, episode-safe windows per seed. The present repository contains a design document and experiment code, not the finished book manuscript; manuscript text and final production captions therefore cannot be fully cross-checked here.
 
-The CPC evaluation-only path has been implemented on this branch. It does not retrain the model, does not change the existing 32-window JSON, and writes to a separate output file when `--evaluation-output` is supplied. The re-evaluation itself has **not** been run by this audit.
+The CPC evaluation-only path has been implemented on this branch. It does not retrain the model, does not change the existing 32-window JSON, and writes to a separate output file when `--evaluation-output` is supplied. The final JSON and table printer also carry a publication-facing label for the Table 3.4 supervised arm while preserving internal progress-file keys for backward compatibility. The re-evaluation itself has **not** been run by this audit.
 
 ## Prioritized findings
 
@@ -35,7 +35,11 @@ The CPC evaluation-only path has been implemented on this branch. It does not re
 
 ## CPC follow-up implemented on this branch
 
-Changes in `ch03/11_temporal_cpc.py`:
+Changes on this branch:
+- `ch03/table_03_04_comparison.py` defines manuscript-facing method labels without changing existing progress-file keys, so the supervised row is accurately labelled as a supervised-pretrained encoder evaluated with a frozen-feature linear probe. The current result JSON records this mapping under `publication_method_labels`; its metric values are unchanged.
+- `tests/test_table_03_04_metrics.py` adds a test for that label.
+
+CPC changes in `ch03/11_temporal_cpc.py`:
 1. `--evaluate-checkpoints` remains the no-retraining mode and validates the existing checkpoint metadata.
 2. `--gap-sequences 200` requests 200 episode-balanced, non-overlapping 25-frame validation windows from the full eligible validation set, independent of the 1,000-window cap used for state-probe metrics. The script fails loudly if it cannot provide the requested count.
 3. Exact window-start indices, episode IDs, counts, no-overlap status, and privileged-baseline scope are included in the result metadata.
