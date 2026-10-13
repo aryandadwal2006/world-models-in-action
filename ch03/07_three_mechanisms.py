@@ -26,7 +26,7 @@ from worldmodels.data.dmc_data import (
     select_episode_stratified_indices,
 )
 from worldmodels.eval.probes import evaluate_linear_probe
-from worldmodels.losses.contrastive import (
+from worldmodels.losses.noncontrastive import (
     barlow_twins_loss,
     simsiam_loss,
     update_target_ema,

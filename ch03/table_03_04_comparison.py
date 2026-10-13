@@ -36,10 +36,8 @@ from worldmodels.eval.probes import (
     transform_state_targets_np,
     transform_state_targets_torch,
 )
-from worldmodels.losses.contrastive import (
-    nt_xent_loss,
-    vicreg_loss,
-)
+from worldmodels.losses.ntxent import nt_xent_loss
+from worldmodels.losses.vicreg import vicreg_loss
 from worldmodels.models.encoders import (
     ConvEncoder,
     MAEEncoder,
