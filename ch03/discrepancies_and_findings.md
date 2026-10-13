@@ -2,7 +2,7 @@
 
 **Original experiment-result commit:** `7d4c77feb7e7e15bf8cb6b7ca3a1cd5ff411f559`  
 **Corrected design/findings on the original audit branch:** most recently inspected at `e659756d7f5a99be91e16be46270fd52cf2d1b2e`.  
-**Publication-readiness follow-up:** `audit/chapter3-publication-readiness`; see `ch03/publication_readiness_audit.md`.  
+**Publication-readiness follow-up:** `audit/chapter3-publication-readiness`; the original 32-window CPC result remains historical, and the expanded checkpoint-only evaluation artifact was committed at `4e105393a27f43aeabfea19edc7d310454b7cbae`.
 **Basis:** committed source, JSON/figure/checkpoint artifacts and the author's local run log supplied on 9 October 2026. The previously reported 44-test pass is the author's local result; the audit reviewer did not execute that run.
 
 ## 1. Execution and sampling status
@@ -11,7 +11,7 @@ The corrected rerun completed through `ch03/12_assemble_encoder.py`. The author'
 
 The data-only diagnostic reports 30 training episodes and 5 validation episodes per task. With the 3,500-frame/1,000-frame caps used by the diagnostic, the selected sample contains 116–117 training frames per episode and 200 validation frames per episode. The old prefix-based experiment metrics have been archived or replaced where the scripts version their results.
 
-At the time of the follow-up inspection, `audit/chapter3-methodology-fixes` had advanced to `e659756d7f5a99be91e16be46270fd52cf2d1b2e` in two commits after `7d4c77f`. The default branch remained at `230b298b9d1ed031e69e6987bb9c2a2e88bc8086`; neither audit branch is merged into `main`. The separate `audit/chapter3-publication-readiness` branch contains the additional CPC-evaluation fixes. The original 32-window CPC values below remain the historical committed measurements until a new checkpoint-only evaluation produces replacement measurements.
+At the time of the follow-up inspection, `audit/chapter3-methodology-fixes` had advanced to `e659756d7f5a99be91e16be46270fd52cf2d1b2e` in two commits after `7d4c77f`. The default branch remained at `230b298b9d1ed031e69e6987bb9c2a2e88bc8086`; neither audit branch is merged into `main`. The separate `audit/chapter3-publication-readiness` branch contains the additional CPC-evaluation fixes. The original 32-window CPC values below are historical; the follow-up branch now includes a checkpoint-only 200-window-per-seed evaluation and the generated figure.
 
 ## 2. Corrected findings
 
@@ -71,10 +71,12 @@ The corrected CPC run trained all three seeds and saved the checkpoints. Its res
 - Current Cartpole-position probe: static 0.789 ± 0.007; context 0.828 ± 0.010.
 - Current Cartpole-velocity probe: static 0.007 ± 0.004; context 0.143 ± 0.083.
 - Mean next-state probe (R^2): static 0.227 ± 0.021; context 0.277 ± 0.049.
-- Five-step missing-interval CPC rollout: −3.094, −0.196, and −0.539 per seed; mean −1.276 ± 1.293.
-- Privileged state extrapolation baseline: mean (R^2=0.823), identical across seeds because it is one shared state-space baseline, not a seed-varying model.
+- Historical 32-window gap rollout: −3.094, −0.196, and −0.539 per seed; mean −1.276 ± 1.293.
+- Expanded checkpoint-only gap rollout (200 non-overlapping windows per seed): −2.853, −0.128, and −0.443 per seed; mean −1.141 ± 1.217 across seeds.
+- Expanded per-variable CPC gap mean R² ± population SD across seeds: cart position −3.331 ± 4.267; pole angle −0.382 ± 0.111; cart velocity −0.401 ± 0.504; pole angular velocity −0.451 ± 0.178.
+- Privileged state-history extrapolation baseline: mean R² = 0.837, identical across CPC seeds because one shared state-history model is used.
 
-This supports a tentative statement that temporal context helps decode some state variables and improves mean next-state probe scores in this setup, while the learned latent rollout performs poorly on the current gap test. It does **not** establish a robust failure magnitude: only 32 validation windows are used per seed, and the first seed is a large negative outlier. The privileged baseline receives true qpos/qvel history, while CPC receives rendered frames; the comparison is intentionally asymmetric and must be labelled as such, not presented as a like-for-like model comparison. Re-evaluate the existing CPC checkpoints on at least 200 non-overlapping, episode-safe gap windows per seed before making a strong quantitative claim. The checkpoint-only evaluator, metadata checks, per-variable/per-episode outputs, and a dedicated selection test have been added on `audit/chapter3-publication-readiness`; neither the new test nor the 200-window evaluation has been executed by the audit reviewer.
+Temporal context improves current-state and next-state probe scores in this setup, while the latent rollout performs poorly on the gap test. The expanded evaluation confirms the negative result but also shows substantial seed sensitivity, driven especially by seed 0 and cart-position prediction. The 200 windows are balanced at 40 per each of five held-out episodes; they are windows, not independent episodes. Episode 3 has the lowest CPC mean gap R² for each of the three seeds, so its trajectory-level errors should be inspected before interpreting the aggregate as a uniform failure mode. The privileged baseline receives true qpos/qvel history, while CPC receives rendered frames; this input asymmetry must be disclosed, not presented as a like-for-like comparison. The local console log and committed JSON report a successful checkpoint-only run. The reviewer inspected the JSON artifact but did not independently execute the evaluation; the new selection tests still need to be run on this branch.
 
 The printed maximum rollout latent norm of approximately 1 is guaranteed by explicit L2 normalization in the model. It is an implementation sanity check, not independent evidence that rollout dynamics are stable.
 
