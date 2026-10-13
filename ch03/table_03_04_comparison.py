@@ -38,12 +38,8 @@ from worldmodels.eval.probes import (
 )
 from worldmodels.losses.ntxent import nt_xent_loss
 from worldmodels.losses.vicreg import vicreg_loss
-from worldmodels.models.encoders import (
-    ConvEncoder,
-    MAEEncoder,
-    ProjectionHead,
-    SimpleMAE,
-)
+from worldmodels.models.encoders import ConvEncoder, ProjectionHead
+from worldmodels.models.masked_autoencoder import MAEEncoder, SimpleMAE
 from worldmodels.train import (
     get_device,
     load_json,

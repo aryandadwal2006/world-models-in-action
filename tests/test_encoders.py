@@ -3,13 +3,8 @@
 import unittest
 import torch
 
-from worldmodels.models.encoders import (
-    ConvEncoder,
-    ProjectionHead,
-    Encoder,
-    SimpleMAE,
-    MAEEncoder,
-)
+from worldmodels.models.encoders import ConvEncoder, ProjectionHead, Encoder
+from worldmodels.models.masked_autoencoder import SimpleMAE, MAEEncoder
 
 
 class TestEncoders(unittest.TestCase):

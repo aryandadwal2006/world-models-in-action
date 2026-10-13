@@ -27,7 +27,7 @@ from worldmodels.data.dmc_data import (
 )
 from worldmodels.eval.probes import evaluate_linear_probe
 from worldmodels.losses.reconstruction import masked_mse_loss
-from worldmodels.models.encoders import MAEEncoder, SimpleMAE
+from worldmodels.models.masked_autoencoder import MAEEncoder, SimpleMAE
 from worldmodels.train import get_device, save_json, set_seed
 
 
