@@ -16,7 +16,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 
 import torch
 
-from worldmodels.losses.contrastive import nt_xent_loss
+from worldmodels.losses.ntxent import nt_xent_loss
 from worldmodels.train import save_json, set_seed
 
 

@@ -25,7 +25,7 @@ from worldmodels.data.dmc_data import (
     load_dataset_npz,
     select_episode_stratified_indices,
 )
-from worldmodels.losses.contrastive import nt_xent_loss
+from worldmodels.losses.ntxent import nt_xent_loss
 from worldmodels.models.encoders import ConvEncoder, ProjectionHead
 from worldmodels.train import get_device, save_json, set_seed
 
