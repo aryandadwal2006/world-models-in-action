@@ -13,27 +13,24 @@ ROOT = Path(__file__).resolve().parents[2]
 
 class Frames(Dataset):
     """Episode-balanced sample of cached frames."""
-    def __init__(self, split="train", limit=4000):
+    def __init__(self, split="train", limit=1024):
         path = ROOT / "data" / f"dmc_cartpole_balance_{split}.npz"
         with np.load(path) as data:
             self.frames = data["frames"]
             self.episodes = data["episode_ids"]
         groups = [np.flatnonzero(self.episodes == e) for e in np.unique(self.episodes)]
+        count = min(limit, len(self.frames))
+        base, extra = divmod(count, len(groups))
         chosen = []
-        while len(chosen) < min(limit, len(self.frames)):
-            changed = False
-            for group in groups:
-                if not len(group):
-                    continue
-                position = len(chosen) // max(1, len(groups))
-                if position < len(group):
-                    chosen.append(group[position])
-                    changed = True
-                    if len(chosen) == min(limit, len(self.frames)):
-                        break
-            if not changed:
-                break
-        self.indices = np.asarray(chosen, dtype=np.int64)
+        for i, group in enumerate(groups):
+            take = min(len(group), base + (i < extra))
+            if take:
+                chosen.extend(group[np.linspace(0, len(group) - 1, take, dtype=int)])
+        if len(chosen) < count:
+            remaining = np.setdiff1d(np.arange(len(self.frames)), chosen)
+            need = count - len(chosen)
+            chosen.extend(remaining[np.linspace(0, len(remaining) - 1, need, dtype=int)])
+        self.indices = np.sort(np.asarray(chosen[:count], dtype=np.int64))
 
     def __len__(self):
         return len(self.indices)
@@ -45,7 +42,7 @@ class Frames(Dataset):
 
 class Sequences(Dataset):
     """Contiguous windows that never cross an episode boundary."""
-    def __init__(self, split="train", length=16, limit=2000):
+    def __init__(self, split="train", length=16, limit=512):
         path = ROOT / "data" / f"dmc_cartpole_balance_{split}.npz"
         with np.load(path) as data:
             self.frames = data["frames"]

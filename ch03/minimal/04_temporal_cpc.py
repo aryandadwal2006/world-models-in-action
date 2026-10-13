@@ -29,7 +29,7 @@ class CPC(nn.Module):
         for step, head in enumerate(self.predict, start=1):
             for time in range(t - step):
                 pred = F.normalize(head(context[:, time]), dim=-1)
-                target = z[:, time + step].detach()
+                target = z[:, time + step]
                 logits = pred @ target.T / 0.5
                 losses.append(F.cross_entropy(logits, torch.arange(b, device=frames.device)))
 
