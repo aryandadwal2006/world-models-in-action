@@ -28,9 +28,7 @@ sys.path.insert(
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from torch.utils.data import DataLoader, Dataset, Subset
+from torch.utils.data import DataLoader, Subset
 
 from worldmodels.data.dmc_data import (
     load_dataset_npz,
