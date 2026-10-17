@@ -65,21 +65,55 @@ class TestRepresentationDiagnostics(unittest.TestCase):
 
 
 class DummyCPC(nn.Module):
-    """Tiny GRU model for exercising teacher-forced and free-rollout metrics."""
+    """Tiny CPC-shaped model for teacher-forced and free-rollout metrics."""
 
     def __init__(self):
         super().__init__()
         self.k_steps = 3
         self.gru = nn.GRU(input_size=2, hidden_size=2, batch_first=True)
-        self.predictor = nn.Linear(2, 2, bias=False)
-        with torch.no_grad():
-            self.predictor.weight.copy_(torch.eye(2))
+        self.w_k = nn.ParameterList(
+            [nn.Parameter(torch.eye(2)) for _ in range(self.k_steps)]
+        )
 
     def encode_sequence(self, images):
         return nn.functional.normalize(images[:, :, 0, 0, :2], dim=-1)
 
     def predict_next_latent(self, context):
-        return nn.functional.normalize(self.predictor(context), dim=-1)
+        return nn.functional.normalize(context @ self.w_k[0].T, dim=-1)
+
+
+class TinyFrameEncoder(nn.Module):
+    """Small deterministic-shape encoder for objective regression tests."""
+
+    def __init__(self, latent_dim=4):
+        super().__init__()
+        self.latent_dim = latent_dim
+        self.projection = nn.Linear(3, latent_dim)
+
+    def forward(self, images):
+        return self.projection(images.mean(dim=(-2, -1)))
+
+
+class TestCanonicalCPCObjective(unittest.TestCase):
+    def test_forward_uses_multihorizon_infonce_heads_without_auxiliary_mse_head(self):
+        from worldmodels.models.temporal_cpc import TemporalCPC
+
+        model = TemporalCPC(
+            TinyFrameEncoder(latent_dim=4),
+            latent_dim=4,
+            context_dim=5,
+            k_steps=2,
+            temperature=0.5,
+        )
+        images = torch.randn(3, 8, 3, 8, 8)
+        loss = model(images)
+        self.assertEqual(loss.ndim, 0)
+        self.assertTrue(torch.isfinite(loss).item())
+        loss.backward()
+        self.assertFalse(hasattr(model, "predictor"))
+        for head in model.w_k:
+            self.assertIsNotNone(head.grad)
+            self.assertTrue(torch.isfinite(head.grad).all().item())
 
 
 class TestCPCLatentForecastDiagnostics(unittest.TestCase):
