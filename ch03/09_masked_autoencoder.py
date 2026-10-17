@@ -37,7 +37,7 @@ def main() -> None:
     parser.add_argument("--epochs", type=int, default=15, help="Training epochs.")
     parser.add_argument("--batch-size", type=int, default=64, help="Batch size.")
     parser.add_argument("--lr", type=float, default=1e-3, help="Learning rate.")
-    parser.add_argument("--latent-dim", type=int, default=16, help="Latent dimensionality.")
+    parser.add_argument("--latent-dim", type=int, default=16, help="Deprecated compatibility option; MAE probe features use embed_dim.")
     parser.add_argument("--mask-ratio", type=float, default=0.75, help="Masking ratio.")
     parser.add_argument("--data-dir", type=str, default="data", help="Data directory.")
     parser.add_argument("--figures-dir", type=str, default="ch03/figures", help="Figures directory.")
@@ -79,7 +79,7 @@ def main() -> None:
 
     for seed in args.seeds:
         set_seed(seed)
-        model = SimpleMAE(latent_dim=args.latent_dim, mask_ratio=args.mask_ratio).to(device)
+        model = SimpleMAE(mask_ratio=args.mask_ratio).to(device)
         optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
 
         for epoch in range(1, args.epochs + 1):
