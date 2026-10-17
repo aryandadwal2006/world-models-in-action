@@ -5,6 +5,15 @@
 **Publication-readiness follow-up:** `audit/chapter3-publication-readiness`; the original 32-window CPC result remains historical, and the expanded checkpoint-only evaluation artifact was committed at `4e105393a27f43aeabfea19edc7d310454b7cbae`.
 **Basis:** committed source, JSON/figure/checkpoint artifacts and the author's local run log supplied on 9 October 2026. The previously reported 44-test pass is the author's local result; the audit reviewer did not execute that run.
 
+## MAE representation-path correction (17 October 2026)
+
+The previous MAE probe results are invalidated pending rerun. The canonical `SimpleMAE` implementation used `to_latent` to produce probe features, but that layer was outside the masked reconstruction loss and received no reconstruction gradient. The probe now uses mean-pooled final encoder tokens directly (64 features).
+
+- Standalone metrics and Table 3.4 JSON keep their old values for provenance but include `mae_probe_status: historical_invalidated_pending_corrected_rerun`; do not report those MAE numbers as current.
+- Rerun the standalone three-seed MAE experiment and regenerate Figure 3.12.
+- Rerun only the six Table 3.4 MAE runs (two tasks × three seeds). Table 3.4 experiment version 6 migrates compatible version-5 progress by archiving and clearing only MAE entries; supervised, NT-Xent, and VICReg results are preserved.
+- The updated code and regression tests have been committed, but no test suite or training experiment has been executed by this update. Replace the invalidated metrics and update final manuscript interpretation only after those runs complete.
+
 ## 1. Execution and sampling status
 
 The corrected rerun completed through `ch03/12_assemble_encoder.py`. The author's Windows run reports **44 tests passed** (4.23 seconds after the Python-boolean fix), followed by successful completion of the remaining experiment scripts and the Chapter 1 encoder-contract smoke test. GitHub Actions has no run for this commit, so the test evidence is the local log, not remote CI.
