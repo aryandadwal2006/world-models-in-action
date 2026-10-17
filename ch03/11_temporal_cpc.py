@@ -1582,7 +1582,7 @@ def main() -> None:
                     "latent_dim": args.latent_dim,
                     "context_dim": args.context_dim,
                     "k_steps": args.k_steps,
-                            "seed": seed,
+                    "seed": seed,
                     "experiment_version": EXPERIMENT_VERSION,
                     "objective_contract": CPC_OBJECTIVE_CONTRACT,
                     "sample_selection": "episode_stratified_sequence_starts_across_full_split",
