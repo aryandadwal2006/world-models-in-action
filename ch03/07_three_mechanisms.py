@@ -277,33 +277,62 @@ def _validate_args(args):
         raise ValueError("byol-ema-start must be in [0, 1)")
 
 
-def train_simsiam(train_loader, val_loader, args, device):
+def train_simsiam(train_loader, val_loader, args, device, diagnostic_loader):
     encoder = ConvEncoder(latent_dim=args.latent_dim).to(device)
-    projector = SimSiamProjector(args.latent_dim, 64, args.projector_dim).to(device)
-    predictor = SimSiamPredictor(args.projector_dim, 64, args.projector_dim).to(device)
+    projector = SimSiamProjector(args.latent_dim, args.hidden_dim, args.projector_dim).to(device)
+    predictor = SimSiamPredictor(args.projector_dim, args.hidden_dim, args.projector_dim).to(device)
     optimizer = torch.optim.Adam(
         list(encoder.parameters()) + list(projector.parameters()) + list(predictor.parameters()),
         lr=args.lr,
     )
-    pipeline = ViewPipeline()
-    for _ in range(args.epochs):
-        encoder.train(); projector.train(); predictor.train()
+    pipeline = ViewPipeline(
+        max_shift=args.max_shift,
+        brightness_range=args.brightness_range,
+        contrast_range=args.contrast_range,
+    )
+    history = []
+    snapshots = _snapshot_epochs(args.epochs)
+    final_epoch_loss = float("nan")
+    for epoch in range(1, args.epochs + 1):
+        encoder.train()
+        projector.train()
+        predictor.train()
+        loss_total = 0.0
+        n_batches = 0
         for batch in train_loader:
             x = batch["image"].to(device)
             v1, v2 = pipeline(x)
-            z1 = projector(encoder(v1)); z2 = projector(encoder(v2))
-            p1 = predictor(z1); p2 = predictor(z2)
+            z1 = projector(encoder(v1))
+            z2 = projector(encoder(v2))
+            p1 = predictor(z1)
+            p2 = predictor(z2)
             loss = simsiam_loss(p1, z2, p2, z1)
-            optimizer.zero_grad(); loss.backward(); optimizer.step()
+            if not torch.isfinite(loss):
+                raise FloatingPointError(f"Non-finite SimSiam loss at epoch={epoch}")
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+            loss_total += float(loss.detach().item())
+            n_batches += 1
+        if n_batches == 0:
+            raise RuntimeError("SimSiam training loader produced no batches")
+        final_epoch_loss = loss_total / n_batches
+        if epoch in snapshots:
+            _append_training_snapshot(
+                history, epoch, final_epoch_loss, encoder,
+                diagnostic_loader, device, projector=projector, predictor=predictor,
+            )
     probe = evaluate_linear_probe(encoder, train_loader, val_loader, device)
     diagnostics = _representation_stats(
-        encoder, train_loader, device, projector=projector, predictor=predictor
+        encoder, diagnostic_loader, device, projector=projector, predictor=predictor
     )
     return {
         **probe,
         "effective_rank": diagnostics["encoder"]["effective_rank"],
         "latent_std": diagnostics["encoder"]["mean_dim_std"],
         "representation_diagnostics": diagnostics,
+        "final_mean_training_loss": final_epoch_loss,
+        "training_history": history,
     }
 
 
