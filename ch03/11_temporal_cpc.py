@@ -692,7 +692,7 @@ def rollout_gap(
     gap_end,
     state_probe,
 ):
-    """Roll normalized latent dynamics through the missing interval."""
+    """Roll raw CPC bilinear predictions through the missing interval."""
     model.eval()
 
     with torch.no_grad():
