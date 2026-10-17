@@ -5,6 +5,17 @@
 **Follow-up branch:** `audit/chapter3-publication-readiness` (contains the checkpoint-only evaluation changes)  
 **Default branch:** `main` at `230b298b9d1ed031e69e6987bb9c2a2e88bc8086`; not modified by this audit.
 
+## MAE representation-path correction (17 October 2026)
+
+A follow-up review found that `SimpleMAE.forward_encoder()` applied a pooled `to_latent` projection, but the masked reconstruction loss was computed from per-patch encoder tokens and did not train that projection. `MAEEncoder` then exposed the untrained projection to the linear probes. The canonical model has now been changed to expose the mean-pooled final encoder tokens directly (64 features in the current configuration).
+
+- Corrected source: `worldmodels/models/masked_autoencoder.py`.
+- Regression coverage: `tests/test_encoders.py` checks the feature path; `tests/test_table_03_04_metrics.py` checks the targeted progress-file migration.
+- Table 3.4 experiment version is now 6. A compatible version-5 progress file archives its old MAE entries and clears only those entries, preserving the supervised, NT-Xent, and VICReg results for reuse.
+- The committed `ch03/results/mae_metrics.json` and `ch03/results/table_03_04_objective_comparison.json` retain their old values for provenance but are marked `historical_invalidated_pending_corrected_rerun`. They must not be cited as current MAE evidence.
+- The standalone MAE experiment must be rerun for seeds 0, 1, and 2 to regenerate `mae_metrics.json` and Figure 3.12. Table 3.4 must rerun its MAE arms for Cartpole Balance and Finger Spin, seeds 0, 1, and 2. The reconstruction figure should be regenerated because removing the unused projection changes seeded parameter initialization order.
+- No corrected metrics have been fabricated. The experiments and tests still require execution in the project's Python environment before the chapter's MAE numbers can be frozen.
+
 ## Executive decision
 
 **The expanded CPC gap evaluation is complete, but Chapter 3 is not ready to freeze for final quantitative claims yet.** The descriptive experiments may be drafted with their measured limitations and negative results preserved. The checkpoint-only gap run now evaluates 200 non-overlapping windows per seed, but the result remains negative and seed-sensitive. The repository contains a design document and experiment code, not the finished book manuscript; the final prose, table, and production captions still need to be checked against the updated artifact.
