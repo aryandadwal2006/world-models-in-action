@@ -3,7 +3,11 @@
 import copy
 import unittest
 
+import torch
+import torch.nn as nn
+
 from ch03.table_03_04_comparison import (
+    evaluate_trained_state_head,
     EXCLUDED_STATE_VARIABLES,
     METHOD_DISPLAY_NAMES,
     METHOD_NAMES,
@@ -16,6 +20,45 @@ from ch03.table_03_04_comparison import (
 
 
 class TestTable0304Metrics(unittest.TestCase):
+    def test_trained_supervised_head_is_scored_in_physical_state_space(self):
+        class StateFeatureEncoder(nn.Module):
+            def forward(self, states):
+                angle = states[:, 1]
+                return torch.stack(
+                    [
+                        states[:, 0],
+                        torch.sin(angle),
+                        torch.cos(angle),
+                        states[:, 2],
+                        states[:, 3],
+                    ],
+                    dim=1,
+                )
+
+        states = torch.tensor(
+            [
+                [-0.8, -2.2, -0.7, 0.5],
+                [-0.3, -0.9, 0.2, -0.1],
+                [0.1, 0.2, 0.6, -0.8],
+                [0.6, 1.1, -0.4, 0.3],
+                [1.0, 2.4, 0.9, 0.8],
+            ],
+            dtype=torch.float32,
+        )
+        result = evaluate_trained_state_head(
+            StateFeatureEncoder(),
+            nn.Identity(),
+            [{"image": states, "physics_state": states}],
+            torch.zeros(5),
+            torch.ones(5),
+            state_dim=4,
+            device=torch.device("cpu"),
+        )
+
+        self.assertAlmostEqual(result["position_mean_r2"], 1.0, places=5)
+        self.assertAlmostEqual(result["velocity_mean_r2"], 1.0, places=5)
+        self.assertAlmostEqual(result["mean_r2"], 1.0, places=5)
+
     def test_supervised_row_label_matches_the_reported_metric(self):
         self.assertIn("Supervised State-Prediction Reference", METHOD_NAMES)
         self.assertEqual(
