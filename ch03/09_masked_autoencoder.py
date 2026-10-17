@@ -155,6 +155,11 @@ def main() -> None:
 
     out_json = os.path.join(args.results_dir, "mae_metrics.json")
     save_json({
+        "representation": {
+            "source": "mean_pooled_final_encoder_tokens",
+            "feature_dim": model.embed_dim,
+            "projection": None,
+        },
         "seeds": args.seeds,
         "mean_r2": mean_r2,
         "std_r2": std_r2,
