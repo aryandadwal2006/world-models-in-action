@@ -109,22 +109,19 @@ def parse_args() -> argparse.Namespace:
         default=3,
     )
     p.add_argument(
-        "--max-train-sequences", "--max-train-frames",
-        dest="max_train_sequences",
+        "--max-train-sequences",
         type=int,
         default=4000,
         help="Maximum number of training sequence windows, not individual frames.",
     )
     p.add_argument(
-        "--max-val-sequences", "--max-val-frames",
-        dest="max_val_sequences",
+        "--max-val-sequences",
         type=int,
         default=1000,
         help="Maximum number of validation sequence windows, not individual frames.",
     )
     p.add_argument(
-        "--retrieval-sequences", "--gap-sequences",
-        dest="retrieval_sequences",
+        "--retrieval-sequences",
         type=int,
         default=200,
         help="Number of non-overlapping, episode-balanced validation windows used for CPC future-latent retrieval.",
