@@ -482,6 +482,7 @@ def train_barlow(train_loader, val_loader, args, device, diagnostic_loader):
 
 def main() -> None:
     args = parse_args()
+    _validate_args(args)
     device = get_device()
     train_raw = load_dataset_npz(os.path.join(args.data_dir, "dmc_cartpole_balance_train.npz"))
     val_raw = load_dataset_npz(os.path.join(args.data_dir, "dmc_cartpole_balance_val.npz"))
@@ -510,9 +511,23 @@ def main() -> None:
         for seed in args.seeds:
             set_seed(seed)
             generator = torch.Generator(); generator.manual_seed(seed)
-            train_loader = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True, generator=generator)
+            drop_last = len(train_ds) > args.batch_size and len(train_ds) % args.batch_size == 1
+            train_loader = DataLoader(
+                train_ds, batch_size=args.batch_size, shuffle=True,
+                generator=generator, drop_last=drop_last,
+            )
             val_loader = DataLoader(val_ds, batch_size=args.batch_size, shuffle=False)
-            result = train_fn(train_loader, val_loader, args, device)
+            diagnostic_count = min(1024, len(train_ds))
+            diagnostic_indices = np.linspace(
+                0, len(train_ds) - 1, num=diagnostic_count, dtype=np.int64
+            ).tolist()
+            diagnostic_loader = DataLoader(
+                Subset(train_ds, diagnostic_indices),
+                batch_size=args.batch_size, shuffle=False,
+            )
+            result = train_fn(
+                train_loader, val_loader, args, device, diagnostic_loader
+            )
             seed_results.append(result)
             print(
                 f"{name} seed={seed}: R2={result['mean_r2']:.3f}, "
@@ -551,8 +566,13 @@ def main() -> None:
     os.makedirs(args.results_dir, exist_ok=True)
     save_json(
         {
-            "experiment_version": 4,
-            "implementation_scope": "mechanism-faithful reduced-scale DMC demonstration; not an exact large-scale reproduction of the original benchmarks",
+            "experiment_version": 5,
+            "implementation_scope": "multi-seed, reduced-scale DMC mechanism study; not an exact large-scale reproduction of the original ImageNet benchmarks",
+            "interpretation_contract": {
+                "anti_collapse_evidence": "Use raw feature spread and effective rank together; effective rank alone is scale invariant and cannot detect near-zero representations.",
+                "representation_utility": "Use held-out per-variable state-probe R2 alongside collapse diagnostics; non-collapse alone does not prove useful representation learning.",
+                "training_diagnostics": "Record loss and representation spread/rank at early, middle, and final epochs for encoder and loss-space heads.",
+            },
             "architecture_contract": {
                 "simsiam": "3-layer BatchNorm projector with affine-free output BatchNorm; 2-layer BatchNorm predictor; stop-gradient cosine loss",
                 "byol": "online and EMA target networks with BatchNorm MLP heads and cosine loss",
@@ -565,17 +585,23 @@ def main() -> None:
                 "batch_size": args.batch_size,
                 "learning_rate": args.lr,
                 "latent_dim": args.latent_dim,
+                "hidden_dim": args.hidden_dim,
                 "projector_dim": args.projector_dim,
                 "max_train_samples": args.max_train_samples,
                 "sample_selection": "episode_stratified_even_within_episode",
                 "augmentation": {
-                    "max_shift": 3,
-                    "brightness_range": 0.1,
-                    "contrast_range": 0.1,
+                    "max_shift": args.max_shift,
+                    "brightness_range": args.brightness_range,
+                    "contrast_range": args.contrast_range,
+                },
+                "byol": {
+                    "ema_schedule": "cosine_ramp_from_byol_ema_start_to_1",
+                    "ema_start": args.byol_ema_start,
                 },
                 "barlow_twins": {
                     "lambda": 0.005,
                     "batch_standard_deviation_unbiased": False,
+                    "normalization_note": "Batch feature standardization is performed in the loss; this matches the objective but is not code-identical to the official output BatchNorm implementation.",
                 },
             },
             "methods": summary,
