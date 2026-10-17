@@ -130,7 +130,6 @@ class TestCanonicalCPCObjective(unittest.TestCase):
             latent_dim=4,
             context_dim=5,
             k_steps=2,
-            temperature=0.5,
         )
         images = torch.randn(3, 8, 3, 8, 8)
         loss = model(images)
