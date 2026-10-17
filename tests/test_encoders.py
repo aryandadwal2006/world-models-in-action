@@ -70,11 +70,20 @@ class TestEncoders(unittest.TestCase):
         self.assertEqual(mask.shape, (self.batch_size, 64))
 
         z = mae.encode(self.x)
-        self.assertEqual(z.shape, (self.batch_size, self.latent_dim))
+        self.assertEqual(z.shape, (self.batch_size, mae.embed_dim))
+        self.assertFalse(hasattr(mae, "to_latent"))
+
+        # The probe must use the pooled trained encoder features directly.
+        with torch.no_grad():
+            patches = mae.patchify(self.x)
+            tokens = mae.patch_embed(patches) + mae.encoder_pos_embed
+            expected = mae.encoder_transformer(tokens).mean(dim=1)
+        torch.testing.assert_close(z, expected)
 
         wrapper = MAEEncoder(mae)
         z_wrapped = wrapper(self.x)
-        self.assertEqual(z_wrapped.shape, (self.batch_size, self.latent_dim))
+        self.assertEqual(z_wrapped.shape, (self.batch_size, mae.embed_dim))
+        torch.testing.assert_close(z_wrapped, z)
 
 
 if __name__ == "__main__":
