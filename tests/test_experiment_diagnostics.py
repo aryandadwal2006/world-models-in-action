@@ -167,11 +167,11 @@ class TestCPCLatentForecastDiagnostics(unittest.TestCase):
             max_horizon=3,
         )
         self.assertIn("teacher_forced_one_step", diagnostic)
-        # seq_len=12, k_steps=3: train uses context indexes 4..8 for
-        # one-step predictions, across both batch examples.
+        # seq_len=12, k_steps=3: all context indexes 0..8 are valid,
+        # across both batch examples.
         self.assertEqual(
             diagnostic["teacher_forced_one_step"]["num_predictions"],
-            10,
+            18,
         )
         self.assertEqual(
             set(diagnostic["autoregressive_rollout_by_horizon"]),
