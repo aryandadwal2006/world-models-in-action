@@ -551,15 +551,96 @@ def main() -> None:
                 "mean_dim_std": float(np.mean([r["mean_dim_std"] for r in rows])),
                 "std_dim_std": float(np.std([r["mean_dim_std"] for r in rows])),
             }
+        history_epochs = sorted({
+            int(item["epoch"])
+            for result in seed_results
+            for item in result["training_history"]
+        })
+        history_summary = []
+        for epoch in history_epochs:
+            epoch_rows = []
+            for result in seed_results:
+                match = next(
+                    (item for item in result["training_history"] if item["epoch"] == epoch),
+                    None,
+                )
+                if match is not None:
+                    epoch_rows.append(match)
+            epoch_entry = {
+                "epoch": epoch,
+                "mean_training_loss": float(np.mean([
+                    item["mean_training_loss"] for item in epoch_rows
+                ])),
+                "std_training_loss": float(np.std([
+                    item["mean_training_loss"] for item in epoch_rows
+                ])),
+                "representation_spaces": {},
+            }
+            history_space_names = sorted({
+                space
+                for item in epoch_rows
+                for space in item["representation_diagnostics"]
+            })
+            for space in history_space_names:
+                rows = [
+                    item["representation_diagnostics"][space]
+                    for item in epoch_rows
+                    if space in item["representation_diagnostics"]
+                ]
+                epoch_entry["representation_spaces"][space] = {
+                    "mean_effective_rank": float(np.mean([
+                        row["effective_rank"] for row in rows
+                    ])),
+                    "std_effective_rank": float(np.std([
+                        row["effective_rank"] for row in rows
+                    ])),
+                    "mean_dim_std": float(np.mean([
+                        row["mean_dim_std"] for row in rows
+                    ])),
+                    "std_dim_std": float(np.std([
+                        row["mean_dim_std"] for row in rows
+                    ])),
+                    "mean_feature_variance": float(np.mean([
+                        row["mean_feature_variance"] for row in rows
+                    ])),
+                }
+            history_summary.append(epoch_entry)
+
+        probe_state_names = (
+            "cart_position",
+            "pole_angle",
+            "cart_velocity",
+            "pole_angular_velocity",
+        )
+        first_probe = seed_results[0].get("r2_per_variable", [])
+        per_variable_probe_summary = {}
+        for index, _ in enumerate(first_probe):
+            label = (
+                probe_state_names[index]
+                if index < len(probe_state_names)
+                else f"state_{index}"
+            )
+            values = [
+                float(result["r2_per_variable"][index])
+                for result in seed_results
+            ]
+            per_variable_probe_summary[label] = {
+                "mean_r2": float(np.mean(values)),
+                "std_r2": float(np.std(values)),
+                "per_seed": values,
+            }
+
         summary[name] = {
             "mean_r2": float(np.mean([r["mean_r2"] for r in seed_results])),
             "std_r2": float(np.std([r["mean_r2"] for r in seed_results])),
+            "r2_per_variable_summary": per_variable_probe_summary,
             # Backwards-compatible fields describe encoder outputs only.
             "mean_effective_rank": float(np.mean([r["effective_rank"] for r in seed_results])),
             "std_effective_rank": float(np.std([r["effective_rank"] for r in seed_results])),
             "mean_latent_std": float(np.mean([r["latent_std"] for r in seed_results])),
             "std_latent_std": float(np.std([r["latent_std"] for r in seed_results])),
             "representation_space_summary": space_summary,
+            "training_history_summary": history_summary,
             "seed_results": seed_results,
         }
 
@@ -583,6 +664,7 @@ def main() -> None:
             "config": {
                 "epochs": args.epochs,
                 "batch_size": args.batch_size,
+                "optimizer": "Adam for all methods in this reduced-scale DMC study",
                 "learning_rate": args.lr,
                 "latent_dim": args.latent_dim,
                 "hidden_dim": args.hidden_dim,
