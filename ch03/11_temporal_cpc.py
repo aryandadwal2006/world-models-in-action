@@ -484,6 +484,150 @@ def extract_temporal_features(
     )
 
 
+def _latent_error_metrics(predicted, target) -> dict:
+    """Return latent MSE and cosine agreement for matched two-dimensional arrays."""
+    predicted = np.asarray(predicted, dtype=np.float64)
+    target = np.asarray(target, dtype=np.float64)
+    if predicted.shape != target.shape or predicted.ndim != 2:
+        raise ValueError("predicted and target must share shape (N, D)")
+    if predicted.shape[0] == 0:
+        raise ValueError("latent metric inputs cannot be empty")
+    mse = float(np.mean((predicted - target) ** 2))
+    pred_norm = np.linalg.norm(predicted, axis=1)
+    target_norm = np.linalg.norm(target, axis=1)
+    denom = np.maximum(pred_norm * target_norm, 1e-12)
+    cosine = np.sum(predicted * target, axis=1) / denom
+    return {
+        "mse": mse,
+        "mean_cosine_similarity": float(np.mean(cosine)),
+        "num_predictions": int(predicted.shape[0]),
+    }
+
+
+def evaluate_latent_prediction_diagnostics(
+    model,
+    loader,
+    device,
+    rollout_start: int,
+    max_horizon: int = 5,
+) -> dict:
+    """Contrast one-step predictions with free autoregressive latent rollouts.
+
+    Teacher-forced predictions use true encoded frames to form every context.
+    Rollout predictions feed each predicted latent back into the GRU.
+    """
+    if rollout_start < 4 or max_horizon < 1:
+        raise ValueError("rollout_start must be >= 4 and max_horizon >= 1")
+
+    teacher_predictions = []
+    teacher_targets = []
+    rollout_predictions = {horizon: [] for horizon in range(1, max_horizon + 1)}
+    rollout_targets = {horizon: [] for horizon in range(1, max_horizon + 1)}
+
+    model.eval()
+    with torch.no_grad():
+        for batch in loader:
+            images = batch["images"].to(device)
+            z_seq = model.encode_sequence(images)
+            batch_size, seq_len, _ = z_seq.shape
+            if rollout_start + max_horizon >= seq_len:
+                raise ValueError(
+                    "Requested rollout exceeds sequence length: "
+                    f"start={rollout_start}, horizon={max_horizon}, length={seq_len}"
+                )
+
+            # One-step forecasts use true encoded observations at every context.
+            contexts, _ = model.gru(z_seq)
+            for time_index in range(4, seq_len - 1):
+                predicted = model.predict_next_latent(contexts[:, time_index])
+                teacher_predictions.append(predicted.cpu().numpy())
+                teacher_targets.append(z_seq[:, time_index + 1].cpu().numpy())
+
+            # Open-loop forecasts start after the final observed frame.
+            prefix, hidden = model.gru(z_seq[:, : rollout_start + 1])
+            context = prefix[:, -1]
+            for horizon in range(1, max_horizon + 1):
+                predicted = model.predict_next_latent(context)
+                target = z_seq[:, rollout_start + horizon]
+                rollout_predictions[horizon].append(predicted.cpu().numpy())
+                rollout_targets[horizon].append(target.cpu().numpy())
+                context_output, hidden = model.gru(
+                    predicted.unsqueeze(1),
+                    hidden,
+                )
+                context = context_output[:, 0]
+
+    if not teacher_predictions:
+        raise RuntimeError("No teacher-forced latent predictions were evaluated")
+    teacher = _latent_error_metrics(
+        np.concatenate(teacher_predictions, axis=0),
+        np.concatenate(teacher_targets, axis=0),
+    )
+    rollout = {}
+    for horizon in range(1, max_horizon + 1):
+        if not rollout_predictions[horizon]:
+            raise RuntimeError(f"No rollout predictions for horizon {horizon}")
+        rollout[str(horizon)] = _latent_error_metrics(
+            np.concatenate(rollout_predictions[horizon], axis=0),
+            np.concatenate(rollout_targets[horizon], axis=0),
+        )
+    return {
+        "teacher_forced_one_step": teacher,
+        "autoregressive_rollout_by_horizon": rollout,
+        "rollout_start_index": int(rollout_start),
+        "max_horizon": int(max_horizon),
+        "target_space": "unit-normalized encoder latents",
+    }
+
+
+def summarize_latent_prediction_diagnostics(seed_metrics: list[dict]) -> dict:
+    """Aggregate per-seed forecast diagnostics without treating windows as seeds."""
+    if not seed_metrics:
+        raise ValueError("seed_metrics cannot be empty")
+    teacher = [
+        item["latent_prediction_diagnostics"]["teacher_forced_one_step"]
+        for item in seed_metrics
+    ]
+    summary = {"teacher_forced_one_step": {}}
+    for metric in ("mse", "mean_cosine_similarity"):
+        values = [float(item[metric]) for item in teacher]
+        summary["teacher_forced_one_step"][metric] = {
+            "mean_over_seeds": float(np.mean(values)),
+            "std_over_seeds": float(np.std(values)),
+            "per_seed": values,
+        }
+
+    max_horizon = max(
+        int(horizon)
+        for horizon in seed_metrics[0]["latent_prediction_diagnostics"][
+            "autoregressive_rollout_by_horizon"
+        ]
+    )
+    summary["autoregressive_rollout_by_horizon"] = {}
+    for horizon in range(1, max_horizon + 1):
+        summary["autoregressive_rollout_by_horizon"][str(horizon)] = {}
+        for metric in ("mse", "mean_cosine_similarity"):
+            values = [
+                float(
+                    item["latent_prediction_diagnostics"][
+                        "autoregressive_rollout_by_horizon"
+                    ][str(horizon)][metric]
+                )
+                for item in seed_metrics
+            ]
+            summary["autoregressive_rollout_by_horizon"][str(horizon)][metric] = {
+                "mean_over_seeds": float(np.mean(values)),
+                "std_over_seeds": float(np.std(values)),
+                "per_seed": values,
+            }
+    summary["interpretation"] = (
+        "Teacher-forced errors use true encoded observations at every context. "
+        "Autoregressive errors feed predicted latents back into the GRU. "
+        "These are latent-space diagnostics, not physical-state R2 scores."
+    )
+    return summary
+
+
 def fit_state_history_predictor(
     raw_states,
     raw_episode_ids,
@@ -1340,6 +1484,18 @@ def main() -> None:
             )
         )
 
+        latent_prediction_diagnostics = evaluate_latent_prediction_diagnostics(
+            model,
+            make_loader(
+                eval_ds,
+                args.batch_size,
+                shuffle=False,
+            ),
+            device,
+            rollout_start=args.gap_start - 1,
+            max_horizon=args.gap_length,
+        )
+
         gap_stats, figure_data = evaluate_gap(
             model,
             make_loader(
@@ -1388,6 +1544,7 @@ def main() -> None:
             "context_next_state_velocity_r2": float(
                 np.mean(context_next_r2[2:])
             ),
+            "latent_prediction_diagnostics": latent_prediction_diagnostics,
             **gap_stats,
         }
 
@@ -1526,6 +1683,9 @@ def main() -> None:
         ),
         "linear_gap_r2_per_variable": per_variable_summary(
             "linear_gap_r2_per_variable"
+        ),
+        "latent_prediction_diagnostics": summarize_latent_prediction_diagnostics(
+            seed_metrics
         ),
     }
 

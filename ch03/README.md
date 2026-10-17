@@ -49,3 +49,24 @@ Run scripts from the repository root.
 - The committed figures/results are experiment artifacts. A new run only reproduces them if the configuration, checkpoint and evaluation contract match the recorded experiment.
 
 Read [the publication-readiness audit](publication_readiness_audit.md) and [the corrected findings](discrepancies_and_findings.md) before using quantitative claims in the manuscript.
+
+## Targeted follow-up diagnostics
+
+The branch diagnostics/ch03-experiment-validation adds diagnostics rather than tuning hyperparameters toward expected scores:
+
+- 06_collapse_demo.py records encoder-output and projector-output spread/rank plus per-epoch loss. The projector is the space on which the agreement/contrastive objective acts.
+- 07_three_mechanisms.py reports effective rank and standard deviation for encoder, projector, predictor, and (for BYOL) target-projector spaces. Low encoder effective rank alone is not labelled complete collapse.
+- table_03_04_comparison.py separately evaluates the supervised model's trained prediction head on held-out data and its frozen-feature linear probe. Version-6 progress is migrated by preserving NT-Xent/VICReg/MAE results and rerunning only the supervised arm.
+- 11_temporal_cpc.py reports teacher-forced one-step latent error and autoregressive latent error at each rollout horizon. The checkpoint-only diagnostic reads existing CPC checkpoints and does not retrain them.
+
+Recommended sequence from the repository root:
+
+```powershell
+python -m unittest discover -s tests -v
+python ch03/06_collapse_demo.py
+python ch03/07_three_mechanisms.py
+python ch03/table_03_04_comparison.py
+python ch03/11_temporal_cpc.py --evaluate-checkpoints --gap-sequences 200 --evaluation-output ch03/results/table_03_05_cpc_diagnostics.json --figures-dir ch03/figures/cpc_diagnostic
+```
+
+The three training runners above can take time on CPU. These are diagnostic runs, not parameter searches. Preserve the outputs, then decide whether the manuscript should report the observed limitation or motivate a separately controlled follow-up. Do not change settings until scores match the narrative.

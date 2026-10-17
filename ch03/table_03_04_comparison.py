@@ -30,6 +30,8 @@ from worldmodels.data.dmc_data import (
     select_episode_stratified_indices,
 )
 from worldmodels.eval.probes import (
+    _decode_transformed_state_targets,
+    compute_structured_r2_score,
     expanded_state_dim,
     evaluate_linear_probe,
     infer_angular_position_indices,
@@ -47,7 +49,7 @@ from worldmodels.train import (
     set_seed,
 )
 
-EXPERIMENT_VERSION = 6
+EXPERIMENT_VERSION = 7
 
 REQUIRED_TASKS = (
     ("cartpole_balance", 4),
@@ -359,10 +361,68 @@ def _migrate_version5_mae_representation_progress(progress, signature):
     migrated.setdefault("legacy_results_before_mae_representation_fix", {})[
         "version5_mae_results"
     ] = legacy_mae
+
+    # Version 7 adds a trained-head score, which version-5 progress never stored.
+    # If migrating directly to v7, clear only the stale supervised arm as well.
+    if int(signature.get("experiment_version", 0)) >= 7:
+        legacy_supervised = {}
+        for task_name, _state_dim in REQUIRED_TASKS:
+            task_results = results.get(task_name, {})
+            legacy_supervised[task_name] = copy.deepcopy(
+                task_results.get(METHOD_NAMES[0], {})
+            )
+            task_results[METHOD_NAMES[0]] = {}
+        migrated.setdefault(
+            "legacy_results_before_trained_head_diagnostic", {}
+        )["version5_supervised_probe_only_results"] = legacy_supervised
+        print(
+            "Archived old MAE results and cleared MAE plus supervised runs, "
+            "which must be rerun for the corrected representation and direct-head metrics. "
+            "Existing NT-Xent and VICReg results are preserved."
+        )
+    else:
+        print(
+            "Archived and cleared only the old MAE probe results. Existing "
+            "supervised, NT-Xent, and VICReg results are preserved."
+        )
+    migrated["experiment"] = signature
+    return migrated
+
+
+def _migrate_version6_supervised_head_progress(progress, signature):
+    """Queue only the supervised arm for direct-head scoring; preserve other runs."""
+    old_signature = progress.get("experiment")
+    if (
+        not isinstance(old_signature, dict)
+        or old_signature.get("experiment_version") != 6
+    ):
+        return None
+
+    old_core = copy.deepcopy(old_signature)
+    new_core = copy.deepcopy(signature)
+    old_core.pop("experiment_version", None)
+    new_core.pop("experiment_version", None)
+    if old_core != new_core:
+        return None
+
+    migrated = copy.deepcopy(progress)
+    results = migrated.get("results", {})
+    legacy_supervised = {}
+    for task_name, _state_dim in REQUIRED_TASKS:
+        task_results = results.get(task_name, {})
+        legacy_supervised[task_name] = copy.deepcopy(
+            task_results.get(METHOD_NAMES[0], {})
+        )
+        task_results[METHOD_NAMES[0]] = {}
+
+    migrated.setdefault("legacy_results_before_trained_head_diagnostic", {})[
+        "version6_supervised_probe_only_results"
+    ] = legacy_supervised
     migrated["experiment"] = signature
     print(
-        "Archived and cleared only the old MAE probe results. Existing "
-        "supervised, NT-Xent, and VICReg results are preserved."
+        "Archived and cleared only the supervised reference runs so the "
+        "trained prediction head can be evaluated directly. Existing "
+        "NT-Xent, VICReg, and corrected MAE results are preserved."
     )
     return migrated
 
@@ -392,6 +452,13 @@ def load_progress(
         return migrated
 
     migrated = _migrate_version5_mae_representation_progress(
+        progress,
+        signature,
+    )
+    if migrated is not None:
+        return migrated
+
+    migrated = _migrate_version6_supervised_head_progress(
         progress,
         signature,
     )
@@ -537,6 +604,52 @@ def transformed_training_statistics(
     )
 
 
+def evaluate_trained_state_head(
+    encoder,
+    head,
+    val_loader,
+    target_mean,
+    target_std,
+    state_dim,
+    device,
+):
+    """Score the trained prediction head itself on held-out physical states."""
+    angular_indices = infer_angular_position_indices(state_dim)
+    encoder.eval()
+    head.eval()
+    true_states = []
+    predicted_states = []
+    with torch.no_grad():
+        for batch in val_loader:
+            images = batch["image"].to(device)
+            states = batch["physics_state"].cpu().numpy()
+            standardized_predictions = head(encoder(images))
+            transformed_predictions = (
+                standardized_predictions * target_std + target_mean
+            ).cpu().numpy()
+            decoded_predictions = _decode_transformed_state_targets(
+                transformed_predictions,
+                state_dim,
+                angular_indices,
+            )
+            true_states.append(states)
+            predicted_states.append(decoded_predictions)
+
+    if not true_states:
+        raise RuntimeError("Validation loader produced no examples")
+    y_true = np.concatenate(true_states, axis=0)
+    y_pred = np.concatenate(predicted_states, axis=0)
+    per_variable_r2 = compute_structured_r2_score(
+        y_true,
+        y_pred,
+        angular_indices,
+    )
+    return summarize_probe(
+        {"r2_per_variable": per_variable_r2.tolist()},
+        state_dim,
+    )
+
+
 def train_supervised(
     train_loader,
     val_loader,
@@ -632,7 +745,8 @@ def train_supervised(
             loss.backward()
             optimizer.step()
 
-    return summarize_probe(
+    # A post-hoc probe evaluates what a linear readout can recover from the encoder.
+    representation_result = summarize_probe(
         evaluate_linear_probe(
             encoder,
             train_loader,
@@ -641,6 +755,17 @@ def train_supervised(
         ),
         state_dim,
     )
+    # This separately scores the prediction head that was actually trained with state labels.
+    representation_result["trained_head_metrics"] = evaluate_trained_state_head(
+        encoder,
+        head,
+        val_loader,
+        target_mean,
+        target_std,
+        state_dim,
+        device,
+    )
+    return representation_result
 
 
 def train_contrastive(
@@ -938,6 +1063,33 @@ def build_final_table(
                 ),
                 "seed_results": seed_results,
             }
+
+            if method == METHOD_NAMES[0]:
+                head_results = [
+                    result.get("trained_head_metrics")
+                    for result in seed_results
+                ]
+                if any(result is None for result in head_results):
+                    raise RuntimeError(
+                        "Supervised seed result is missing direct trained-head metrics"
+                    )
+                table[task_name][method]["trained_head"] = {
+                    "position_mean": float(
+                        np.mean([r["position_mean_r2"] for r in head_results])
+                    ),
+                    "position_std": float(
+                        np.std([r["position_mean_r2"] for r in head_results])
+                    ),
+                    "velocity_mean": float(
+                        np.mean([r["velocity_mean_r2"] for r in head_results])
+                    ),
+                    "velocity_std": float(
+                        np.std([r["velocity_mean_r2"] for r in head_results])
+                    ),
+                    "mean_r2": float(np.mean([r["mean_r2"] for r in head_results])),
+                    "std_r2": float(np.std([r["mean_r2"] for r in head_results])),
+                    "seed_results": head_results,
+                }
 
     return table
 
@@ -1237,6 +1389,17 @@ def main():
             f"FG vel "
             f"{fg['velocity_mean']:.3f} ± "
             f"{fg['velocity_std']:.3f}"
+        )
+
+    supervised = METHOD_NAMES[0]
+    print("Direct trained-head metrics (separate from frozen-feature probes):")
+    for task_name, _state_dim in REQUIRED_TASKS:
+        head = table[task_name][supervised]["trained_head"]
+        print(
+            f"  {task_name}: position={head['position_mean']:.3f} ± "
+            f"{head['position_std']:.3f}; velocity={head['velocity_mean']:.3f} ± "
+            f"{head['velocity_std']:.3f}; overall={head['mean_r2']:.3f} ± "
+            f"{head['std_r2']:.3f}"
         )
 
     final_path = os.path.join(

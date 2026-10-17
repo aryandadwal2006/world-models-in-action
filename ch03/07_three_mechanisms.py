@@ -62,16 +62,79 @@ def effective_rank(z: np.ndarray) -> float:
     return float(np.exp(entropy))
 
 
-def _representation_stats(encoder, loader, device) -> tuple[float, float]:
-    encoder.eval()
-    features = []
+def _feature_statistics(features: np.ndarray) -> dict:
+    """Summarize one representation space without confusing scale and rank."""
+    features = np.asarray(features, dtype=np.float64)
+    if features.ndim != 2 or features.shape[0] == 0:
+        raise ValueError("features must be a non-empty two-dimensional array")
+    centered = features - features.mean(axis=0, keepdims=True)
+    singular_values = np.linalg.svd(centered, compute_uv=False)
+    eigenvalues = singular_values**2
+    total = float(eigenvalues.sum())
+    if total <= 1e-15:
+        rank = 0.0
+    else:
+        probabilities = eigenvalues / total
+        entropy = -float(
+            np.sum(probabilities * np.log(np.maximum(probabilities, 1e-15)))
+        )
+        rank = float(np.exp(entropy))
+    return {
+        "effective_rank": rank,
+        "mean_dim_std": float(np.std(features, axis=0).mean()),
+        "per_dimension_std": np.std(features, axis=0).tolist(),
+    }
+
+
+def _representation_stats(
+    encoder,
+    loader,
+    device,
+    projector=None,
+    predictor=None,
+    target_encoder=None,
+    target_projector=None,
+) -> dict:
+    """Measure the encoder space and every available loss-space branch."""
+    modules = [encoder, projector, predictor, target_encoder, target_projector]
+    for module in modules:
+        if module is not None:
+            module.eval()
+
+    collected = {
+        "encoder": [],
+        "projector": [],
+        "predictor": [],
+        "target_projector": [],
+    }
     with torch.no_grad():
         for batch in loader:
-            features.append(encoder(batch["image"].to(device)).cpu().numpy())
-    z = np.concatenate(features, axis=0)
-    latent_std = float(np.std(z, axis=0).mean())
-    return effective_rank(z), latent_std
+            images = batch["image"].to(device)
+            encoded = encoder(images)
+            collected["encoder"].append(encoded.cpu().numpy())
 
+            projected = None
+            if projector is not None:
+                projected = projector(encoded)
+                collected["projector"].append(projected.cpu().numpy())
+            if predictor is not None:
+                if projected is None:
+                    raise ValueError("predictor diagnostics require a projector")
+                predicted = predictor(projected)
+                collected["predictor"].append(predicted.cpu().numpy())
+            if target_encoder is not None or target_projector is not None:
+                if target_encoder is None or target_projector is None:
+                    raise ValueError(
+                        "target_encoder and target_projector must be provided together"
+                    )
+                target_features = target_projector(target_encoder(images))
+                collected["target_projector"].append(target_features.cpu().numpy())
+
+    diagnostics = {}
+    for name, batches in collected.items():
+        if batches:
+            diagnostics[name] = _feature_statistics(np.concatenate(batches, axis=0))
+    return diagnostics
 
 def train_simsiam(train_loader, val_loader, args, device):
     encoder = ConvEncoder(latent_dim=args.latent_dim).to(device)
@@ -92,8 +155,15 @@ def train_simsiam(train_loader, val_loader, args, device):
             loss = simsiam_loss(p1, z2, p2, z1)
             optimizer.zero_grad(); loss.backward(); optimizer.step()
     probe = evaluate_linear_probe(encoder, train_loader, val_loader, device)
-    rank, std = _representation_stats(encoder, train_loader, device)
-    return {**probe, "effective_rank": rank, "latent_std": std}
+    diagnostics = _representation_stats(
+        encoder, train_loader, device, projector=projector, predictor=predictor
+    )
+    return {
+        **probe,
+        "effective_rank": diagnostics["encoder"]["effective_rank"],
+        "latent_std": diagnostics["encoder"]["mean_dim_std"],
+        "representation_diagnostics": diagnostics,
+    }
 
 
 def train_byol(train_loader, val_loader, args, device):
@@ -126,9 +196,21 @@ def train_byol(train_loader, val_loader, args, device):
             update_target_ema(online_encoder, target_encoder, decay=0.99)
             update_target_ema(online_projector, target_projector, decay=0.99)
     probe = evaluate_linear_probe(online_encoder, train_loader, val_loader, device)
-    rank, std = _representation_stats(online_encoder, train_loader, device)
-    return {**probe, "effective_rank": rank, "latent_std": std}
-
+    diagnostics = _representation_stats(
+        online_encoder,
+        train_loader,
+        device,
+        projector=online_projector,
+        predictor=predictor,
+        target_encoder=target_encoder,
+        target_projector=target_projector,
+    )
+    return {
+        **probe,
+        "effective_rank": diagnostics["encoder"]["effective_rank"],
+        "latent_std": diagnostics["encoder"]["mean_dim_std"],
+        "representation_diagnostics": diagnostics,
+    }
 
 def train_barlow(train_loader, val_loader, args, device):
     encoder = ConvEncoder(latent_dim=args.latent_dim).to(device)
@@ -147,9 +229,15 @@ def train_barlow(train_loader, val_loader, args, device):
             loss = barlow_twins_loss(z1, z2, lambd=0.005)
             optimizer.zero_grad(); loss.backward(); optimizer.step()
     probe = evaluate_linear_probe(encoder, train_loader, val_loader, device)
-    rank, std = _representation_stats(encoder, train_loader, device)
-    return {**probe, "effective_rank": rank, "latent_std": std}
-
+    diagnostics = _representation_stats(
+        encoder, train_loader, device, projector=projector
+    )
+    return {
+        **probe,
+        "effective_rank": diagnostics["encoder"]["effective_rank"],
+        "latent_std": diagnostics["encoder"]["mean_dim_std"],
+        "representation_diagnostics": diagnostics,
+    }
 
 def main() -> None:
     args = parse_args()
@@ -189,20 +277,40 @@ def main() -> None:
                 f"{name} seed={seed}: R2={result['mean_r2']:.3f}, "
                 f"effective-rank={result['effective_rank']:.3f}"
             )
+        space_names = sorted({
+            space
+            for result in seed_results
+            for space in result["representation_diagnostics"]
+        })
+        space_summary = {}
+        for space in space_names:
+            rows = [
+                result["representation_diagnostics"][space]
+                for result in seed_results
+                if space in result["representation_diagnostics"]
+            ]
+            space_summary[space] = {
+                "mean_effective_rank": float(np.mean([r["effective_rank"] for r in rows])),
+                "std_effective_rank": float(np.std([r["effective_rank"] for r in rows])),
+                "mean_dim_std": float(np.mean([r["mean_dim_std"] for r in rows])),
+                "std_dim_std": float(np.std([r["mean_dim_std"] for r in rows])),
+            }
         summary[name] = {
             "mean_r2": float(np.mean([r["mean_r2"] for r in seed_results])),
             "std_r2": float(np.std([r["mean_r2"] for r in seed_results])),
+            # Backwards-compatible fields describe encoder outputs only.
             "mean_effective_rank": float(np.mean([r["effective_rank"] for r in seed_results])),
             "std_effective_rank": float(np.std([r["effective_rank"] for r in seed_results])),
             "mean_latent_std": float(np.mean([r["latent_std"] for r in seed_results])),
             "std_latent_std": float(np.std([r["latent_std"] for r in seed_results])),
+            "representation_space_summary": space_summary,
             "seed_results": seed_results,
         }
 
     os.makedirs(args.results_dir, exist_ok=True)
     save_json(
         {
-            "experiment_version": 2,
+            "experiment_version": 3,
             "seeds": args.seeds,
             "config": {
                 "epochs": args.epochs,

@@ -10,6 +10,7 @@ from ch03.table_03_04_comparison import (
     REQUIRED_TASKS,
     _migrate_version3_progress,
     _migrate_version5_mae_representation_progress,
+    _migrate_version6_supervised_head_progress,
     _resummarize_saved_result,
 )
 
@@ -99,6 +100,121 @@ class TestTable0304Metrics(unittest.TestCase):
             result["excluded_state_variables"],
             [EXCLUDED_STATE_VARIABLES["finger_spin"]],
         )
+
+    def test_version5_to_version7_migration_clears_supervised_and_mae_only(self):
+        old_signature = {
+            "experiment_version": 5,
+            "epochs": 12,
+            "batch_size": 64,
+            "lr": 1e-3,
+            "latent_dim": 16,
+            "max_train_samples": 3500,
+            "max_val_samples": 1000,
+            "seeds": [0, 1, 2],
+            "tasks": ["cartpole_balance", "finger_spin"],
+            "augmentation": {
+                "max_shift": 3,
+                "brightness_range": 0.1,
+                "contrast_range": 0.1,
+            },
+            "sample_selection": "episode_stratified_even_within_episode",
+            "probe": {"feature_standardization": True},
+            "datasets": {"same": "metadata"},
+        }
+        new_signature = copy.deepcopy(old_signature)
+        new_signature["experiment_version"] = 7
+        new_signature["mae_representation"] = {
+            "source": "mean_pooled_final_encoder_tokens",
+            "feature_dim": 64,
+            "projection": None,
+        }
+        results = {
+            task: {
+                method: {"0": {"mean_r2": 0.25}}
+                for method in METHOD_NAMES
+            }
+            for task, _state_dim in REQUIRED_TASKS
+        }
+        progress = {"experiment": old_signature, "results": results}
+
+        migrated = _migrate_version5_mae_representation_progress(
+            progress, new_signature
+        )
+
+        self.assertIsNotNone(migrated)
+        for task, _state_dim in REQUIRED_TASKS:
+            self.assertEqual(migrated["results"][task][METHOD_NAMES[0]], {})
+            self.assertEqual(migrated["results"][task]["Masked Autoencoder (MAE)"], {})
+            for method in METHOD_NAMES[1:3]:
+                self.assertEqual(
+                    migrated["results"][task][method],
+                    {"0": {"mean_r2": 0.25}},
+                )
+            self.assertIn(
+                task,
+                migrated["legacy_results_before_trained_head_diagnostic"][
+                    "version5_supervised_probe_only_results"
+                ],
+            )
+
+    def test_version6_migration_retrains_only_supervised_head_arm(self):
+        old_signature = {
+            "experiment_version": 6,
+            "epochs": 12,
+            "batch_size": 64,
+            "lr": 1e-3,
+            "latent_dim": 16,
+            "mae_representation": {
+                "source": "mean_pooled_final_encoder_tokens",
+                "feature_dim": 64,
+                "projection": None,
+            },
+            "max_train_samples": 3500,
+            "max_val_samples": 1000,
+            "seeds": [0, 1, 2],
+            "tasks": ["cartpole_balance", "finger_spin"],
+            "augmentation": {
+                "max_shift": 3,
+                "brightness_range": 0.1,
+                "contrast_range": 0.1,
+            },
+            "sample_selection": "episode_stratified_even_within_episode",
+            "probe": {"feature_standardization": True},
+            "datasets": {"same": "metadata"},
+        }
+        new_signature = copy.deepcopy(old_signature)
+        new_signature["experiment_version"] = 7
+        results = {
+            task: {
+                method: {"0": {"mean_r2": 0.25}}
+                for method in METHOD_NAMES
+            }
+            for task, _state_dim in REQUIRED_TASKS
+        }
+        progress = {"experiment": old_signature, "results": results}
+
+        migrated = _migrate_version6_supervised_head_progress(
+            progress, new_signature
+        )
+
+        self.assertIsNotNone(migrated)
+        self.assertEqual(migrated["experiment"], new_signature)
+        for task, _state_dim in REQUIRED_TASKS:
+            self.assertEqual(
+                migrated["results"][task][METHOD_NAMES[0]],
+                {},
+            )
+            for method in METHOD_NAMES[1:]:
+                self.assertEqual(
+                    migrated["results"][task][method],
+                    {"0": {"mean_r2": 0.25}},
+                )
+            self.assertEqual(
+                migrated["legacy_results_before_trained_head_diagnostic"][
+                    "version6_supervised_probe_only_results"
+                ][task][METHOD_NAMES[0]],
+                {"0": {"mean_r2": 0.25}},
+            )
 
     def test_version3_migration_archives_all_biased_sampling_results(self):
         old_signature = {
