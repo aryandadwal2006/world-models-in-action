@@ -116,8 +116,9 @@ class TemporalCPC(nn.Module):
 
         n_cpc = 0
 
+        # Score every valid context, as in the paper's multi-horizon objective.
         for t_idx in range(
-            4,
+            0,
             t - self.k_steps,
         ):
             c_t = c_seq[:, t_idx]
