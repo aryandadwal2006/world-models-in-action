@@ -101,6 +101,7 @@ def run_experiment(
         "encoder_effective_rank": [],
         "projector_effective_rank": [],
         "training_loss": [],
+        "training_loss_epochs": [],
         "diagnostic_epochs": [],
     }
 
@@ -156,6 +157,7 @@ def run_experiment(
         if total_examples == 0:
             raise RuntimeError("Training loader produced no examples")
         history["training_loss"].append(total_loss / total_examples)
+        history["training_loss_epochs"].append(epoch)
 
         encoder_stats, projector_stats = measure_representations()
         history["diagnostic_epochs"].append(epoch)
@@ -318,6 +320,7 @@ def main() -> None:
     save_json({
         "experiment_version": 3,
         "diagnostic_epochs": list(range(args.epochs + 1)),
+        "training_loss_epochs": list(range(1, args.epochs + 1)),
         "baseline": "epoch 0 is the randomly initialized model before any optimizer update",
         "seeds": args.seeds,
         "epochs": args.epochs,
