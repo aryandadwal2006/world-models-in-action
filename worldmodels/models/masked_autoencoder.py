@@ -11,10 +11,13 @@ from worldmodels.losses.reconstruction import masked_mse_loss
 class SimpleMAE(nn.Module):
     """Small patch-based masked autoencoder for the DMC images.
 
-    The pooled ``latent_dim`` vector is the representation exposed to the
-    linear probe. The decoder deliberately operates on per-patch encoder
-    tokens, not on that pooled vector, matching the basic MAE design in which
-    the downstream representation and reconstruction pathway are distinct.
+    The mean-pooled final encoder tokens are the representation exposed to
+    the linear probe. The decoder deliberately operates on per-patch encoder
+    tokens, not on the pooled vector, matching the basic MAE design in which
+    downstream features and reconstruction use distinct paths.
+
+    ``latent_dim`` remains accepted for call-site compatibility, but does not
+    control MAE probe features: their dimension is ``embed_dim``.
     """
 
     def __init__(
@@ -36,7 +39,8 @@ class SimpleMAE(nn.Module):
         self.patch_size = patch_size
         self.in_channels = in_channels
         self.embed_dim = embed_dim
-        self.latent_dim = latent_dim
+        # Backwards-compatible field: probe features use embed_dim directly.
+        self.latent_dim = embed_dim
         self.mask_ratio = mask_ratio
         self.num_patches = (img_size // patch_size) ** 2
         if int(self.num_patches * (1.0 - mask_ratio)) < 1:
@@ -54,10 +58,6 @@ class SimpleMAE(nn.Module):
             batch_first=True,
         )
         self.encoder_transformer = nn.TransformerEncoder(encoder_layer, num_layers=2)
-
-        # Downstream representation. It is intentionally separate from the
-        # per-patch decoder stream, as in the basic MAE architecture.
-        self.to_latent = nn.Linear(embed_dim, latent_dim)
 
         self.mask_token = nn.Parameter(torch.zeros(1, 1, embed_dim))
         decoder_layer = nn.TransformerEncoderLayer(
@@ -103,7 +103,9 @@ class SimpleMAE(nn.Module):
         mask = torch.gather(mask, 1, ids_restore)
 
         encoded_visible = self.encoder_transformer(visible)
-        z = self.to_latent(encoded_visible.mean(dim=1))
+        # Pool trained encoder tokens directly; reconstruction does not train
+        # a separate projection head.
+        z = encoded_visible.mean(dim=1)
         return z, encoded_visible, mask, ids_restore
 
     def forward_decoder(self, encoded_visible: torch.Tensor, ids_restore: torch.Tensor) -> torch.Tensor:
@@ -131,7 +133,7 @@ class SimpleMAE(nn.Module):
         patches = self.patchify(x)
         tokens = self.patch_embed(patches) + self.encoder_pos_embed
         encoded = self.encoder_transformer(tokens)
-        return self.to_latent(encoded.mean(dim=1))
+        return encoded.mean(dim=1)
 
 
 class MAEEncoder(nn.Module):
