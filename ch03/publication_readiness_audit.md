@@ -3,7 +3,7 @@
 **Audit date:** 14 October 2026  
 **Baseline inspected:** `audit/chapter3-methodology-fixes` at `e659756d7f5a99be91e16be46270fd52cf2d1b2e`  
 **Follow-up branch:** `audit/chapter3-publication-readiness` (contains the checkpoint-only evaluation changes)  
-**Default branch:** `main` at `230b298b9d1ed031e69e6987bb9c2a2e88bc8086`; not modified by this audit.
+**Default branch at the time of the original audit:** `main` at `230b298b9d1ed031e69e6987bb9c2a2e88bc8086`. The MAE representation-path correction below was subsequently committed directly to `main` on 17 October 2026.
 
 ## MAE representation-path correction (17 October 2026)
 
