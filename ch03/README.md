@@ -43,7 +43,7 @@ Run scripts from the repository root.
 
 - Training objectives have different scales; do not rank methods by raw loss values.
 - Table 3.4 compares complete configurations, not only loss functions: the MAE arm uses a patch-transformer encoder/decoder while other arms use a convolutional encoder.
-- MAE linear probes use the mean-pooled final encoder tokens (64 features in the current configuration), not a separate pooled projection that the reconstruction loss never trains. The committed MAE scores are historical and must not be treated as current until the corrected MAE runs finish.
+- MAE linear probes use the mean-pooled final encoder tokens (64 features in the current configuration), not a separate pooled projection that the reconstruction loss never trains. The corrected standalone three-seed run reports mean probe R² = 0.170 ± 0.004. The current Table 3.4 MAE results are Cartpole position 0.475 ± 0.012, Cartpole velocity −0.156 ± 0.005, Finger position 0.383 ± 0.010, and Finger velocity −0.034 ± 0.001. These results are configuration-specific; see the committed JSON artifacts.
 - Two-frame stacking did not reliably recover velocity in the tested setup. State this as a bounded empirical result, not a general impossibility.
 - The CPC missing-frame result is negative and seed-sensitive. The privileged state-history baseline receives ground-truth physics states, unlike CPC's rendered-image input, so it is not a like-for-like comparison.
 - The committed figures/results are experiment artifacts. A new run only reproduces them if the configuration, checkpoint and evaluation contract match the recorded experiment.
