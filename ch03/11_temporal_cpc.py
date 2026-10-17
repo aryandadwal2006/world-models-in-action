@@ -719,6 +719,7 @@ def rollout_gap(
         hidden = None
         c_current = None
         z_used = []
+        raw_prediction_norms = []
 
         for step in range(t):
             if (
@@ -736,6 +737,12 @@ def rollout_gap(
                         "at gap start"
                     )
 
+                # Inspect raw scores too: z_in is unit-normalized by construction,
+                # so its norm cannot diagnose prediction stability.
+                raw_prediction = c_current @ model.w_k[0].T
+                raw_prediction_norms.append(
+                    torch.linalg.vector_norm(raw_prediction, dim=-1)
+                )
                 z_in = (
                     model.predict_next_latent(
                         c_current
@@ -759,17 +766,11 @@ def rollout_gap(
             dim=1,
         )
 
-    latent_norms = torch.linalg.vector_norm(
-        z_rollout,
-        dim=-1,
-    )
+    raw_norms = torch.cat(raw_prediction_norms, dim=0)
 
-    if not torch.isfinite(
-        latent_norms
-    ).all():
+    if not torch.isfinite(raw_norms).all():
         raise FloatingPointError(
-            "Non-finite latent during "
-            "CPC rollout"
+            "Non-finite unnormalized CPC prediction during rollout"
         )
 
     pred_states = state_probe.predict(
@@ -792,7 +793,7 @@ def rollout_gap(
         pred_states,
         observed_states,
         float(
-            latent_norms.max().item()
+            raw_norms.max().item()
         ),
     )
 
@@ -856,7 +857,7 @@ def evaluate_gap(
     per_episode_arrays = {}
 
     first_figure_data = None
-    max_latent_norm = 0.0
+    max_raw_prediction_norm = 0.0
 
     gap_end = (
         args.gap_start
@@ -888,7 +889,7 @@ def evaluate_gap(
                 (
                     pred_states,
                     observed_states,
-                    sample_max_norm,
+                    sample_max_raw_prediction_norm,
                 ) = rollout_gap(
                     model,
                     images[
@@ -900,9 +901,9 @@ def evaluate_gap(
                     state_probe,
                 )
 
-                max_latent_norm = max(
-                    max_latent_norm,
-                    sample_max_norm,
+                max_raw_prediction_norm = max(
+                    max_raw_prediction_norm,
+                    sample_max_raw_prediction_norm,
                 )
 
                 linear = linear_extrapolation_gap(
@@ -1043,8 +1044,8 @@ def evaluate_gap(
             "linear_gap_mean_r2": float(
                 np.mean(r2_linear)
             ),
-            "max_rollout_latent_norm": float(
-                max_latent_norm
+            "max_raw_cpc_head_output_norm": float(
+                max_raw_prediction_norm
             ),
         },
         first_figure_data,
@@ -1624,8 +1625,8 @@ def main() -> None:
             f"{gap_stats['cpc_gap_mean_r2']:.3f}, "
             f"linear="
             f"{gap_stats['linear_gap_mean_r2']:.3f} | "
-            f"max ||z||="
-            f"{gap_stats['max_rollout_latent_norm']:.6f}"
+            f"max ||raw w_1 c||="
+            f"{gap_stats['max_raw_cpc_head_output_norm']:.6f}"
         )
 
     if first_figure_data is not None:
