@@ -195,6 +195,150 @@ def make_loader(
     )
 
 
+def evaluate_cpc_future_retrieval(model, loader, device) -> dict:
+    """Evaluate CPC using its trained InfoNCE compatibility scores.
+
+    For every valid context and each trained future horizon, each row scores
+    its own future latent against future latents from other held-out sequences
+    in the same batch. No predicted embedding is fed back into the GRU and no
+    pointwise latent MSE is used. Higher top-1 retrieval and positive-vs-hardest-
+    negative margin, plus lower InfoNCE loss, indicate better objective-aligned
+    future identification.
+    """
+    if int(getattr(model, "k_steps", 0)) < 1:
+        raise ValueError("CPC model must expose a positive k_steps value")
+    was_training = model.training
+    model.eval()
+    k_steps = int(model.k_steps)
+    totals = {
+        horizon: {
+            "loss_sum": 0.0,
+            "top1_correct": 0,
+            "top5_correct": 0,
+            "positive_score_sum": 0.0,
+            "hardest_negative_score_sum": 0.0,
+            "margin_sum": 0.0,
+            "chance_sum": 0.0,
+            "num_context_examples": 0,
+            "candidate_count_sum": 0.0,
+            "num_batches": 0,
+        }
+        for horizon in range(1, k_steps + 1)
+    }
+    num_sequences = 0
+    skipped_singleton_batches = 0
+    with torch.no_grad():
+        for batch in loader:
+            images = batch["images"].to(device)
+            z_seq = model.encode_sequence(images)
+            c_seq, _ = model.gru(z_seq)
+            batch_size, seq_len, _ = z_seq.shape
+            num_sequences += int(batch_size)
+            if batch_size < 2:
+                skipped_singleton_batches += 1
+                continue
+            if seq_len <= k_steps:
+                raise ValueError(
+                    f"Sequence length {seq_len} is too short for k_steps={k_steps}"
+                )
+            labels = torch.arange(batch_size, device=device)
+            diagonal = torch.eye(batch_size, dtype=torch.bool, device=device)
+            for time_index in range(seq_len - k_steps):
+                context = c_seq[:, time_index]
+                for horizon in range(1, k_steps + 1):
+                    target = z_seq[:, time_index + horizon]
+                    scores = (context @ model.w_k[horizon - 1].T) @ target.T
+                    loss_sum = F.cross_entropy(scores, labels, reduction="sum")
+                    positive = scores.diagonal()
+                    hardest_negative = scores.masked_fill(
+                        diagonal, -torch.inf
+                    ).max(dim=1).values
+                    top1 = scores.argmax(dim=1).eq(labels).sum().item()
+                    top_k = min(5, batch_size)
+                    top_k_indices = scores.topk(top_k, dim=1).indices
+                    top5 = top_k_indices.eq(labels[:, None]).any(dim=1).sum().item()
+                    item = totals[horizon]
+                    item["loss_sum"] += float(loss_sum.item())
+                    item["top1_correct"] += int(top1)
+                    item["top5_correct"] += int(top5)
+                    item["positive_score_sum"] += float(positive.sum().item())
+                    item["hardest_negative_score_sum"] += float(hardest_negative.sum().item())
+                    item["margin_sum"] += float((positive - hardest_negative).sum().item())
+                    item["chance_sum"] += 1.0
+                    item["num_context_examples"] += int(batch_size)
+                    item["candidate_count_sum"] += float(batch_size * batch_size)
+                    item["num_batches"] += 1
+    model.train(was_training)
+
+    by_horizon = {}
+    for horizon, item in totals.items():
+        n = item["num_context_examples"]
+        if n == 0:
+            raise RuntimeError(
+                f"No CPC retrieval examples for horizon={horizon}; "
+                "provide at least one validation batch of size >= 2."
+            )
+        # chance_sum adds one expected correct match per context position and
+        # batch, then divides by all candidate rows to report the mean 1/B rate.
+        by_horizon[str(horizon)] = {
+            "infonce_loss": item["loss_sum"] / n,
+            "top1_accuracy": item["top1_correct"] / n,
+            "top5_accuracy": item["top5_correct"] / n,
+            "random_top1_chance": item["chance_sum"] / n,
+            "mean_positive_score": item["positive_score_sum"] / n,
+            "mean_hardest_negative_score": item["hardest_negative_score_sum"] / n,
+            "mean_positive_minus_hardest_negative": item["margin_sum"] / n,
+            "num_context_examples": n,
+            "mean_candidate_count": item["candidate_count_sum"] / max(1, item["num_context_examples"]),
+        }
+    return {
+        "by_horizon": by_horizon,
+        "num_sequences_seen": num_sequences,
+        "skipped_singleton_batches": skipped_singleton_batches,
+        "candidate_definition": "future latents from other held-out, episode-safe windows in the same batch",
+        "method": "standard CPC bilinear compatibility scores and multi-horizon InfoNCE retrieval",
+    }
+
+
+def summarize_cpc_future_retrieval(seed_metrics: list[dict]) -> dict:
+    """Aggregate retrieval results over independent random seeds."""
+    if not seed_metrics:
+        raise ValueError("seed_metrics cannot be empty")
+    horizons = sorted(
+        seed_metrics[0]["cpc_future_retrieval"]["by_horizon"],
+        key=int,
+    )
+    metric_names = (
+        "infonce_loss",
+        "top1_accuracy",
+        "top5_accuracy",
+        "random_top1_chance",
+        "mean_positive_score",
+        "mean_hardest_negative_score",
+        "mean_positive_minus_hardest_negative",
+    )
+    summary = {"by_horizon": {}}
+    for horizon in horizons:
+        summary["by_horizon"][horizon] = {}
+        for metric in metric_names:
+            values = [
+                float(result["cpc_future_retrieval"]["by_horizon"][horizon][metric])
+                for result in seed_metrics
+            ]
+            summary["by_horizon"][horizon][metric] = {
+                "mean_over_seeds": float(np.mean(values)),
+                "std_over_seeds": float(np.std(values)),
+                "per_seed": values,
+            }
+    summary["interpretation"] = (
+        "Top-1 retrieval should be compared with random_top1_chance; "
+        "InfoNCE loss and positive-minus-hardest-negative margin are direct "
+        "diagnostics of CPC's trained compatibility objective. This is not a "
+        "claim that CPC directly regresses future latent vectors."
+    )
+    return summary
+
+
 def episode_stratified_nonoverlapping_subset(
     dataset: SequenceDataset,
     max_items: int,
