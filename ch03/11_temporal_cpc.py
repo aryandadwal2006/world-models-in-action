@@ -36,7 +36,6 @@ from worldmodels.data.dmc_data import (
 )
 from worldmodels.eval.probes import (
     StateLinearProbe,
-    compute_structured_r2_score,
     infer_angular_position_indices,
 )
 from worldmodels.data.sequences import SequenceDataset
@@ -400,7 +399,7 @@ def sequence_window_metadata(
     dataset: SequenceDataset,
     subset: Subset,
 ) -> dict:
-    """Describe and validate the selected gap windows for reproducibility."""
+    """Describe and validate the selected retrieval windows for reproducibility."""
     starts = [
         int(dataset.valid_indices[int(index)])
         for index in subset.indices
@@ -434,7 +433,7 @@ def sequence_window_metadata(
             )
         ):
             raise RuntimeError(
-                f"Gap windows overlap in episode {episode}"
+                f"Retrieval windows overlap in episode {episode}"
             )
 
     return {
