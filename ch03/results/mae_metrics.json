@@ -11,5 +11,7 @@
     0.003712880283811393,
     0.04671977188376969,
     0.02497311599185348
-  ]
+  ],
+  "mae_probe_status": "historical_invalidated_pending_corrected_rerun",
+  "status_note": "These metrics were produced using a separate pooled projection that received no reconstruction gradient. Do not use as current MAE probe results."
 }
