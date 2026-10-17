@@ -1,5 +1,7 @@
 # Chapter 3 Publication-Readiness Audit
 
+> **Method-fidelity status update (17 October 2026):** This audit predates the paper-fidelity corrections on `diagnostics/ch03-experiment-validation`. The CPC scores reported below came from an earlier hybrid implementation with L2-normalized latents, temperature-scaled scores, an auxiliary one-step latent MSE head, and a restricted context range. The current branch removes those deviations and uses raw bilinear multi-horizon InfoNCE over all valid contexts. Its CPC checkpoints and results must be freshly trained before any new quantitative claim. The previously committed CPC scores remain historical, not results for the current implementation. The three-mechanism outputs and collapse curves also predate their latest architecture/baseline corrections and need reruns. Table 3.4 itself is not part of these architecture fixes.
+
 **Audit date:** 14 October 2026  
 **Baseline inspected:** `audit/chapter3-methodology-fixes` at `e659756d7f5a99be91e16be46270fd52cf2d1b2e`  
 **Follow-up branch:** `audit/chapter3-publication-readiness` (contains the checkpoint-only evaluation changes)  
