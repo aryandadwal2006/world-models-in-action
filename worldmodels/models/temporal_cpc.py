@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 
 class TemporalCPC(nn.Module):
@@ -16,7 +15,6 @@ class TemporalCPC(nn.Module):
         latent_dim=16,
         context_dim=32,
         k_steps=3,
-        temperature=0.5,
     ):
         super().__init__()
 
@@ -30,16 +28,10 @@ class TemporalCPC(nn.Module):
                 "k_steps must be positive"
             )
 
-        if temperature <= 0:
-            raise ValueError(
-                "temperature must be positive"
-            )
-
         self.encoder = encoder
         self.latent_dim = latent_dim
         self.context_dim = context_dim
         self.k_steps = k_steps
-        self.temperature = temperature
 
         self.gru = nn.GRU(
             latent_dim,
@@ -64,13 +56,8 @@ class TemporalCPC(nn.Module):
         self,
         c_t,
     ):
-        """Use CPC's learned one-step bilinear head for latent rollout diagnostics."""
-        return F.normalize(
-            c_t @ self.w_k[0].T,
-            p=2,
-            dim=-1,
-            eps=1e-8,
-        )
+        """Apply CPC's learned one-step bilinear head without post-normalization."""
+        return c_t @ self.w_k[0].T
 
     def encode_sequence(
         self,
@@ -99,12 +86,8 @@ class TemporalCPC(nn.Module):
             self.latent_dim,
         )
 
-        return F.normalize(
-            z,
-            p=2,
-            dim=-1,
-            eps=1e-8,
-        )
+        # CPC's score is a bilinear dot product; preserve the encoder's latent scale.
+        return z
 
     def forward(
         self,
@@ -146,16 +129,8 @@ class TemporalCPC(nn.Module):
                     t_idx + 1 + k,
                 ]
 
-                pred = F.normalize(
-                    c_t @ self.w_k[k].T,
-                    p=2,
-                    dim=-1,
-                    eps=1e-8,
-                )
-
-                logits = (
-                    pred @ target.T
-                ) / self.temperature
+                pred = c_t @ self.w_k[k].T
+                logits = pred @ target.T
 
                 labels = torch.arange(
                     b,
