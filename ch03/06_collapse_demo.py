@@ -93,7 +93,32 @@ def run_experiment(
         "encoder_effective_rank": [],
         "projector_effective_rank": [],
         "training_loss": [],
+        "diagnostic_epochs": [],
     }
+
+    def measure_representations():
+        encoder.eval()
+        proj_head.eval()
+        all_encoder = []
+        all_projector = []
+        with torch.no_grad():
+            for batch in train_loader:
+                images = batch["image"].to(device)
+                features = encoder(images)
+                projected = proj_head(features)
+                all_encoder.append(features.cpu().numpy())
+                all_projector.append(projected.cpu().numpy())
+        encoder_stats = _feature_diagnostics(np.concatenate(all_encoder, axis=0))
+        projector_stats = _feature_diagnostics(np.concatenate(all_projector, axis=0))
+        return encoder_stats, projector_stats
+
+    # Record the randomly initialized representation before any optimizer step.
+    encoder_stats, projector_stats = measure_representations()
+    history["diagnostic_epochs"].append(0)
+    history["encoder_mean_std"].append(encoder_stats["mean_dim_std"])
+    history["projector_mean_std"].append(projector_stats["mean_dim_std"])
+    history["encoder_effective_rank"].append(encoder_stats["effective_rank"])
+    history["projector_effective_rank"].append(projector_stats["effective_rank"])
 
     for epoch in range(1, args.epochs + 1):
         encoder.train()
@@ -124,20 +149,8 @@ def run_experiment(
             raise RuntimeError("Training loader produced no examples")
         history["training_loss"].append(total_loss / total_examples)
 
-        encoder.eval()
-        proj_head.eval()
-        all_encoder = []
-        all_projector = []
-        with torch.no_grad():
-            for batch in train_loader:
-                images = batch["image"].to(device)
-                features = encoder(images)
-                projected = proj_head(features)
-                all_encoder.append(features.cpu().numpy())
-                all_projector.append(projected.cpu().numpy())
-
-        encoder_stats = _feature_diagnostics(np.concatenate(all_encoder, axis=0))
-        projector_stats = _feature_diagnostics(np.concatenate(all_projector, axis=0))
+        encoder_stats, projector_stats = measure_representations()
+        history["diagnostic_epochs"].append(epoch)
         history["encoder_mean_std"].append(encoder_stats["mean_dim_std"])
         history["projector_mean_std"].append(projector_stats["mean_dim_std"])
         history["encoder_effective_rank"].append(encoder_stats["effective_rank"])
@@ -211,7 +224,7 @@ def main() -> None:
         dtype=np.float64,
     )
 
-    epochs = np.arange(1, args.epochs + 1)
+    epochs = np.arange(0, args.epochs + 1)
 
     # Figure 3.9 keeps its established encoder-space diagnostic.
     fig, ax = plt.subplots(figsize=(6.5, 3.8))
@@ -295,7 +308,9 @@ def main() -> None:
 
     res_path = os.path.join(args.results_dir, "collapse_demo.json")
     save_json({
-        "experiment_version": 2,
+        "experiment_version": 3,
+        "diagnostic_epochs": list(range(args.epochs + 1)),
+        "baseline": "epoch 0 is the randomly initialized model before any optimizer update",
         "seeds": args.seeds,
         "epochs": args.epochs,
         "sample_selection": "episode_stratified_even_within_episode",
