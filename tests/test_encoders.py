@@ -69,6 +69,7 @@ class TestEncoders(unittest.TestCase):
         self.assertEqual(pred_patches.shape, (self.batch_size, 64, 3 * 8 * 8))
         self.assertEqual(mask.shape, (self.batch_size, 64))
 
+        mae.eval()
         z = mae.encode(self.x)
         self.assertEqual(z.shape, (self.batch_size, mae.embed_dim))
         self.assertFalse(hasattr(mae, "to_latent"))
