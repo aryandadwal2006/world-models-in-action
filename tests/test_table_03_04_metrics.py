@@ -9,6 +9,7 @@ from ch03.table_03_04_comparison import (
     METHOD_NAMES,
     REQUIRED_TASKS,
     _migrate_version3_progress,
+    _migrate_version5_mae_representation_progress,
     _resummarize_saved_result,
 )
 
@@ -20,6 +21,53 @@ class TestTable0304Metrics(unittest.TestCase):
             METHOD_DISPLAY_NAMES["Supervised State-Prediction Reference"],
             "Supervised-pretrained encoder + frozen-feature linear probe",
         )
+
+    def test_version5_migration_clears_only_mae_results(self):
+        old_signature = {
+            "experiment_version": 5,
+            "latent_dim": 16,
+            "tasks": ["cartpole_balance", "finger_spin"],
+        }
+        new_signature = copy.deepcopy(old_signature)
+        new_signature["experiment_version"] = 6
+        new_signature["mae_representation"] = {
+            "source": "mean_pooled_final_encoder_tokens",
+            "feature_dim": 64,
+            "projection": None,
+        }
+        results = {
+            task: {
+                method: {"0": {"mean_r2": 0.25}}
+                for method in METHOD_NAMES
+            }
+            for task, _state_dim in REQUIRED_TASKS
+        }
+        progress = {"experiment": old_signature, "results": results}
+
+        migrated = _migrate_version5_mae_representation_progress(
+            progress, new_signature
+        )
+
+        self.assertIsNotNone(migrated)
+        self.assertEqual(migrated["experiment"], new_signature)
+        for task, _state_dim in REQUIRED_TASKS:
+            self.assertEqual(
+                migrated["results"][task]["Masked Autoencoder (MAE)"], {}
+            )
+            self.assertEqual(
+                migrated["results"][task]["Contrastive (NT-Xent)"],
+                {"0": {"mean_r2": 0.25}},
+            )
+            self.assertEqual(
+                migrated["results"][task]["VICReg"],
+                {"0": {"mean_r2": 0.25}},
+            )
+            self.assertIn(
+                task,
+                migrated["legacy_results_before_mae_representation_fix"][
+                    "version5_mae_results"
+                ],
+            )
 
     def test_finger_spinner_angle_is_excluded_from_aggregate(self):
         result = {
