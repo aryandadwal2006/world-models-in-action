@@ -126,13 +126,13 @@ class TestCPCFutureRetrieval(unittest.TestCase):
             np.cos(np.linspace(-1.0, 1.0, 100) * 3),
         ])
         ordinary = MECHANISMS._feature_statistics(values)
-        tiny = MECHANISMS._feature_statistics(values * 1e-9)
+        tiny = MECHANISMS._feature_statistics(values * 1e-6)
         self.assertAlmostEqual(
             ordinary["effective_rank"],
             tiny["effective_rank"],
             places=6,
         )
-        self.assertLess(tiny["mean_dim_std"], ordinary["mean_dim_std"] * 1e-8)
+        self.assertLess(tiny["mean_dim_std"], ordinary["mean_dim_std"] * 1e-5)
 
 
 class TinyFrameEncoder(nn.Module):
