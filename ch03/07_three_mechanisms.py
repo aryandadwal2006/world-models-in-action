@@ -42,10 +42,94 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--batch-size", type=int, default=64)
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--latent-dim", type=int, default=16)
+    parser.add_argument("--projector-dim", type=int, default=64)
     parser.add_argument("--max-train-samples", type=int, default=3000)
     parser.add_argument("--data-dir", type=str, default="data")
     parser.add_argument("--results-dir", type=str, default="ch03/results")
     return parser.parse_args()
+
+
+class SimSiamProjector(nn.Module):
+    """Reduced-width version of the paper's 3-layer projector with BatchNorm."""
+
+    def __init__(self, in_dim: int, hidden_dim: int, out_dim: int):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(in_dim, hidden_dim, bias=False),
+            nn.BatchNorm1d(hidden_dim),
+            nn.ReLU(inplace=True),
+            nn.Linear(hidden_dim, hidden_dim, bias=False),
+            nn.BatchNorm1d(hidden_dim),
+            nn.ReLU(inplace=True),
+            nn.Linear(hidden_dim, out_dim, bias=False),
+            nn.BatchNorm1d(out_dim, affine=False),
+        )
+
+    def forward(self, x):
+        return self.net(x)
+
+
+class SimSiamPredictor(nn.Module):
+    """Two-layer predictor with hidden BatchNorm, matching SimSiam's mechanism."""
+
+    def __init__(self, in_dim: int, hidden_dim: int, out_dim: int):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(in_dim, hidden_dim, bias=False),
+            nn.BatchNorm1d(hidden_dim),
+            nn.ReLU(inplace=True),
+            nn.Linear(hidden_dim, out_dim),
+        )
+
+    def forward(self, x):
+        return self.net(x)
+
+
+class BYOLHead(nn.Module):
+    """Small two-layer BYOL MLP; width is intentionally far below ImageNet scale."""
+
+    def __init__(self, in_dim: int, hidden_dim: int, out_dim: int):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(in_dim, hidden_dim, bias=False),
+            nn.BatchNorm1d(hidden_dim),
+            nn.ReLU(inplace=True),
+            nn.Linear(hidden_dim, out_dim),
+        )
+
+    def forward(self, x):
+        return self.net(x)
+
+
+class BarlowProjector(nn.Module):
+    """Reduced-width 3-layer Barlow Twins projector with BatchNorm hidden layers."""
+
+    def __init__(self, in_dim: int, hidden_dim: int, out_dim: int):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(in_dim, hidden_dim, bias=False),
+            nn.BatchNorm1d(hidden_dim),
+            nn.ReLU(inplace=True),
+            nn.Linear(hidden_dim, hidden_dim, bias=False),
+            nn.BatchNorm1d(hidden_dim),
+            nn.ReLU(inplace=True),
+            nn.Linear(hidden_dim, out_dim, bias=False),
+        )
+
+    def forward(self, x):
+        return self.net(x)
+
+
+@torch.no_grad()
+def _ema_update_buffers(online_model: nn.Module, target_model: nn.Module, decay: float):
+    """Keep target BatchNorm running statistics synchronized with the EMA target."""
+    for online_buffer, target_buffer in zip(
+        online_model.buffers(), target_model.buffers()
+    ):
+        if target_buffer.is_floating_point():
+            target_buffer.mul_(decay).add_(online_buffer, alpha=1.0 - decay)
+        else:
+            target_buffer.copy_(online_buffer)
 
 
 def effective_rank(z: np.ndarray) -> float:
@@ -138,8 +222,8 @@ def _representation_stats(
 
 def train_simsiam(train_loader, val_loader, args, device):
     encoder = ConvEncoder(latent_dim=args.latent_dim).to(device)
-    projector = ProjectionHead(args.latent_dim, 64, args.latent_dim).to(device)
-    predictor = ProjectionHead(args.latent_dim, 64, args.latent_dim).to(device)
+    projector = SimSiamProjector(args.latent_dim, 64, args.projector_dim).to(device)
+    predictor = SimSiamPredictor(args.projector_dim, 64, args.projector_dim).to(device)
     optimizer = torch.optim.Adam(
         list(encoder.parameters()) + list(projector.parameters()) + list(predictor.parameters()),
         lr=args.lr,
@@ -168,8 +252,8 @@ def train_simsiam(train_loader, val_loader, args, device):
 
 def train_byol(train_loader, val_loader, args, device):
     online_encoder = ConvEncoder(latent_dim=args.latent_dim).to(device)
-    online_projector = ProjectionHead(args.latent_dim, 64, args.latent_dim).to(device)
-    predictor = ProjectionHead(args.latent_dim, 64, args.latent_dim).to(device)
+    online_projector = BYOLHead(args.latent_dim, 64, args.projector_dim).to(device)
+    predictor = BYOLHead(args.projector_dim, 64, args.projector_dim).to(device)
     target_encoder = copy.deepcopy(online_encoder).to(device)
     target_projector = copy.deepcopy(online_projector).to(device)
     for parameter in list(target_encoder.parameters()) + list(target_projector.parameters()):
@@ -195,6 +279,8 @@ def train_byol(train_loader, val_loader, args, device):
             optimizer.zero_grad(); loss.backward(); optimizer.step()
             update_target_ema(online_encoder, target_encoder, decay=0.99)
             update_target_ema(online_projector, target_projector, decay=0.99)
+            _ema_update_buffers(online_encoder, target_encoder, decay=0.99)
+            _ema_update_buffers(online_projector, target_projector, decay=0.99)
     probe = evaluate_linear_probe(online_encoder, train_loader, val_loader, device)
     diagnostics = _representation_stats(
         online_encoder,
@@ -214,7 +300,7 @@ def train_byol(train_loader, val_loader, args, device):
 
 def train_barlow(train_loader, val_loader, args, device):
     encoder = ConvEncoder(latent_dim=args.latent_dim).to(device)
-    projector = ProjectionHead(args.latent_dim, 64, args.latent_dim).to(device)
+    projector = BarlowProjector(args.latent_dim, 64, args.projector_dim).to(device)
     optimizer = torch.optim.Adam(
         list(encoder.parameters()) + list(projector.parameters()),
         lr=args.lr,
@@ -310,13 +396,21 @@ def main() -> None:
     os.makedirs(args.results_dir, exist_ok=True)
     save_json(
         {
-            "experiment_version": 3,
+            "experiment_version": 4,
+            "implementation_scope": "mechanism-faithful reduced-scale DMC demonstration; not an exact large-scale reproduction of the original benchmarks",
+            "architecture_contract": {
+                "simsiam": "3-layer BatchNorm projector with affine-free output BatchNorm; 2-layer BatchNorm predictor; stop-gradient cosine loss",
+                "byol": "online and EMA target networks with BatchNorm MLP heads and cosine loss",
+                "barlow_twins": "3-layer BatchNorm projector and cross-correlation redundancy-reduction loss",
+                "backbone": "shared lightweight convolutional encoder rather than the original large-scale benchmark backbone",
+            },
             "seeds": args.seeds,
             "config": {
                 "epochs": args.epochs,
                 "batch_size": args.batch_size,
                 "learning_rate": args.lr,
                 "latent_dim": args.latent_dim,
+                "projector_dim": args.projector_dim,
                 "max_train_samples": args.max_train_samples,
                 "sample_selection": "episode_stratified_even_within_episode",
                 "augmentation": {
