@@ -1,5 +1,7 @@
 # Chapter 3 Audit Findings — Corrected Runs and Interpretation
 
+> **Method-fidelity status update (17 October 2026):** The CPC gap and three-mechanism measurements reported below describe earlier implementations. On `diagnostics/ch03-experiment-validation`, CPC now uses raw bilinear, multi-horizon InfoNCE without latent normalization, temperature scaling, or an auxiliary one-step MSE loss; it trains over all valid context positions. SimSiam/BYOL/Barlow Twins now use method-specific BatchNorm heads, and the collapse demo records epoch 0. None of these updated experiments has been rerun yet. Preserve the old numbers as historical evidence only; use the isolated rerun paths in `ch03/README.md` before updating manuscript claims. The Table 3.4 findings below are not invalidated by these specific changes.
+
 **Original experiment-result commit:** `7d4c77feb7e7e15bf8cb6b7ca3a1cd5ff411f559`  
 **Corrected design/findings on the original audit branch:** most recently inspected at `e659756d7f5a99be91e16be46270fd52cf2d1b2e`.  
 **Publication-readiness follow-up:** `audit/chapter3-publication-readiness`; the original 32-window CPC result remains historical, and the expanded checkpoint-only evaluation artifact was committed at `4e105393a27f43aeabfea19edc7d310454b7cbae`.
