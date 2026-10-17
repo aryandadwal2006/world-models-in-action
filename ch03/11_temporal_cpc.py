@@ -1,8 +1,8 @@
 """Temporal CPC and missing-observation tests for Chapter 3.
 
-The CPC objective uses a causal GRU context and bilinear InfoNCE compatibility.
-Latent representations and predicted latents are L2-normalized. State probes
-use standardized features and circular evaluation for angular positions.
+The CPC objective uses a causal GRU context and raw bilinear InfoNCE scores.
+Latent representations are not L2-normalized and no temperature is applied.
+State probes use standardized features and circular evaluation for angular positions.
 
 The evaluation distinguishes current-state decoding, next-state prediction,
 and prediction through a real unobserved interval. Angular metrics respect the
@@ -49,8 +49,8 @@ from worldmodels.train import (
     set_seed,
 )
 
-EXPERIMENT_VERSION = 6
-CPC_OBJECTIVE_CONTRACT = "canonical_cpc_infonce_multi_horizon_v1"
+EXPERIMENT_VERSION = 7
+CPC_OBJECTIVE_CONTRACT = "canonical_cpc_raw_dot_product_infonce_multi_horizon_v2"
 GAP_EVALUATION_CONTRACT_VERSION = 2
 CARTPOLE_STATE_NAMES = (
     "cart_position",
@@ -110,11 +110,6 @@ def parse_args() -> argparse.Namespace:
         "--k-steps",
         type=int,
         default=3,
-    )
-    p.add_argument(
-        "--temperature",
-        type=float,
-        default=0.5,
     )
     p.add_argument(
         "--max-train-frames",
@@ -346,7 +341,6 @@ def validate_checkpoint_evaluation(args) -> dict:
         "latent_dim",
         "context_dim",
         "k_steps",
-        "temperature",
         "max_train_frames",
         "max_val_frames",
         "gap_start",
@@ -382,7 +376,6 @@ def validate_checkpoint_evaluation(args) -> dict:
             "latent_dim": args.latent_dim,
             "context_dim": args.context_dim,
             "k_steps": args.k_steps,
-            "temperature": args.temperature,
             "objective_contract": CPC_OBJECTIVE_CONTRACT,
         }
         mismatches = {
@@ -590,7 +583,7 @@ def evaluate_latent_prediction_diagnostics(
         "autoregressive_rollout_by_horizon": rollout,
         "rollout_start_index": int(rollout_start),
         "max_horizon": int(max_horizon),
-        "target_space": "unit-normalized encoder latents",
+        "target_space": "raw encoder latents used by the CPC objective",
         "prediction_head": "CPC InfoNCE bilinear head w_k[0]; no auxiliary MSE predictor",
     }
 
@@ -737,8 +730,7 @@ def rollout_gap(
                         "at gap start"
                     )
 
-                # Inspect raw scores too: z_in is unit-normalized by construction,
-                # so its norm cannot diagnose prediction stability.
+                # Track the raw predictive-vector norm used by the bilinear CPC head.
                 raw_prediction = c_current @ model.w_k[0].T
                 raw_prediction_norms.append(
                     torch.linalg.vector_norm(raw_prediction, dim=-1)
@@ -1360,7 +1352,6 @@ def main() -> None:
             latent_dim=args.latent_dim,
             context_dim=args.context_dim,
             k_steps=args.k_steps,
-            temperature=args.temperature,
         ).to(device)
 
         if args.evaluate_checkpoints:
@@ -1591,12 +1582,11 @@ def main() -> None:
                     "latent_dim": args.latent_dim,
                     "context_dim": args.context_dim,
                     "k_steps": args.k_steps,
-                    "temperature": args.temperature,
-                    "seed": seed,
+                            "seed": seed,
                     "experiment_version": EXPERIMENT_VERSION,
                     "objective_contract": CPC_OBJECTIVE_CONTRACT,
                     "sample_selection": "episode_stratified_sequence_starts_across_full_split",
-                    "latent_normalization": "l2_unit",
+                    "latent_normalization": "none",
                     "gradient_clip_norm": 1.0,
                 },
                 os.path.join(
@@ -1769,7 +1759,7 @@ def main() -> None:
             "angular_position_indices": list(
                 angular_indices
             ),
-            "latent_normalization": "l2_unit",
+            "latent_normalization": "none",
             "sample_selection": "episode_stratified_sequence_starts_across_full_split",
             "gradient_clip_norm": 1.0,
             "summary": summary,
