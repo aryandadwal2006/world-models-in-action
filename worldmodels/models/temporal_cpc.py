@@ -8,7 +8,7 @@ import torch.nn.functional as F
 
 
 class TemporalCPC(nn.Module):
-    """Causal GRU CPC model with normalized latent prediction."""
+    """Causal GRU CPC model trained only with multi-horizon InfoNCE."""
 
     def __init__(
         self,
@@ -60,9 +60,16 @@ class TemporalCPC(nn.Module):
             ]
         )
 
-        self.predictor = nn.Linear(
-            context_dim,
-            latent_dim,
+    def predict_next_latent(
+        self,
+        c_t,
+    ):
+        """Use CPC's learned one-step bilinear head for latent rollout diagnostics."""
+        return F.normalize(
+            c_t @ self.w_k[0].T,
+            p=2,
+            dim=-1,
+            eps=1e-8,
         )
 
     def encode_sequence(
@@ -99,18 +106,6 @@ class TemporalCPC(nn.Module):
             eps=1e-8,
         )
 
-    def predict_next_latent(
-        self,
-        c_t,
-    ):
-        """Predict a unit-normalized next latent."""
-        return F.normalize(
-            self.predictor(c_t),
-            p=2,
-            dim=-1,
-            eps=1e-8,
-        )
-
     def forward(
         self,
         x_seq,
@@ -135,12 +130,6 @@ class TemporalCPC(nn.Module):
             device=x_seq.device,
         )
 
-        forward_sum = torch.zeros(
-            (),
-            device=x_seq.device,
-        )
-
-        n_contexts = 0
         n_cpc = 0
 
         for t_idx in range(
@@ -148,25 +137,6 @@ class TemporalCPC(nn.Module):
             t - self.k_steps,
         ):
             c_t = c_seq[:, t_idx]
-
-            z_next = z_seq[
-                :,
-                t_idx + 1,
-            ]
-
-            z_pred = self.predict_next_latent(
-                c_t
-            )
-
-            forward_sum = (
-                forward_sum
-                + F.mse_loss(
-                    z_pred,
-                    z_next.detach(),
-                )
-            )
-
-            n_contexts += 1
 
             for k in range(
                 self.k_steps
@@ -202,13 +172,10 @@ class TemporalCPC(nn.Module):
 
                 n_cpc += 1
 
-        if n_contexts == 0 or n_cpc == 0:
+        if n_cpc == 0:
             raise ValueError(
                 "Sequence is too short for "
                 "configured CPC context"
             )
 
-        return (
-            cpc_sum / n_cpc
-            + forward_sum / n_contexts
-        )
+        return cpc_sum / n_cpc
