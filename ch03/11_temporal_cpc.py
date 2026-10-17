@@ -1215,12 +1215,14 @@ def main() -> None:
         args.seq_len < 10
         or args.k_steps < 1
         or args.k_steps >= args.seq_len
+        or args.seq_len <= args.gap_start - 1 + args.gap_length
         or args.eval_seq_len < 10
         or args.eval_seq_len <= args.gap_start + args.gap_length
     ):
         raise ValueError(
             "Sequence lengths must be >= 10 for the time-8 probe and next-state target; "
-            "k_steps must be smaller than seq_len; and eval_seq_len must exceed the gap end."
+            "k_steps must be smaller than seq_len; seq_len must cover the latent rollout; "
+            "and eval_seq_len must exceed the gap end."
         )
 
     if (
