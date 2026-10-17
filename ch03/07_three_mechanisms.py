@@ -1,4 +1,4 @@
-"""07_three_mechanisms.py - Verify three anti-collapse mechanisms.
+"""07_three_mechanisms.py - Compare three anti-collapse mechanisms.
 
 Raw latent standard deviation is reported as a diagnostic, but the comparison
 metric is the scale-invariant effective rank of the representation covariance.
@@ -37,7 +37,7 @@ from worldmodels.train import get_device, save_json, set_seed
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Verify anti-collapse mechanisms.")
+    parser = argparse.ArgumentParser(description="Compare anti-collapse mechanisms.")
     parser.add_argument("--seeds", type=int, nargs="+", default=[0, 1, 2, 3, 4])
     parser.add_argument("--epochs", type=int, default=30)
     parser.add_argument("--batch-size", type=int, default=128)
@@ -606,7 +606,7 @@ def main() -> None:
             },
             "methods": summary,
         },
-        os.path.join(args.results_dir, "three_mechanisms_verification.json"),
+        os.path.join(args.results_dir, "three_mechanisms_diagnostics.json"),
     )
 
 
