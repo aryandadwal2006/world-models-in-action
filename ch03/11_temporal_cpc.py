@@ -538,7 +538,11 @@ def evaluate_latent_prediction_diagnostics(
 
             # One-step forecasts use true encoded observations at every context.
             contexts, _ = model.gru(z_seq)
-            for time_index in range(4, seq_len - 1):
+            k_steps = int(getattr(model, "k_steps", 0))
+            if k_steps < 1:
+                raise ValueError("Model must expose a positive k_steps training horizon")
+            # Match the contexts on which the one-step auxiliary head was trained.
+            for time_index in range(4, seq_len - k_steps):
                 predicted = model.predict_next_latent(contexts[:, time_index])
                 teacher_predictions.append(predicted.cpu().numpy())
                 teacher_targets.append(z_seq[:, time_index + 1].cpu().numpy())
@@ -1267,6 +1271,16 @@ def main() -> None:
         max_sequences=args.max_val_frames,
     )
 
+    # Latent forecast diagnostics use validation windows matching the training
+    # sequence length, so teacher-forced contexts stay within the trained horizon.
+    prediction_diag_ds = SequenceDataset(
+        val_frames,
+        val_states,
+        val_episode_ids,
+        args.seq_len,
+        max_sequences=args.max_val_frames,
+    )
+
     # Gap evaluation has its own complete candidate set. Do not cap it at the
     # 1,000 windows used for the state probes: the gap metric needs enough
     # non-overlapping held-out windows to be stable and reproducible.
@@ -1487,7 +1501,7 @@ def main() -> None:
         latent_prediction_diagnostics = evaluate_latent_prediction_diagnostics(
             model,
             make_loader(
-                eval_ds,
+                prediction_diag_ds,
                 args.batch_size,
                 shuffle=False,
             ),
