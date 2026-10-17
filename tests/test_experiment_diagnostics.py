@@ -40,6 +40,8 @@ class TestMechanismHeadFaithfulness(unittest.TestCase):
                 any(isinstance(layer, nn.BatchNorm1d) for layer in module.modules())
             )
         self.assertFalse(simsiam.net[-1].affine)
+        self.assertIsNotNone(byol.net[0].bias)
+        self.assertIsNone(byol.net[-1].bias)
 
     def test_method_specific_heads_preserve_batch_and_output_dimensions(self):
         x = torch.randn(8, 4)
@@ -136,6 +138,16 @@ class TestCanonicalCPCObjective(unittest.TestCase):
         self.assertTrue(torch.isfinite(loss).item())
         loss.backward()
         self.assertFalse(hasattr(model, "predictor"))
+        # Canonical CPC keeps the raw encoder scale rather than normalizing each z_t.
+        encoded = model.encode_sequence(images)
+        norms = torch.linalg.vector_norm(encoded, dim=-1)
+        self.assertFalse(torch.allclose(norms, torch.ones_like(norms)))
+        # Rollout helper is exactly the raw first bilinear prediction, without normalization.
+        context = torch.randn(3, 5)
+        expected_prediction = context @ model.w_k[0].T
+        self.assertTrue(
+            torch.allclose(model.predict_next_latent(context), expected_prediction)
+        )
         for head in model.w_k:
             self.assertIsNotNone(head.grad)
             self.assertTrue(torch.isfinite(head.grad).all().item())
