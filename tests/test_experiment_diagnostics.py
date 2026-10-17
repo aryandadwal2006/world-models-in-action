@@ -29,6 +29,31 @@ COLLAPSE = import_script("ch03_collapse_demo_test", "ch03/06_collapse_demo.py")
 CPC = import_script("ch03_temporal_cpc_diagnostics_test", "ch03/11_temporal_cpc.py")
 
 
+class TestMechanismHeadFaithfulness(unittest.TestCase):
+    def test_method_specific_heads_include_batch_normalization(self):
+        simsiam = MECHANISMS.SimSiamProjector(4, 8, 6)
+        predictor = MECHANISMS.SimSiamPredictor(6, 8, 6)
+        byol = MECHANISMS.BYOLHead(4, 8, 6)
+        barlow = MECHANISMS.BarlowProjector(4, 8, 6)
+        for module in (simsiam, predictor, byol, barlow):
+            self.assertTrue(
+                any(isinstance(layer, nn.BatchNorm1d) for layer in module.modules())
+            )
+        self.assertFalse(simsiam.net[-1].affine)
+
+    def test_method_specific_heads_preserve_batch_and_output_dimensions(self):
+        x = torch.randn(8, 4)
+        modules = (
+            MECHANISMS.SimSiamProjector(4, 8, 6),
+            MECHANISMS.BYOLHead(4, 8, 6),
+            MECHANISMS.BarlowProjector(4, 8, 6),
+        )
+        for module in modules:
+            result = module(x)
+            self.assertEqual(tuple(result.shape), (8, 6))
+            self.assertTrue(torch.isfinite(result).all().item())
+
+
 class TestRepresentationDiagnostics(unittest.TestCase):
     def test_effective_rank_handles_constant_and_nonconstant_features(self):
         constant = np.ones((100, 4))
