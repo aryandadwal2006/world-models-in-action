@@ -1,12 +1,9 @@
-"""Temporal CPC and missing-observation tests for Chapter 3.
+"""Temporal CPC training and objective-aligned evaluation for Chapter 3.
 
-The CPC objective uses a causal GRU context and raw bilinear InfoNCE scores.
-Latent representations are not L2-normalized and no temperature is applied.
-State probes use standardized features and circular evaluation for angular positions.
-
-The evaluation distinguishes current-state decoding, next-state prediction,
-and prediction through a real unobserved interval. Angular metrics respect the
-period of each rendered state variable.
+The CPC objective uses causal GRU context and raw bilinear multi-horizon InfoNCE
+scores. Evaluation measures future-latent retrieval with those trained scores,
+plus secondary current-state and next-state linear probes. Angular state metrics
+respect the period of each rendered state variable.
 """
 
 from __future__ import annotations
@@ -25,6 +22,7 @@ sys.path.insert(
     ),
 )
 
+import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -648,6 +646,45 @@ def extract_temporal_features(
     )
 
 
+def save_cpc_retrieval_figure(summary: dict, output_path: str) -> None:
+    """Plot held-out future-latent retrieval by horizon with random-chance reference."""
+    by_horizon = summary["cpc_future_retrieval"]["by_horizon"]
+    horizons = sorted(int(horizon) for horizon in by_horizon)
+    top1_means = [
+        by_horizon[str(horizon)]["top1_accuracy"]["mean_over_seeds"]
+        for horizon in horizons
+    ]
+    top1_stds = [
+        by_horizon[str(horizon)]["top1_accuracy"]["std_over_seeds"]
+        for horizon in horizons
+    ]
+    chance = [
+        by_horizon[str(horizon)]["random_top1_chance"]["mean_over_seeds"]
+        for horizon in horizons
+    ]
+    fig, ax = plt.subplots(figsize=(7.2, 4.4))
+    ax.errorbar(
+        horizons, top1_means, yerr=top1_stds,
+        marker="o", capsize=4, linewidth=2,
+        label="CPC future-latent top-1 retrieval",
+    )
+    ax.plot(
+        horizons, chance, linestyle="--", linewidth=1.5,
+        label="Random-candidate chance",
+    )
+    ax.set_xlabel("Future prediction horizon (steps)")
+    ax.set_ylabel("Retrieval accuracy")
+    ax.set_xticks(horizons)
+    ax.set_ylim(0.0, 1.0)
+    ax.set_title("CPC: held-out future-latent retrieval")
+    ax.grid(True, alpha=0.25)
+    ax.legend(frameon=False)
+    fig.tight_layout()
+    os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
+    fig.savefig(output_path, dpi=180)
+    plt.close(fig)
+
+
 def main() -> None:
     args = parse_args()
     if not args.seeds:
@@ -902,6 +939,12 @@ def main() -> None:
         },
         "cpc_future_retrieval": summarize_cpc_future_retrieval(seed_metrics),
     }
+
+    if args.figures_dir:
+        save_cpc_retrieval_figure(
+            summary,
+            os.path.join(args.figures_dir, "fig03_16_cpc_future_retrieval.png"),
+        )
 
     os.makedirs(args.results_dir, exist_ok=True)
     result_path = args.evaluation_output or os.path.join(
