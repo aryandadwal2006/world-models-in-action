@@ -86,6 +86,14 @@ def run_experiment(
         lr=args.lr,
     )
     view_pipeline = ViewPipeline(max_shift=3, brightness_range=0.1, contrast_range=0.1)
+    # Use deterministic ordering and a private RNG so measuring epoch 0 does not
+    # consume the training loader's random sequence or alter augmentation draws.
+    diagnostic_loader = DataLoader(
+        train_loader.dataset,
+        batch_size=train_loader.batch_size,
+        shuffle=False,
+        generator=torch.Generator().manual_seed(seed + 100000),
+    )
 
     history = {
         "encoder_mean_std": [],
@@ -102,7 +110,7 @@ def run_experiment(
         all_encoder = []
         all_projector = []
         with torch.no_grad():
-            for batch in train_loader:
+            for batch in diagnostic_loader:
                 images = batch["image"].to(device)
                 features = encoder(images)
                 projected = proj_head(features)
