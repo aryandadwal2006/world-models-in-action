@@ -177,17 +177,20 @@ def make_loader(
     seed=None,
     shuffle=False,
 ):
+    # InfoNCE needs at least two sequences per batch. Drop a trailing singleton
+    # batch during training; retrieval evaluation explicitly records skipped
+    # singleton batches if a user requests an unusual sample count.
+    drop_last = bool(shuffle and len(dataset) > batch_size and len(dataset) % batch_size == 1)
     if shuffle:
         generator = torch.Generator()
-        generator.manual_seed(seed)
-
+        generator.manual_seed(0 if seed is None else seed)
         return DataLoader(
             dataset,
             batch_size=batch_size,
             shuffle=True,
             generator=generator,
+            drop_last=drop_last,
         )
-
     return DataLoader(
         dataset,
         batch_size=batch_size,
@@ -386,7 +389,7 @@ def episode_stratified_nonoverlapping_subset(
 
     if len(selected_indices) != max_items:
         raise RuntimeError(
-            f"Requested {max_items} gap windows but selected "
+            f"Requested {max_items} retrieval windows but selected "
             f"{len(selected_indices)}."
         )
 
@@ -408,7 +411,7 @@ def sequence_window_metadata(
     ]
 
     if len(starts) != len(set(starts)):
-        raise RuntimeError("Gap evaluation selected duplicate window starts")
+        raise RuntimeError("Retrieval evaluation selected duplicate window starts")
 
     counts = {}
     starts_by_episode = {}
@@ -416,7 +419,7 @@ def sequence_window_metadata(
         end = start + dataset.seq_len
         if not np.all(dataset.episode_ids[start:end] == episode):
             raise RuntimeError(
-                f"Gap window [{start}, {end}) crosses an episode boundary"
+                f"Retrieval window [{start}, {end}) crosses an episode boundary"
             )
         counts[str(episode)] = counts.get(str(episode), 0) + 1
         starts_by_episode.setdefault(episode, []).append(start)
