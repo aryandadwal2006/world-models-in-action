@@ -49,7 +49,8 @@ from worldmodels.train import (
     set_seed,
 )
 
-EXPERIMENT_VERSION = 5
+EXPERIMENT_VERSION = 6
+CPC_OBJECTIVE_CONTRACT = "canonical_cpc_infonce_multi_horizon_v1"
 GAP_EVALUATION_CONTRACT_VERSION = 2
 CARTPOLE_STATE_NAMES = (
     "cart_position",
@@ -322,6 +323,13 @@ def validate_checkpoint_evaluation(args) -> dict:
         )
 
     saved_metrics = load_json(metrics_path)
+    if saved_metrics.get("objective_contract") != CPC_OBJECTIVE_CONTRACT:
+        raise ValueError(
+            "Checkpoint-only evaluation refused: the metrics/checkpoints do not "
+            "declare the canonical multi-horizon CPC InfoNCE objective. The prior "
+            "run used an auxiliary one-step MSE head; train fresh checkpoints into "
+            "a separate results/checkpoints directory before evaluating."
+        )
     if saved_metrics.get("seeds") != args.seeds:
         raise ValueError(
             "Requested seeds do not match the saved CPC run: "
@@ -375,6 +383,7 @@ def validate_checkpoint_evaluation(args) -> dict:
             "context_dim": args.context_dim,
             "k_steps": args.k_steps,
             "temperature": args.temperature,
+            "objective_contract": CPC_OBJECTIVE_CONTRACT,
         }
         mismatches = {
             key: (checkpoint.get(key), value)
@@ -541,7 +550,8 @@ def evaluate_latent_prediction_diagnostics(
             k_steps = int(getattr(model, "k_steps", 0))
             if k_steps < 1:
                 raise ValueError("Model must expose a positive k_steps training horizon")
-            # Match the contexts on which the one-step auxiliary head was trained.
+            # Match the context positions used by the CPC multi-horizon objective.
+            # The one-step forecast comes from the trained first bilinear head w_k[0].
             for time_index in range(4, seq_len - k_steps):
                 predicted = model.predict_next_latent(contexts[:, time_index])
                 teacher_predictions.append(predicted.cpu().numpy())
@@ -581,6 +591,7 @@ def evaluate_latent_prediction_diagnostics(
         "rollout_start_index": int(rollout_start),
         "max_horizon": int(max_horizon),
         "target_space": "unit-normalized encoder latents",
+        "prediction_head": "CPC InfoNCE bilinear head w_k[0]; no auxiliary MSE predictor",
     }
 
 
@@ -625,8 +636,9 @@ def summarize_latent_prediction_diagnostics(seed_metrics: list[dict]) -> dict:
                 "per_seed": values,
             }
     summary["interpretation"] = (
-        "Teacher-forced errors use true encoded observations at every context. "
-        "Autoregressive errors feed predicted latents back into the GRU. "
+        "Teacher-forced errors use true encoded observations at every context and "
+        "the first bilinear predictor trained by the CPC InfoNCE objective. "
+        "Autoregressive errors feed predictions from that same head back into the GRU. "
         "These are latent-space diagnostics, not physical-state R2 scores."
     )
     return summary
@@ -1581,6 +1593,7 @@ def main() -> None:
                     "temperature": args.temperature,
                     "seed": seed,
                     "experiment_version": EXPERIMENT_VERSION,
+                    "objective_contract": CPC_OBJECTIVE_CONTRACT,
                     "sample_selection": "episode_stratified_sequence_starts_across_full_split",
                     "latent_normalization": "l2_unit",
                     "gradient_clip_norm": 1.0,
@@ -1723,6 +1736,7 @@ def main() -> None:
     save_json(
         {
             "experiment_version": EXPERIMENT_VERSION,
+            "objective_contract": CPC_OBJECTIVE_CONTRACT,
             "gap_evaluation_contract_version": GAP_EVALUATION_CONTRACT_VERSION,
             "seeds": args.seeds,
             "config": vars(args),
