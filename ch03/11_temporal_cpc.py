@@ -531,7 +531,7 @@ def evaluate_latent_prediction_diagnostics(
     Rollout predictions feed each predicted latent back into the GRU.
     """
     if rollout_start < 0 or max_horizon < 1:
-        raise ValueError("rollout_start must be >= 4 and max_horizon >= 1")
+        raise ValueError("rollout_start must be non-negative and max_horizon must be >= 1")
 
     teacher_predictions = []
     teacher_targets = []
