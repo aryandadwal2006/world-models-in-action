@@ -336,10 +336,10 @@ def train_simsiam(train_loader, val_loader, args, device, diagnostic_loader):
     }
 
 
-def train_byol(train_loader, val_loader, args, device):
+def train_byol(train_loader, val_loader, args, device, diagnostic_loader):
     online_encoder = ConvEncoder(latent_dim=args.latent_dim).to(device)
-    online_projector = BYOLHead(args.latent_dim, 64, args.projector_dim).to(device)
-    predictor = BYOLHead(args.projector_dim, 64, args.projector_dim).to(device)
+    online_projector = BYOLHead(args.latent_dim, args.hidden_dim, args.projector_dim).to(device)
+    predictor = BYOLHead(args.projector_dim, args.hidden_dim, args.projector_dim).to(device)
     target_encoder = copy.deepcopy(online_encoder).to(device)
     target_projector = copy.deepcopy(online_projector).to(device)
     for parameter in list(target_encoder.parameters()) + list(target_projector.parameters()):
@@ -350,9 +350,25 @@ def train_byol(train_loader, val_loader, args, device):
         + list(predictor.parameters()),
         lr=args.lr,
     )
-    pipeline = ViewPipeline()
-    for _ in range(args.epochs):
-        online_encoder.train(); online_projector.train(); predictor.train()
+    pipeline = ViewPipeline(
+        max_shift=args.max_shift,
+        brightness_range=args.brightness_range,
+        contrast_range=args.contrast_range,
+    )
+    history = []
+    snapshots = _snapshot_epochs(args.epochs)
+    total_steps = max(1, args.epochs * len(train_loader))
+    global_step = 0
+    final_epoch_loss = float("nan")
+    final_decay = float(args.byol_ema_start)
+    for epoch in range(1, args.epochs + 1):
+        online_encoder.train()
+        online_projector.train()
+        predictor.train()
+        target_encoder.train()
+        target_projector.train()
+        loss_total = 0.0
+        n_batches = 0
         for batch in train_loader:
             x = batch["image"].to(device)
             v1, v2 = pipeline(x)
@@ -362,27 +378,52 @@ def train_byol(train_loader, val_loader, args, device):
                 z1 = target_projector(target_encoder(v1))
                 z2 = target_projector(target_encoder(v2))
             loss = simsiam_loss(p1, z2, p2, z1)
-            optimizer.zero_grad(); loss.backward(); optimizer.step()
-            update_target_ema(online_encoder, target_encoder, decay=0.99)
-            update_target_ema(online_projector, target_projector, decay=0.99)
-            _ema_update_buffers(online_encoder, target_encoder, decay=0.99)
-            _ema_update_buffers(online_projector, target_projector, decay=0.99)
+            if not torch.isfinite(loss):
+                raise FloatingPointError(f"Non-finite BYOL loss at epoch={epoch}")
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+            # BYOL's target EMA coefficient increases smoothly toward 1.
+            progress = min(1.0, global_step / total_steps)
+            decay = 1.0 - (1.0 - args.byol_ema_start) * (
+                math.cos(math.pi * progress) + 1.0
+            ) / 2.0
+            update_target_ema(online_encoder, target_encoder, decay=decay)
+            update_target_ema(online_projector, target_projector, decay=decay)
+            _ema_update_buffers(online_encoder, target_encoder, decay=decay)
+            _ema_update_buffers(online_projector, target_projector, decay=decay)
+            final_decay = float(decay)
+            global_step += 1
+            loss_total += float(loss.detach().item())
+            n_batches += 1
+        if n_batches == 0:
+            raise RuntimeError("BYOL training loader produced no batches")
+        final_epoch_loss = loss_total / n_batches
+        if epoch in snapshots:
+            _append_training_snapshot(
+                history, epoch, final_epoch_loss, online_encoder,
+                diagnostic_loader, device,
+                projector=online_projector, predictor=predictor,
+                target_encoder=target_encoder, target_projector=target_projector,
+            )
     probe = evaluate_linear_probe(online_encoder, train_loader, val_loader, device)
     diagnostics = _representation_stats(
-        online_encoder,
-        train_loader,
-        device,
-        projector=online_projector,
-        predictor=predictor,
-        target_encoder=target_encoder,
-        target_projector=target_projector,
+        online_encoder, diagnostic_loader, device,
+        projector=online_projector, predictor=predictor,
+        target_encoder=target_encoder, target_projector=target_projector,
     )
     return {
         **probe,
         "effective_rank": diagnostics["encoder"]["effective_rank"],
         "latent_std": diagnostics["encoder"]["mean_dim_std"],
         "representation_diagnostics": diagnostics,
+        "final_mean_training_loss": final_epoch_loss,
+        "training_history": history,
+        "byol_ema_start": float(args.byol_ema_start),
+        "byol_ema_final": final_decay,
     }
+
 
 def train_barlow(train_loader, val_loader, args, device):
     encoder = ConvEncoder(latent_dim=args.latent_dim).to(device)
