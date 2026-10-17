@@ -68,7 +68,7 @@ The branch diagnostics/ch03-experiment-validation adds diagnostics rather than t
 - 06_collapse_demo.py records the randomly initialized model at diagnostic epoch 0, then encoder and objective-space spread/rank after each training epoch. Effective rank is scale-invariant, so read it alongside absolute spread.
 - 07_three_mechanisms.py uses method-specific BatchNorm heads: a SimSiam-style 3-layer projector plus predictor, online/EMA BYOL heads, and a 3-layer Barlow Twins projector. The backbone, embedding widths, data and training budget are deliberately small; this is a mechanism demonstration, not a reproduction of the original ImageNet-scale results.
 - table_03_04_comparison.py remains a bounded comparison of complete model configurations, not a loss-only ablation. Its existing outputs need not be rerun to validate the architecture fixes described here.
-- 11_temporal_cpc.py now trains only the canonical multi-horizon bilinear InfoNCE objective. The first learned bilinear head w_k[0] supplies the one-step latent rollout diagnostic; there is no auxiliary one-step MSE predictor. The checkpoint-only mode validates an objective-contract marker and rejects checkpoints from the prior hybrid objective.
+- 11_temporal_cpc.py now trains only the canonical multi-horizon bilinear InfoNCE objective over every valid context position, using raw encoder latents and unscaled dot-product scores. The first learned bilinear head w_k[0] supplies the one-step latent rollout diagnostic; there is no auxiliary one-step MSE predictor. Checkpoint-only evaluation validates the experiment version, raw-latent setting, and objective contract before loading any checkpoint.
 
 Recommended sequence from the repository root:
 
