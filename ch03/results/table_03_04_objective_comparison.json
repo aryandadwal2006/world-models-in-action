@@ -1012,5 +1012,7 @@
         ]
       }
     }
-  }
+  },
+  "mae_probe_status": "historical_invalidated_pending_corrected_rerun",
+  "mae_status_note": "The MAE rows use a pooled projection that received no reconstruction gradient. Preserve all non-MAE results; regenerate MAE rows before using this table as current evidence."
 }
