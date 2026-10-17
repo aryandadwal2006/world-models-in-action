@@ -318,6 +318,16 @@ def validate_checkpoint_evaluation(args) -> dict:
         )
 
     saved_metrics = load_json(metrics_path)
+    if saved_metrics.get("experiment_version") != EXPERIMENT_VERSION:
+        raise ValueError(
+            "Checkpoint-only evaluation refused: the metrics file was produced "
+            "by a different CPC experiment version."
+        )
+    if saved_metrics.get("latent_normalization") != "none":
+        raise ValueError(
+            "Checkpoint-only evaluation refused: the saved run does not use raw "
+            "encoder latents."
+        )
     if saved_metrics.get("objective_contract") != CPC_OBJECTIVE_CONTRACT:
         raise ValueError(
             "Checkpoint-only evaluation refused: the metrics/checkpoints do not "
@@ -376,6 +386,8 @@ def validate_checkpoint_evaluation(args) -> dict:
             "latent_dim": args.latent_dim,
             "context_dim": args.context_dim,
             "k_steps": args.k_steps,
+            "experiment_version": EXPERIMENT_VERSION,
+            "latent_normalization": "none",
             "objective_contract": CPC_OBJECTIVE_CONTRACT,
         }
         mismatches = {
