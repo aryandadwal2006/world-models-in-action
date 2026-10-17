@@ -255,7 +255,7 @@ class TestTable0304Metrics(unittest.TestCase):
             self.assertEqual(
                 migrated["legacy_results_before_trained_head_diagnostic"][
                     "version6_supervised_probe_only_results"
-                ][task][METHOD_NAMES[0]],
+                ][task],
                 {"0": {"mean_r2": 0.25}},
             )
 
