@@ -31,7 +31,7 @@ from worldmodels.losses.noncontrastive import (
     simsiam_loss,
     update_target_ema,
 )
-from worldmodels.models.encoders import ConvEncoder, ProjectionHead
+from worldmodels.models.encoders import ConvEncoder
 from worldmodels.train import get_device, save_json, set_seed
 
 
