@@ -49,8 +49,8 @@ from worldmodels.train import (
     set_seed,
 )
 
-EXPERIMENT_VERSION = 7
-CPC_OBJECTIVE_CONTRACT = "canonical_cpc_raw_dot_product_infonce_multi_horizon_v2"
+EXPERIMENT_VERSION = 8
+CPC_OBJECTIVE_CONTRACT = "canonical_cpc_raw_dot_product_infonce_all_contexts_v3"
 GAP_EVALUATION_CONTRACT_VERSION = 2
 CARTPOLE_STATE_NAMES = (
     "cart_position",
@@ -518,7 +518,7 @@ def evaluate_latent_prediction_diagnostics(
     Teacher-forced predictions use true encoded frames to form every context.
     Rollout predictions feed each predicted latent back into the GRU.
     """
-    if rollout_start < 4 or max_horizon < 1:
+    if rollout_start < 0 or max_horizon < 1:
         raise ValueError("rollout_start must be >= 4 and max_horizon >= 1")
 
     teacher_predictions = []
@@ -543,9 +543,9 @@ def evaluate_latent_prediction_diagnostics(
             k_steps = int(getattr(model, "k_steps", 0))
             if k_steps < 1:
                 raise ValueError("Model must expose a positive k_steps training horizon")
-            # Match the context positions used by the CPC multi-horizon objective.
+            # Evaluate every context position on which the CPC objective can train.
             # The one-step forecast comes from the trained first bilinear head w_k[0].
-            for time_index in range(4, seq_len - k_steps):
+            for time_index in range(0, seq_len - k_steps):
                 predicted = model.predict_next_latent(contexts[:, time_index])
                 teacher_predictions.append(predicted.cpu().numpy())
                 teacher_targets.append(z_seq[:, time_index + 1].cpu().numpy())
