@@ -803,7 +803,6 @@ def train_mae(
     set_seed(seed)
 
     model = SimpleMAE(
-        latent_dim=args.latent_dim,
         mask_ratio=0.75,
     ).to(device)
 
