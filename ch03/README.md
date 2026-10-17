@@ -39,6 +39,17 @@ Run scripts from the repository root.
 | `12_assemble_encoder.py` | Loads the learned encoder into the Chapter 1 interface and records the synthesis |
 | `table_03_04_comparison.py` | Matched comparison of supervised-pretrained, contrastive, VICReg, and MAE representations; Table 3.4 |
 
+## Method-fidelity boundary
+
+The implementation follows the central objective/mechanism in each cited paper, but it is not a claim of exact benchmark reproduction.
+
+- [SimSiam (CVPR 2021)](https://openaccess.thecvf.com/content/CVPR2021/html/Chen_Exploring_Simple_Siamese_Representation_Learning_CVPR_2021_paper.html) and its [reference projector/predictor implementation](https://github.com/facebookresearch/simsiam/blob/main/simsiam/builder.py): the demo now includes the BatchNorm structure, predictor, and stop-gradient cosine objective. It uses a small CNN and narrow MLPs, not the paper's large-scale setup.
+- [BYOL (NeurIPS 2020)](https://proceedings.neurips.cc/paper_files/paper/2020/hash/f3ada80d5c4ee70142b17b8192b2958e-Abstract.html): the demo keeps an online branch, stop-gradient EMA target branch, predictor, and cosine objective. The target's BatchNorm buffers are updated alongside EMA parameters. Its reduced-width architecture and short DMC training are illustrative.
+- [Barlow Twins (PMLR 2021)](https://proceedings.mlr.press/v139/zbontar21a.html): the demo now uses a 3-layer MLP with BatchNorm hidden layers and the cross-correlation objective, at a small output dimension and on DMC frames rather than the original large-scale benchmark.
+- [Contrastive Predictive Coding](https://arxiv.org/abs/1807.03748): training loss is multi-horizon InfoNCE using the bilinear heads w_k only. The old committed CPC diagnostic run was trained with an additional one-step latent MSE term. Keep it as historical evidence, not as the canonical CPC result. Use a new checkpoint/results directory for the canonical run; checkpoint-only mode intentionally refuses the old objective contract.
+
+A correct objective does not imply a successful experiment. Report the observed outcomes at their actual scope; do not tune hyperparameters until they support the desired narrative.
+
 ## Important interpretation notes
 
 - Training objectives have different scales; do not rank methods by raw loss values.
@@ -54,19 +65,23 @@ Read [the publication-readiness audit](publication_readiness_audit.md) and [the 
 
 The branch diagnostics/ch03-experiment-validation adds diagnostics rather than tuning hyperparameters toward expected scores:
 
-- 06_collapse_demo.py records encoder-output and projector-output spread/rank plus per-epoch loss. The projector is the space on which the agreement/contrastive objective acts.
-- 07_three_mechanisms.py reports effective rank and standard deviation for encoder, projector, predictor, and (for BYOL) target-projector spaces. Low encoder effective rank alone is not labelled complete collapse.
-- table_03_04_comparison.py separately evaluates the supervised model's trained prediction head on held-out data and its frozen-feature linear probe. Version-6 progress is migrated by preserving NT-Xent/VICReg/MAE results and rerunning only the supervised arm.
-- 11_temporal_cpc.py reports teacher-forced one-step latent error and autoregressive latent error at each rollout horizon. The checkpoint-only diagnostic reads existing CPC checkpoints and does not retrain them.
+- 06_collapse_demo.py records the randomly initialized model at diagnostic epoch 0, then encoder and objective-space spread/rank after each training epoch. Effective rank is scale-invariant, so read it alongside absolute spread.
+- 07_three_mechanisms.py uses method-specific BatchNorm heads: a SimSiam-style 3-layer projector plus predictor, online/EMA BYOL heads, and a 3-layer Barlow Twins projector. The backbone, embedding widths, data and training budget are deliberately small; this is a mechanism demonstration, not a reproduction of the original ImageNet-scale results.
+- table_03_04_comparison.py remains a bounded comparison of complete model configurations, not a loss-only ablation. Its existing outputs need not be rerun to validate the architecture fixes described here.
+- 11_temporal_cpc.py now trains only the canonical multi-horizon bilinear InfoNCE objective. The first learned bilinear head w_k[0] supplies the one-step latent rollout diagnostic; there is no auxiliary one-step MSE predictor. The checkpoint-only mode validates an objective-contract marker and rejects checkpoints from the prior hybrid objective.
 
 Recommended sequence from the repository root:
 
 ```powershell
 python -m unittest discover -s tests -v
-python ch03/06_collapse_demo.py
-python ch03/07_three_mechanisms.py
-python ch03/table_03_04_comparison.py
-python ch03/11_temporal_cpc.py --evaluate-checkpoints --gap-sequences 200 --evaluation-output ch03/results/table_03_05_cpc_diagnostics.json --figures-dir ch03/figures/cpc_diagnostic
+
+python ch03/06_collapse_demo.py --results-dir ch03/results/fidelity_run_20261017/collapse --figures-dir ch03/figures/fidelity_run_20261017/collapse
+
+python ch03/07_three_mechanisms.py --results-dir ch03/results/fidelity_run_20261017/mechanisms
+
+python ch03/11_temporal_cpc.py --gap-sequences 200 --results-dir ch03/results/cpc_canonical_20261017 --checkpoints-dir checkpoints/cpc_canonical_20261017 --figures-dir ch03/figures/cpc_canonical_20261017
+
+python ch03/11_temporal_cpc.py --evaluate-checkpoints --gap-sequences 200 --results-dir ch03/results/cpc_canonical_20261017 --checkpoints-dir checkpoints/cpc_canonical_20261017 --figures-dir ch03/figures/cpc_canonical_20261017 --evaluation-output ch03/results/cpc_canonical_20261017/checkpoint_only_validation.json
 ```
 
-The three training runners above can take time on CPU. These are diagnostic runs, not parameter searches. Preserve the outputs, then decide whether the manuscript should report the observed limitation or motivate a separately controlled follow-up. Do not change settings until scores match the narrative.
+These are diagnostic runs, not parameter searches. They write to isolated paths so the previously committed outputs remain untouched. The CPC command trains a fresh run with the canonical objective and then reevaluates those exact checkpoints; the final command is a checkpoint-integrity check, not another training run. On reruns, choose new run-directory names to preserve outputs. Do not change settings just to make scores match the narrative.
