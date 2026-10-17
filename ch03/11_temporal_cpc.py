@@ -25,9 +25,9 @@ sys.path.insert(
     ),
 )
 
-import matplotlib.pyplot as plt
 import numpy as np
 import torch
+import torch.nn.functional as F
 from torch.utils.data import DataLoader, Subset
 
 from worldmodels.data.dmc_data import (
@@ -49,9 +49,9 @@ from worldmodels.train import (
     set_seed,
 )
 
-EXPERIMENT_VERSION = 8
+EXPERIMENT_VERSION = 9
 CPC_OBJECTIVE_CONTRACT = "canonical_cpc_raw_dot_product_infonce_all_contexts_v3"
-GAP_EVALUATION_CONTRACT_VERSION = 2
+RETRIEVAL_EVALUATION_CONTRACT_VERSION = 1
 CARTPOLE_STATE_NAMES = (
     "cart_position",
     "pole_angle",
@@ -112,33 +112,25 @@ def parse_args() -> argparse.Namespace:
         default=3,
     )
     p.add_argument(
-        "--max-train-frames",
+        "--max-train-sequences", "--max-train-frames",
+        dest="max_train_sequences",
         type=int,
         default=4000,
+        help="Maximum number of training sequence windows, not individual frames.",
     )
     p.add_argument(
-        "--max-val-frames",
+        "--max-val-sequences", "--max-val-frames",
+        dest="max_val_sequences",
         type=int,
         default=1000,
+        help="Maximum number of validation sequence windows, not individual frames.",
     )
     p.add_argument(
-        "--gap-start",
+        "--retrieval-sequences", "--gap-sequences",
+        dest="retrieval_sequences",
         type=int,
-        default=6,
-    )
-    p.add_argument(
-        "--gap-length",
-        type=int,
-        default=5,
-    )
-    p.add_argument(
-        "--gap-sequences",
-        type=int,
-        default=32,
-        help=(
-            "Number of episode-balanced, non-overlapping validation windows "
-            "for gap scoring."
-        ),
+        default=200,
+        help="Number of non-overlapping, episode-balanced validation windows used for CPC future-latent retrieval.",
     )
     p.add_argument(
         "--evaluate-checkpoints",
@@ -1215,24 +1207,17 @@ def main() -> None:
         args.seq_len < 10
         or args.k_steps < 1
         or args.k_steps >= args.seq_len
-        or args.seq_len <= args.gap_start - 1 + args.gap_length
-        or args.eval_seq_len < 10
-        or args.eval_seq_len <= args.gap_start + args.gap_length
+        or args.eval_seq_len < max(10, args.k_steps + 2)
     ):
         raise ValueError(
-            "Sequence lengths must be >= 10 for the time-8 probe and next-state target; "
-            "k_steps must be smaller than seq_len; seq_len must cover the latent rollout; "
-            "and eval_seq_len must exceed the gap end."
+            "seq_len must be >= 10 for the time-8 probe; k_steps must be "
+            "smaller than seq_len; eval_seq_len must support the probe and CPC horizons."
         )
 
-    if (
-        args.gap_start < 2
-        or args.gap_length <= 0
-        or args.gap_sequences <= 0
-    ):
-        raise ValueError(
-            "Invalid gap settings"
-        )
+    if args.retrieval_sequences < 2:
+        raise ValueError("retrieval-sequences must be >= 2")
+    if args.max_train_sequences <= 0 or args.max_val_sequences <= 0:
+        raise ValueError("max-train-sequences and max-val-sequences must be positive")
 
     set_seed(args.seeds[0])
 
