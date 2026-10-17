@@ -393,7 +393,7 @@ def episode_stratified_nonoverlapping_subset(
     return Subset(dataset, selected_indices)
 
 
-def gap_window_metadata(
+def sequence_window_metadata(
     dataset: SequenceDataset,
     subset: Subset,
 ) -> dict:
@@ -646,719 +646,17 @@ def extract_temporal_features(
     )
 
 
-def _latent_error_metrics(predicted, target) -> dict:
-    """Return latent MSE and cosine agreement for matched two-dimensional arrays."""
-    predicted = np.asarray(predicted, dtype=np.float64)
-    target = np.asarray(target, dtype=np.float64)
-    if predicted.shape != target.shape or predicted.ndim != 2:
-        raise ValueError("predicted and target must share shape (N, D)")
-    if predicted.shape[0] == 0:
-        raise ValueError("latent metric inputs cannot be empty")
-    mse = float(np.mean((predicted - target) ** 2))
-    pred_norm = np.linalg.norm(predicted, axis=1)
-    target_norm = np.linalg.norm(target, axis=1)
-    denom = np.maximum(pred_norm * target_norm, 1e-12)
-    cosine = np.sum(predicted * target, axis=1) / denom
-    return {
-        "mse": mse,
-        "mean_cosine_similarity": float(np.mean(cosine)),
-        "num_predictions": int(predicted.shape[0]),
-    }
-
-
-def evaluate_latent_prediction_diagnostics(
-    model,
-    loader,
-    device,
-    rollout_start: int,
-    max_horizon: int = 5,
-) -> dict:
-    """Contrast one-step predictions with free autoregressive latent rollouts.
-
-    Teacher-forced predictions use true encoded frames to form every context.
-    Rollout predictions feed each predicted latent back into the GRU.
-    """
-    if rollout_start < 0 or max_horizon < 1:
-        raise ValueError("rollout_start must be non-negative and max_horizon must be >= 1")
-
-    teacher_predictions = []
-    teacher_targets = []
-    rollout_predictions = {horizon: [] for horizon in range(1, max_horizon + 1)}
-    rollout_targets = {horizon: [] for horizon in range(1, max_horizon + 1)}
-
-    model.eval()
-    with torch.no_grad():
-        for batch in loader:
-            images = batch["images"].to(device)
-            z_seq = model.encode_sequence(images)
-            batch_size, seq_len, _ = z_seq.shape
-            if rollout_start + max_horizon >= seq_len:
-                raise ValueError(
-                    "Requested rollout exceeds sequence length: "
-                    f"start={rollout_start}, horizon={max_horizon}, length={seq_len}"
-                )
-
-            # One-step forecasts use true encoded observations at every context.
-            contexts, _ = model.gru(z_seq)
-            k_steps = int(getattr(model, "k_steps", 0))
-            if k_steps < 1:
-                raise ValueError("Model must expose a positive k_steps training horizon")
-            # Evaluate every context position on which the CPC objective can train.
-            # The one-step forecast comes from the trained first bilinear head w_k[0].
-            for time_index in range(0, seq_len - k_steps):
-                predicted = model.predict_next_latent(contexts[:, time_index])
-                teacher_predictions.append(predicted.cpu().numpy())
-                teacher_targets.append(z_seq[:, time_index + 1].cpu().numpy())
-
-            # Open-loop forecasts start after the final observed frame.
-            prefix, hidden = model.gru(z_seq[:, : rollout_start + 1])
-            context = prefix[:, -1]
-            for horizon in range(1, max_horizon + 1):
-                predicted = model.predict_next_latent(context)
-                target = z_seq[:, rollout_start + horizon]
-                rollout_predictions[horizon].append(predicted.cpu().numpy())
-                rollout_targets[horizon].append(target.cpu().numpy())
-                context_output, hidden = model.gru(
-                    predicted.unsqueeze(1),
-                    hidden,
-                )
-                context = context_output[:, 0]
-
-    if not teacher_predictions:
-        raise RuntimeError("No teacher-forced latent predictions were evaluated")
-    teacher = _latent_error_metrics(
-        np.concatenate(teacher_predictions, axis=0),
-        np.concatenate(teacher_targets, axis=0),
-    )
-    rollout = {}
-    for horizon in range(1, max_horizon + 1):
-        if not rollout_predictions[horizon]:
-            raise RuntimeError(f"No rollout predictions for horizon {horizon}")
-        rollout[str(horizon)] = _latent_error_metrics(
-            np.concatenate(rollout_predictions[horizon], axis=0),
-            np.concatenate(rollout_targets[horizon], axis=0),
-        )
-    return {
-        "teacher_forced_one_step": teacher,
-        "autoregressive_rollout_by_horizon": rollout,
-        "rollout_start_index": int(rollout_start),
-        "max_horizon": int(max_horizon),
-        "target_space": "raw encoder latents used by the CPC objective",
-        "prediction_head": "CPC InfoNCE bilinear head w_k[0]; no auxiliary MSE predictor",
-    }
-
-
-def summarize_latent_prediction_diagnostics(seed_metrics: list[dict]) -> dict:
-    """Aggregate per-seed forecast diagnostics without treating windows as seeds."""
-    if not seed_metrics:
-        raise ValueError("seed_metrics cannot be empty")
-    teacher = [
-        item["latent_prediction_diagnostics"]["teacher_forced_one_step"]
-        for item in seed_metrics
-    ]
-    summary = {"teacher_forced_one_step": {}}
-    for metric in ("mse", "mean_cosine_similarity"):
-        values = [float(item[metric]) for item in teacher]
-        summary["teacher_forced_one_step"][metric] = {
-            "mean_over_seeds": float(np.mean(values)),
-            "std_over_seeds": float(np.std(values)),
-            "per_seed": values,
-        }
-
-    max_horizon = max(
-        int(horizon)
-        for horizon in seed_metrics[0]["latent_prediction_diagnostics"][
-            "autoregressive_rollout_by_horizon"
-        ]
-    )
-    summary["autoregressive_rollout_by_horizon"] = {}
-    for horizon in range(1, max_horizon + 1):
-        summary["autoregressive_rollout_by_horizon"][str(horizon)] = {}
-        for metric in ("mse", "mean_cosine_similarity"):
-            values = [
-                float(
-                    item["latent_prediction_diagnostics"][
-                        "autoregressive_rollout_by_horizon"
-                    ][str(horizon)][metric]
-                )
-                for item in seed_metrics
-            ]
-            summary["autoregressive_rollout_by_horizon"][str(horizon)][metric] = {
-                "mean_over_seeds": float(np.mean(values)),
-                "std_over_seeds": float(np.std(values)),
-                "per_seed": values,
-            }
-    summary["interpretation"] = (
-        "Teacher-forced errors use true encoded observations at every context and "
-        "the first bilinear predictor trained by the CPC InfoNCE objective. "
-        "Autoregressive errors feed predictions from that same head back into the GRU. "
-        "These are latent-space diagnostics, not physical-state R2 scores."
-    )
-    return summary
-
-
-def fit_state_history_predictor(
-    raw_states,
-    raw_episode_ids,
-):
-    """Fit an angle-aware linear state extrapolation baseline."""
-    x = []
-    y = []
-
-    for i in range(
-        1,
-        len(raw_states) - 1,
-    ):
-        if (
-            raw_episode_ids[i - 1]
-            == raw_episode_ids[i]
-            == raw_episode_ids[i + 1]
-        ):
-            x.append(
-                np.concatenate(
-                    [
-                        raw_states[i - 1],
-                        raw_states[i],
-                    ]
-                )
-            )
-
-            y.append(
-                raw_states[i + 1]
-            )
-
-    if not x:
-        raise RuntimeError(
-            "No valid consecutive "
-            "state triples found"
-        )
-
-    return StateLinearProbe().fit(
-        np.asarray(
-            x,
-            dtype=np.float64,
-        ),
-        np.asarray(
-            y,
-            dtype=np.float64,
-        ),
-    )
-
-
-def rollout_gap(
-    model,
-    sample_images,
-    gap_start,
-    gap_end,
-    state_probe,
-):
-    """Roll raw CPC bilinear predictions through the missing interval."""
-    model.eval()
-
-    with torch.no_grad():
-        z_full = model.encode_sequence(
-            sample_images
-        )
-
-        _, t, _ = z_full.shape
-
-        if not (
-            0 < gap_start < gap_end <= t
-        ):
-            raise ValueError(
-                "Invalid gap interval"
-            )
-
-        hidden = None
-        c_current = None
-        z_used = []
-        raw_prediction_norms = []
-
-        for step in range(t):
-            if (
-                step < gap_start
-                or step >= gap_end
-            ):
-                z_in = z_full[
-                    :,
-                    step : step + 1,
-                ]
-            else:
-                if c_current is None:
-                    raise RuntimeError(
-                        "Missing context state "
-                        "at gap start"
-                    )
-
-                # Measure the same raw prediction that is fed back into the GRU.
-                raw_prediction = model.predict_next_latent(c_current)
-                raw_prediction_norms.append(
-                    torch.linalg.vector_norm(raw_prediction, dim=-1)
-                )
-                z_in = raw_prediction.unsqueeze(1)
-
-            c_out, hidden = model.gru(
-                z_in,
-                hidden,
-            )
-
-            c_current = c_out[:, 0]
-
-            z_used.append(
-                z_in[:, 0]
-            )
-
-        z_rollout = torch.stack(
-            z_used,
-            dim=1,
-        )
-
-    raw_norms = torch.cat(raw_prediction_norms, dim=0)
-
-    if not torch.isfinite(raw_norms).all():
-        raise FloatingPointError(
-            "Non-finite unnormalized CPC prediction during rollout"
-        )
-
-    pred_states = state_probe.predict(
-        z_rollout[
-            0
-        ]
-        .cpu()
-        .numpy()
-    )
-
-    observed_states = state_probe.predict(
-        z_full[
-            0
-        ]
-        .cpu()
-        .numpy()
-    )
-
-    return (
-        pred_states,
-        observed_states,
-        float(
-            raw_norms.max().item()
-        ),
-    )
-
-
-def linear_extrapolation_gap(
-    history_probe,
-    true_states,
-    gap_start,
-    gap_end,
-):
-    pred = np.full_like(
-        true_states,
-        np.nan,
-        dtype=np.float64,
-    )
-
-    history = [
-        true_states[
-            gap_start - 2
-        ].copy(),
-        true_states[
-            gap_start - 1
-        ].copy(),
-    ]
-
-    for step in range(
-        gap_start,
-        gap_end,
-    ):
-        x = np.concatenate(
-            [
-                history[-2],
-                history[-1],
-            ]
-        )[None, :]
-
-        next_state = history_probe.predict(
-            x
-        )[0]
-
-        pred[step] = next_state
-        history.append(
-            next_state
-        )
-
-    return pred
-
-
-def evaluate_gap(
-    model,
-    gap_loader,
-    state_probe,
-    history_probe,
-    args,
-    device,
-    gap_episode_ids,
-):
-    gap_true = []
-    gap_cpc = []
-    gap_linear = []
-    per_episode_arrays = {}
-
-    first_figure_data = None
-    max_raw_prediction_norm = 0.0
-
-    gap_end = (
-        args.gap_start
-        + args.gap_length
-    )
-
-    with torch.no_grad():
-        for sequence_index, batch in enumerate(
-            gap_loader
-        ):
-            if sequence_index >= args.gap_sequences:
-                break
-
-            images = batch[
-                "images"
-            ].to(device)
-
-            states = (
-                batch[
-                    "physics_states"
-                ]
-                .cpu()
-                .numpy()
-            )
-
-            for sample_index in range(
-                len(images)
-            ):
-                (
-                    pred_states,
-                    observed_states,
-                    sample_max_raw_prediction_norm,
-                ) = rollout_gap(
-                    model,
-                    images[
-                        sample_index :
-                        sample_index + 1
-                    ],
-                    args.gap_start,
-                    gap_end,
-                    state_probe,
-                )
-
-                max_raw_prediction_norm = max(
-                    max_raw_prediction_norm,
-                    sample_max_raw_prediction_norm,
-                )
-
-                linear = linear_extrapolation_gap(
-                    history_probe,
-                    states[sample_index],
-                    args.gap_start,
-                    gap_end,
-                )
-
-                gap_true_window = states[
-                    sample_index,
-                    args.gap_start : gap_end,
-                ]
-                gap_cpc_window = pred_states[
-                    args.gap_start : gap_end
-                ]
-                gap_linear_window = linear[
-                    args.gap_start : gap_end
-                ]
-
-                window_index = len(gap_true)
-                if window_index >= len(gap_episode_ids):
-                    raise RuntimeError(
-                        "Gap-window episode metadata is shorter than "
-                        "the evaluated window set"
-                    )
-                episode_id = int(gap_episode_ids[window_index])
-                episode_arrays = per_episode_arrays.setdefault(
-                    episode_id,
-                    {"true": [], "cpc": [], "linear": []},
-                )
-                episode_arrays["true"].append(gap_true_window)
-                episode_arrays["cpc"].append(gap_cpc_window)
-                episode_arrays["linear"].append(gap_linear_window)
-
-                gap_true.append(gap_true_window)
-                gap_cpc.append(gap_cpc_window)
-                gap_linear.append(gap_linear_window)
-
-                if first_figure_data is None:
-                    first_figure_data = {
-                        "states": states[
-                            sample_index
-                        ],
-                        "cpc": pred_states,
-                        "observed": observed_states,
-                        "linear": linear,
-                    }
-
-                if (
-                    len(gap_true)
-                    >= args.gap_sequences
-                ):
-                    break
-
-            if (
-                len(gap_true)
-                >= args.gap_sequences
-            ):
-                break
-
-    if not gap_true:
-        raise RuntimeError(
-            "No sequences were available "
-            "for gap evaluation"
-        )
-
-    true = np.concatenate(
-        gap_true,
-        axis=0,
-    )
-
-    cpc = np.concatenate(
-        gap_cpc,
-        axis=0,
-    )
-
-    linear = np.concatenate(
-        gap_linear,
-        axis=0,
-    )
-
-    angular = infer_angular_position_indices(
-        true.shape[1]
-    )
-
-    r2_cpc = compute_structured_r2_score(
-        true,
-        cpc,
-        angular,
-    )
-
-    r2_linear = compute_structured_r2_score(
-        true,
-        linear,
-        angular,
-    )
-
-    per_episode_metrics = {}
-    for episode_id, arrays in sorted(per_episode_arrays.items()):
-        episode_true = np.concatenate(arrays["true"], axis=0)
-        episode_cpc = np.concatenate(arrays["cpc"], axis=0)
-        episode_linear = np.concatenate(arrays["linear"], axis=0)
-        episode_cpc_r2 = compute_structured_r2_score(
-            episode_true,
-            episode_cpc,
-            angular,
-        )
-        episode_linear_r2 = compute_structured_r2_score(
-            episode_true,
-            episode_linear,
-            angular,
-        )
-        per_episode_metrics[str(episode_id)] = {
-            "num_sequences": len(arrays["true"]),
-            "cpc_gap_r2_per_variable": episode_cpc_r2.tolist(),
-            "cpc_gap_mean_r2": float(np.mean(episode_cpc_r2)),
-            "linear_gap_r2_per_variable": episode_linear_r2.tolist(),
-            "linear_gap_mean_r2": float(np.mean(episode_linear_r2)),
-        }
-
-    return (
-        {
-            "num_sequences": int(
-                len(gap_true)
-            ),
-            "num_episodes": len(per_episode_metrics),
-            "per_episode_metrics": per_episode_metrics,
-            "cpc_gap_r2_per_variable": (
-                r2_cpc.tolist()
-            ),
-            "cpc_gap_mean_r2": float(
-                np.mean(r2_cpc)
-            ),
-            "linear_gap_r2_per_variable": (
-                r2_linear.tolist()
-            ),
-            "linear_gap_mean_r2": float(
-                np.mean(r2_linear)
-            ),
-            "max_raw_cpc_head_output_norm": float(
-                max_raw_prediction_norm
-            ),
-        },
-        first_figure_data,
-    )
-
-
-def save_gap_figure(
-    data,
-    args,
-    output_path,
-):
-    states = data["states"]
-    cpc = data["cpc"]
-    observed = data["observed"]
-    linear = data["linear"]
-
-    gap_end = (
-        args.gap_start
-        + args.gap_length
-    )
-
-    t = np.arange(
-        len(states)
-    )
-
-    fig, ax = plt.subplots(
-        figsize=(7.5, 3.6)
-    )
-
-    ax.plot(
-        t,
-        states[:, 0],
-        linestyle="-",
-        linewidth=2.0,
-        label="Ground Truth",
-    )
-
-    cpc_gap = np.full(
-        len(states),
-        np.nan,
-    )
-
-    cpc_gap[
-        args.gap_start : gap_end
-    ] = cpc[
-        args.gap_start : gap_end,
-        0,
-    ]
-
-    ax.plot(
-        t,
-        cpc_gap,
-        linestyle="--",
-        linewidth=1.8,
-        label="CPC Latent Rollout",
-    )
-
-    linear_gap = np.full(
-        len(states),
-        np.nan,
-    )
-
-    linear_gap[
-        args.gap_start : gap_end
-    ] = linear[
-        args.gap_start : gap_end,
-        0,
-    ]
-
-    ax.plot(
-        t,
-        linear_gap,
-        linestyle="-.",
-        linewidth=1.5,
-        label="Privileged State Extrapolation",
-    )
-
-    frame_only = observed[
-        :,
-        0,
-    ].copy()
-
-    frame_only[
-        args.gap_start : gap_end
-    ] = np.nan
-
-    ax.plot(
-        t,
-        frame_only,
-        linestyle=":",
-        marker="o",
-        markersize=3.5,
-        label="Frame-Only Re-entry",
-    )
-
-    ax.axvspan(
-        args.gap_start,
-        gap_end - 1,
-        alpha=0.2,
-        label="Unobserved Interval",
-    )
-
-    ax.set_xlabel(
-        "Time Step $t$"
-    )
-
-    ax.set_ylabel(
-        "Cart Position"
-    )
-
-    ax.set_title(
-        f"Illustrative gap trace: one validation window, "
-        f"{args.gap_length} missing frames"
-    )
-
-    ax.grid(
-        True,
-        linestyle="--",
-        alpha=0.3,
-    )
-
-    ax.legend(
-        fontsize=8
-    )
-
-    plt.tight_layout()
-
-    plt.savefig(
-        output_path,
-        dpi=300,
-        bbox_inches="tight",
-    )
-
-    plt.close(fig)
-
-
 def main() -> None:
     args = parse_args()
-
     if not args.seeds:
-        raise ValueError(
-            "At least one seed is required"
-        )
-
-    if args.evaluation_output is not None:
-        if not args.evaluate_checkpoints:
-            raise ValueError(
-                "--evaluation-output is allowed only with "
-                "--evaluate-checkpoints so training results are not "
-                "accidentally redirected."
-            )
+        raise ValueError("At least one seed is required")
+    if args.evaluate_checkpoints and args.evaluation_output is not None:
         if os.path.exists(args.evaluation_output):
             raise FileExistsError(
-                f"Refusing to overwrite existing evaluation output: "
-                f"{args.evaluation_output}"
+                f"Refusing to overwrite existing evaluation output: {args.evaluation_output}"
             )
-
-    if (
-        args.epochs <= 0
-        or args.batch_size < 2
-        or args.lr <= 0
-    ):
-        raise ValueError(
-            "Invalid optimization settings"
-        )
-
+    if args.epochs <= 0 or args.batch_size < 2 or args.lr <= 0:
+        raise ValueError("epochs and lr must be positive and batch_size must be >= 2")
     if (
         args.seq_len < 10
         or args.k_steps < 1
@@ -1366,141 +664,76 @@ def main() -> None:
         or args.eval_seq_len < max(10, args.k_steps + 2)
     ):
         raise ValueError(
-            "seq_len must be >= 10 for the time-8 probe; k_steps must be "
+            "seq_len must be >= 10 for the time-8 linear probe; k_steps must be "
             "smaller than seq_len; eval_seq_len must support the probe and CPC horizons."
         )
-
     if args.retrieval_sequences < 2:
         raise ValueError("retrieval-sequences must be >= 2")
     if args.max_train_sequences <= 0 or args.max_val_sequences <= 0:
         raise ValueError("max-train-sequences and max-val-sequences must be positive")
 
-    set_seed(args.seeds[0])
-
+    saved_metrics = validate_checkpoint_evaluation(args) if args.evaluate_checkpoints else None
     if args.evaluate_checkpoints:
-        saved_metrics = validate_checkpoint_evaluation(args)
         print(
-            "Evaluation-only mode: validated existing CPC checkpoints; "
-            "no model training will be performed."
+            "Evaluation-only mode: loading canonical CPC checkpoints; "
+            "training is skipped and standard future-latent retrieval is evaluated."
         )
-    else:
-        saved_metrics = None
 
+    set_seed(args.seeds[0])
     device = get_device()
-
     train_raw = load_dataset_npz(
-        os.path.join(
-            args.data_dir,
-            "dmc_cartpole_balance_train.npz",
-        )
+        os.path.join(args.data_dir, "dmc_cartpole_balance_train.npz")
     )
-
     val_raw = load_dataset_npz(
-        os.path.join(
-            args.data_dir,
-            "dmc_cartpole_balance_val.npz",
-        )
+        os.path.join(args.data_dir, "dmc_cartpole_balance_val.npz")
     )
-
-    # Keep the original time series intact. SequenceDataset selects a fixed
-    # number of valid windows across episodes without breaking temporal order.
-    train_frames = train_raw["frames"]
-    train_states = train_raw["physics_states"]
-    train_episode_ids = train_raw["episode_ids"]
-
-    val_frames = val_raw["frames"]
-    val_states = val_raw["physics_states"]
-    val_episode_ids = val_raw["episode_ids"]
 
     train_ds = SequenceDataset(
-        train_frames,
-        train_states,
-        train_episode_ids,
+        train_raw["frames"],
+        train_raw["physics_states"],
+        train_raw["episode_ids"],
         args.seq_len,
-        max_sequences=args.max_train_frames,
+        max_sequences=args.max_train_sequences,
     )
-
     eval_ds = SequenceDataset(
-        val_frames,
-        val_states,
-        val_episode_ids,
+        val_raw["frames"],
+        val_raw["physics_states"],
+        val_raw["episode_ids"],
         args.eval_seq_len,
-        max_sequences=args.max_val_frames,
+        max_sequences=args.max_val_sequences,
     )
-
-    # Latent forecast diagnostics use validation windows matching the training
-    # sequence length, so teacher-forced contexts stay within the trained horizon.
-    prediction_diag_ds = SequenceDataset(
-        val_frames,
-        val_states,
-        val_episode_ids,
-        args.seq_len,
-        max_sequences=args.max_val_frames,
-    )
-
-    # Gap evaluation has its own complete candidate set. Do not cap it at the
-    # 1,000 windows used for the state probes: the gap metric needs enough
-    # non-overlapping held-out windows to be stable and reproducible.
-    gap_candidates_ds = SequenceDataset(
-        val_frames,
-        val_states,
-        val_episode_ids,
+    retrieval_candidates_ds = SequenceDataset(
+        val_raw["frames"],
+        val_raw["physics_states"],
+        val_raw["episode_ids"],
         args.eval_seq_len,
         max_sequences=None,
     )
+    if len(train_ds) == 0 or len(eval_ds) == 0 or len(retrieval_candidates_ds) == 0:
+        raise RuntimeError("No valid episode-safe sequences found")
 
-    if (
-        len(train_ds) == 0
-        or len(eval_ds) == 0
-        or len(gap_candidates_ds) == 0
-    ):
-        raise RuntimeError(
-            "No valid episode-safe sequences found"
-        )
-
-    history_probe = fit_state_history_predictor(
-        train_states,
-        train_episode_ids,
+    retrieval_eval_ds = episode_stratified_nonoverlapping_subset(
+        retrieval_candidates_ds,
+        args.retrieval_sequences,
     )
-
-    angular_indices = (
-        infer_angular_position_indices(
-            train_states.shape[1]
-        )
+    retrieval_metadata = sequence_window_metadata(
+        retrieval_candidates_ds,
+        retrieval_eval_ds,
     )
-
-    gap_eval_ds = episode_stratified_nonoverlapping_subset(
-        gap_candidates_ds,
-        args.gap_sequences,
-    )
-    gap_metadata = gap_window_metadata(
-        gap_candidates_ds,
-        gap_eval_ds,
+    angular_indices = infer_angular_position_indices(
+        train_raw["physics_states"].shape[1]
     )
     print(
-        f"Gap evaluation will score {len(gap_eval_ds)} non-overlapping "
-        f"episode-safe windows from {len(gap_candidates_ds)} eligible "
-        f"validation windows across {len(gap_metadata['episode_counts'])} "
-        "episodes."
+        f"CPC retrieval will use {len(retrieval_eval_ds)} non-overlapping, "
+        f"episode-safe validation windows from {len(retrieval_candidates_ds)} eligible windows."
     )
 
     seed_metrics = []
-    first_figure_data = None
-
     for seed in args.seeds:
         set_seed(seed)
-
-        train_loader = make_loader(
-            train_ds,
-            args.batch_size,
-            seed=seed,
-            shuffle=True,
-        )
-
+        train_loader = make_loader(train_ds, args.batch_size, seed=seed, shuffle=True)
         model = TemporalCPC(
-            ConvEncoder(
-                latent_dim=args.latent_dim
-            ).to(device),
+            ConvEncoder(latent_dim=args.latent_dim).to(device),
             latent_dim=args.latent_dim,
             context_dim=args.context_dim,
             k_steps=args.k_steps,
@@ -1508,226 +741,100 @@ def main() -> None:
 
         if args.evaluate_checkpoints:
             checkpoint_path = os.path.join(
-                args.checkpoints_dir,
-                f"temporal_cpc_seed_{seed}.pt",
+                args.checkpoints_dir, f"temporal_cpc_seed_{seed}.pt"
             )
             checkpoint = torch.load(
-                checkpoint_path,
-                map_location=device,
-                weights_only=True,
+                checkpoint_path, map_location=device, weights_only=True
             )
-            model.load_state_dict(
-                checkpoint["model_state_dict"],
-                strict=True,
-            )
-            print(
-                f"Seed {seed} | loaded existing checkpoint; "
-                "skipping training."
-            )
+            model.load_state_dict(checkpoint["model_state_dict"], strict=True)
+            print(f"Seed {seed} | loaded checkpoint; skipping training.")
         else:
-            optimizer = torch.optim.Adam(
-                model.parameters(),
-                lr=args.lr,
-            )
-
-            for epoch in range(
-                1,
-                args.epochs + 1,
-            ):
+            optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
+            for epoch in range(1, args.epochs + 1):
                 model.train()
-
-                total = 0.0
-                total_examples = 0
-
+                total_loss = 0.0
+                n_batches = 0
                 for batch in train_loader:
-                    loss = model(
-                        batch["images"].to(device)
-                    )
-
+                    loss = model(batch["images"].to(device))
                     if not torch.isfinite(loss):
                         raise FloatingPointError(
-                            f"Non-finite CPC loss at "
-                            f"seed={seed}, epoch={epoch}"
+                            f"Non-finite CPC loss at seed={seed}, epoch={epoch}"
                         )
-
                     optimizer.zero_grad()
                     loss.backward()
-                    torch.nn.utils.clip_grad_norm_(
-                        model.parameters(),
-                        max_norm=1.0,
-                    )
+                    torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
                     optimizer.step()
-
-                    n = len(batch["images"])
-                    total += float(loss.item()) * n
-                    total_examples += n
-
-                if total_examples == 0:
-                    raise RuntimeError(
-                        "CPC DataLoader produced zero examples"
-                    )
-
-                if epoch % 4 == 0 or epoch == args.epochs:
+                    total_loss += float(loss.detach().item())
+                    n_batches += 1
+                if n_batches == 0:
+                    raise RuntimeError("CPC DataLoader produced zero batches")
+                mean_loss = total_loss / n_batches
+                if epoch == 1 or epoch % 5 == 0 or epoch == args.epochs:
                     print(
-                        f"Seed {seed} | "
-                        f"Epoch {epoch:02d}/{args.epochs:02d} | "
-                        f"Loss {total / total_examples:.4f}"
+                        f"Seed {seed} | Epoch {epoch:02d}/{args.epochs:02d} | "
+                        f"mean InfoNCE loss={mean_loss:.4f}"
                     )
 
-        train_z, train_c, train_y, train_next_y = (
-            extract_temporal_features(
-                model,
-                make_loader(
-                    train_ds,
-                    args.batch_size,
-                    shuffle=False,
-                ),
-                device,
-            )
+        train_z, train_c, train_y, train_next_y = extract_temporal_features(
+            model,
+            make_loader(train_ds, args.batch_size, shuffle=False),
+            device,
         )
-
-        val_z, val_c, val_y, val_next_y = (
-            extract_temporal_features(
-                model,
-                make_loader(
-                    eval_ds,
-                    args.batch_size,
-                    shuffle=False,
-                ),
-                device,
-            )
+        val_z, val_c, val_y, val_next_y = extract_temporal_features(
+            model,
+            make_loader(eval_ds, args.batch_size, shuffle=False),
+            device,
         )
 
         static_probe = StateLinearProbe(
             angular_position_indices=angular_indices
-        ).fit(
-            train_z,
-            train_y,
-        )
-
+        ).fit(train_z, train_y)
         context_probe = StateLinearProbe(
             angular_position_indices=angular_indices
-        ).fit(
-            train_c,
-            train_y,
-        )
-
+        ).fit(train_c, train_y)
         static_next_probe = StateLinearProbe(
             angular_position_indices=angular_indices
-        ).fit(
-            train_z,
-            train_next_y,
-        )
-
+        ).fit(train_z, train_next_y)
         context_next_probe = StateLinearProbe(
             angular_position_indices=angular_indices
-        ).fit(
-            train_c,
-            train_next_y,
-        )
+        ).fit(train_c, train_next_y)
 
-        static_current_r2, _ = (
-            static_probe.score(
-                val_z,
-                val_y,
-            )
-        )
+        static_current_r2, _ = static_probe.score(val_z, val_y)
+        context_current_r2, _ = context_probe.score(val_c, val_y)
+        static_next_r2, _ = static_next_probe.score(val_z, val_next_y)
+        context_next_r2, _ = context_next_probe.score(val_c, val_next_y)
 
-        context_current_r2, _ = (
-            context_probe.score(
-                val_c,
-                val_y,
-            )
+        retrieval_loader = make_loader(
+            retrieval_eval_ds,
+            args.batch_size,
+            seed=seed,
+            shuffle=True,
         )
-
-        static_next_r2, _ = (
-            static_next_probe.score(
-                val_z,
-                val_next_y,
-            )
+        future_retrieval = evaluate_cpc_future_retrieval(
+            model, retrieval_loader, device
         )
-
-        context_next_r2, _ = (
-            context_next_probe.score(
-                val_c,
-                val_next_y,
-            )
-        )
-
-        latent_prediction_diagnostics = evaluate_latent_prediction_diagnostics(
-            model,
-            make_loader(
-                prediction_diag_ds,
-                args.batch_size,
-                shuffle=False,
-            ),
-            device,
-            rollout_start=args.gap_start - 1,
-            max_horizon=args.gap_length,
-        )
-
-        gap_stats, figure_data = evaluate_gap(
-            model,
-            make_loader(
-                gap_eval_ds,
-                1,
-                shuffle=False,
-            ),
-            static_probe,
-            history_probe,
-            args,
-            device,
-            gap_metadata["episode_ids"],
-        )
-
-        if first_figure_data is None:
-            first_figure_data = figure_data
 
         seed_result = {
-            "static_current_position_r2": float(
-                static_current_r2[0]
-            ),
-            "static_current_velocity_r2": float(
-                static_current_r2[2]
-            ),
-            "context_current_position_r2": float(
-                context_current_r2[0]
-            ),
-            "context_current_velocity_r2": float(
-                context_current_r2[2]
-            ),
-            "static_next_state_mean_r2": float(
-                np.mean(static_next_r2)
-            ),
-            "context_next_state_mean_r2": float(
-                np.mean(context_next_r2)
-            ),
-            "static_next_state_position_r2": float(
-                np.mean(static_next_r2[:2])
-            ),
-            "static_next_state_velocity_r2": float(
-                np.mean(static_next_r2[2:])
-            ),
-            "context_next_state_position_r2": float(
-                np.mean(context_next_r2[:2])
-            ),
-            "context_next_state_velocity_r2": float(
-                np.mean(context_next_r2[2:])
-            ),
-            "latent_prediction_diagnostics": latent_prediction_diagnostics,
-            **gap_stats,
+            "static_current_r2_per_variable": [float(v) for v in static_current_r2],
+            "context_current_r2_per_variable": [float(v) for v in context_current_r2],
+            "static_next_r2_per_variable": [float(v) for v in static_next_r2],
+            "context_next_r2_per_variable": [float(v) for v in context_next_r2],
+            "static_current_position_r2": float(static_current_r2[0]),
+            "static_current_velocity_r2": float(static_current_r2[2]),
+            "context_current_position_r2": float(context_current_r2[0]),
+            "context_current_velocity_r2": float(context_current_r2[2]),
+            "static_next_state_mean_r2": float(np.mean(static_next_r2)),
+            "context_next_state_mean_r2": float(np.mean(context_next_r2)),
+            "static_next_state_position_r2": float(np.mean(static_next_r2[:2])),
+            "static_next_state_velocity_r2": float(np.mean(static_next_r2[2:])),
+            "context_next_state_position_r2": float(np.mean(context_next_r2[:2])),
+            "context_next_state_velocity_r2": float(np.mean(context_next_r2[2:])),
+            "cpc_future_retrieval": future_retrieval,
         }
-
-        seed_metrics.append(
-            seed_result
-        )
-
-        os.makedirs(
-            args.checkpoints_dir,
-            exist_ok=True,
-        )
+        seed_metrics.append(seed_result)
 
         if not args.evaluate_checkpoints:
+            os.makedirs(args.checkpoints_dir, exist_ok=True)
             torch.save(
                 {
                     "model_state_dict": model.state_dict(),
@@ -1741,176 +848,102 @@ def main() -> None:
                     "latent_normalization": "none",
                     "gradient_clip_norm": 1.0,
                 },
-                os.path.join(
-                    args.checkpoints_dir,
-                    f"temporal_cpc_seed_{seed}.pt",
-                ),
+                os.path.join(args.checkpoints_dir, f"temporal_cpc_seed_{seed}.pt"),
             )
 
+        one_step = future_retrieval["by_horizon"]["1"]
         print(
-            f"Seed {seed} | "
-            f"current static pos="
-            f"{static_current_r2[0]:.3f}, "
-            f"vel={static_current_r2[2]:.3f} | "
-            f"context pos="
-            f"{context_current_r2[0]:.3f}, "
-            f"vel={context_current_r2[2]:.3f}"
+            f"Seed {seed} | current position R2: static={static_current_r2[0]:.3f}, "
+            f"context={context_current_r2[0]:.3f}; current velocity R2: "
+            f"static={static_current_r2[2]:.3f}, context={context_current_r2[2]:.3f}"
         )
-
         print(
-            f"Seed {seed} | "
-            f"next-state static="
-            f"{np.mean(static_next_r2):.3f}, "
-            f"context="
-            f"{np.mean(context_next_r2):.3f} | "
-            f"gap CPC="
-            f"{gap_stats['cpc_gap_mean_r2']:.3f}, "
-            f"linear="
-            f"{gap_stats['linear_gap_mean_r2']:.3f} | "
-            f"max ||raw w_1 c||="
-            f"{gap_stats['max_raw_cpc_head_output_norm']:.6f}"
-        )
-
-    if first_figure_data is not None:
-        os.makedirs(
-            args.figures_dir,
-            exist_ok=True,
-        )
-
-        save_gap_figure(
-            first_figure_data,
-            args,
-            os.path.join(
-                args.figures_dir,
-                "fig03_16_gap_tracking.png",
-            ),
+            f"Seed {seed} | CPC horizon-1 retrieval: top1={one_step['top1_accuracy']:.3f}, "
+            f"random chance={one_step['random_top1_chance']:.3f}, "
+            f"InfoNCE={one_step['infonce_loss']:.3f}, "
+            f"positive-hardest-negative margin="
+            f"{one_step['mean_positive_minus_hardest_negative']:.3f}"
         )
 
     def mean_std(key):
-        values = np.asarray(
-            [
-                m[key]
-                for m in seed_metrics
-            ],
-            dtype=np.float64,
-        )
+        values = np.asarray([metric[key] for metric in seed_metrics], dtype=np.float64)
+        return {"mean": float(values.mean()), "std": float(values.std()), "per_seed": values.tolist()}
 
-        return (
-            float(values.mean()),
-            float(values.std()),
-        )
-
-    def per_variable_summary(metric_key):
+    def per_variable_probe_summary(metric_key):
         return {
             name: {
-                "mean": float(
-                    np.mean(
-                        [
-                            metric[metric_key][index]
-                            for metric in seed_metrics
-                        ]
-                    )
-                ),
-                "std": float(
-                    np.std(
-                        [
-                            metric[metric_key][index]
-                            for metric in seed_metrics
-                        ]
-                    )
-                ),
+                "mean": float(np.mean([
+                    metric[metric_key][index] for metric in seed_metrics
+                ])),
+                "std": float(np.std([
+                    metric[metric_key][index] for metric in seed_metrics
+                ])),
+                "per_seed": [
+                    float(metric[metric_key][index]) for metric in seed_metrics
+                ],
             }
             for index, name in enumerate(CARTPOLE_STATE_NAMES)
         }
 
     summary = {
-        "static_position_r2": mean_std(
-            "static_current_position_r2"
-        ),
-        "static_velocity_r2": mean_std(
-            "static_current_velocity_r2"
-        ),
-        "context_position_r2": mean_std(
-            "context_current_position_r2"
-        ),
-        "context_velocity_r2": mean_std(
-            "context_current_velocity_r2"
-        ),
-        "static_next_state_mean_r2": mean_std(
-            "static_next_state_mean_r2"
-        ),
-        "context_next_state_mean_r2": mean_std(
-            "context_next_state_mean_r2"
-        ),
-        "cpc_gap_mean_r2": mean_std(
-            "cpc_gap_mean_r2"
-        ),
-        "linear_gap_mean_r2": mean_std(
-            "linear_gap_mean_r2"
-        ),
-        "cpc_gap_r2_per_variable": per_variable_summary(
-            "cpc_gap_r2_per_variable"
-        ),
-        "linear_gap_r2_per_variable": per_variable_summary(
-            "linear_gap_r2_per_variable"
-        ),
-        "latent_prediction_diagnostics": summarize_latent_prediction_diagnostics(
-            seed_metrics
-        ),
+        "static_position_r2": mean_std("static_current_position_r2"),
+        "static_velocity_r2": mean_std("static_current_velocity_r2"),
+        "context_position_r2": mean_std("context_current_position_r2"),
+        "context_velocity_r2": mean_std("context_current_velocity_r2"),
+        "static_next_state_mean_r2": mean_std("static_next_state_mean_r2"),
+        "context_next_state_mean_r2": mean_std("context_next_state_mean_r2"),
+        "state_probe_r2_by_variable": {
+            "static_current": per_variable_probe_summary("static_current_r2_per_variable"),
+            "context_current": per_variable_probe_summary("context_current_r2_per_variable"),
+            "static_next": per_variable_probe_summary("static_next_r2_per_variable"),
+            "context_next": per_variable_probe_summary("context_next_r2_per_variable"),
+        },
+        "cpc_future_retrieval": summarize_cpc_future_retrieval(seed_metrics),
     }
 
-    os.makedirs(
-        args.results_dir,
-        exist_ok=True,
+    os.makedirs(args.results_dir, exist_ok=True)
+    result_path = args.evaluation_output or os.path.join(
+        args.results_dir, "table_03_05_cpc_metrics.json"
     )
-
-    result_path = (
-        args.evaluation_output
-        or os.path.join(
-            args.results_dir,
-            "table_03_05_cpc_metrics.json",
-        )
-    )
-    os.makedirs(
-        os.path.dirname(os.path.abspath(result_path)),
-        exist_ok=True,
-    )
-
+    os.makedirs(os.path.dirname(os.path.abspath(result_path)), exist_ok=True)
     save_json(
         {
             "experiment_version": EXPERIMENT_VERSION,
             "objective_contract": CPC_OBJECTIVE_CONTRACT,
-            "gap_evaluation_contract_version": GAP_EVALUATION_CONTRACT_VERSION,
+            "retrieval_evaluation_contract_version": RETRIEVAL_EVALUATION_CONTRACT_VERSION,
             "seeds": args.seeds,
             "config": vars(args),
             "evaluation": {
-                "sample_selection": "episode-stratified sequence starts across full split",
-                "gap_sampling": (
-                    "episode-stratified non-overlapping contiguous windows "
-                    "selected from all eligible validation starts"
+                "state_probe_sample_selection": "episode-stratified sequence starts across the validation split",
+                "retrieval_sample_selection": (
+                    "episode-stratified, non-overlapping, episode-safe windows; "
+                    "windows are shuffled into batches so negative candidates do not come from adjacent windows"
                 ),
-                "gap_sequence_count": len(gap_eval_ds),
-                "eligible_validation_windows": len(gap_candidates_ds),
-                "probe_validation_windows": len(eval_ds),
-                "gap_window_start_indices": gap_metadata["start_indices"],
-                "gap_window_episode_ids": gap_metadata["episode_ids"],
-                "gap_window_episode_counts": gap_metadata["episode_counts"],
-                "gap_windows_overlap": gap_metadata["overlapping_windows"],
-                "gap_baseline_scope": (
-                    "One state-history model is fitted on the training split "
-                    "and shared across CPC seeds. Its zero across-seed "
-                    "standard deviation is not an independent seed estimate."
+                "retrieval_sequence_count": len(retrieval_eval_ds),
+                "eligible_validation_windows": len(retrieval_candidates_ds),
+                "retrieval_window_start_indices": retrieval_metadata["start_indices"],
+                "retrieval_window_episode_ids": retrieval_metadata["episode_ids"],
+                "retrieval_window_episode_counts": retrieval_metadata["episode_counts"],
+                "retrieval_windows_overlap": retrieval_metadata["overlapping_windows"],
+                "retrieval_candidate_set": (
+                    "For each context, compare its correct future latent with future latents "
+                    "from other validation sequences in the same batch."
+                ),
+                "primary_cpc_metrics": [
+                    "multi_horizon_infonce_loss",
+                    "future_latent_top1_retrieval_accuracy",
+                    "future_latent_top5_retrieval_accuracy",
+                    "positive_minus_hardest_negative_score",
+                ],
+                "custom_recursive_latent_rollout": (
+                    "Excluded from this experiment because CPC's bilinear output is a "
+                    "compatibility score/vector trained by InfoNCE, not a pointwise latent-regression target."
                 ),
                 "checkpoint_only": bool(args.evaluate_checkpoints),
                 "prior_metrics_config": (
-                    saved_metrics.get("config")
-                    if saved_metrics is not None
-                    else None
+                    saved_metrics.get("config") if saved_metrics is not None else None
                 ),
             },
-            "angular_position_indices": list(
-                angular_indices
-            ),
             "latent_normalization": "none",
             "sample_selection": "episode_stratified_sequence_starts_across_full_split",
             "gradient_clip_norm": 1.0,
@@ -1919,7 +952,7 @@ def main() -> None:
         },
         result_path,
     )
-    print(f"Saved CPC metrics -> {result_path}")
+    print(f"Saved objective-aligned CPC metrics -> {result_path}")
 
 
 if __name__ == "__main__":
