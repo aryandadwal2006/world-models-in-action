@@ -742,17 +742,12 @@ def rollout_gap(
                         "at gap start"
                     )
 
-                # Track the raw predictive-vector norm used by the bilinear CPC head.
-                raw_prediction = c_current @ model.w_k[0].T
+                # Measure the same raw prediction that is fed back into the GRU.
+                raw_prediction = model.predict_next_latent(c_current)
                 raw_prediction_norms.append(
                     torch.linalg.vector_norm(raw_prediction, dim=-1)
                 )
-                z_in = (
-                    model.predict_next_latent(
-                        c_current
-                    )
-                    .unsqueeze(1)
-                )
+                z_in = raw_prediction.unsqueeze(1)
 
             c_out, hidden = model.gru(
                 z_in,
