@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import copy
+import math
 import os
 import sys
 
@@ -17,7 +18,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 import numpy as np
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Subset
 
 from worldmodels.data.augment import ViewPipeline
 from worldmodels.data.dmc_data import (
@@ -168,10 +169,14 @@ def _feature_statistics(features: np.ndarray) -> dict:
             np.sum(probabilities * np.log(np.maximum(probabilities, 1e-15)))
         )
         rank = float(np.exp(entropy))
+    dimension_std = np.std(features, axis=0)
     return {
         "effective_rank": rank,
-        "mean_dim_std": float(np.std(features, axis=0).mean()),
-        "per_dimension_std": np.std(features, axis=0).tolist(),
+        "mean_dim_std": float(dimension_std.mean()),
+        "min_dim_std": float(dimension_std.min()),
+        "max_dim_std": float(dimension_std.max()),
+        "mean_feature_variance": float(np.var(features, axis=0).mean()),
+        "per_dimension_std": dimension_std.tolist(),
     }
 
 
@@ -186,6 +191,11 @@ def _representation_stats(
 ) -> dict:
     """Measure the encoder space and every available loss-space branch."""
     modules = [encoder, projector, predictor, target_encoder, target_projector]
+    previous_modes = {
+        id(module): module.training
+        for module in modules
+        if module is not None
+    }
     for module in modules:
         if module is not None:
             module.eval()
@@ -223,7 +233,49 @@ def _representation_stats(
     for name, batches in collected.items():
         if batches:
             diagnostics[name] = _feature_statistics(np.concatenate(batches, axis=0))
+    for module in modules:
+        if module is not None:
+            module.train(previous_modes[id(module)])
     return diagnostics
+
+
+def _snapshot_epochs(num_epochs: int) -> set[int]:
+    return {
+        1,
+        max(1, num_epochs // 3),
+        max(1, (2 * num_epochs) // 3),
+        num_epochs,
+    }
+
+
+def _append_training_snapshot(
+    history, epoch, epoch_loss, encoder, diagnostic_loader, device,
+    projector=None, predictor=None, target_encoder=None, target_projector=None,
+):
+    diagnostics = _representation_stats(
+        encoder, diagnostic_loader, device, projector=projector,
+        predictor=predictor, target_encoder=target_encoder,
+        target_projector=target_projector,
+    )
+    history.append({
+        "epoch": int(epoch),
+        "mean_training_loss": float(epoch_loss),
+        "representation_diagnostics": diagnostics,
+    })
+
+
+def _validate_args(args):
+    if args.epochs < 1 or args.batch_size < 2 or args.lr <= 0:
+        raise ValueError("epochs >= 1, batch-size >= 2, and lr > 0 are required")
+    if min(args.latent_dim, args.projector_dim, args.hidden_dim) < 2:
+        raise ValueError("latent, projector, and hidden dimensions must each be >= 2")
+    if args.max_train_samples < 2:
+        raise ValueError("max-train-samples must be >= 2")
+    if args.max_shift < 0 or args.brightness_range < 0 or args.contrast_range < 0:
+        raise ValueError("augmentation ranges must be non-negative")
+    if not 0 <= args.byol_ema_start < 1:
+        raise ValueError("byol-ema-start must be in [0, 1)")
+
 
 def train_simsiam(train_loader, val_loader, args, device):
     encoder = ConvEncoder(latent_dim=args.latent_dim).to(device)
