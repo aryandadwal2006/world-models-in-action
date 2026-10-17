@@ -1,6 +1,6 @@
 # Chapter 3 Audit Findings — Corrected Runs and Interpretation
 
-> **Method-fidelity status update (17 October 2026):** The CPC gap and three-mechanism measurements reported below describe earlier implementations. On `diagnostics/ch03-experiment-validation`, CPC now uses raw bilinear, multi-horizon InfoNCE without latent normalization, temperature scaling, or an auxiliary one-step MSE loss; it trains over all valid context positions. SimSiam/BYOL/Barlow Twins now use method-specific BatchNorm heads, and the collapse demo records epoch 0. None of these updated experiments has been rerun yet. Preserve the old numbers as historical evidence only; use the isolated rerun paths in `ch03/README.md` before updating manuscript claims. The Table 3.4 findings below are not invalidated by these specific changes.
+> **Superseding method/evaluation status update (18 October 2026):** CPC now retains raw bilinear multi-horizon InfoNCE training but evaluates its actual objective using held-out future-latent retrieval at each horizon. The former recursive missing-frame latent rollout has been removed from the CPC runner; its scores below are historical results for a custom diagnostic and must not be cited as standard CPC performance. The SimSiam/BYOL/Barlow Twins runner now defaults to five seeds, 30 epochs, 6,000 training images, and records training loss plus encoder/projector spread and effective rank at early, middle, and final checkpoints. These latest code updates have not yet been executed or test-validated. Run the tests, smoke tests, and expanded experiments listed in `ch03/README.md` before using fresh numbers in the manuscript. The Table 3.4 findings below are not invalidated by these specific changes.
 
 **Original experiment-result commit:** `7d4c77feb7e7e15bf8cb6b7ca3a1cd5ff411f559`  
 **Corrected design/findings on the original audit branch:** most recently inspected at `e659756d7f5a99be91e16be46270fd52cf2d1b2e`.  
@@ -75,21 +75,13 @@ Finger Spin's stored state has six coordinates (three qpos followed by three qve
 
 These results are descriptive teaching experiments with three seeds and modest training budgets, not a broad benchmark of SSL methods.
 
-### 2.5 CPC is informative but its gap metric needs a stronger evaluation
+### 2.5 CPC: historical gap-rollout findings and the current objective-aligned evaluation
 
-The corrected CPC run trained all three seeds and saved the checkpoints. Its results are:
+**Historical results only, not standard CPC evidence:** The prior CPC run reported current Cartpole-position probe R² of static 0.789 ± 0.007 and context 0.828 ± 0.010; current velocity 0.007 ± 0.004 and context 0.143 ± 0.083; and mean next-state probe R² of static 0.227 ± 0.021 and context 0.277 ± 0.049. Its custom recursive gap rollout scored −2.853, −0.128, and −0.443 per seed over 200 non-overlapping windows (mean −1.141 ± 1.217), with strong seed sensitivity. It fed the CPC bilinear compatibility output back into the GRU as if it were a predicted latent, then decoded it with a probe trained on observed latents. CPC's InfoNCE objective does not directly train that vector as a pointwise latent-regression target. Therefore, those negative gap numbers describe that bespoke procedure only and have been removed from the new CPC runner's primary claims.
 
-- Current Cartpole-position probe: static 0.789 ± 0.007; context 0.828 ± 0.010.
-- Current Cartpole-velocity probe: static 0.007 ± 0.004; context 0.143 ± 0.083.
-- Mean next-state probe (R^2): static 0.227 ± 0.021; context 0.277 ± 0.049.
-- Historical 32-window gap rollout: −3.094, −0.196, and −0.539 per seed; mean −1.276 ± 1.293.
-- Expanded checkpoint-only gap rollout (200 non-overlapping windows per seed): −2.853, −0.128, and −0.443 per seed; mean −1.141 ± 1.217 across seeds.
-- Expanded per-variable CPC gap mean R² ± population SD across seeds: cart position −3.331 ± 4.267; pole angle −0.382 ± 0.111; cart velocity −0.401 ± 0.504; pole angular velocity −0.451 ± 0.178.
-- Privileged state-history extrapolation baseline: mean R² = 0.837, identical across CPC seeds because one shared state-history model is used.
+The previous privileged state-history baseline scored mean R² = 0.837, but it receives ground-truth physics states while CPC receives rendered frames; it is not a like-for-like comparison. The old 200 windows were balanced across five episodes and non-overlapping, but they are windows, not 200 independent trajectories. Do not use the old gap-rollout values to characterize CPC generally.
 
-Temporal context improves current-state and next-state probe scores in this setup, while the latent rollout performs poorly on the gap test. The expanded evaluation confirms the negative result but also shows substantial seed sensitivity, driven especially by seed 0 and cart-position prediction. The 200 windows are balanced at 40 per each of five held-out episodes; they are windows, not independent episodes. Episode 3 has the lowest CPC mean gap R² for each of the three seeds, so its trajectory-level errors should be inspected before interpreting the aggregate as a uniform failure mode. The privileged baseline receives true qpos/qvel history, while CPC receives rendered frames; this input asymmetry must be disclosed, not presented as a like-for-like comparison. The author-supplied local log and committed JSON report successful checkpoint-only evaluation; the audit reviewer did not independently execute the evaluation. The current `main`-branch test log includes the CPC window-selection tests and reports 49 total tests passing.
-
-The printed maximum rollout latent norm of approximately 1 is guaranteed by explicit L2 normalization in the model. It is an implementation sanity check, not independent evidence that rollout dynamics are stable.
+**New evaluation contract:** The current branch now evaluates the trained bilinear scores by asking whether, for each context and each trained future horizon, the correct held-out future latent ranks above other sequences' future latents. The primary evidence is InfoNCE loss, top-1/top-5 retrieval, random-candidate chance, and positive-minus-hardest-negative score margin, aggregated across independent training seeds. This run has not yet been executed; no numeric result exists for the new retrieval contract until the tests and fresh CPC run complete. Linear state probes remain secondary measures of what the representation makes decodable, and any negative or mixed outcomes must be reported as observed.
 
 ### 2.6 Encoder assembly
 
@@ -97,7 +89,7 @@ The final script reports successful verification of an observation tensor shaped
 
 ## 3. Recommended remaining scientific checks
 
-1. **Completed on `main`:** the existing CPC checkpoints were evaluated on 200 episode-balanced, non-overlapping gap windows per seed, with per-seed and per-variable results committed. Do not rerun this evaluation unless debugging; keep the privileged-baseline caveat explicit.
+1. **Current branch, pending execution:** run the CPC retrieval evaluation defined above on newly trained checkpoints. The previous 200-window recursive gap result remains historical and is not a substitute for objective-aligned retrieval.
 2. Label the Table 3.4 supervised row as a state-label-trained encoder followed by an independent frozen-feature probe. The existing result is not the trained prediction head's direct held-out metric. Only rerun that supervised arm if the chapter specifically needs to claim or tabulate trained-head predictive performance.
 3. In the chapter prose, report the negative result for two-frame stacking honestly. Do not claim the current experiment demonstrates velocity recovery.
 4. Keep the Table 3.4 method-family comparison caveat and report all negative velocity scores rather than omitting them.
@@ -105,4 +97,4 @@ The final script reports successful verification of an observation tensor shaped
 
 ## 4. Artifact and CI status
 
-The CPC evaluation JSON/figure, corrected Table 3.4 JSON, corrected standalone MAE metrics, regenerated Figure 3.12, and experiment code are committed on `main`. The author-supplied current local log reports 49 tests passing plus successful standalone and Table 3.4 MAE runs. No GitHub Actions status was reported for the latest push, and the reviewer did not independently reproduce the local runs.
+The CPC gap-evaluation JSON/figure and the corrected Table 3.4/MAE artifacts are historical results already committed on `main`. The fresh future-latent retrieval run and expanded three-mechanism run described by this branch have not yet been executed, and their unit tests have not yet been run in the user's local environment. No publication-facing numbers should be updated until the tests and fresh runs complete and the outputs have been reviewed.
