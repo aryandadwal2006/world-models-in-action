@@ -47,7 +47,7 @@ from worldmodels.train import (
     set_seed,
 )
 
-EXPERIMENT_VERSION = 5
+EXPERIMENT_VERSION = 6
 
 REQUIRED_TASKS = (
     ("cartpole_balance", 4),
@@ -184,6 +184,11 @@ def make_signature(
         "batch_size": int(args.batch_size),
         "lr": float(args.lr),
         "latent_dim": int(args.latent_dim),
+        "mae_representation": {
+            "source": "mean_pooled_final_encoder_tokens",
+            "feature_dim": 64,
+            "projection": None,
+        },
         "max_train_samples": int(
             args.max_train_samples
         ),
@@ -324,6 +329,44 @@ def _migrate_version3_progress(progress, signature):
     )
     return migrated
 
+def _migrate_version5_mae_representation_progress(progress, signature):
+    """Archive and invalidate only MAE results from the untrained-projection path."""
+    old_signature = progress.get("experiment")
+    if (
+        not isinstance(old_signature, dict)
+        or old_signature.get("experiment_version") != 5
+    ):
+        return None
+
+    old_core = copy.deepcopy(old_signature)
+    new_core = copy.deepcopy(signature)
+    old_core.pop("experiment_version", None)
+    new_core.pop("experiment_version", None)
+    new_core.pop("mae_representation", None)
+    if old_core != new_core:
+        return None
+
+    migrated = copy.deepcopy(progress)
+    results = migrated.get("results", {})
+    legacy_mae = {}
+    for task_name, _state_dim in REQUIRED_TASKS:
+        task_results = results.get(task_name, {})
+        legacy_mae[task_name] = copy.deepcopy(
+            task_results.get("Masked Autoencoder (MAE)", {})
+        )
+        task_results["Masked Autoencoder (MAE)"] = {}
+
+    migrated.setdefault("legacy_results_before_mae_representation_fix", {})[
+        "version5_mae_results"
+    ] = legacy_mae
+    migrated["experiment"] = signature
+    print(
+        "Archived and cleared only the old MAE probe results. Existing "
+        "supervised, NT-Xent, and VICReg results are preserved."
+    )
+    return migrated
+
+
 def load_progress(
     path,
     signature,
@@ -345,6 +388,13 @@ def load_progress(
         return progress
 
     migrated = _migrate_version3_progress(progress, signature)
+    if migrated is not None:
+        return migrated
+
+    migrated = _migrate_version5_mae_representation_progress(
+        progress,
+        signature,
+    )
     if migrated is not None:
         return migrated
 
@@ -1201,6 +1251,11 @@ def main():
             "config": vars(args),
             "experiment": signature,
             "publication_method_labels": METHOD_DISPLAY_NAMES,
+            "mae_representation": {
+                "source": "mean_pooled_final_encoder_tokens",
+                "feature_dim": 64,
+                "projection": None,
+            },
             "metric_contract": {
                 "position_indices_by_task": {
                     task: list(indices)
