@@ -76,21 +76,6 @@ class TestRepresentationDiagnostics(unittest.TestCase):
         self.assertEqual(result["mean_dim_std"], 0.0)
         self.assertEqual(result["effective_rank"], 0.0)
 
-    def test_latent_error_metrics_identical_vectors_are_perfect(self):
-        vectors = np.asarray([[1.0, 0.0], [0.0, 1.0]])
-        metrics = CPC._latent_error_metrics(vectors, vectors)
-        self.assertAlmostEqual(metrics["mse"], 0.0)
-        self.assertAlmostEqual(metrics["mean_cosine_similarity"], 1.0)
-        self.assertEqual(metrics["num_predictions"], 2)
-
-    def test_latent_error_metrics_detect_a_changed_prediction(self):
-        predicted = np.asarray([[1.0, 0.0], [1.0, 0.0]])
-        target = np.asarray([[0.0, 1.0], [1.0, 0.0]])
-        metrics = CPC._latent_error_metrics(predicted, target)
-        self.assertGreater(metrics["mse"], 0.0)
-        self.assertLess(metrics["mean_cosine_similarity"], 1.0)
-
-
 class DummyCPC(nn.Module):
     """Tiny CPC-shaped model for teacher-forced and free-rollout metrics."""
 
@@ -107,6 +92,47 @@ class DummyCPC(nn.Module):
 
     def predict_next_latent(self, context):
         return nn.functional.normalize(context @ self.w_k[0].T, dim=-1)
+
+
+class TestCPCFutureRetrieval(unittest.TestCase):
+    def test_standard_infonce_retrieval_metrics_for_each_horizon(self):
+        base = torch.arange(1.0, 49.0).reshape(4, 12, 1, 1, 1)
+        images = torch.cat([base, base.flip(dims=(1,))], dim=-1)
+        diagnostic = CPC.evaluate_cpc_future_retrieval(
+            DummyCPC(),
+            [{"images": images}],
+            torch.device("cpu"),
+        )
+        self.assertEqual(
+            set(diagnostic["by_horizon"]),
+            {"1", "2", "3"},
+        )
+        self.assertIn("InfoNCE", diagnostic["method"])
+        self.assertEqual(diagnostic["num_sequences_seen"], 4)
+        for item in diagnostic["by_horizon"].values():
+            self.assertTrue(np.isfinite(item["infonce_loss"]))
+            self.assertGreaterEqual(item["infonce_loss"], 0.0)
+            self.assertGreaterEqual(item["top1_accuracy"], 0.0)
+            self.assertLessEqual(item["top1_accuracy"], 1.0)
+            self.assertGreaterEqual(item["top5_accuracy"], item["top1_accuracy"])
+            self.assertAlmostEqual(item["random_top1_chance"], 0.25)
+            self.assertEqual(item["num_context_examples"], 4 * (12 - 3))
+
+    def test_effective_rank_does_not_detect_representation_scale(self):
+        values = np.column_stack([
+            np.linspace(-1.0, 1.0, 100),
+            np.linspace(1.0, -1.0, 100),
+            np.sin(np.linspace(-1.0, 1.0, 100) * 4),
+            np.cos(np.linspace(-1.0, 1.0, 100) * 3),
+        ])
+        ordinary = MECHANISMS._feature_statistics(values)
+        tiny = MECHANISMS._feature_statistics(values * 1e-9)
+        self.assertAlmostEqual(
+            ordinary["effective_rank"],
+            tiny["effective_rank"],
+            places=6,
+        )
+        self.assertLess(tiny["mean_dim_std"], ordinary["mean_dim_std"] * 1e-8)
 
 
 class TinyFrameEncoder(nn.Module):
@@ -150,47 +176,6 @@ class TestCanonicalCPCObjective(unittest.TestCase):
         for head in model.w_k:
             self.assertIsNotNone(head.grad)
             self.assertTrue(torch.isfinite(head.grad).all().item())
-
-
-class TestCPCLatentForecastDiagnostics(unittest.TestCase):
-    def test_reports_teacher_forced_and_each_rollout_horizon(self):
-        # Shape (batch=2, time=12, channels=1, height=1, width=2).
-        base = torch.arange(1.0, 25.0).reshape(2, 12, 1, 1, 1)
-        images = torch.cat([base, base.flip(dims=(1,))], dim=-1)
-        loader = [{"images": images}]
-        diagnostic = CPC.evaluate_latent_prediction_diagnostics(
-            DummyCPC(),
-            loader,
-            torch.device("cpu"),
-            rollout_start=5,
-            max_horizon=3,
-        )
-        self.assertIn("teacher_forced_one_step", diagnostic)
-        # seq_len=12, k_steps=3: all context indexes 0..8 are valid,
-        # across both batch examples.
-        self.assertEqual(
-            diagnostic["teacher_forced_one_step"]["num_predictions"],
-            18,
-        )
-        self.assertEqual(
-            set(diagnostic["autoregressive_rollout_by_horizon"]),
-            {"1", "2", "3"},
-        )
-        for item in diagnostic["autoregressive_rollout_by_horizon"].values():
-            self.assertGreaterEqual(item["mse"], 0.0)
-            self.assertLessEqual(item["mean_cosine_similarity"], 1.000001)
-
-    def test_rejects_rollout_longer_than_sequence(self):
-        base = torch.arange(1.0, 13.0).reshape(1, 12, 1, 1, 1)
-        images = torch.cat([base, base.flip(dims=(1,))], dim=-1)
-        with self.assertRaisesRegex(ValueError, "exceeds sequence length"):
-            CPC.evaluate_latent_prediction_diagnostics(
-                DummyCPC(),
-                [{"images": images}],
-                torch.device("cpu"),
-                rollout_start=8,
-                max_horizon=5,
-            )
 
 
 if __name__ == "__main__":
