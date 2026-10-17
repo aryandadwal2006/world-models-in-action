@@ -43,6 +43,7 @@ Run scripts from the repository root.
 
 - Training objectives have different scales; do not rank methods by raw loss values.
 - Table 3.4 compares complete configurations, not only loss functions: the MAE arm uses a patch-transformer encoder/decoder while other arms use a convolutional encoder.
+- MAE linear probes use the mean-pooled final encoder tokens (64 features in the current configuration), not a separate pooled projection that the reconstruction loss never trains. The committed MAE scores are historical and must not be treated as current until the corrected MAE runs finish.
 - Two-frame stacking did not reliably recover velocity in the tested setup. State this as a bounded empirical result, not a general impossibility.
 - The CPC missing-frame result is negative and seed-sensitive. The privileged state-history baseline receives ground-truth physics states, unlike CPC's rendered-image input, so it is not a like-for-like comparison.
 - The committed figures/results are experiment artifacts. A new run only reproduces them if the configuration, checkpoint and evaluation contract match the recorded experiment.
