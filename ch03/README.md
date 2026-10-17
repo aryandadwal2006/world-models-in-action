@@ -35,7 +35,7 @@ Run scripts from the repository root.
 | `08_vicreg.py` | VICReg training and its force decomposition; Figure 3.11 |
 | `09_masked_autoencoder.py` | Masked reconstruction and frozen-feature evaluation; Figure 3.12 |
 | `10_bottleneck_sweep.py` | Latent dimension sweep across tasks; Figure 3.14 |
-| `11_temporal_cpc.py` | Temporal representation and next-state probes plus CPC-native future-latent retrieval; Table 3.5 |
+| `11_temporal_cpc.py` | Temporal representation and next-state probes plus CPC-native future-latent retrieval; Figure 3.16 and Table 3.5 |
 | `12_assemble_encoder.py` | Loads the learned encoder into the Chapter 1 interface and records the synthesis |
 | `table_03_04_comparison.py` | Matched comparison of supervised-pretrained, contrastive, VICReg, and MAE representations; Table 3.4 |
 
@@ -80,14 +80,14 @@ if ($LASTEXITCODE -ne 0) { throw "Tests failed. Do not run the experiments." }
 python ch03/07_three_mechanisms.py --seeds 0 --epochs 1 --batch-size 32 --max-train-samples 256 --latent-dim 16 --hidden-dim 64 --projector-dim 32 --results-dir ch03/results/mechanism_smoke_20261018
 if ($LASTEXITCODE -ne 0) { throw "Mechanism smoke test failed." }
 
-python ch03/11_temporal_cpc.py --seeds 0 --epochs 1 --batch-size 8 --seq-len 16 --eval-seq-len 25 --latent-dim 16 --context-dim 32 --k-steps 3 --max-train-sequences 64 --max-val-sequences 32 --retrieval-sequences 20 --results-dir ch03/results/cpc_smoke_20261018 --checkpoints-dir checkpoints/cpc_smoke_20261018
+python ch03/11_temporal_cpc.py --seeds 0 --epochs 1 --batch-size 8 --seq-len 16 --eval-seq-len 25 --latent-dim 16 --context-dim 32 --k-steps 3 --max-train-sequences 64 --max-val-sequences 32 --retrieval-sequences 20 --results-dir ch03/results/cpc_smoke_20261018 --checkpoints-dir checkpoints/cpc_smoke_20261018 --figures-dir ch03/figures/cpc_smoke_20261018
 if ($LASTEXITCODE -ne 0) { throw "CPC smoke test failed." }
 
 # Main diagnostic runs: fresh seeds/checkpoints and no reused outputs.
 python ch03/07_three_mechanisms.py --seeds 0 1 2 3 4 --epochs 30 --batch-size 128 --max-train-samples 6000 --results-dir ch03/results/mechanism_diagnostics_20261018
 if ($LASTEXITCODE -ne 0) { throw "Mechanism experiment failed." }
 
-python ch03/11_temporal_cpc.py --seeds 0 1 2 3 4 --epochs 20 --batch-size 32 --seq-len 16 --eval-seq-len 25 --latent-dim 16 --context-dim 32 --k-steps 3 --max-train-sequences 4000 --max-val-sequences 1000 --retrieval-sequences 200 --results-dir ch03/results/cpc_retrieval_20261018 --checkpoints-dir checkpoints/cpc_retrieval_20261018
+python ch03/11_temporal_cpc.py --seeds 0 1 2 3 4 --epochs 20 --batch-size 32 --seq-len 16 --eval-seq-len 25 --latent-dim 16 --context-dim 32 --k-steps 3 --max-train-sequences 4000 --max-val-sequences 1000 --retrieval-sequences 200 --results-dir ch03/results/cpc_retrieval_20261018 --checkpoints-dir checkpoints/cpc_retrieval_20261018 --figures-dir ch03/figures/cpc_retrieval_20261018
 if ($LASTEXITCODE -ne 0) { throw "CPC experiment failed." }
 ```
 
