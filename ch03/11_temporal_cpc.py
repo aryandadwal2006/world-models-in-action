@@ -467,9 +467,8 @@ def validate_checkpoint_evaluation(args) -> dict:
     if saved_metrics.get("objective_contract") != CPC_OBJECTIVE_CONTRACT:
         raise ValueError(
             "Checkpoint-only evaluation refused: the metrics/checkpoints do not "
-            "declare the canonical multi-horizon CPC InfoNCE objective. The prior "
-            "run used an auxiliary one-step MSE head; train fresh checkpoints into "
-            "a separate results/checkpoints directory before evaluating."
+            "declare the canonical multi-horizon CPC InfoNCE objective. Train fresh "
+            "checkpoints into a separate results/checkpoints directory before evaluating."
         )
     if saved_metrics.get("seeds") != args.seeds:
         raise ValueError(
