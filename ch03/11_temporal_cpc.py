@@ -688,7 +688,12 @@ def main() -> None:
     args = parse_args()
     if not args.seeds:
         raise ValueError("At least one seed is required")
-    if args.evaluate_checkpoints and args.evaluation_output is not None:
+    if args.evaluation_output is not None:
+        if not args.evaluate_checkpoints:
+            raise ValueError(
+                "--evaluation-output is allowed only with --evaluate-checkpoints "
+                "so a training run cannot accidentally redirect or overwrite result files."
+            )
         if os.path.exists(args.evaluation_output):
             raise FileExistsError(
                 f"Refusing to overwrite existing evaluation output: {args.evaluation_output}"
