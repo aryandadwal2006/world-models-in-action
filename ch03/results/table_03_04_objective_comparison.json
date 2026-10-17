@@ -1,5 +1,5 @@
 {
-  "experiment_version": 5,
+  "experiment_version": 6,
   "config": {
     "seeds": [
       0,
@@ -18,11 +18,16 @@
     "fresh": false
   },
   "experiment": {
-    "experiment_version": 5,
+    "experiment_version": 6,
     "epochs": 12,
     "batch_size": 64,
     "lr": 0.001,
     "latent_dim": 16,
+    "mae_representation": {
+      "source": "mean_pooled_final_encoder_tokens",
+      "feature_dim": 64,
+      "projection": null
+    },
     "max_train_samples": 3500,
     "max_val_samples": 1000,
     "seeds": [
@@ -151,6 +156,11 @@
     "Contrastive (NT-Xent)": "Contrastive (NT-Xent)",
     "VICReg": "VICReg",
     "Masked Autoencoder (MAE)": "Masked Autoencoder (MAE)"
+  },
+  "mae_representation": {
+    "source": "mean_pooled_final_encoder_tokens",
+    "feature_dim": 64,
+    "projection": null
   },
   "metric_contract": {
     "position_indices_by_task": {
@@ -441,23 +451,23 @@
         ]
       },
       "Masked Autoencoder (MAE)": {
-        "position_mean": 0.16408899523446432,
-        "position_std": 0.029522837749448978,
-        "velocity_mean": -0.1126276520884451,
-        "velocity_std": 0.0035224293398960866,
-        "mean_r2": 0.025730671573009612,
-        "std_r2": 0.016370864895350296,
+        "position_mean": 0.4745401081092315,
+        "position_std": 0.01217160496692559,
+        "velocity_mean": -0.15640535400059516,
+        "velocity_std": 0.004934665410779861,
+        "mean_r2": 0.15906737705431814,
+        "std_r2": 0.008547682418926818,
         "seed_results": [
           {
             "r2_per_variable": [
-              0.1449644121545578,
-              0.12152363929812982,
-              -0.01431873046136345,
-              -0.2147193986160678
+              0.4561144224182726,
+              0.4680120047721539,
+              -0.04086357620902237,
+              -0.2812754557485586
             ],
-            "mean_r2": 0.009362480593814088,
-            "position_mean_r2": 0.1332440257263438,
-            "velocity_mean_r2": -0.11451906453871563,
+            "mean_r2": 0.15049684880821138,
+            "position_mean_r2": 0.46206321359521324,
+            "velocity_mean_r2": -0.1610695159787905,
             "position_variable_indices": [
               0,
               1
@@ -475,14 +485,14 @@
           },
           {
             "r2_per_variable": [
-              0.19061650623736603,
-              0.2171440291903668,
-              -0.005628808308614008,
-              -0.209753058138902
+              0.5163001328330827,
+              0.4657964305377603,
+              -0.03604178546267134,
+              -0.26311352508228425
             ],
-            "mean_r2": 0.04809466724505421,
-            "position_mean_r2": 0.20388026771386641,
-            "velocity_mean_r2": -0.107690933223758,
+            "mean_r2": 0.17073531320647187,
+            "position_mean_r2": 0.49104828168542153,
+            "velocity_mean_r2": -0.1495776552724778,
             "position_variable_indices": [
               0,
               1
@@ -500,14 +510,14 @@
           },
           {
             "r2_per_variable": [
-              0.1573732881882116,
-              0.15291209633815384,
-              -0.00876539892286754,
-              -0.22258051808285573
+              0.4752747897777736,
+              0.4657428683163456,
+              -0.019185465032603544,
+              -0.2979523164684308
             ],
-            "mean_r2": 0.019734866880160545,
-            "position_mean_r2": 0.15514269226318272,
-            "velocity_mean_r2": -0.11567295850286163,
+            "mean_r2": 0.15596996914827121,
+            "position_mean_r2": 0.4705088290470596,
+            "velocity_mean_r2": -0.15856889075051717,
             "position_variable_indices": [
               0,
               1
@@ -891,25 +901,25 @@
         ]
       },
       "Masked Autoencoder (MAE)": {
-        "position_mean": 0.3045742141358288,
-        "position_std": 0.011655454504944384,
-        "velocity_mean": -0.01043704006134405,
-        "velocity_std": 0.0027363012193460713,
-        "mean_r2": 0.11556746161752508,
-        "std_r2": 0.0054266808395726255,
+        "position_mean": 0.38322660307438766,
+        "position_std": 0.010173782073323394,
+        "velocity_mean": -0.033778605234285115,
+        "velocity_std": 0.0014539160995934745,
+        "mean_r2": 0.133023478089184,
+        "std_r2": 0.003347900215481494,
         "seed_results": [
           {
             "r2_per_variable": [
-              0.6694777182803322,
-              -0.07983698136786832,
+              0.9089148965710694,
+              -0.15729492108992837,
               null,
-              -0.008879387395356542,
-              -0.004964819892996575,
-              -0.010876955453630321
+              -0.03182810046066464,
+              -0.0329444941494319,
+              -0.031137413094057376
             ],
-            "mean_r2": 0.11298391483409609,
-            "position_mean_r2": 0.29482036845623194,
-            "velocity_mean_r2": -0.008240387580661146,
+            "mean_r2": 0.1311419935553974,
+            "position_mean_r2": 0.3758099877405705,
+            "velocity_mean_r2": -0.031970002568051305,
             "position_variable_indices": [
               0,
               1
@@ -933,20 +943,20 @@
                 "reason": "The rendered spinner has pi-periodic symmetry; absolute 2*pi angle cannot be recovered from a static frame."
               }
             ],
-            "excluded_spinner_angle_r2_period_pi": 0.3656684131353555
+            "excluded_spinner_angle_r2_period_pi": 0.9213953408945402
           },
           {
             "r2_per_variable": [
-              0.7010465165869735,
-              -0.05912935176748335,
+              0.8918422135788844,
+              -0.1393269349624695,
               null,
-              -0.004939352141763109,
-              -0.005138147388296543,
-              -0.01625161353566984
+              -0.024589784451558128,
+              -0.02452940756470201,
+              -0.05238832167229979
             ],
-            "mean_r2": 0.12311761035075212,
-            "position_mean_r2": 0.32095858240974506,
-            "velocity_mean_r2": -0.008776371021909831,
+            "mean_r2": 0.13020155298557098,
+            "position_mean_r2": 0.37625763930820744,
+            "velocity_mean_r2": -0.03383583789618664,
             "position_variable_indices": [
               0,
               1
@@ -970,20 +980,20 @@
                 "reason": "The rendered spinner has pi-periodic symmetry; absolute 2*pi angle cannot be recovered from a static frame."
               }
             ],
-            "excluded_spinner_angle_r2_period_pi": 0.5604897785935752
+            "excluded_spinner_angle_r2_period_pi": 0.9717697424633815
           },
           {
             "r2_per_variable": [
-              0.6425804221600704,
-              -0.04669303907705169,
+              0.8831785941023237,
+              -0.08795422975355338,
               null,
-              -0.022313858324538804,
-              -0.010935093524361283,
-              -0.009634132895483427
+              -0.037787954213599484,
+              -0.017888610823995732,
+              -0.050913360678257025
             ],
-            "mean_r2": 0.11060085966772704,
-            "position_mean_r2": 0.29794369154150935,
-            "velocity_mean_r2": -0.014294361581461171,
+            "mean_r2": 0.13772688772658362,
+            "position_mean_r2": 0.39761218217438515,
+            "velocity_mean_r2": -0.035529975238617416,
             "position_variable_indices": [
               0,
               1
@@ -1007,12 +1017,10 @@
                 "reason": "The rendered spinner has pi-periodic symmetry; absolute 2*pi angle cannot be recovered from a static frame."
               }
             ],
-            "excluded_spinner_angle_r2_period_pi": 0.6659347391441696
+            "excluded_spinner_angle_r2_period_pi": 0.9240775138538504
           }
         ]
       }
     }
-  },
-  "mae_probe_status": "historical_invalidated_pending_corrected_rerun",
-  "mae_status_note": "The MAE rows use a pooled projection that received no reconstruction gradient. Preserve all non-MAE results; regenerate MAE rows before using this table as current evidence."
+  }
 }

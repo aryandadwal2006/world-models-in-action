@@ -1,17 +1,20 @@
 {
+  "representation": {
+    "source": "mean_pooled_final_encoder_tokens",
+    "feature_dim": 64,
+    "projection": null
+  },
   "seeds": [
     0,
     1,
     2
   ],
-  "mean_r2": 0.025135256053144855,
-  "std_r2": 0.01755786430296972,
+  "mean_r2": 0.1704104457152432,
+  "std_r2": 0.004309876845100741,
   "sample_selection": "episode_stratified_even_within_episode",
   "seed_probe_r2": [
-    0.003712880283811393,
-    0.04671977188376969,
-    0.02497311599185348
-  ],
-  "mae_probe_status": "historical_invalidated_pending_corrected_rerun",
-  "status_note": "These metrics were produced using a separate pooled projection that received no reconstruction gradient. Do not use as current MAE probe results."
+    0.1654935959691923,
+    0.17598832551837626,
+    0.169749415658161
+  ]
 }
