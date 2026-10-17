@@ -310,10 +310,10 @@ def validate_checkpoint_evaluation(args) -> dict:
         )
 
     saved_metrics = load_json(metrics_path)
-    if saved_metrics.get("experiment_version") != EXPERIMENT_VERSION:
+    if saved_metrics.get("experiment_version") not in {8, EXPERIMENT_VERSION}:
         raise ValueError(
             "Checkpoint-only evaluation refused: the metrics file was produced "
-            "by a different CPC experiment version."
+            "by an incompatible CPC experiment version."
         )
     if saved_metrics.get("latent_normalization") != "none":
         raise ValueError(
@@ -343,16 +343,24 @@ def validate_checkpoint_evaluation(args) -> dict:
         "latent_dim",
         "context_dim",
         "k_steps",
-        "max_train_frames",
-        "max_val_frames",
-        "gap_start",
-        "gap_length",
     )
     mismatches = {
         field: (saved_config.get(field), getattr(args, field))
         for field in training_fields
         if saved_config.get(field) != getattr(args, field)
     }
+    # Version-8 runs called these sequence-window limits "frames". Accept the
+    # legacy metadata key only after verifying its value exactly.
+    for current_name, legacy_name in (
+        ("max_train_sequences", "max_train_frames"),
+        ("max_val_sequences", "max_val_frames"),
+    ):
+        saved_value = saved_config.get(
+            current_name, saved_config.get(legacy_name)
+        )
+        requested_value = getattr(args, current_name)
+        if saved_value != requested_value:
+            mismatches[current_name] = (saved_value, requested_value)
     if mismatches:
         raise ValueError(
             "Existing checkpoint training configuration does not match "
@@ -378,7 +386,6 @@ def validate_checkpoint_evaluation(args) -> dict:
             "latent_dim": args.latent_dim,
             "context_dim": args.context_dim,
             "k_steps": args.k_steps,
-            "experiment_version": EXPERIMENT_VERSION,
             "latent_normalization": "none",
             "objective_contract": CPC_OBJECTIVE_CONTRACT,
         }
@@ -387,6 +394,11 @@ def validate_checkpoint_evaluation(args) -> dict:
             for key, value in expected.items()
             if checkpoint.get(key) != value
         }
+        if checkpoint.get("experiment_version") not in {8, EXPERIMENT_VERSION}:
+            mismatches["experiment_version"] = (
+                checkpoint.get("experiment_version"),
+                f"one of (8, {EXPERIMENT_VERSION})",
+            )
         if mismatches:
             raise ValueError(
                 f"Checkpoint for seed {seed} has incompatible metadata: "
