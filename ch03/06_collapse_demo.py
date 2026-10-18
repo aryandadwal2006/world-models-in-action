@@ -316,7 +316,7 @@ def main() -> None:
         )
         return [float(value) for value in values.mean(axis=0)]
 
-    res_path = os.path.join(args.results_dir, "collapse_demo.json")
+    res_path = os.path.join(args.results_dir, "collapse_demo_metrics.json")
     save_json({
         "experiment_version": 3,
         "diagnostic_epochs": list(range(args.epochs + 1)),
