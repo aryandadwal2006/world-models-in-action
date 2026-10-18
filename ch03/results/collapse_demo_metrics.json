@@ -993,6 +993,10 @@
     "purpose": "three-seed 15-epoch attraction-only versus contrastive collapse demonstration",
     "dataset_git_blob_shas": {
       "data/dmc_cartpole_balance_train.npz": "7515e0f43dd9b6afa2573fd9ab5186d22c58e6f3"
-    }
+    },
+    "current_primary_figures": [
+      "ch03/figures/fig03_09_collapse_demo.png",
+      "ch03/figures/fig03_09_objective_space.png"
+    ]
   }
 }
