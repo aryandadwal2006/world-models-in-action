@@ -97,7 +97,7 @@ class TestCPCRetrievalWindowSelection(unittest.TestCase):
     def test_metadata_rejects_overlapping_retrieval_windows(self):
         invalid_subset = Subset(self.dataset, [0, 1])
         with self.assertRaisesRegex(RuntimeError, "overlap"):
-            CPC.gap_window_metadata(
+            CPC.sequence_window_metadata(
                 self.dataset,
                 invalid_subset,
             )
