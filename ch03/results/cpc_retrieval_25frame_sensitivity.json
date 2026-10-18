@@ -1359,6 +1359,11 @@
       "figures_dir": "ch03/figures/cpc_retrieval_20261018",
       "checkpoints_dir": "checkpoints/cpc_retrieval_20261018"
     },
-    "note": "The original PNG is intentionally omitted from the release tree; use the matched-length plot for the manuscript."
+    "note": "The original PNG is intentionally omitted from the release tree; use the matched-length plot for the manuscript.",
+    "source_code_commit": "ec3d6f2d320564bd3e2e1e0ebad42da3e0cae979",
+    "dataset_git_blob_shas": {
+      "data/dmc_cartpole_balance_train.npz": "7515e0f43dd9b6afa2573fd9ab5186d22c58e6f3",
+      "data/dmc_cartpole_balance_val.npz": "a01bbe0c22c0174ebac329875002f747f9028be0"
+    }
   }
 }
