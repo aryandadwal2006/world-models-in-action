@@ -43,7 +43,7 @@
       "batch_standard_deviation_unbiased": false,
       "normalization_note": "Batch feature standardization is performed in the loss; this matches the objective but is not code-identical to the official output BatchNorm implementation."
     },
-    "results_dir": "ch03/results/mechanism_diagnostics_20261018"
+    "results_dir": "ch03/results"
   },
   "methods": {
     "SimSiam (Stop-Gradient)": {
@@ -25036,6 +25036,9 @@
   "provenance": {
     "source_experiment": "three_mechanisms_diagnostics_20261018",
     "purpose": "expanded five-seed reduced-scale DMC mechanism study",
-    "interpretation": "descriptive mechanism comparison; not an exact ImageNet-scale reproduction or universal method ranking"
+    "interpretation": "descriptive mechanism comparison; not an exact ImageNet-scale reproduction or universal method ranking",
+    "original_output_paths": {
+      "results_dir": "ch03/results/mechanism_diagnostics_20261018"
+    }
   }
 }
