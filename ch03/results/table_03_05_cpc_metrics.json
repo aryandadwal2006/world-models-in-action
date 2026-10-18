@@ -1397,6 +1397,7 @@
     "dataset_git_blob_shas": {
       "data/dmc_cartpole_balance_train.npz": "7515e0f43dd9b6afa2573fd9ab5186d22c58e6f3",
       "data/dmc_cartpole_balance_val.npz": "a01bbe0c22c0174ebac329875002f747f9028be0"
-    }
+    },
+    "current_primary_figure": "ch03/figures/fig03_16_cpc_future_retrieval.png"
   }
 }
