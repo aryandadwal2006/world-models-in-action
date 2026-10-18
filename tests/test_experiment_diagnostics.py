@@ -77,7 +77,7 @@ class TestRepresentationDiagnostics(unittest.TestCase):
         self.assertEqual(result["effective_rank"], 0.0)
 
 class DummyCPC(nn.Module):
-    """Tiny CPC-shaped model for teacher-forced and free-rollout metrics."""
+    """Tiny CPC-shaped model for future-latent retrieval metric tests."""
 
     def __init__(self):
         super().__init__()
