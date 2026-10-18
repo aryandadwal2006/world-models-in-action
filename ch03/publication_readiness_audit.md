@@ -106,8 +106,8 @@ The audit found no direct train/validation label leakage in the reviewed probes:
 - Primary expanded mechanism result: `ch03/results/three_mechanisms_diagnostics.json`.
 - Table 3.4 source: `ch03/results/table_03_04_objective_comparison.json`.
 - Standalone MAE source: `ch03/results/mae_metrics.json`.
-- Primary CPC plot: `ch03/figures/cpc_retrieval_matched16_20261018/fig03_16_cpc_future_retrieval.png`.
-- Collapse-demo plots: `ch03/figures/fidelity_run_20261017/collapse/`.
+- Primary CPC plot: `ch03/figures/fig03_16_cpc_future_retrieval.png`.
+- Collapse-demo plots: `ch03/figures/fig03_09_collapse_demo.png` and `ch03/figures/fig03_09_objective_space.png`.
 
 The CPC JSON stores its model seeds, training settings, matched evaluation length, selected window starts, episode balance, candidate-set policy, and prior run configuration. Five CPC checkpoints are retained at `checkpoints/cpc_retrieval_20261018/` to support checkpoint-only re-evaluation. Smoke-test outputs and redundant timestamped backups are not release results.
 
