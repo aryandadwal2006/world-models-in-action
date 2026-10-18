@@ -12,7 +12,7 @@ The expanded mechanism experiment and the corrected CPC evaluation have run. The
 - `ch03/results/table_03_04_objective_comparison.json`
 - `ch03/results/mae_metrics.json`
 
-The user-reported local regression run passed 59 tests. No GitHub CI status checks were available for this branch. The experiments were not independently rerun by the reviewer.
+The user-reported local regression run passed 59 tests on the predecessor branch state. Cleanup reverted the unrun Table 3.4 version-7 trained-head diagnostic and its three tests; the CPC test file was renamed without changing logic. The exact cleaned tree has not been rerun. No GitHub CI status checks were available for this branch, and the experiments were not independently rerun by the reviewer.
 
 ## Findings and dispositions
 
