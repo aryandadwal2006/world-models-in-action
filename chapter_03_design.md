@@ -113,7 +113,7 @@ Decision: **use the benchmark the field uses; do not build a world.** Chapter 3 
 **Rendering reality (must be in the manuscript's setup sidebar):** `dm_control` renders offscreen via MuJoCo; on laptops this works out of the box, on headless Linux the reader sets `MUJOCO_GL=osmesa` (documented in the official repo). Script 01 sets and checks this; a TIP callout gives the Debian/Ubuntu one-liner (`libgl1-mesa-glx libosmesa6`). `dm_control` is pip-installed and pinned; the repo README's editable-mode and Homebrew notes go into a troubleshooting sidebar, not the prose.
 
 ### 2.3 Scope: temporal prediction stays, but only as the bridge — and as prediction, not invariance
-(Unchanged from v2.) §3.7 introduces CPC with a GRU context. It does **not** build JEPA, add actions, or do rollouts. It exists so ch3 touches the book's thesis (prediction in latent space) and ch4 doesn't open cold. If page pressure hits, §3.7 is the designated cut. One scope note added: the random-policy data makes the action-conditioning gap *visible in a measurement* — that is a feature; ch4 inherits a demonstrated problem, not an asserted one.
+§3.7 introduces CPC with a GRU context and evaluates the trained multi-horizon InfoNCE objective through held-out future-latent retrieval. It does **not** build JEPA or accept actions. It connects the chapter's representation-learning objectives to temporal prediction without claiming complete physical dynamics or planning. If page pressure hits, §3.7 is the designated cut. The random-policy data and frame-only model make the lack of action conditioning explicit, but this run is not a controlled test of whether adding actions improves performance.
 
 ### 2.4 Math: numbered display equations, derived inline
 (Unchanged from v2.) Equations (3.1)–(3.20), latexmath, notation fixed in table 3.2, long proofs to Appendix A.
@@ -252,7 +252,7 @@ The same run provides secondary frozen linear probes. The recurrent CPC context 
 3. In VICReg, which single term prevents collapse, and what failure appears if the covariance term is removed? Predict, then test.
 4. Your views use a ±3-pixel crop shift. What happens to the cart-position probe if the shift grows to ±16 pixels on cartpole frames — where the cart's range is only tens of pixels wide? Answer from the thesis sentence first, then run it.
 5. At what latent dimension does your probe saturate on cartpole balance, and how does the answer move on cheetah run? Relate both to the tasks' state dimensions, then run the sweep.
-6. Modify the CPC target from one step ahead to five. What happens to the loss and the forward-prediction test — and which of the two effects comes from the log(K+1) bound and which from the random policy's stochasticity? Explain, then run it.
+6. Modify the CPC objective to predict five future steps. How does retrieval change across horizons, and what is the difference between the contrastive identification task and physical-state prediction? Form a hypothesis, then run it.
 7. (New, replaces nothing — the deleted warehouse exercise slot) Rerun the aliasing diagnostic on finger spin. Which state variables behave like cartpole's, and which break the pattern? Form the hypothesis before looking at the table.
 
 ### Summary (1 p)
@@ -308,7 +308,7 @@ CPC's temporal InfoNCE stays "equation 3.5 re-aimed" (parallel columns), not a n
 | 3.13 | Joint embedding vs. reconstruction | Redrawn, adapted from Gui et al. — credit |
 | 3.14 | Probe R² vs. latent dimension, cartpole vs. cheetah, seed bands | From run (10) |
 | 3.15 | CPC schematic (pair-designed with ch4's JEPA figure) | Original |
-| 3.16 | One illustrative unobserved-interval trace (not an aggregate or seed average); show the privileged input asymmetry in the legend/caption | From run (11); report window-aggregated metrics separately |
+| 3.16 | Held-out CPC future-latent top-1 retrieval by horizon, with random-candidate chance and across-seed SD error bars | From matched-length run (11); use canonical result JSON and matched-16 figure |
 | 3.17 | Ch1 loop with learned encoder installed | Original, styled after fig 1.1 |
 
 Credit-line format per style manual §22.2. Redraw everything in the ch2 figure style. Never encode information in color alone. DMC frame panels need no credit beyond the caption note and the tech-report footnote (Apache-2.0 code; our own renders), but the manuscript should still state the source — that is what the benchmark is for.
