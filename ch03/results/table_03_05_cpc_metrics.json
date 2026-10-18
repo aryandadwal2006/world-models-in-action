@@ -29,10 +29,10 @@
     "max_val_sequences": 1000,
     "retrieval_sequences": 200,
     "evaluate_checkpoints": true,
-    "evaluation_output": "ch03/results/cpc_retrieval_matched16_20261018/table_03_05_cpc_metrics.json",
+    "evaluation_output": null,
     "data_dir": "data",
     "figures_dir": "ch03/figures/cpc_retrieval_matched16_20261018",
-    "results_dir": "ch03/results/cpc_retrieval_20261018",
+    "results_dir": "ch03/results",
     "checkpoints_dir": "checkpoints/cpc_retrieval_20261018"
   },
   "evaluation": {
@@ -1386,6 +1386,12 @@
   "status": "final_matched_training_and_evaluation_sequence_length",
   "provenance": {
     "output_artifact": "ch03/results/table_03_05_cpc_metrics.json",
-    "source_run": "checkpoint-only matched-length evaluation"
+    "source_run": "checkpoint-only matched-length evaluation",
+    "original_output_paths": {
+      "results_dir": "ch03/results/cpc_retrieval_20261018",
+      "evaluation_output": "ch03/results/cpc_retrieval_matched16_20261018/table_03_05_cpc_metrics.json",
+      "figures_dir": "ch03/figures/cpc_retrieval_matched16_20261018",
+      "checkpoints_dir": "checkpoints/cpc_retrieval_20261018"
+    }
   }
 }
