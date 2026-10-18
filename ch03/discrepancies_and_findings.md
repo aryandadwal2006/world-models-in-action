@@ -107,5 +107,5 @@ These are not blockers for merging the cleaned code companion, but they remain n
 - Three mechanisms: `ch03/results/three_mechanisms_diagnostics.json`
 - Table 3.4: `ch03/results/table_03_04_objective_comparison.json`
 - Standalone MAE: `ch03/results/mae_metrics.json`
-- CPC plot: `ch03/figures/cpc_retrieval_matched16_20261018/fig03_16_cpc_future_retrieval.png`
-- Collapse plots: `ch03/figures/fidelity_run_20261017/collapse/`
+- CPC plot: `ch03/figures/fig03_16_cpc_future_retrieval.png`
+- Collapse plots: `ch03/figures/fig03_09_collapse_demo.png` and `ch03/figures/fig03_09_objective_space.png`
