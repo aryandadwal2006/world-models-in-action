@@ -43,7 +43,7 @@
       "batch_standard_deviation_unbiased": false,
       "normalization_note": "Batch feature standardization is performed in the loss; this matches the objective but is not code-identical to the official output BatchNorm implementation."
     },
-    "results_dir": "ch03/results"
+    "results_dir": "ch03/results/mechanism_diagnostics_20261018"
   },
   "methods": {
     "SimSiam (Stop-Gradient)": {
