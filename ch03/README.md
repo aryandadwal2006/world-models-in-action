@@ -114,7 +114,14 @@ python ch03/11_temporal_cpc.py --seeds 0 1 2 3 4 --epochs 20 --batch-size 32 --s
 if ($LASTEXITCODE -ne 0) { throw "CPC experiment failed." }
 ```
 
-To evaluate the recorded checkpoints without training again, use `--evaluate-checkpoints`, the same training configuration, `--checkpoints-dir checkpoints/cpc_retrieval_20261018`, and a **new** `--evaluation-output` path. Do not point an evaluation run at the primary JSON output path; keep the final record immutable and compare new evaluations separately.
+To evaluate the recorded checkpoints without training again, run the exact checkpoint-only protocol below. It reads the canonical result JSON as the configuration reference and writes to a new path, leaving the primary result unchanged.
+
+```powershell
+python ch03/11_temporal_cpc.py --seeds 0 1 2 3 4 --epochs 20 --batch-size 32 --seq-len 16 --eval-seq-len 16 --latent-dim 16 --context-dim 32 --k-steps 3 --max-train-sequences 4000 --max-val-sequences 1000 --retrieval-sequences 200 --evaluate-checkpoints --results-dir ch03/results --checkpoints-dir checkpoints/cpc_retrieval_20261018 --evaluation-output ch03/results/reproduction_cpc_eval/table_03_05_cpc_metrics.json --figures-dir ch03/figures/reproduction_cpc_eval
+if ($LASTEXITCODE -ne 0) { throw "CPC checkpoint evaluation failed." }
+```
+
+Do not point an evaluation run at the primary JSON output path; keep the final record immutable and compare new evaluations separately.
 
 Smoke runs, if needed for API checks, should write to a separate directory and should not be committed as primary results.
 
