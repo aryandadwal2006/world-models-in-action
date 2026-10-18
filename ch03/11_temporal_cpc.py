@@ -474,12 +474,15 @@ def validate_checkpoint_evaluation(args) -> dict:
         )
 
     saved_config = saved_metrics.get("config", {})
+    # eval_seq_len controls the evaluation windows, not checkpoint training.
+    # Allow it to be overridden so retrieval can be measured on the same sequence
+    # length used by CPC's training objective; the original value remains in
+    # saved_metrics for provenance.
     training_fields = (
         "epochs",
         "batch_size",
         "lr",
         "seq_len",
-        "eval_seq_len",
         "latent_dim",
         "context_dim",
         "k_steps",
