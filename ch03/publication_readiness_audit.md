@@ -101,6 +101,8 @@ The audit found no direct train/validation label leakage in the reviewed probes:
 ## 6. Reproduction and output integrity
 
 - Primary Table 3.5 result: `ch03/results/table_03_05_cpc_metrics.json`.
+- Secondary 25-frame sensitivity output: `ch03/results/cpc_retrieval_25frame_sensitivity.json`.
+- Collapse demonstration metrics: `ch03/results/collapse_demo_metrics.json`.
 - Primary expanded mechanism result: `ch03/results/three_mechanisms_diagnostics.json`.
 - Table 3.4 source: `ch03/results/table_03_04_objective_comparison.json`.
 - Standalone MAE source: `ch03/results/mae_metrics.json`.
