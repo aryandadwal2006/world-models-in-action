@@ -1349,10 +1349,16 @@
       }
     }
   ],
-  "artifact_role": "sequence_length_sensitivity_not_primary",
+  "artifact_role": "secondary_sensitivity_not_primary",
   "provenance": {
     "purpose": "secondary sensitivity comparison for 25-frame evaluation windows",
     "primary_result": "ch03/results/table_03_05_cpc_metrics.json",
-    "interpretation": "not the canonical Table 3.5 result; 16-frame matched-length metrics are primary"
+    "interpretation": "not the canonical Table 3.5 result; 16-frame matched-length metrics are primary",
+    "original_output_paths": {
+      "results_dir": "ch03/results/cpc_retrieval_20261018",
+      "figures_dir": "ch03/figures/cpc_retrieval_20261018",
+      "checkpoints_dir": "checkpoints/cpc_retrieval_20261018"
+    },
+    "note": "The original PNG is intentionally omitted from the release tree; use the matched-length plot for the manuscript."
   }
 }
