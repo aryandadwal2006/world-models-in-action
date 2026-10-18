@@ -11,7 +11,7 @@
 
 This is **not** certification that the finished book chapter is publication-ready. The repository currently contains the Chapter 3 design document and code companion, not the final authored chapter manuscript or production-layout pages. Book prose, citations, figure rendering, captions, and layout must be checked against these artifacts during manuscript production.
 
-No GitHub Actions status checks were returned for the branch commits. The reviewer inspected the committed source and JSON but did not independently rerun the experiments on the author's Windows environment.
+The author-reported 59-test pass was on the predecessor branch state. During this cleanup, the unrelated, unrun Table 3.4 version-7 trained-head diagnostic was reverted to the already-published version-6 source and its three diagnostic-only tests were removed; the CPC test file was renamed without changing test logic. The final cleaned tree has not been rerun locally. This is a remaining verification limitation, although the final source tree restores the tested main-branch Table 3.4 implementation and the experiment code behind the 59-test run is unchanged. No GitHub Actions status checks were returned for the branch commits, and the reviewer cannot access the author's Windows environment to run the suite independently.
 
 ## 1. Evidence status
 
@@ -111,7 +111,7 @@ The audit found no direct train/validation label leakage in the reviewed probes:
 
 The CPC JSON stores its model seeds, training settings, matched evaluation length, selected window starts, episode balance, candidate-set policy, and prior run configuration. Five CPC checkpoints are retained at `checkpoints/cpc_retrieval_20261018/` to support checkpoint-only re-evaluation. Smoke-test outputs and redundant timestamped backups are not release results.
 
-The local 59-test result was reported by the author, not independently reproduced here. GitHub returned no CI statuses or PR-triggered workflow runs for the latest branch commits. Rerun `python -m unittest discover -s tests -v` after any code changes. Figure 3.16 should receive final visual/layout review in the book-production workflow; code/data inspection cannot replace that visual check.
+The 59-test result was reported by the author for the pre-cleanup branch and was not independently reproduced here. The exact cleaned tree has not been rerun after removing three Table 3.4 version-7 diagnostic tests and renaming the CPC retrieval test file. GitHub returned no CI statuses or PR-triggered workflow runs for the latest branch commits. Rerun `python -m unittest discover -s tests -v` after any code changes. Figure 3.16 should receive final visual/layout review in the book-production workflow; code/data inspection cannot replace that visual check.
 
 ## Readiness statement
 
