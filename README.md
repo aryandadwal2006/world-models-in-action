@@ -22,7 +22,7 @@ python -m pip install -r requirements.txt
 python -m unittest discover -s tests -v
 ```
 
-The repository includes cached DMC train/validation datasets for the chapter experiments. Regenerating them requires the DeepMind Control Suite and MuJoCo rendering setup; downstream experiments can run from the caches.
+The repository includes cached DMC train/validation datasets for the chapter experiments. Regenerating them requires the DeepMind Control Suite and MuJoCo rendering setup; downstream experiments can run from the caches. Experiment claims and reproduction instructions are recorded in `ch03/README.md` and `ch03/publication_readiness_audit.md`.
 
 ## Reading order
 
@@ -40,4 +40,4 @@ python ch03/09_masked_autoencoder.py
 python ch03/11_temporal_cpc.py
 ```
 
-The training scripts may overwrite their standard checkpoints, metrics, or figures. The CPC checkpoint-only gap-evaluation mode has separate safeguards documented in the script and audit report. For exact experiment settings and interpretation limits, read [the audit](ch03/publication_readiness_audit.md) before interpreting stored scores as general claims.
+The training scripts may overwrite their standard checkpoints, metrics, or figures, so use isolated output paths for new runs. CPC's primary evaluation is held-out future-latent retrieval using the trained InfoNCE scores; the historical recursive gap-rollout diagnostic is not the canonical CPC result. The primary matched-length result is in `ch03/results/table_03_05_cpc_metrics.json`. For exact settings, provenance, and interpretation limits, read [the Chapter 3 code map](ch03/README.md) and [the publication-readiness audit](ch03/publication_readiness_audit.md) before interpreting stored scores as general claims.

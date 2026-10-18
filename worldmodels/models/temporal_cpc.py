@@ -8,7 +8,7 @@ import torch.nn.functional as F
 
 
 class TemporalCPC(nn.Module):
-    """Causal GRU CPC model with normalized latent prediction."""
+    """Causal GRU CPC model trained only with multi-horizon InfoNCE."""
 
     def __init__(
         self,
@@ -16,7 +16,6 @@ class TemporalCPC(nn.Module):
         latent_dim=16,
         context_dim=32,
         k_steps=3,
-        temperature=0.5,
     ):
         super().__init__()
 
@@ -30,16 +29,10 @@ class TemporalCPC(nn.Module):
                 "k_steps must be positive"
             )
 
-        if temperature <= 0:
-            raise ValueError(
-                "temperature must be positive"
-            )
-
         self.encoder = encoder
         self.latent_dim = latent_dim
         self.context_dim = context_dim
         self.k_steps = k_steps
-        self.temperature = temperature
 
         self.gru = nn.GRU(
             latent_dim,
@@ -60,10 +53,12 @@ class TemporalCPC(nn.Module):
             ]
         )
 
-        self.predictor = nn.Linear(
-            context_dim,
-            latent_dim,
-        )
+    def predict_next_latent(
+        self,
+        c_t,
+    ):
+        """Apply CPC's learned one-step bilinear head without post-normalization."""
+        return c_t @ self.w_k[0].T
 
     def encode_sequence(
         self,
@@ -92,24 +87,8 @@ class TemporalCPC(nn.Module):
             self.latent_dim,
         )
 
-        return F.normalize(
-            z,
-            p=2,
-            dim=-1,
-            eps=1e-8,
-        )
-
-    def predict_next_latent(
-        self,
-        c_t,
-    ):
-        """Predict a unit-normalized next latent."""
-        return F.normalize(
-            self.predictor(c_t),
-            p=2,
-            dim=-1,
-            eps=1e-8,
-        )
+        # CPC's score is a bilinear dot product; preserve the encoder's latent scale.
+        return z
 
     def forward(
         self,
@@ -135,38 +114,14 @@ class TemporalCPC(nn.Module):
             device=x_seq.device,
         )
 
-        forward_sum = torch.zeros(
-            (),
-            device=x_seq.device,
-        )
-
-        n_contexts = 0
         n_cpc = 0
 
+        # Score every valid context, as in the paper's multi-horizon objective.
         for t_idx in range(
-            4,
+            0,
             t - self.k_steps,
         ):
             c_t = c_seq[:, t_idx]
-
-            z_next = z_seq[
-                :,
-                t_idx + 1,
-            ]
-
-            z_pred = self.predict_next_latent(
-                c_t
-            )
-
-            forward_sum = (
-                forward_sum
-                + F.mse_loss(
-                    z_pred,
-                    z_next.detach(),
-                )
-            )
-
-            n_contexts += 1
 
             for k in range(
                 self.k_steps
@@ -176,16 +131,8 @@ class TemporalCPC(nn.Module):
                     t_idx + 1 + k,
                 ]
 
-                pred = F.normalize(
-                    c_t @ self.w_k[k].T,
-                    p=2,
-                    dim=-1,
-                    eps=1e-8,
-                )
-
-                logits = (
-                    pred @ target.T
-                ) / self.temperature
+                pred = c_t @ self.w_k[k].T
+                logits = pred @ target.T
 
                 labels = torch.arange(
                     b,
@@ -202,13 +149,10 @@ class TemporalCPC(nn.Module):
 
                 n_cpc += 1
 
-        if n_contexts == 0 or n_cpc == 0:
+        if n_cpc == 0:
             raise ValueError(
                 "Sequence is too short for "
                 "configured CPC context"
             )
 
-        return (
-            cpc_sum / n_cpc
-            + forward_sum / n_contexts
-        )
+        return cpc_sum / n_cpc

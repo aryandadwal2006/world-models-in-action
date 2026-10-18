@@ -1,168 +1,1402 @@
 {
-  "experiment_version": 5,
+  "experiment_version": 9,
+  "objective_contract": "canonical_cpc_raw_dot_product_infonce_all_contexts_v3",
+  "retrieval_evaluation_contract_version": 1,
   "seeds": [
     0,
     1,
-    2
+    2,
+    3,
+    4
   ],
   "config": {
     "seeds": [
       0,
       1,
-      2
+      2,
+      3,
+      4
     ],
-    "epochs": 12,
+    "epochs": 20,
     "batch_size": 32,
     "lr": 0.001,
     "seq_len": 16,
-    "eval_seq_len": 25,
+    "eval_seq_len": 16,
     "latent_dim": 16,
     "context_dim": 32,
     "k_steps": 3,
-    "temperature": 0.5,
-    "max_train_frames": 4000,
-    "max_val_frames": 1000,
-    "gap_start": 6,
-    "gap_length": 5,
-    "gap_sequences": 32,
-    "evaluate_checkpoints": false,
+    "max_train_sequences": 4000,
+    "max_val_sequences": 1000,
+    "retrieval_sequences": 200,
+    "evaluate_checkpoints": true,
+    "evaluation_output": null,
     "data_dir": "data",
-    "figures_dir": "ch03/figures",
+    "figures_dir": "ch03/figures/cpc_retrieval_matched16_20261018",
     "results_dir": "ch03/results",
-    "checkpoints_dir": "checkpoints"
+    "checkpoints_dir": "checkpoints/cpc_retrieval_20261018"
   },
   "evaluation": {
-    "sample_selection": "episode-stratified sequence starts across full split",
-    "gap_sampling": "evenly spaced over episode-stratified eligible validation windows",
-    "gap_sequence_count": 32,
-    "eligible_validation_windows": 1000,
-    "checkpoint_only": false,
-    "prior_metrics_config": null
-  },
-  "angular_position_indices": [
-    1
-  ],
-  "latent_normalization": "l2_unit",
-  "sample_selection": "episode_stratified_sequence_starts_across_full_split",
-  "gradient_clip_norm": 1.0,
-  "summary": {
-    "static_position_r2": [
-      0.789234025585427,
-      0.006775935138079803
+    "state_probe_sample_selection": "episode-stratified sequence starts across the validation split",
+    "retrieval_sample_selection": "episode-stratified, non-overlapping, episode-safe windows; windows are shuffled into batches so negative candidates do not come from adjacent windows",
+    "retrieval_sequence_count": 200,
+    "eligible_validation_windows": 4925,
+    "retrieval_window_start_indices": [
+      0,
+      16,
+      48,
+      64,
+      96,
+      112,
+      144,
+      160,
+      192,
+      224,
+      240,
+      272,
+      288,
+      320,
+      336,
+      368,
+      400,
+      416,
+      448,
+      464,
+      496,
+      512,
+      544,
+      560,
+      592,
+      624,
+      640,
+      672,
+      688,
+      720,
+      736,
+      768,
+      800,
+      816,
+      848,
+      864,
+      896,
+      912,
+      944,
+      976,
+      1000,
+      1016,
+      1048,
+      1064,
+      1096,
+      1112,
+      1144,
+      1160,
+      1192,
+      1224,
+      1240,
+      1272,
+      1288,
+      1320,
+      1336,
+      1368,
+      1400,
+      1416,
+      1448,
+      1464,
+      1496,
+      1512,
+      1544,
+      1560,
+      1592,
+      1624,
+      1640,
+      1672,
+      1688,
+      1720,
+      1736,
+      1768,
+      1800,
+      1816,
+      1848,
+      1864,
+      1896,
+      1912,
+      1944,
+      1976,
+      2000,
+      2016,
+      2048,
+      2064,
+      2096,
+      2112,
+      2144,
+      2160,
+      2192,
+      2224,
+      2240,
+      2272,
+      2288,
+      2320,
+      2336,
+      2368,
+      2400,
+      2416,
+      2448,
+      2464,
+      2496,
+      2512,
+      2544,
+      2560,
+      2592,
+      2624,
+      2640,
+      2672,
+      2688,
+      2720,
+      2736,
+      2768,
+      2800,
+      2816,
+      2848,
+      2864,
+      2896,
+      2912,
+      2944,
+      2976,
+      3000,
+      3016,
+      3048,
+      3064,
+      3096,
+      3112,
+      3144,
+      3160,
+      3192,
+      3224,
+      3240,
+      3272,
+      3288,
+      3320,
+      3336,
+      3368,
+      3400,
+      3416,
+      3448,
+      3464,
+      3496,
+      3512,
+      3544,
+      3560,
+      3592,
+      3624,
+      3640,
+      3672,
+      3688,
+      3720,
+      3736,
+      3768,
+      3800,
+      3816,
+      3848,
+      3864,
+      3896,
+      3912,
+      3944,
+      3976,
+      4000,
+      4016,
+      4048,
+      4064,
+      4096,
+      4112,
+      4144,
+      4160,
+      4192,
+      4224,
+      4240,
+      4272,
+      4288,
+      4320,
+      4336,
+      4368,
+      4400,
+      4416,
+      4448,
+      4464,
+      4496,
+      4512,
+      4544,
+      4560,
+      4592,
+      4624,
+      4640,
+      4672,
+      4688,
+      4720,
+      4736,
+      4768,
+      4800,
+      4816,
+      4848,
+      4864,
+      4896,
+      4912,
+      4944,
+      4976
     ],
-    "static_velocity_r2": [
-      0.006992441827333977,
-      0.003643473713019306
+    "retrieval_window_episode_ids": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4
     ],
-    "context_position_r2": [
-      0.8282749839794,
-      0.010321063337158699
+    "retrieval_window_episode_counts": {
+      "0": 40,
+      "1": 40,
+      "2": 40,
+      "3": 40,
+      "4": 40
+    },
+    "retrieval_windows_overlap": false,
+    "retrieval_candidate_set": "For each context, compare its correct future latent with future latents from other validation sequences in the same batch.",
+    "primary_cpc_metrics": [
+      "multi_horizon_infonce_loss",
+      "future_latent_top1_retrieval_accuracy",
+      "future_latent_top5_retrieval_accuracy",
+      "positive_minus_hardest_negative_score"
     ],
-    "context_velocity_r2": [
-      0.14320954336753008,
-      0.0828571597417327
-    ],
-    "static_next_state_mean_r2": [
-      0.22713982835847193,
-      0.02122389794437291
-    ],
-    "context_next_state_mean_r2": [
-      0.27706260069164873,
-      0.04913905938425264
-    ],
-    "cpc_gap_mean_r2": [
-      -1.276175190552095,
-      1.2927341473664433
-    ],
-    "linear_gap_mean_r2": [
-      0.8231366906552076,
-      0.0
+    "custom_recursive_latent_rollout": "Excluded from this experiment because CPC's bilinear output is a compatibility score/vector trained by InfoNCE, not a pointwise latent-regression target.",
+    "checkpoint_only": true,
+    "prior_metrics_config": {
+      "seeds": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "epochs": 20,
+      "batch_size": 32,
+      "lr": 0.001,
+      "seq_len": 16,
+      "eval_seq_len": 25,
+      "latent_dim": 16,
+      "context_dim": 32,
+      "k_steps": 3,
+      "max_train_sequences": 4000,
+      "max_val_sequences": 1000,
+      "retrieval_sequences": 200,
+      "evaluate_checkpoints": false,
+      "evaluation_output": null,
+      "data_dir": "data",
+      "figures_dir": "ch03/figures/cpc_retrieval_20261018",
+      "results_dir": "ch03/results/cpc_retrieval_20261018",
+      "checkpoints_dir": "checkpoints/cpc_retrieval_20261018"
+    },
+    "primary_result": true,
+    "sequence_length_matches_training": true,
+    "publication_notes": [
+      "Primary CPC retrieval result: the 16-frame evaluation window matches the 16-frame training window.",
+      "Top-1 and top-5 are computed among each batch's future-latent candidates, not across all 200 selected windows at once.",
+      "The 200 retrieval windows are non-overlapping and balanced across five validation episodes; they are not 200 independent trajectories.",
+      "State probes use privileged simulator states only as evaluation labels; the CPC training objective remains self-supervised."
     ]
+  },
+  "latent_normalization": "none",
+  "sample_selection": "episode_stratified_sequence_starts_across_full_split",
+  "gradient_clip_norm": 1,
+  "summary": {
+    "static_position_r2": {
+      "mean": 0.7695188874615309,
+      "std": 0.0332540738719544,
+      "per_seed": [
+        0.7538951551257916,
+        0.7945889064745496,
+        0.7266820441434485,
+        0.8198601202055015,
+        0.7525682113583632
+      ]
+    },
+    "static_velocity_r2": {
+      "mean": 0.01315518256930146,
+      "std": 0.005789993705510896,
+      "per_seed": [
+        0.012325458568701597,
+        0.014923582503563404,
+        0.004210728738605285,
+        0.012071080211219165,
+        0.02224506282441785
+      ]
+    },
+    "context_position_r2": {
+      "mean": 0.8052843444951137,
+      "std": 0.0841482868308846,
+      "per_seed": [
+        0.8581630780976282,
+        0.8020953308655832,
+        0.710334072134273,
+        0.9341184991137595,
+        0.7217107422643247
+      ]
+    },
+    "context_velocity_r2": {
+      "mean": 0.016410068335527182,
+      "std": 0.006030906508924018,
+      "per_seed": [
+        0.016908642220691883,
+        0.017839005713060185,
+        0.013049055300089929,
+        0.007982289262450482,
+        0.02627134918134344
+      ]
+    },
+    "static_next_state_mean_r2": {
+      "mean": 0.23797839772156948,
+      "std": 0.009460603638144232,
+      "per_seed": [
+        0.24949569885940764,
+        0.2431427872714596,
+        0.2214488372443213,
+        0.2406371104588791,
+        0.23516755477377976
+      ]
+    },
+    "context_next_state_mean_r2": {
+      "mean": 0.2585958436327459,
+      "std": 0.01583700040314868,
+      "per_seed": [
+        0.2752402302452654,
+        0.2540814349419708,
+        0.25236646968646204,
+        0.27686373848065715,
+        0.23442734480937438
+      ]
+    },
+    "state_probe_r2_by_variable": {
+      "static_current": {
+        "cart_position": {
+          "mean": 0.7695188874615309,
+          "std": 0.0332540738719544,
+          "per_seed": [
+            0.7538951551257916,
+            0.7945889064745496,
+            0.7266820441434485,
+            0.8198601202055015,
+            0.7525682113583632
+          ]
+        },
+        "pole_angle": {
+          "mean": 0.5151340462919068,
+          "std": 0.03728681197311054,
+          "per_seed": [
+            0.5872781742666842,
+            0.5137062748143597,
+            0.4957092456374491,
+            0.4945864676656545,
+            0.48439006907538673
+          ]
+        },
+        "cart_velocity": {
+          "mean": 0.01315518256930146,
+          "std": 0.005789993705510896,
+          "per_seed": [
+            0.012325458568701597,
+            0.014923582503563404,
+            0.004210728738605285,
+            0.012071080211219165,
+            0.02224506282441785
+          ]
+        },
+        "pole_angular_velocity": {
+          "mean": -0.3474528225066741,
+          "std": 0.016570021309910553,
+          "per_seed": [
+            -0.3577681452318331,
+            -0.35524290710850637,
+            -0.34078506434083455,
+            -0.36514198611284376,
+            -0.31832600973935254
+          ]
+        }
+      },
+      "context_current": {
+        "cart_position": {
+          "mean": 0.8052843444951137,
+          "std": 0.0841482868308846,
+          "per_seed": [
+            0.8581630780976282,
+            0.8020953308655832,
+            0.710334072134273,
+            0.9341184991137595,
+            0.7217107422643247
+          ]
+        },
+        "pole_angle": {
+          "mean": 0.5601483297489989,
+          "std": 0.050745197547273226,
+          "per_seed": [
+            0.6149029875331039,
+            0.5352542069410238,
+            0.6073834910513982,
+            0.476575200846997,
+            0.5666257623724709
+          ]
+        },
+        "cart_velocity": {
+          "mean": 0.016410068335527182,
+          "std": 0.006030906508924018,
+          "per_seed": [
+            0.016908642220691883,
+            0.017839005713060185,
+            0.013049055300089929,
+            0.007982289262450482,
+            0.02627134918134344
+          ]
+        },
+        "pole_angular_velocity": {
+          "mean": -0.34785923902801447,
+          "std": 0.029703340606704348,
+          "per_seed": [
+            -0.387762525256089,
+            -0.3396358925145535,
+            -0.32046564639675035,
+            -0.3141569841197802,
+            -0.3772751468528992
+          ]
+        }
+      },
+      "static_next": {
+        "cart_position": {
+          "mean": 0.7695791834578023,
+          "std": 0.03309512165129277,
+          "per_seed": [
+            0.7537191805487998,
+            0.7943638283001324,
+            0.7268657672526639,
+            0.8197552511103692,
+            0.7531918900770458
+          ]
+        },
+        "pole_angle": {
+          "mean": 0.513846453398974,
+          "std": 0.03894486695450908,
+          "per_seed": [
+            0.5881638191818415,
+            0.5163777513208823,
+            0.49059953721949123,
+            0.49325211666229973,
+            0.4808390426103547
+          ]
+        },
+        "cart_velocity": {
+          "mean": 0.0137831359504216,
+          "std": 0.005775222710802398,
+          "per_seed": [
+            0.012778200018555563,
+            0.01500250421900906,
+            0.005242351394057154,
+            0.01262371118688077,
+            0.023268912933605446
+          ]
+        },
+        "pole_angular_velocity": {
+          "mean": -0.3452951819209198,
+          "std": 0.016733301910904625,
+          "per_seed": [
+            -0.3566784043115663,
+            -0.3531729347541852,
+            -0.33691230688892726,
+            -0.36308263712403344,
+            -0.3166296265258868
+          ]
+        }
+      },
+      "context_next": {
+        "cart_position": {
+          "mean": 0.8056446631509531,
+          "std": 0.08391831861749675,
+          "per_seed": [
+            0.8584986558970327,
+            0.8022838925884175,
+            0.7108798344746796,
+            0.9341139434702695,
+            0.7224469893243652
+          ]
+        },
+        "pole_angle": {
+          "mean": 0.5587325085751097,
+          "std": 0.04965131381676072,
+          "per_seed": [
+            0.6105149935260976,
+            0.5358655254793157,
+            0.6064462033827827,
+            0.4762063360110631,
+            0.5646294844762896
+          ]
+        },
+        "cart_velocity": {
+          "mean": 0.01636655403693068,
+          "std": 0.00587991512900659,
+          "per_seed": [
+            0.01713026870878298,
+            0.015412838323232925,
+            0.012054479239293148,
+            0.010172302045532433,
+            0.027062881867811917
+          ]
+        },
+        "pole_angular_velocity": {
+          "mean": -0.34636035123200953,
+          "std": 0.02934077092879254,
+          "per_seed": [
+            -0.3851829971508518,
+            -0.33723651662308285,
+            -0.3199146383509073,
+            -0.3130376276042366,
+            -0.3764299764309691
+          ]
+        }
+      }
+    },
+    "cpc_future_retrieval": {
+      "by_horizon": {
+        "1": {
+          "infonce_loss": {
+            "mean_over_seeds": 0.11452133777188762,
+            "std_over_seeds": 0.015541532476511327,
+            "per_seed": [
+              0.12191346993260176,
+              0.08848210745407134,
+              0.10858735949930941,
+              0.135108991985863,
+              0.1185147599875927
+            ]
+          },
+          "top1_accuracy": {
+            "mean_over_seeds": 0.9503846153846153,
+            "std_over_seeds": 0.008437027435813106,
+            "per_seed": [
+              0.943076923076923,
+              0.9665384615384616,
+              0.9488461538461539,
+              0.9442307692307692,
+              0.9492307692307692
+            ]
+          },
+          "top5_accuracy": {
+            "mean_over_seeds": 1,
+            "std_over_seeds": 0,
+            "per_seed": [
+              1,
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          "random_top1_chance": {
+            "mean_over_seeds": 0.035,
+            "std_over_seeds": 0,
+            "per_seed": [
+              0.035,
+              0.035,
+              0.035,
+              0.035,
+              0.035
+            ]
+          },
+          "mean_positive_score": {
+            "mean_over_seeds": 53.932415797306945,
+            "std_over_seeds": 25.489431958133885,
+            "per_seed": [
+              90.32881530761719,
+              12.558265439547025,
+              60.686748164250304,
+              62.122626178448016,
+              43.96562389667218
+            ]
+          },
+          "mean_hardest_negative_score": {
+            "mean_over_seeds": 40.976395778949446,
+            "std_over_seeds": 25.554564623105755,
+            "per_seed": [
+              77.20507224449744,
+              -0.4805229040292593,
+              47.12310818011944,
+              50.41114606123704,
+              30.62317531292255
+            ]
+          },
+          "mean_positive_minus_hardest_negative": {
+            "mean_over_seeds": 12.956019886897161,
+            "std_over_seeds": 0.6484424341080277,
+            "per_seed": [
+              13.123741959791918,
+              13.038788440410908,
+              13.563639913705678,
+              11.711480783315805,
+              13.342448337261493
+            ]
+          }
+        },
+        "2": {
+          "infonce_loss": {
+            "mean_over_seeds": 0.1332434093096885,
+            "std_over_seeds": 0.01656097510495879,
+            "per_seed": [
+              0.1315615849544366,
+              0.10619035839334874,
+              0.1316766412975862,
+              0.1577506146076675,
+              0.13903784729540347
+            ]
+          },
+          "top1_accuracy": {
+            "mean_over_seeds": 0.9413846153846153,
+            "std_over_seeds": 0.007189736274183339,
+            "per_seed": [
+              0.94,
+              0.9553846153846154,
+              0.936923076923077,
+              0.9353846153846154,
+              0.9392307692307692
+            ]
+          },
+          "top5_accuracy": {
+            "mean_over_seeds": 1,
+            "std_over_seeds": 0,
+            "per_seed": [
+              1,
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          "random_top1_chance": {
+            "mean_over_seeds": 0.035,
+            "std_over_seeds": 0,
+            "per_seed": [
+              0.035,
+              0.035,
+              0.035,
+              0.035,
+              0.035
+            ]
+          },
+          "mean_positive_score": {
+            "mean_over_seeds": 49.236276356623726,
+            "std_over_seeds": 22.71709259494133,
+            "per_seed": [
+              82.19147399902344,
+              12.679175573495717,
+              54.45547396146334,
+              56.46867899968074,
+              40.38657924945538
+            ]
+          },
+          "mean_hardest_negative_score": {
+            "mean_over_seeds": 37.71973980610187,
+            "std_over_seeds": 22.77787192097293,
+            "per_seed": [
+              70.41855055588942,
+              0.9767379269233116,
+              42.54059827364408,
+              46.030674849290115,
+              28.632137424762433
+            ]
+          },
+          "mean_positive_minus_hardest_negative": {
+            "mean_over_seeds": 11.51653638282189,
+            "std_over_seeds": 0.5438377226061942,
+            "per_seed": [
+              11.772922750619742,
+              11.702437732403094,
+              11.914875053992638,
+              10.438004379272462,
+              11.754441997821514
+            ]
+          }
+        },
+        "3": {
+          "infonce_loss": {
+            "mean_over_seeds": 0.17078933227348542,
+            "std_over_seeds": 0.018488628275806527,
+            "per_seed": [
+              0.17042228980527188,
+              0.13855456862155383,
+              0.1701576005901839,
+              0.19506439952892793,
+              0.17974780282148947
+            ]
+          },
+          "top1_accuracy": {
+            "mean_over_seeds": 0.9243846153846155,
+            "std_over_seeds": 0.005105977469315698,
+            "per_seed": [
+              0.92,
+              0.9342307692307692,
+              0.9215384615384615,
+              0.9242307692307692,
+              0.921923076923077
+            ]
+          },
+          "top5_accuracy": {
+            "mean_over_seeds": 1,
+            "std_over_seeds": 0,
+            "per_seed": [
+              1,
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          "random_top1_chance": {
+            "mean_over_seeds": 0.035,
+            "std_over_seeds": 0,
+            "per_seed": [
+              0.035,
+              0.035,
+              0.035,
+              0.035,
+              0.035
+            ]
+          },
+          "mean_positive_score": {
+            "mean_over_seeds": 41.24838589829665,
+            "std_over_seeds": 19.098415242044606,
+            "per_seed": [
+              69.78010756272536,
+              10.796902213463417,
+              44.913767887995796,
+              46.1823264840933,
+              34.568825343205376
+            ]
+          },
+          "mean_hardest_negative_score": {
+            "mean_over_seeds": 31.7518187590379,
+            "std_over_seeds": 19.207996509172954,
+            "per_seed": [
+              60.07539988591121,
+              0.9560022588876578,
+              35.181953529944785,
+              37.67222361931434,
+              24.8735145011315
+            ]
+          },
+          "mean_positive_minus_hardest_negative": {
+            "mean_over_seeds": 9.496567072941707,
+            "std_over_seeds": 0.495951632174296,
+            "per_seed": [
+              9.704707283606895,
+              9.840899980985201,
+              9.731814334575947,
+              8.510102615356445,
+              9.695311150184045
+            ]
+          }
+        }
+      },
+      "interpretation": "Top-1 retrieval should be compared with random_top1_chance; InfoNCE loss and positive-minus-hardest-negative margin are direct diagnostics of CPC's trained compatibility objective. This is not a claim that CPC directly regresses future latent vectors."
+    }
   },
   "per_seed_metrics": [
     {
-      "static_current_position_r2": 0.7867115234521003,
-      "static_current_velocity_r2": 0.004079092904171189,
-      "context_current_position_r2": 0.8258532042995734,
-      "context_current_velocity_r2": 0.2534758283877414,
-      "static_next_state_mean_r2": 0.23135762457684028,
-      "context_next_state_mean_r2": 0.3399564250128807,
-      "static_next_state_position_r2": 0.6330566512887367,
-      "static_next_state_velocity_r2": -0.1703414021350561,
-      "context_next_state_position_r2": 0.6856546253741506,
-      "context_next_state_velocity_r2": -0.005741775348389155,
-      "num_sequences": 32,
-      "cpc_gap_r2_per_variable": [
-        -10.265010759959067,
-        -0.3388334083247555,
-        -0.8081072248791035,
-        -0.9623095709366349
+      "static_current_r2_per_variable": [
+        0.7538951551257916,
+        0.5872781742666842,
+        0.012325458568701597,
+        -0.3577681452318331
       ],
-      "cpc_gap_mean_r2": -3.0935652410248897,
-      "linear_gap_r2_per_variable": [
-        0.9999961026133206,
-        0.322113896243865,
-        0.9765729989634966,
-        0.993863764800148
+      "context_current_r2_per_variable": [
+        0.8581630780976282,
+        0.6149029875331039,
+        0.016908642220691883,
+        -0.387762525256089
       ],
-      "linear_gap_mean_r2": 0.8231366906552076,
-      "max_rollout_latent_norm": 1.0000001192092896
+      "static_next_r2_per_variable": [
+        0.7537191805487998,
+        0.5881638191818415,
+        0.012778200018555563,
+        -0.3566784043115663
+      ],
+      "context_next_r2_per_variable": [
+        0.8584986558970327,
+        0.6105149935260976,
+        0.01713026870878298,
+        -0.3851829971508518
+      ],
+      "static_current_position_r2": 0.7538951551257916,
+      "static_current_velocity_r2": 0.012325458568701597,
+      "context_current_position_r2": 0.8581630780976282,
+      "context_current_velocity_r2": 0.016908642220691883,
+      "static_next_state_mean_r2": 0.24949569885940764,
+      "context_next_state_mean_r2": 0.2752402302452654,
+      "static_next_state_position_r2": 0.6709414998653207,
+      "static_next_state_velocity_r2": -0.17195010214650536,
+      "context_next_state_position_r2": 0.7345068247115651,
+      "context_next_state_velocity_r2": -0.1840263642210344,
+      "cpc_future_retrieval": {
+        "by_horizon": {
+          "1": {
+            "infonce_loss": 0.12191346993260176,
+            "top1_accuracy": 0.943076923076923,
+            "top5_accuracy": 1,
+            "random_top1_chance": 0.035,
+            "mean_positive_score": 90.32881530761719,
+            "mean_hardest_negative_score": 77.20507224449744,
+            "mean_positive_minus_hardest_negative": 13.123741959791918,
+            "num_context_examples": 2600,
+            "mean_candidate_count": 31.04
+          },
+          "2": {
+            "infonce_loss": 0.1315615849544366,
+            "top1_accuracy": 0.94,
+            "top5_accuracy": 1,
+            "random_top1_chance": 0.035,
+            "mean_positive_score": 82.19147399902344,
+            "mean_hardest_negative_score": 70.41855055588942,
+            "mean_positive_minus_hardest_negative": 11.772922750619742,
+            "num_context_examples": 2600,
+            "mean_candidate_count": 31.04
+          },
+          "3": {
+            "infonce_loss": 0.17042228980527188,
+            "top1_accuracy": 0.92,
+            "top5_accuracy": 1,
+            "random_top1_chance": 0.035,
+            "mean_positive_score": 69.78010756272536,
+            "mean_hardest_negative_score": 60.07539988591121,
+            "mean_positive_minus_hardest_negative": 9.704707283606895,
+            "num_context_examples": 2600,
+            "mean_candidate_count": 31.04
+          }
+        },
+        "num_sequences_seen": 200,
+        "skipped_singleton_batches": 0,
+        "candidate_definition": "future latents from other held-out, episode-safe windows in the same batch",
+        "method": "standard CPC bilinear compatibility scores and multi-horizon InfoNCE retrieval"
+      }
     },
     {
-      "static_current_position_r2": 0.7824891738090262,
-      "static_current_velocity_r2": 0.01212969363290961,
-      "context_current_position_r2": 0.8419513365063236,
-      "context_current_velocity_r2": 0.053740222101167134,
-      "static_next_state_mean_r2": 0.19929499404667467,
-      "context_next_state_mean_r2": 0.22001791748663968,
-      "static_next_state_position_r2": 0.5526459417379527,
-      "static_next_state_velocity_r2": -0.15405595364460334,
-      "context_next_state_position_r2": 0.5761588874992178,
-      "context_next_state_velocity_r2": -0.13612305252593848,
-      "num_sequences": 32,
-      "cpc_gap_r2_per_variable": [
-        0.14239587108706941,
-        -0.43824772925707967,
-        -0.09167055480982,
-        -0.3946492593896227
+      "static_current_r2_per_variable": [
+        0.7945889064745496,
+        0.5137062748143597,
+        0.014923582503563404,
+        -0.35524290710850637
       ],
-      "cpc_gap_mean_r2": -0.19554291809236324,
-      "linear_gap_r2_per_variable": [
-        0.9999961026133206,
-        0.322113896243865,
-        0.9765729989634966,
-        0.993863764800148
+      "context_current_r2_per_variable": [
+        0.8020953308655832,
+        0.5352542069410238,
+        0.017839005713060185,
+        -0.3396358925145535
       ],
-      "linear_gap_mean_r2": 0.8231366906552076,
-      "max_rollout_latent_norm": 1.0000001192092896
+      "static_next_r2_per_variable": [
+        0.7943638283001324,
+        0.5163777513208823,
+        0.01500250421900906,
+        -0.3531729347541852
+      ],
+      "context_next_r2_per_variable": [
+        0.8022838925884175,
+        0.5358655254793157,
+        0.015412838323232925,
+        -0.33723651662308285
+      ],
+      "static_current_position_r2": 0.7945889064745496,
+      "static_current_velocity_r2": 0.014923582503563404,
+      "context_current_position_r2": 0.8020953308655832,
+      "context_current_velocity_r2": 0.017839005713060185,
+      "static_next_state_mean_r2": 0.2431427872714596,
+      "context_next_state_mean_r2": 0.2540814349419708,
+      "static_next_state_position_r2": 0.6553707898105073,
+      "static_next_state_velocity_r2": -0.16908521526758807,
+      "context_next_state_position_r2": 0.6690747090338666,
+      "context_next_state_velocity_r2": -0.16091183914992496,
+      "cpc_future_retrieval": {
+        "by_horizon": {
+          "1": {
+            "infonce_loss": 0.08848210745407134,
+            "top1_accuracy": 0.9665384615384616,
+            "top5_accuracy": 1,
+            "random_top1_chance": 0.035,
+            "mean_positive_score": 12.558265439547025,
+            "mean_hardest_negative_score": -0.4805229040292593,
+            "mean_positive_minus_hardest_negative": 13.038788440410908,
+            "num_context_examples": 2600,
+            "mean_candidate_count": 31.04
+          },
+          "2": {
+            "infonce_loss": 0.10619035839334874,
+            "top1_accuracy": 0.9553846153846154,
+            "top5_accuracy": 1,
+            "random_top1_chance": 0.035,
+            "mean_positive_score": 12.679175573495717,
+            "mean_hardest_negative_score": 0.9767379269233116,
+            "mean_positive_minus_hardest_negative": 11.702437732403094,
+            "num_context_examples": 2600,
+            "mean_candidate_count": 31.04
+          },
+          "3": {
+            "infonce_loss": 0.13855456862155383,
+            "top1_accuracy": 0.9342307692307692,
+            "top5_accuracy": 1,
+            "random_top1_chance": 0.035,
+            "mean_positive_score": 10.796902213463417,
+            "mean_hardest_negative_score": 0.9560022588876578,
+            "mean_positive_minus_hardest_negative": 9.840899980985201,
+            "num_context_examples": 2600,
+            "mean_candidate_count": 31.04
+          }
+        },
+        "num_sequences_seen": 200,
+        "skipped_singleton_batches": 0,
+        "candidate_definition": "future latents from other held-out, episode-safe windows in the same batch",
+        "method": "standard CPC bilinear compatibility scores and multi-horizon InfoNCE retrieval"
+      }
     },
     {
-      "static_current_position_r2": 0.7985013794951543,
-      "static_current_velocity_r2": 0.00476853894492113,
-      "context_current_position_r2": 0.817020411132303,
-      "context_current_velocity_r2": 0.12241257961368168,
-      "static_next_state_mean_r2": 0.25076686645190094,
-      "context_next_state_mean_r2": 0.2712134595754257,
-      "static_next_state_position_r2": 0.6674844442895236,
-      "static_next_state_velocity_r2": -0.16595071138572165,
-      "context_next_state_position_r2": 0.6273864307115965,
-      "context_next_state_velocity_r2": -0.0849595115607451,
-      "num_sequences": 32,
-      "cpc_gap_r2_per_variable": [
-        -0.8344991158391002,
-        -0.7935053757581851,
-        -0.12993652610877726,
-        -0.3997286324500664
+      "static_current_r2_per_variable": [
+        0.7266820441434485,
+        0.4957092456374491,
+        0.004210728738605285,
+        -0.34078506434083455
       ],
-      "cpc_gap_mean_r2": -0.5394174125390323,
-      "linear_gap_r2_per_variable": [
-        0.9999961026133206,
-        0.322113896243865,
-        0.9765729989634966,
-        0.993863764800148
+      "context_current_r2_per_variable": [
+        0.710334072134273,
+        0.6073834910513982,
+        0.013049055300089929,
+        -0.32046564639675035
       ],
-      "linear_gap_mean_r2": 0.8231366906552076,
-      "max_rollout_latent_norm": 1.0000001192092896
+      "static_next_r2_per_variable": [
+        0.7268657672526639,
+        0.49059953721949123,
+        0.005242351394057154,
+        -0.33691230688892726
+      ],
+      "context_next_r2_per_variable": [
+        0.7108798344746796,
+        0.6064462033827827,
+        0.012054479239293148,
+        -0.3199146383509073
+      ],
+      "static_current_position_r2": 0.7266820441434485,
+      "static_current_velocity_r2": 0.004210728738605285,
+      "context_current_position_r2": 0.710334072134273,
+      "context_current_velocity_r2": 0.013049055300089929,
+      "static_next_state_mean_r2": 0.2214488372443213,
+      "context_next_state_mean_r2": 0.25236646968646204,
+      "static_next_state_position_r2": 0.6087326522360776,
+      "static_next_state_velocity_r2": -0.16583497774743505,
+      "context_next_state_position_r2": 0.6586630189287311,
+      "context_next_state_velocity_r2": -0.15393007955580706,
+      "cpc_future_retrieval": {
+        "by_horizon": {
+          "1": {
+            "infonce_loss": 0.10858735949930941,
+            "top1_accuracy": 0.9488461538461539,
+            "top5_accuracy": 1,
+            "random_top1_chance": 0.035,
+            "mean_positive_score": 60.686748164250304,
+            "mean_hardest_negative_score": 47.12310818011944,
+            "mean_positive_minus_hardest_negative": 13.563639913705678,
+            "num_context_examples": 2600,
+            "mean_candidate_count": 31.04
+          },
+          "2": {
+            "infonce_loss": 0.1316766412975862,
+            "top1_accuracy": 0.936923076923077,
+            "top5_accuracy": 1,
+            "random_top1_chance": 0.035,
+            "mean_positive_score": 54.45547396146334,
+            "mean_hardest_negative_score": 42.54059827364408,
+            "mean_positive_minus_hardest_negative": 11.914875053992638,
+            "num_context_examples": 2600,
+            "mean_candidate_count": 31.04
+          },
+          "3": {
+            "infonce_loss": 0.1701576005901839,
+            "top1_accuracy": 0.9215384615384615,
+            "top5_accuracy": 1,
+            "random_top1_chance": 0.035,
+            "mean_positive_score": 44.913767887995796,
+            "mean_hardest_negative_score": 35.181953529944785,
+            "mean_positive_minus_hardest_negative": 9.731814334575947,
+            "num_context_examples": 2600,
+            "mean_candidate_count": 31.04
+          }
+        },
+        "num_sequences_seen": 200,
+        "skipped_singleton_batches": 0,
+        "candidate_definition": "future latents from other held-out, episode-safe windows in the same batch",
+        "method": "standard CPC bilinear compatibility scores and multi-horizon InfoNCE retrieval"
+      }
+    },
+    {
+      "static_current_r2_per_variable": [
+        0.8198601202055015,
+        0.4945864676656545,
+        0.012071080211219165,
+        -0.36514198611284376
+      ],
+      "context_current_r2_per_variable": [
+        0.9341184991137595,
+        0.476575200846997,
+        0.007982289262450482,
+        -0.3141569841197802
+      ],
+      "static_next_r2_per_variable": [
+        0.8197552511103692,
+        0.49325211666229973,
+        0.01262371118688077,
+        -0.36308263712403344
+      ],
+      "context_next_r2_per_variable": [
+        0.9341139434702695,
+        0.4762063360110631,
+        0.010172302045532433,
+        -0.3130376276042366
+      ],
+      "static_current_position_r2": 0.8198601202055015,
+      "static_current_velocity_r2": 0.012071080211219165,
+      "context_current_position_r2": 0.9341184991137595,
+      "context_current_velocity_r2": 0.007982289262450482,
+      "static_next_state_mean_r2": 0.2406371104588791,
+      "context_next_state_mean_r2": 0.27686373848065715,
+      "static_next_state_position_r2": 0.6565036838863345,
+      "static_next_state_velocity_r2": -0.17522946296857633,
+      "context_next_state_position_r2": 0.7051601397406664,
+      "context_next_state_velocity_r2": -0.15143266277935208,
+      "cpc_future_retrieval": {
+        "by_horizon": {
+          "1": {
+            "infonce_loss": 0.135108991985863,
+            "top1_accuracy": 0.9442307692307692,
+            "top5_accuracy": 1,
+            "random_top1_chance": 0.035,
+            "mean_positive_score": 62.122626178448016,
+            "mean_hardest_negative_score": 50.41114606123704,
+            "mean_positive_minus_hardest_negative": 11.711480783315805,
+            "num_context_examples": 2600,
+            "mean_candidate_count": 31.04
+          },
+          "2": {
+            "infonce_loss": 0.1577506146076675,
+            "top1_accuracy": 0.9353846153846154,
+            "top5_accuracy": 1,
+            "random_top1_chance": 0.035,
+            "mean_positive_score": 56.46867899968074,
+            "mean_hardest_negative_score": 46.030674849290115,
+            "mean_positive_minus_hardest_negative": 10.438004379272462,
+            "num_context_examples": 2600,
+            "mean_candidate_count": 31.04
+          },
+          "3": {
+            "infonce_loss": 0.19506439952892793,
+            "top1_accuracy": 0.9242307692307692,
+            "top5_accuracy": 1,
+            "random_top1_chance": 0.035,
+            "mean_positive_score": 46.1823264840933,
+            "mean_hardest_negative_score": 37.67222361931434,
+            "mean_positive_minus_hardest_negative": 8.510102615356445,
+            "num_context_examples": 2600,
+            "mean_candidate_count": 31.04
+          }
+        },
+        "num_sequences_seen": 200,
+        "skipped_singleton_batches": 0,
+        "candidate_definition": "future latents from other held-out, episode-safe windows in the same batch",
+        "method": "standard CPC bilinear compatibility scores and multi-horizon InfoNCE retrieval"
+      }
+    },
+    {
+      "static_current_r2_per_variable": [
+        0.7525682113583632,
+        0.48439006907538673,
+        0.02224506282441785,
+        -0.31832600973935254
+      ],
+      "context_current_r2_per_variable": [
+        0.7217107422643247,
+        0.5666257623724709,
+        0.02627134918134344,
+        -0.3772751468528992
+      ],
+      "static_next_r2_per_variable": [
+        0.7531918900770458,
+        0.4808390426103547,
+        0.023268912933605446,
+        -0.3166296265258868
+      ],
+      "context_next_r2_per_variable": [
+        0.7224469893243652,
+        0.5646294844762896,
+        0.027062881867811917,
+        -0.3764299764309691
+      ],
+      "static_current_position_r2": 0.7525682113583632,
+      "static_current_velocity_r2": 0.02224506282441785,
+      "context_current_position_r2": 0.7217107422643247,
+      "context_current_velocity_r2": 0.02627134918134344,
+      "static_next_state_mean_r2": 0.23516755477377976,
+      "context_next_state_mean_r2": 0.23442734480937438,
+      "static_next_state_position_r2": 0.6170154663437002,
+      "static_next_state_velocity_r2": -0.14668035679614067,
+      "context_next_state_position_r2": 0.6435382369003274,
+      "context_next_state_velocity_r2": -0.1746835472815786,
+      "cpc_future_retrieval": {
+        "by_horizon": {
+          "1": {
+            "infonce_loss": 0.1185147599875927,
+            "top1_accuracy": 0.9492307692307692,
+            "top5_accuracy": 1,
+            "random_top1_chance": 0.035,
+            "mean_positive_score": 43.96562389667218,
+            "mean_hardest_negative_score": 30.62317531292255,
+            "mean_positive_minus_hardest_negative": 13.342448337261493,
+            "num_context_examples": 2600,
+            "mean_candidate_count": 31.04
+          },
+          "2": {
+            "infonce_loss": 0.13903784729540347,
+            "top1_accuracy": 0.9392307692307692,
+            "top5_accuracy": 1,
+            "random_top1_chance": 0.035,
+            "mean_positive_score": 40.38657924945538,
+            "mean_hardest_negative_score": 28.632137424762433,
+            "mean_positive_minus_hardest_negative": 11.754441997821514,
+            "num_context_examples": 2600,
+            "mean_candidate_count": 31.04
+          },
+          "3": {
+            "infonce_loss": 0.17974780282148947,
+            "top1_accuracy": 0.921923076923077,
+            "top5_accuracy": 1,
+            "random_top1_chance": 0.035,
+            "mean_positive_score": 34.568825343205376,
+            "mean_hardest_negative_score": 24.8735145011315,
+            "mean_positive_minus_hardest_negative": 9.695311150184045,
+            "num_context_examples": 2600,
+            "mean_candidate_count": 31.04
+          }
+        },
+        "num_sequences_seen": 200,
+        "skipped_singleton_batches": 0,
+        "candidate_definition": "future latents from other held-out, episode-safe windows in the same batch",
+        "method": "standard CPC bilinear compatibility scores and multi-horizon InfoNCE retrieval"
+      }
     }
-  ]
+  ],
+  "artifact_role": "primary_manuscript_result",
+  "status": "final_matched_training_and_evaluation_sequence_length",
+  "provenance": {
+    "output_artifact": "ch03/results/table_03_05_cpc_metrics.json",
+    "source_run": "checkpoint-only matched-length evaluation",
+    "original_output_paths": {
+      "results_dir": "ch03/results/cpc_retrieval_20261018",
+      "evaluation_output": "ch03/results/cpc_retrieval_matched16_20261018/table_03_05_cpc_metrics.json",
+      "figures_dir": "ch03/figures/cpc_retrieval_matched16_20261018",
+      "checkpoints_dir": "checkpoints/cpc_retrieval_20261018"
+    },
+    "source_code_commit": "2953e4ce5f8a6e22efd0cba98480ac647f259d68",
+    "dataset_git_blob_shas": {
+      "data/dmc_cartpole_balance_train.npz": "7515e0f43dd9b6afa2573fd9ab5186d22c58e6f3",
+      "data/dmc_cartpole_balance_val.npz": "a01bbe0c22c0174ebac329875002f747f9028be0"
+    }
+  }
 }

@@ -1,38 +1,30 @@
-# Chapter 3 Audit Findings — Corrected Runs and Interpretation
+# Chapter 3 Findings Ledger
 
-**Original experiment-result commit:** `7d4c77feb7e7e15bf8cb6b7ca3a1cd5ff411f559`  
-**Corrected design/findings on the original audit branch:** most recently inspected at `e659756d7f5a99be91e16be46270fd52cf2d1b2e`.  
-**Publication-readiness follow-up:** `audit/chapter3-publication-readiness`; the original 32-window CPC result remains historical, and the expanded checkpoint-only evaluation artifact was committed at `4e105393a27f43aeabfea19edc7d310454b7cbae`.
-**Basis:** committed source and JSON/figure/checkpoint artifacts, plus the author-supplied local logs. This report retains dated audit-branch history below but its MAE status was updated after the corrected runs were pushed to `main` on 17 October 2026. The author’s latest log reports 49 passing tests; the reviewer did not independently execute the tests or experiments.
+**Updated:** 18 October 2026  
+**Purpose:** Maintain one current account of empirical findings, fixes, and interpretation limits. This ledger supersedes earlier dated status notes in the commit history.
 
-## MAE representation-path correction and rerun (17 October 2026)
+## Release status
 
-The previous MAE probe path pooled encoder tokens through a separate `to_latent` projection, but masked reconstruction loss did not train that projection. The canonical `SimpleMAE` now exposes the mean-pooled final encoder tokens directly as probe features (64 features in the current configuration). The corrected code, tests, figures, and rerun metrics are committed on `main`.
+The expanded mechanism experiment and the corrected CPC evaluation have run. The canonical result artifacts are:
 
-- **Standalone MAE:** mean probe R² = 0.170410 across seeds 0, 1, and 2 (population SD 0.004310); per-seed scores are 0.165494, 0.175988, and 0.169749. The run regenerated Figure 3.12 and `ch03/results/mae_metrics.json`.
-- **Table 3.4 MAE row (mean ± population SD across three seeds):** Cartpole position 0.475 ± 0.012; Cartpole velocity −0.156 ± 0.005; Finger position 0.383 ± 0.010; Finger velocity −0.034 ± 0.001. These values are in `ch03/results/table_03_04_objective_comparison.json` (experiment version 6).
-- The version-6 table runner migrated the compatible version-5 progress file, archived the prior MAE entries, and reran the six MAE arms (two tasks × three seeds). Existing supervised, NT-Xent, and VICReg results were preserved and resumed.
-- The author-supplied local log reports 49 tests passing and successful completion of both MAE runs. No remote CI status was reported for the latest push, and this audit did not independently reproduce the run.
+- `ch03/results/three_mechanisms_diagnostics.json`
+- `ch03/results/table_03_05_cpc_metrics.json`
+- `ch03/results/table_03_04_objective_comparison.json`
+- `ch03/results/mae_metrics.json`
 
-## 1. Execution and sampling status
+The user-reported local regression run passed 59 tests on the predecessor branch state. Cleanup reverted the unrun Table 3.4 version-7 trained-head diagnostic and its three tests; the CPC test file was renamed without changing logic. The exact cleaned tree has not been rerun. No GitHub CI status checks were available for this branch, and the experiments were not independently rerun by the reviewer.
 
-The earlier corrected rerun completed through `ch03/12_assemble_encoder.py`; that historical Windows log reported 44 tests passed. The subsequent current `main`-branch log reports **49 tests passed** in 2.434 seconds and shows successful completion of the corrected three-seed standalone MAE run and six Table 3.4 MAE runs. These are author-supplied local results, not independently reproduced by this audit; no GitHub Actions status is available for the latest push.
+## Findings and dispositions
 
-The data-only diagnostic reports 30 training episodes and 5 validation episodes per task. With the 3,500-frame/1,000-frame caps used by the diagnostic, the selected sample contains 116–117 training frames per episode and 200 validation frames per episode. The old prefix-based experiment metrics have been archived or replaced where the scripts version their results.
+### 1. Capped sampling previously produced prefix bias
 
-At the time of the earlier follow-up inspection, `audit/chapter3-methodology-fixes` had advanced to `e659756d7f5a99be91e16be46270fd52cf2d1b2e`, while `main` was still at `230b298b9d1ed031e69e6987bb9c2a2e88bc8086`. Those branch/ref statements are historical, not current status: the relevant CPC evaluation code/artifact, corrected Table 3.4 outputs, and MAE representation fix are now present on `main`. The original 32-window CPC values remain historical; use the checkpoint-only 200-window-per-seed artifact for the expanded evaluation.
+The prior first-N selection could leave training or validation examples concentrated in only a few early episodes. The corrected deterministic sampler selects across episode IDs and within-episode time. Temporal sequence sampling preserves contiguous windows in the original arrays and rejects windows that cross episode boundaries.
 
-## 2. Corrected findings
+**Disposition:** corrected sampling is used by the current experiment runners. Keep episode-aware selection and dataset metadata as part of reproduction.
 
-### 2.1 Episode-prefix sampling was a real source of bias
+### 2. Two-frame stacking did not reliably recover velocity
 
-The previous first-3,500 training-frame subset covered only 4 episodes; the first-1,000 validation-frame subset covered 1 episode. On Finger Spin, the old validation prefix had spinner-angle standard deviation 0.117, versus 2.020 in the training prefix, and the distal-position medians differed substantially. This could distort both training and held-out probe metrics.
-
-The corrected sampler spreads capped samples across episode IDs and within-episode time. For temporal stacks and CPC, it selects valid centres/sequence starts from the full original arrays while keeping the actual windows contiguous and episode-safe. This is the correct fix for the demonstrated prefix bias.
-
-### 2.2 Two-frame stacking did not recover velocity in this setup
-
-Corrected Table 3.3 reports:
+Corrected Table 3.3 results are:
 
 | Variable | Single frame | Two-frame stack | Mean change |
 |---|---:|---:|---:|
@@ -41,66 +33,79 @@ Corrected Table 3.3 reports:
 | Cart velocity | 0.006 ± 0.004 | 0.009 ± 0.007 | +0.002 |
 | Pole angular velocity | −0.367 ± 0.001 | −0.375 ± 0.006 | −0.007 |
 
-The tested two-frame, 12-epoch contrastive setup does **not** support a claim that frame stacking recovered velocity. The cart-velocity change is tiny; angular-velocity decoding remains worse than the mean baseline. This is a negative or limited result about this particular representation, temporal spacing, image resolution, augmentation, and training budget. It does not prove that velocity is fundamentally unrecoverable from multiple frames.
+This is a negative or limited result for the specific resolution, augmentation, architecture, temporal spacing, and training budget. It does not establish a general impossibility of recovering velocity from multiple frames. Present positions as more linearly decodable than velocities in this tested setup; do not claim temporal stacking succeeded.
 
-A single static image has no explicit time-difference signal, but appearance and dynamics may still be statistically correlated with velocity. Treat velocity identifiability as an empirical question, not an impossibility guaranteed by the renderer.
+### 3. Table 3.4 compares complete method configurations
 
-### 2.3 Contrastive learning and objective comparison
-
-The corrected standalone contrastive runs on Cartpole report per-seed mean probe (R^2) values 0.260, 0.241, and 0.270. Position is substantially more decodable than velocity. These values use the corrected episode-stratified sample and supersede the prefix-sampled results.
-
-Corrected Table 3.4 (mean ± standard deviation across three seeds) reports:
+Corrected values (mean ± population SD across three seeds):
 
 | Method | Cartpole position | Cartpole velocity | Finger position | Finger velocity |
 |---|---:|---:|---:|---:|
-| Supervised state-prediction reference | 0.981 ± 0.000 | −0.273 ± 0.012 | 0.995 ± 0.001 | −0.114 ± 0.010 |
+| Supervised-pretrained encoder + frozen-feature linear probe | 0.981 ± 0.000 | −0.273 ± 0.012 | 0.995 ± 0.001 | −0.114 ± 0.010 |
 | Contrastive (NT-Xent) | 0.672 ± 0.001 | −0.187 ± 0.005 | 0.714 ± 0.029 | −0.007 ± 0.002 |
 | VICReg | 0.649 ± 0.022 | −0.183 ± 0.006 | 0.679 ± 0.040 | −0.005 ± 0.004 |
 | Masked autoencoder | 0.475 ± 0.012 | −0.156 ± 0.005 | 0.383 ± 0.010 | −0.034 ± 0.001 |
 
-Negative (R^2) means worse than predicting the validation-set mean. These values suggest that position is substantially more decodable from one frame than velocity for every method tested. They do not by themselves establish a causal explanation for why velocity is hard to recover.
+The supervised row is an encoder pretrained with state labels followed by a separate frozen-feature probe. It is not the trained state-prediction head's own held-out score. The result should not be called an oracle or a direct head-performance metric. The comparison also uses different backbone families (CNN versus patch-transformer MAE), so it is a comparison of method configurations, not a loss-only ablation.
 
-**Interpretation constraint:** the table compares complete method configurations, not loss functions in isolation. The supervised, contrastive, and VICReg arms use a convolutional encoder, while MAE uses a patch-transformer encoder/decoder. Further, the reported supervised-reference metric is a fresh frozen-feature linear probe after training the encoder with a supervised state head; it is **not** the direct held-out score of that trained head. Do not describe it as an oracle or upper bound without reporting the trained head's own held-out performance.
+Finger Spin's third qpos coordinate is a spinner hinge angle with π-periodic rendered symmetry. The full-turn coordinate is not identifiable from one static frame and is excluded from the aggregate while remaining documented at the variable level.
 
-Finger Spin's stored state has six coordinates (three qpos followed by three qvel). The absolute spinner hinge angle is excluded from the aggregate because the rendered geometry is half-turn symmetric; its identifiable orientation is π-periodic. This correction is encoded in the metric contract.
+### 4. MAE representation-path fix
 
-### 2.4 VICReg, MAE, bottleneck, and collapse observations
+The earlier probe exposed a pooled projection that the masked reconstruction loss did not train. The corrected representation is the mean-pooled final encoder tokens, 64 features in this configuration. Corrected standalone MAE probe R² is 0.170 ± 0.004 across three seeds. Table 3.4's MAE values were regenerated with the corrected path; the older rows were preserved in the progress artifact's explicitly named legacy archive.
 
-- Standalone VICReg reports mean probe R² = 0.248 ± 0.005; the corrected standalone MAE run reports mean probe R² = 0.170 ± 0.004 while masked reconstruction MSE falls to about 0.002. This illustrates that reconstruction quality and linear state decodability measure different things. Do not compare the standalone scores directly to Table 3.4 as if all budgets and configurations were identical.
-- In the bottleneck sweep, Cartpole scores rise from about −0.008 at (d=2) to 0.321 at (d=64), then are essentially flat/slightly lower at 0.317 for (d=256). Cheetah rises from 0.060 at (d=2) to 0.422 at (d=256); a plateau is not demonstrated for Cheetah within the tested range.
-- The collapse demonstration gives latent standard deviation about (7\times10^{-5}) to (9\times10^{-5}) for attraction-only training versus about 2.30–2.90 for the contrastive condition in these runs.
-- The three-mechanism experiment reports effective rank (1.220 pm 0.269) for SimSiam, (1.064 pm 0.029) for BYOL, and (5.986 pm 0.739) for Barlow Twins. Barlow Twins uses more latent directions in this experiment, but its effective rank is still well below the 16-dimensional embedding size. Effective rank is evidence about spectrum concentration, not by itself proof of total collapse or its absence.
+**Disposition:** keep the corrected feature path and its regression test. Do not compare the standalone MAE score with Table 3.4 as though both runs had identical budgets and evaluation protocols.
 
-These results are descriptive teaching experiments with three seeds and modest training budgets, not a broad benchmark of SSL methods.
+### 5. Collapse demonstration
 
-### 2.5 CPC is informative but its gap metric needs a stronger evaluation
+The final recorded three-seed collapse demonstration (15 epochs) reports attraction-only encoder feature SD of approximately (7.79\times10^{-5}) and near-zero attraction loss (about (2.55\times10^{-10})). Under the contrastive condition, final encoder feature SD is approximately 2.42. This illustrates that the deliberately underconstrained attraction-only loss can converge to a constant-like representation while the contrastive condition avoids that particular collapse in this setup.
 
-The corrected CPC run trained all three seeds and saved the checkpoints. Its results are:
+Effective rank is scale-invariant and can remain nonzero for tiny but structured numerical variation. Report feature spread and rank together; do not let rank by itself override the near-zero spread and loss evidence.
 
-- Current Cartpole-position probe: static 0.789 ± 0.007; context 0.828 ± 0.010.
-- Current Cartpole-velocity probe: static 0.007 ± 0.004; context 0.143 ± 0.083.
-- Mean next-state probe (R^2): static 0.227 ± 0.021; context 0.277 ± 0.049.
-- Historical 32-window gap rollout: −3.094, −0.196, and −0.539 per seed; mean −1.276 ± 1.293.
-- Expanded checkpoint-only gap rollout (200 non-overlapping windows per seed): −2.853, −0.128, and −0.443 per seed; mean −1.141 ± 1.217 across seeds.
-- Expanded per-variable CPC gap mean R² ± population SD across seeds: cart position −3.331 ± 4.267; pole angle −0.382 ± 0.111; cart velocity −0.401 ± 0.504; pole angular velocity −0.451 ± 0.178.
-- Privileged state-history extrapolation baseline: mean R² = 0.837, identical across CPC seeds because one shared state-history model is used.
+### 6. Expanded SimSiam/BYOL/Barlow Twins mechanism study
 
-Temporal context improves current-state and next-state probe scores in this setup, while the latent rollout performs poorly on the gap test. The expanded evaluation confirms the negative result but also shows substantial seed sensitivity, driven especially by seed 0 and cart-position prediction. The 200 windows are balanced at 40 per each of five held-out episodes; they are windows, not independent episodes. Episode 3 has the lowest CPC mean gap R² for each of the three seeds, so its trajectory-level errors should be inspected before interpreting the aggregate as a uniform failure mode. The privileged baseline receives true qpos/qvel history, while CPC receives rendered frames; this input asymmetry must be disclosed, not presented as a like-for-like comparison. The author-supplied local log and committed JSON report successful checkpoint-only evaluation; the audit reviewer did not independently execute the evaluation. The current `main`-branch test log includes the CPC window-selection tests and reports 49 total tests passing.
+The final reduced-scale study uses five seeds, 30 epochs, up to 6,000 Cartpole frames, batch size 128, 32-dimensional encoder latents, and 128-dimensional projectors.
 
-The printed maximum rollout latent norm of approximately 1 is guaranteed by explicit L2 normalization in the model. It is an implementation sanity check, not independent evidence that rollout dynamics are stable.
+| Method | Frozen-encoder probe R² | Encoder effective rank (32-d output) | Mean encoder feature SD |
+|---|---:|---:|---:|
+| SimSiam | 0.266 ± 0.012 | 4.23 ± 0.49 | 1.933 ± 0.457 |
+| BYOL | 0.268 ± 0.004 | 7.07 ± 0.65 | 0.306 ± 0.078 |
+| Barlow Twins | 0.285 ± 0.018 | 11.18 ± 0.62 | 0.0616 ± 0.0035 |
 
-### 2.6 Encoder assembly
+Barlow Twins uses more encoder directions by effective rank in this run and has projector effective rank about 63.42 out of 128. Its feature scale is low relative to the other methods; spread and rank must be interpreted together. Aggregate probe scores are close and five seeds do not establish universal superiority. The implementation follows the core mechanisms at small scale and is not an exact reproduction of the original ImageNet-scale papers.
 
-The final script reports successful verification of an observation tensor shaped `(1, 3, 64, 64)` and a persistent state shaped `(1, 32)` over 10 frames. This checks the Chapter 1 wrapper/checkpoint interface; it does not validate long-horizon prediction quality or the CPC rollout.
+### 7. CPC's primary evidence is future-latent retrieval, not recursive gap rollout
 
-## 3. Recommended remaining scientific checks
+The primary run trains canonical multi-horizon bilinear InfoNCE and then evaluates the matching held-out future latent against other future latents in the same batch. The training sequence length and evaluation sequence length both equal 16. The evaluation uses five trained checkpoints, three future horizons, 200 non-overlapping episode-safe validation windows, and 40 windows from each of five episodes.
 
-1. **Completed on `main`:** the existing CPC checkpoints were evaluated on 200 episode-balanced, non-overlapping gap windows per seed, with per-seed and per-variable results committed. Do not rerun this evaluation unless debugging; keep the privileged-baseline caveat explicit.
-2. Label the Table 3.4 supervised row as a state-label-trained encoder followed by an independent frozen-feature probe. The existing result is not the trained prediction head's direct held-out metric. Only rerun that supervised arm if the chapter specifically needs to claim or tabulate trained-head predictive performance.
-3. In the chapter prose, report the negative result for two-frame stacking honestly. Do not claim the current experiment demonstrates velocity recovery.
-4. Keep the Table 3.4 method-family comparison caveat and report all negative velocity scores rather than omitting them.
-5. Before using any values in the book, ensure figure captions, prose, and result tables reflect the current JSON artifacts committed on `main`.
+| Horizon | InfoNCE loss | Top-1 retrieval | Top-5 retrieval | Positive–hardest-negative margin |
+|---|---:|---:|---:|---:|
+| 1 | 0.115 ± 0.016 | 95.04% ± 0.84 pp | 100% | 12.96 ± 0.65 |
+| 2 | 0.133 ± 0.017 | 94.14% ± 0.72 pp | 100% | 11.52 ± 0.54 |
+| 3 | 0.171 ± 0.018 | 92.44% ± 0.51 pp | 100% | 9.50 ± 0.50 |
 
-## 4. Artifact and CI status
+The top-1 chance level is 3.5% because each query is evaluated against in-batch candidates: 32 candidates for full batches and eight in the last batch. This is not a 200-way retrieval pool. The windows are non-overlapping, but they come from five validation episodes and should not be described as 200 independent trajectories.
 
-The CPC evaluation JSON/figure, corrected Table 3.4 JSON, corrected standalone MAE metrics, regenerated Figure 3.12, and experiment code are committed on `main`. The author-supplied current local log reports 49 tests passing plus successful standalone and Table 3.4 MAE runs. No GitHub Actions status was reported for the latest push, and the reviewer did not independently reproduce the local runs.
+State-probe results remain mixed. Recurrent context has current cart-position R² of 0.805 ± 0.084 versus 0.770 ± 0.033 for the static encoder; mean next-state R² is 0.259 ± 0.016 versus 0.238 ± 0.009. Context current cart-velocity R² is 0.016 ± 0.006, and pole-angular-velocity R² is negative. CPC's successful retrieval task therefore does not mean all physical variables are linearly recoverable or that the model is a complete world model.
+
+The former custom recursive gap rollout used a bilinear compatibility output as if it were a pointwise predicted latent, then passed it to a probe trained on observed latents. That is not what the InfoNCE objective directly trains. Its negative gap scores are historical results for that custom procedure and are excluded from the primary CPC runner and Table 3.5 claims. Do not present those scores as standard CPC performance.
+
+The model receives frames, not actions, and the data were collected under random actions. These results do not test action-conditioned prediction, long-horizon latent rollout, or planning. The matched 16-frame results are primary; the earlier 25-frame evaluation is a sensitivity diagnostic.
+
+### 8. Remaining manuscript-production checks
+
+These are not blockers for merging the cleaned code companion, but they remain necessary for the finished book:
+
+1. Insert the current numbers and method caveats from the canonical JSON files into the authored manuscript and table captions.
+2. Visually inspect the canonical CPC retrieval figure and the final collapse figures in production layout.
+3. Keep the Chapter 2 forklift-occlusion example as conceptual motivation only. The present CPC result measures future-latent retrieval and does not recreate an occlusion or missing-frame experiment.
+4. Re-run the test suite after any source-code changes. Changes in this release's documentation/artifact cleanup do not alter the experiment code.
+
+## Canonical paths
+
+- CPC: `ch03/results/table_03_05_cpc_metrics.json`
+- Three mechanisms: `ch03/results/three_mechanisms_diagnostics.json`
+- Table 3.4: `ch03/results/table_03_04_objective_comparison.json`
+- Standalone MAE: `ch03/results/mae_metrics.json`
+- CPC plot: `ch03/figures/cpc_retrieval_matched16_20261018/fig03_16_cpc_future_retrieval.png`
+- Collapse plots: `ch03/figures/fidelity_run_20261017/collapse/`
