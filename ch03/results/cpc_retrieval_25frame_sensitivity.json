@@ -32,7 +32,7 @@
     "evaluation_output": null,
     "data_dir": "data",
     "figures_dir": "ch03/figures/cpc_retrieval_20261018",
-    "results_dir": "ch03/results/cpc_retrieval_20261018",
+    "results_dir": "ch03/results",
     "checkpoints_dir": "checkpoints/cpc_retrieval_20261018"
   },
   "evaluation": {
