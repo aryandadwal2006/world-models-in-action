@@ -47,8 +47,8 @@ Run scripts from the repository root.
 - `ch03/results/three_mechanisms_diagnostics.json`: expanded five-seed SimSiam/BYOL/Barlow Twins diagnostics.
 - `ch03/results/table_03_05_cpc_metrics.json`: primary matched-length CPC retrieval result (16-frame training and evaluation windows).
 - `ch03/results/cpc_retrieval_25frame_sensitivity.json`: secondary sequence-length sensitivity check; not the primary Table 3.5 result.
-- `ch03/figures/fidelity_run_20261017/collapse/`: collapse-demo figures from the recorded run.
-- `ch03/figures/cpc_retrieval_matched16_20261018/fig03_16_cpc_future_retrieval.png`: primary CPC retrieval figure.
+- `ch03/figures/fig03_09_collapse_demo.png` and `ch03/figures/fig03_09_objective_space.png`: collapse-demo figures from the recorded run.
+- `ch03/figures/fig03_16_cpc_future_retrieval.png`: primary matched-length CPC retrieval figure.
 
 The diagnostic run summaries are also described in `ch03/publication_readiness_audit.md` and `ch03/discrepancies_and_findings.md`. Timestamped smoke-test outputs are not primary results and are excluded from the release artifact set.
 
