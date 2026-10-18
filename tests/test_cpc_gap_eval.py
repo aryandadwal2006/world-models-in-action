@@ -1,4 +1,4 @@
-"""Tests for reproducible, episode-safe CPC gap-window selection."""
+"""Tests for reproducible, episode-safe CPC retrieval-window selection."""
 
 import importlib.util
 import sys
@@ -25,7 +25,7 @@ sys.modules[SPEC.name] = CPC
 SPEC.loader.exec_module(CPC)
 
 
-class TestCPCGapWindowSelection(unittest.TestCase):
+class TestCPCRetrievalWindowSelection(unittest.TestCase):
     def setUp(self):
         # Five 1,000-frame validation episodes support 40 disjoint windows each.
         self.episode_ids = np.repeat(
@@ -48,12 +48,12 @@ class TestCPCGapWindowSelection(unittest.TestCase):
             max_sequences=None,
         )
 
-    def test_selects_200_episode_safe_non_overlapping_windows(self):
+    def test_selects_200_episode_safe_non_overlapping_retrieval_windows(self):
         subset = CPC.episode_stratified_nonoverlapping_subset(
             self.dataset,
             200,
         )
-        metadata = CPC.gap_window_metadata(
+        metadata = CPC.sequence_window_metadata(
             self.dataset,
             subset,
         )
@@ -94,7 +94,7 @@ class TestCPCGapWindowSelection(unittest.TestCase):
                 201,
             )
 
-    def test_metadata_rejects_overlapping_windows(self):
+    def test_metadata_rejects_overlapping_retrieval_windows(self):
         invalid_subset = Subset(self.dataset, [0, 1])
         with self.assertRaisesRegex(RuntimeError, "overlap"):
             CPC.gap_window_metadata(
