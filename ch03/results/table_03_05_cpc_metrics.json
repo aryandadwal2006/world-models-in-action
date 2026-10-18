@@ -1392,6 +1392,11 @@
       "evaluation_output": "ch03/results/cpc_retrieval_matched16_20261018/table_03_05_cpc_metrics.json",
       "figures_dir": "ch03/figures/cpc_retrieval_matched16_20261018",
       "checkpoints_dir": "checkpoints/cpc_retrieval_20261018"
+    },
+    "source_code_commit": "2953e4ce5f8a6e22efd0cba98480ac647f259d68",
+    "dataset_git_blob_shas": {
+      "data/dmc_cartpole_balance_train.npz": "7515e0f43dd9b6afa2573fd9ab5186d22c58e6f3",
+      "data/dmc_cartpole_balance_val.npz": "a01bbe0c22c0174ebac329875002f747f9028be0"
     }
   }
 }
