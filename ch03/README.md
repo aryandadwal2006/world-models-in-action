@@ -43,8 +43,10 @@ Run scripts from the repository root.
 
 - `ch03/results/table_03_04_objective_comparison.json`: corrected Table 3.4 source metrics.
 - `ch03/results/mae_metrics.json`: corrected standalone MAE probe metrics.
+- `ch03/results/collapse_demo_metrics.json`: three-seed attraction-only collapse demonstration.
 - `ch03/results/three_mechanisms_diagnostics.json`: expanded five-seed SimSiam/BYOL/Barlow Twins diagnostics.
 - `ch03/results/table_03_05_cpc_metrics.json`: primary matched-length CPC retrieval result (16-frame training and evaluation windows).
+- `ch03/results/cpc_retrieval_25frame_sensitivity.json`: secondary sequence-length sensitivity check; not the primary Table 3.5 result.
 - `ch03/figures/fidelity_run_20261017/collapse/`: collapse-demo figures from the recorded run.
 - `ch03/figures/cpc_retrieval_matched16_20261018/fig03_16_cpc_future_retrieval.png`: primary CPC retrieval figure.
 
