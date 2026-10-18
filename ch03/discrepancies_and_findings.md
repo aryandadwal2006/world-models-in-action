@@ -12,7 +12,7 @@ The expanded mechanism experiment and the corrected CPC evaluation have run. The
 - `ch03/results/table_03_04_objective_comparison.json`
 - `ch03/results/mae_metrics.json`
 
-The user-reported local regression run passed 59 tests on the predecessor branch state. Cleanup reverted the unrun Table 3.4 version-7 trained-head diagnostic and its three tests; the CPC test file was renamed without changing logic. The exact cleaned tree has not been rerun. No GitHub CI status checks were available for this branch, and the experiments were not independently rerun by the reviewer.
+The earlier 59-test run was reported on a predecessor branch state. After removing the unrun Table 3.4 version-7 diagnostic and its three tests, GitHub Actions passed the cleaned 56-test regression suite. The CPC test file was renamed without changing test logic. The workflow is now configured on `main` for pushes and pull requests. Regression testing does not independently reproduce the full experiments; the canonical results and provenance remain the source of evidence for the recorded runs.
 
 ## Findings and dispositions
 
@@ -99,7 +99,7 @@ These are not blockers for merging the cleaned code companion, but they remain n
 1. Insert the current numbers and method caveats from the canonical JSON files into the authored manuscript and table captions.
 2. Visually inspect the canonical CPC retrieval figure and the final collapse figures in production layout.
 3. Keep the Chapter 2 forklift-occlusion example as conceptual motivation only. The present CPC result measures future-latent retrieval and does not recreate an occlusion or missing-frame experiment.
-4. Re-run the test suite after any source-code changes. Changes in this release's documentation/artifact cleanup do not alter the experiment code.
+4. Keep the regression workflow green on the active `main` head after code changes. Tests validate software contracts, not the full numerical reproduction of every experiment.
 
 ## Canonical paths
 

@@ -3,21 +3,21 @@
 **Updated:** 18 October 2026  
 **Scope:** Chapter 3 experiment code, committed result artifacts, reproduction instructions, and the Chapter 3 design document.  
 **Repository:** `aryandadwal2006/world-models-in-action`  
-**Release candidate:** `diagnostics/ch03-experiment-validation`
+**Release branch:** `main` (PR #1 has already integrated the experiment-validation branch).
 
 ## Decision
 
-**Go-ahead for the cleaned code-companion release, with scientific claims kept within the measured scope.** The five-seed mechanism experiment completed, the five trained CPC checkpoints were evaluated on matched 16-frame training/evaluation windows, and the user-reported local test suite passed 59 tests before the release-document changes. The release result artifacts are now identified by stable paths under `ch03/results/`; smoke outputs and superseded CPC gap-rollout figures are not primary results.
+**Go-ahead for the cleaned code-companion release, with scientific claims kept within the measured scope.** The five-seed mechanism experiment completed, and the five trained CPC checkpoints were evaluated on matched 16-frame training/evaluation windows. The cleaned source tree passed 56 regression tests in GitHub Actions; the workflow is configured to run on pushes and pull requests to `main`, as well as manual dispatch. The canonical result artifacts are identified by stable paths under `ch03/results/`; smoke outputs and superseded CPC gap-rollout figures are not primary results.
 
 This is **not** certification that the finished book chapter is publication-ready. The repository currently contains the Chapter 3 design document and code companion, not the final authored chapter manuscript or production-layout pages. Book prose, citations, figure rendering, captions, and layout must be checked against these artifacts during manuscript production.
 
-The author-reported 59-test pass was on the predecessor branch state. During this cleanup, the unrelated, unrun Table 3.4 version-7 trained-head diagnostic was reverted to the already-published version-6 source and its three diagnostic-only tests were removed; the CPC test file was renamed without changing test logic. The final cleaned tree has not been rerun locally. This is a remaining verification limitation, although the final source tree restores the tested main-branch Table 3.4 implementation and the experiment code behind the 59-test run is unchanged. No GitHub Actions status checks were returned for the branch commits, and the reviewer cannot access the author's Windows environment to run the suite independently.
+The earlier 59-test pass was reported on a predecessor branch state. After the unrun Table 3.4 version-7 diagnostic and its three tests were removed, GitHub Actions ran the cleaned 56-test suite successfully; the CPC test file was renamed without changing its logic. The regression workflow has been restored to `main` so future pushes and pull requests are tested. This validates the regression suite, not a fresh reproduction of all training experiments. The canonical metrics remain the committed results with their recorded data/code provenance, and the checkpoint-only CPC re-evaluation command is documented below.
 
 ## 1. Evidence status
 
 | Area | Current evidence | Release interpretation |
 |---|---|---|
-| Regression tests | User-reported `python -m unittest discover -s tests -v`: 59 tests passed, before documentation/artifact cleanup | Local execution evidence; no remote CI confirmation |
+| Regression tests | GitHub Actions `python -m unittest discover -s tests -v`: 56 tests passed on the cleaned source tree | Regression validation; does not independently reproduce the full experiments |
 | Three anti-collapse mechanisms | Five seeds, 30 epochs, up to 6,000 Cartpole frames; metrics stored at `ch03/results/three_mechanisms_diagnostics.json` | Reduced-scale mechanism study, not an ImageNet-scale reproduction |
 | CPC objective-aligned retrieval | Five trained checkpoints, re-evaluated on 16-frame windows matching training; canonical metrics at `ch03/results/table_03_05_cpc_metrics.json` | Primary Table 3.5 CPC evidence |
 | Corrected Table 3.4 | Experiment version 6, method-facing supervised label clarifies a pretrained encoder plus a separate frozen-feature probe | Method-family comparison; not a loss-only ablation |
@@ -111,8 +111,8 @@ The audit found no direct train/validation label leakage in the reviewed probes:
 
 The CPC JSON stores its model seeds, training settings, matched evaluation length, selected window starts, episode balance, candidate-set policy, and prior run configuration. Five CPC checkpoints are retained at `checkpoints/cpc_retrieval_20261018/` to support checkpoint-only re-evaluation. Smoke-test outputs and redundant timestamped backups are not release results.
 
-The 59-test result was reported by the author for the pre-cleanup branch and was not independently reproduced here. The exact cleaned tree has not been rerun after removing three Table 3.4 version-7 diagnostic tests and renaming the CPC retrieval test file. GitHub returned no CI statuses or PR-triggered workflow runs for the latest branch commits. Rerun `python -m unittest discover -s tests -v` after any code changes. Figure 3.16 should receive final visual/layout review in the book-production workflow; code/data inspection cannot replace that visual check.
+The cleaned-tree regression suite passed 56 tests in GitHub Actions after the Table 3.4 version-7 diagnostic tests were removed and the CPC test file was renamed. The workflow now runs on pushes and pull requests to `main`; use the latest run attached to the active `main` head as the authoritative regression status. This suite does not regenerate the full research experiments. Run the documented experiment commands only when intentionally reproducing results, always writing to separate output paths. Figure 3.16 should receive final visual/layout review during book production; code/data inspection cannot replace that visual check.
 
 ## Readiness statement
 
-The cleaned code companion and its current experiment artifacts are **ready to merge for book development**. The evidence supports the bounded claims above. The finished Chapter 3 prose is not part of this repository snapshot, so it must still be proofed against these outputs and the Manning production requirements. Avoid claims of universal method superiority, complete state recovery, action-conditioned world modeling, or missing-frame rollout performance from the current CPC experiment.
+The cleaned code companion and its current experiment artifacts are **integrated into `main` and ready to support manuscript writing**, subject to the regression workflow remaining green on the current branch. The finished Chapter 3 prose is not part of this repository snapshot. Proof the authored chapter, citations, captions, numerical tables, figure layouts, and Manning production requirements against these canonical outputs. Avoid claims of universal method superiority, complete state recovery, action-conditioned world modeling, or missing-frame rollout performance from the current CPC experiment.

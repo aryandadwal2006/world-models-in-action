@@ -1,72 +1,63 @@
-# Chapter 3 Implementation Plan & Progress
+# Chapter 3 Implementation and Release Status
 
-Based on *Chapter 3 Design — Representation Learning Before Generation (v3)*.
+**Status date:** 18 October 2026  
+**Current release branch:** `main`  
+**Scope:** Code companion and research artifacts for Chapter 3 of *World Models in Action*. This file tracks the current state and the remaining authoring handoff; it is not a claim that the book manuscript is complete.
 
-## 1. Environment & Setup
-- [x] Clone `dm_control` into `dm_control_repo/` for local reference
-- [x] Setup virtual environment `.venv` with Python 3.11
-- [x] Install pinned requirements (`torch`, `numpy`, `matplotlib`, `dm_control`, `mujoco`)
-- [x] Verify offscreen rendering on Windows
-- [x] Initialize git repository and track progress
+## 1. Code companion status
 
-## 2. Shared `worldmodels/` Core Library
-- [x] `worldmodels/__init__.py`
-- [x] `worldmodels/train.py`: Seeding utilities (`set_seed`), device selection, training helpers
-- [x] `worldmodels/data/augment.py`: View generation pipeline (crop shift, intensity jitter)
-- [x] `worldmodels/data/dmc_data.py`: DMC environment interaction, episode collection, `.npz` caching, and dataset splits
-- [x] `worldmodels/models/encoders.py`: `ConvEncoder`, `ProjectionHead`, `SimpleMAE`, `MAEEncoder`, and `Encoder` interface (`encode(obs)`, `update(state, obs)`)
-- [x] `worldmodels/losses/contrastive.py`:
-  - NT-Xent / InfoNCE loss (Eq 3.5, 3.6, 3.7)
-  - SimSiam negative cosine similarity loss with stop-gradient (Eq 3.9, 3.10)
-  - BYOL EMA updater (Eq 3.11)
-  - Barlow Twins loss (Eq 3.12, 3.13)
-  - VICReg variance, invariance, and covariance regularization loss (Eq 3.14 - 3.17)
-- [x] `worldmodels/losses/reconstruction.py`: Masked Autoencoder loss on masked patches (Eq 3.18)
-- [x] `worldmodels/eval/probes.py`:
-  - Linear probe ($R^2$ score on ground truth physics state variables)
-  - Forward-prediction test
-  - Aliasing diagnostic (single-frame vs stacked 2-frame)
+- [x] Canonical model/loss/evaluation implementations live under `worldmodels/`.
+- [x] Numbered Chapter 3 runners live under `ch03/`; regression tests live under `tests/`.
+- [x] The CPC runner uses multi-horizon bilinear InfoNCE and its primary evaluation is held-out, in-batch future-latent retrieval.
+- [x] The former custom recursive CPC gap-rollout metric is excluded from the current primary result.
+- [x] The five-seed CPC checkpoints and checkpoint-only re-evaluation protocol are retained.
+- [x] The expanded five-seed SimSiam/BYOL/Barlow Twins diagnostic and the collapse-demo outputs are retained.
+- [x] Table 3.4 uses the corrected version-6 experiment/results; the unrun version-7 trained-head diagnostic is not included.
+- [x] Result JSONs include experiment settings and provenance where available, and canonical figures have stable paths.
+- [x] Regression workflow is configured at `.github/workflows/tests.yml` for pushes and pull requests to `main`.
+- [x] The cleaned regression suite passed 56 tests in GitHub Actions. Use the latest workflow run on the active `main` head for current status.
 
-## 3. Unit Test Suite (`tests/`)
-- [x] `tests/test_augment.py`: Spatial shift and photometric jitter constraints
-- [x] `tests/test_encoders.py`: ConvEncoder, ProjectionHead, SimpleMAE, and unified Agent contract
-- [x] `tests/test_losses.py`: NT-Xent, SimSiam, BYOL EMA, Barlow Twins, VICReg, Masked MSE
-- [x] `tests/test_probes.py`: Closed-form Ridge regression linear probe and $R^2$ evaluation
-- [x] `tests/test_dmc_data.py`: DMC dataset loading, multi-frame stacking, episode boundary safety
-- [x] Test suite execution: 25/25 passing tests in `python -m unittest discover tests`
+## 2. Canonical artifacts
 
-## 4. Chapter 3 Scripts (`ch03/`)
-- [x] `ch03/01_collect_dmc_data.py`: Collect episodes for `cartpole_balance`, `finger_spin`, `cheetah_run`; cache to `.npz`; generate Figure 3.2
-- [x] `ch03/02_views_and_pairs.py`: Positive/negative view augmentations and pair visualization (Figure 3.4)
-- [x] `ch03/03_ntxent_from_scratch.py`: Standalone mathematical verification of NT-Xent / InfoNCE against equations (Eq 3.3-3.7)
-- [x] `ch03/04_train_contrastive.py`: Contrastive learning training loop across seeds 0, 1, 2; loss curve (Figure 3.6), latent 2D projection (Figure 3.7)
-- [x] `ch03/05_aliasing_diagnostic.py`: Measure position vs velocity probe $R^2$ on 1-frame vs 2-frame inputs (Table 3.3)
-- [x] `ch03/06_collapse_demo.py`: Demonstrate collapse without negatives; std across dimensions (Figure 3.9)
-- [x] `ch03/07_three_mechanisms.py`: Compare stop-gradient (SimSiam), EMA (BYOL), redundancy reduction (Barlow Twins)
-- [x] `ch03/08_vicreg.py`: Train with VICReg across seeds 0, 1, 2; verify against contrastive probe results (Table 3.4)
-- [x] `ch03/09_masked_autoencoder.py`: Implement patch-based MAE; train, reconstruct (Figure 3.12), evaluate with linear probe (Table 3.4)
-- [x] `ch03/10_bottleneck_sweep.py`: Latent dimension sweep $d \in \{2, 4, 8, 16, 64, 256\}$ on `cartpole_balance` and `cheetah_run` (Figure 3.14)
-- [x] `ch03/11_temporal_cpc.py`: Temporal Contrastive Predictive Coding with GRU context; unobserved intervals (Figure 3.16) and forward prediction (Table 3.5)
-- [x] `ch03/12_assemble_encoder.py`: Final encoder assembly and integration into Chapter 1 agent skeleton; synthesis summary (Table 3.6)
-- [x] `ch03/table_03_04_comparison.py`: Comparative evaluation across Supervised, NT-Xent, VICReg, and MAE paradigms across two tasks (Table 3.4)
+- CPC primary result: `ch03/results/table_03_05_cpc_metrics.json`
+- CPC 25-frame sensitivity analysis: `ch03/results/cpc_retrieval_25frame_sensitivity.json` (secondary, not Table 3.5 primary)
+- Five CPC checkpoints: `checkpoints/cpc_retrieval_20261018/`
+- Expanded mechanism diagnostic: `ch03/results/three_mechanisms_diagnostics.json`
+- Collapse-demo metrics: `ch03/results/collapse_demo_metrics.json`
+- Table 3.4: `ch03/results/table_03_04_objective_comparison.json`
+- Standalone MAE metrics: `ch03/results/mae_metrics.json`
+- CPC figure: `ch03/figures/fig03_16_cpc_future_retrieval.png`
+- Collapse figures: `ch03/figures/fig03_09_collapse_demo.png` and `ch03/figures/fig03_09_objective_space.png`
+- Methods, caveats, and reproduction instructions: `ch03/README.md`, `ch03/publication_readiness_audit.md`, and `ch03/discrepancies_and_findings.md`
 
-## 5. Execution & Artifact Generation
-- [x] Run scripts across seeds 0, 1, 2
-- [x] Save all figures to `ch03/figures/` (B/W-safe, no color-only encoding)
-- [x] Save all machine-readable tables/results to `ch03/results/`
-- [x] Review discrepancies between design document and mathematical/experimental reality (`ch03/discrepancies_and_findings.md`)
-- [x] Git commit and record commit hash (`b681bb8`)
+## 3. Interpretation limits that must survive into the manuscript
 
-## 6. Scientific Code & Review Audit Resolutions
-- [x] **R² Metric Formulation:** Corrected denominator in docs to evaluation target mean $\bar{y}_{\text{eval}}$ matching `compute_r2_score` in [probes.py](file:///d:/world-models-in-action/worldmodels/eval/probes.py)
-- [x] **Aliasing Diagnostic:** Accurately characterized Table 3.3 as an empirical negative result (2 adjacent frames under spatial-crop contrastive learning do not recover velocity due to subpixel displacement) in [05_aliasing_diagnostic.py](file:///d:/world-models-in-action/ch03/05_aliasing_diagnostic.py) and [discrepancies_and_findings.md](file:///d:/world-models-in-action/ch03/discrepancies_and_findings.md)
-- [x] **Physics vs. Probe Claims:** Disentangled theoretical MuJoCo rendering construction from empirical Ridge probe $R^2$ scores
-- [x] **Supervised Baseline Naming:** Renamed "Supervised Baseline (Upper Bound)" to "Supervised State-Prediction Reference" across [table_03_04_comparison.py](file:///d:/world-models-in-action/ch03/table_03_04_comparison.py), result JSON, and documentation
-- [x] **NT-Xent vs. VICReg Claim:** Calibrated claim to specific evaluation setting (DMC frames, ConvEncoder, 12 epochs) and emphasized decomposed position vs. velocity breakdown
-- [x] **Bottleneck Sweep:** Corrected monotonic plateau hypothesis to concave capacity curve documenting finite-sample probe overparameterization in [10_bottleneck_sweep.py](file:///d:/world-models-in-action/ch03/10_bottleneck_sweep.py)
-- [x] **Temporal CPC Latent Predictor:** Resolved methodology for Figure 3.16 in [11_temporal_cpc.py](file:///d:/world-models-in-action/ch03/11_temporal_cpc.py) by explicitly training an MSE latent predictor $P(c_t) \approx z_{t+1}$ bridging InfoNCE discrimination to Chapter 4 JEPA
-- [x] **Numerical Precision:** Corrected CPC Table 3.5 numbers in documentation to exact measured values ($0.711 \pm 0.024$ static pos, $0.706 \pm 0.097$ context pos)
-- [x] **Action Uncertainty:** Clarified that transition ambiguity arises from hidden actions under a random policy, not MuJoCo physical stochasticity
-- [x] **MAE Architecture:** Unified [09_masked_autoencoder.py](file:///d:/world-models-in-action/ch03/09_masked_autoencoder.py) with canonical un-shuffling decoder (`ids_restore` + mask tokens) from [encoders.py](file:///d:/world-models-in-action/worldmodels/models/encoders.py)
-- [x] All 25 unit tests passing in `tests/`
+- CPC's primary score is **in-batch future-latent retrieval**, not a 200-way global ranking, physical-state prediction, recursive missing-frame rollout, or action-conditioned prediction.
+- The 200 retrieval windows are non-overlapping windows sampled from five validation episodes, not 200 independent trajectories. The candidate batch sizes and 3.5% query-weighted chance reference are described in the audit.
+- The expanded three-mechanism study is reduced-scale DMC evidence, not an ImageNet-scale reproduction or a universal ranking of methods.
+- The current results do not establish complete physical-state recovery, long-horizon rollout stability, or planning utility.
+- Preserve negative and mixed findings, especially weak velocity decodability and the limited two-frame aliasing result. Do not tune runs merely to support the planned narrative.
 
+## 4. Manuscript handoff checklist
+
+- [ ] Write the authored Chapter 3 prose from `chapter_03_design.md`, using the canonical code and result JSONs as the source of truth.
+- [ ] Correct all numerical claims and caption metadata against the corresponding result artifact, including the differing seed counts between experiments.
+- [ ] Keep every CPC claim aligned with future-latent retrieval and the stated candidate protocol. Do not resurrect the historical recursive gap-rollout scores as standard CPC performance.
+- [ ] Finish the mathematics, listing excerpts, exercises, and summary in the design's planned teaching order.
+- [ ] Add and verify citations/credit lines, including adapted figures and the DeepMind Control Suite source.
+- [ ] Review each figure and table in manuscript layout, especially Figure 3.16 and the two collapse-demo plots; code-level inspection is not a layout check.
+- [ ] Complete the Manning style checklist in `chapter_03_design.md` against the actual manuscript, not merely this design document.
+- [ ] Before production handoff, confirm that the latest GitHub Actions regression run on `main` is green.
+
+## 5. Reproduction rules
+
+Run the regression tests from the repository root:
+
+```powershell
+python -m unittest discover -s tests -v
+if ($LASTEXITCODE -ne 0) { throw "Tests failed. Stop here." }
+```
+
+Use the commands and settings documented in `ch03/README.md` for deliberate experiment reproduction. Write new outputs to separate directories. Do not overwrite canonical result JSONs, figures, or the retained CPC checkpoints while checking or reproducing the release.
+
+The code companion is the implementation/evidence package. The finished Chapter 3 manuscript and production-layout pages are separate authoring work.

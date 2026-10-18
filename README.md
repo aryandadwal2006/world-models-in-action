@@ -1,5 +1,7 @@
 # World Models in Action
 
+[![Chapter 3 regression tests](https://github.com/aryandadwal2006/world-models-in-action/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/aryandadwal2006/world-models-in-action/actions/workflows/tests.yml)
+
 Code companion for *World Models in Action*. This branch reorganizes Chapter 3 so the implementation worth studying line by line is separate from full experiment runners and audit artifacts.
 
 ## Source of truth
