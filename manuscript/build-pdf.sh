@@ -5,6 +5,7 @@ command -v ruby >/dev/null || { echo "Ruby 3.1+ is required" >&2; exit 1; }
 command -v bundle >/dev/null || { echo "Install Bundler with: gem install bundler" >&2; exit 1; }
 bundle install
 bundle exec asciidoctor-pdf \
+  -r ./sectnumoffset-treeprocessor.rb \
   -r asciidoctor-mathematical \
   -a stem=latexmath \
   -a mathematical-format=svg \
