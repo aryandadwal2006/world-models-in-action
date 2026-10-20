@@ -127,7 +127,7 @@ Before examining individual objectives, Figure 3.1 maps their major families by 
 
 [#ch3-figure-F01,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Self-supervised learning: a map of training signals
-image::CH03_F01_Dadwal.svg[Self-supervised learning: a map of training signals,pdfwidth=88%]
+image::CH03_F01_Dadwal.svg[Self-supervised learning: a map of training signals,pdfwidth=100%]
 
 The categories are a teaching-oriented synthesis, informed by Gui et al. (2024), Uelwer et al. (2025), and Meta’s V-JEPA 2 release (2025). The diagram is not an exhaustive or mutually exclusive taxonomy.
 

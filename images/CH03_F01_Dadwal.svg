@@ -1,115 +1,51 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1060" viewBox="0 0 1800 1060">
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="650" viewBox="0 0 1800 650" role="img" aria-labelledby="title desc">
+<title id="title">Self-supervised learning: a map of training signals</title>
+<desc id="desc">A wide monochrome-safe map groups representative self-supervised methods by pretext prediction, contrastive identification, non-contrastive joint embedding, masked modeling and prediction, and cross-modal alignment. The groupings are useful for learning, but are not exclusive.</desc>
 <defs>
-  <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#536273"/></marker>
   <style>
-    .title{font:700 32px 'Arial',sans-serif;fill:#142433}
-    .subtitle{font:400 17px 'Arial',sans-serif;fill:#536273}
-    .branch{font:700 22px 'Arial',sans-serif;fill:#142433}
-    .subhead{font:700 17px 'Arial',sans-serif;fill:#223345}
-    .method{font:400 17px 'Arial',sans-serif;fill:#253746}
-    .fine{font:400 15px 'Arial',sans-serif;fill:#536273}
-    .root{fill:#eaf0f7;stroke:#3b6fb6;stroke-width:3}
-    .family{fill:#f5f7fa;stroke:#526579;stroke-width:2}
-    .leaf{fill:#fff;stroke:#a5b0bd;stroke-width:1.5}
-    .connector{fill:none;stroke:#7a8796;stroke-width:2.1;marker-end:url(#arrow)}
-    .line{fill:none;stroke:#9aa5b1;stroke-width:1.8}
+    .title { font: 700 34px Arial, sans-serif; fill: #142433; }
+    .note { font: 400 22px Arial, sans-serif; fill: #536273; }
+    .family { font: 700 27px Arial, sans-serif; fill: #142433; }
+    .method { font: 600 24px Arial, sans-serif; fill: #223345; }
+    .small { font: 400 21px Arial, sans-serif; fill: #46586a; }
+    .root { fill: #eaf0f7; stroke: #3b6fb6; stroke-width: 3; }
+    .familybox { fill: #f5f7fa; stroke: #526579; stroke-width: 2; }
+    .leaf { fill: #fff; stroke: #9aa8b7; stroke-width: 1.6; }
+    .wire { fill: none; stroke: #68798b; stroke-width: 2; }
   </style>
 </defs>
-<rect width="100%" height="100%" fill="#ffffff"/>
-<text x="900" y="42" text-anchor="middle" class="title">Self-supervised learning: a map of training signals</text>
-<text x="900" y="70" text-anchor="middle" class="subtitle">Objective families overlap; examples are illustrative, not an exhaustive or exclusive taxonomy.</text>
+<rect width="1800" height="650" fill="#fff"/>
+<text class="title" x="900" y="42" text-anchor="middle">Self-supervised learning: a map of training signals</text>
+<text class="note" x="900" y="74" text-anchor="middle">Organized by the main training signal; examples are representative, not exhaustive</text>
+<rect class="root" x="605" y="94" width="590" height="62" rx="12"/>
+<text class="family" x="900" y="133" text-anchor="middle">Self-supervised representation learning</text>
 
-<rect class="root" x="600" y="92" width="600" height="68" rx="14"/>
-<text class="branch" x="900" y="133" text-anchor="middle">Self-supervised representation learning</text>
-<path class="connector" d="M900 160 C900 188 240.0 178 240.0 210"/>
-<rect class="family" x="90" y="210" width="300" height="104" rx="12"/>
-<text class="branch" x="240.0" y="245" text-anchor="middle" style="font-size:18px">Pretext prediction</text>
-<text class="fine" x="240.0" y="290" text-anchor="middle">Predict a data-derived target</text>
-<path class="connector" d="M900 160 C900 188 590.0 178 590.0 210"/>
-<rect class="family" x="440" y="210" width="300" height="104" rx="12"/>
-<text class="branch" x="590.0" y="245" text-anchor="middle" style="font-size:18px">Contrastive identification</text>
-<text class="fine" x="590.0" y="290" text-anchor="middle">Match positives; rank negatives</text>
-<path class="connector" d="M900 160 C900 188 940.0 178 940.0 210"/>
-<rect class="family" x="790" y="210" width="300" height="104" rx="12"/>
-<text class="branch" x="940.0" y="237" text-anchor="middle" style="font-size:18px">Non-contrastive</text>
-<text class="branch" x="940.0" y="262" text-anchor="middle" style="font-size:18px">joint embedding</text>
-<text class="fine" x="940.0" y="291" text-anchor="middle">Align views without explicit negatives</text>
-<path class="connector" d="M900 160 C900 188 1290.0 178 1290.0 210"/>
-<rect class="family" x="1140" y="210" width="300" height="104" rx="12"/>
-<text class="branch" x="1290.0" y="237" text-anchor="middle" style="font-size:18px">Masked modeling</text>
-<text class="branch" x="1290.0" y="262" text-anchor="middle" style="font-size:18px">and prediction</text>
-<text class="fine" x="1290.0" y="291" text-anchor="middle">Predict hidden pixels, tokens, or latents</text>
-<path class="connector" d="M900 160 C900 188 1640.0 178 1640.0 210"/>
-<rect class="family" x="1490" y="210" width="300" height="104" rx="12"/>
-<text class="branch" x="1640.0" y="245" text-anchor="middle" style="font-size:18px">Cross-modal alignment</text>
-<text class="fine" x="1640.0" y="290" text-anchor="middle">Align representations across modalities</text>
-<path class="line" d="M240.0 314 V344"/>
-<rect class="leaf" x="102" y="356" width="276" height="88" rx="10"/>
-<text class="subhead" x="240.0" y="388" text-anchor="middle">Rotation prediction</text>
-<text class="fine" x="240.0" y="412" text-anchor="middle">rotation label</text>
-<path class="line" d="M240.0 314 V464"/>
-<rect class="leaf" x="102" y="476" width="276" height="88" rx="10"/>
-<text class="subhead" x="240.0" y="508" text-anchor="middle">Jigsaw prediction</text>
-<text class="fine" x="240.0" y="532" text-anchor="middle">tile arrangement</text>
-<path class="line" d="M240.0 314 V584"/>
-<rect class="leaf" x="102" y="596" width="276" height="88" rx="10"/>
-<text class="subhead" x="240.0" y="628" text-anchor="middle">Colorization</text>
-<text class="fine" x="240.0" y="652" text-anchor="middle">predict color channels</text>
-<path class="line" d="M590.0 314 V344"/>
-<rect class="leaf" x="452" y="356" width="276" height="88" rx="10"/>
-<text class="subhead" x="590.0" y="388" text-anchor="middle">SimCLR / NT-Xent</text>
-<text class="fine" x="590.0" y="412" text-anchor="middle">instance discrimination</text>
-<path class="line" d="M590.0 314 V464"/>
-<rect class="leaf" x="452" y="476" width="276" height="88" rx="10"/>
-<text class="subhead" x="590.0" y="508" text-anchor="middle">MoCo</text>
-<text class="fine" x="590.0" y="532" text-anchor="middle">momentum key encoder</text>
-<path class="line" d="M590.0 314 V584"/>
-<rect class="leaf" x="452" y="596" width="276" height="88" rx="10"/>
-<text class="subhead" x="590.0" y="628" text-anchor="middle">CPC</text>
-<text class="fine" x="590.0" y="652" text-anchor="middle">future-latent retrieval</text>
-<path class="line" d="M940.0 314 V344"/>
-<rect class="leaf" x="802" y="356" width="276" height="88" rx="10"/>
-<text class="subhead" x="940.0" y="388" text-anchor="middle">SimSiam</text>
-<text class="fine" x="940.0" y="412" text-anchor="middle">stop-gradient + predictor</text>
-<path class="line" d="M940.0 314 V464"/>
-<rect class="leaf" x="802" y="476" width="276" height="88" rx="10"/>
-<text class="subhead" x="940.0" y="508" text-anchor="middle">BYOL / DINO</text>
-<text class="fine" x="940.0" y="532" text-anchor="middle">teacher or target branch</text>
-<path class="line" d="M940.0 314 V584"/>
-<rect class="leaf" x="802" y="596" width="276" height="88" rx="10"/>
-<text class="subhead" x="940.0" y="628" text-anchor="middle">Barlow Twins / VICReg</text>
-<text class="fine" x="940.0" y="652" text-anchor="middle">redundancy / variance</text>
-<text class="fine" x="940.0" y="671" text-anchor="middle">control</text>
-<path class="line" d="M1290.0 314 V344"/>
-<rect class="leaf" x="1152" y="356" width="276" height="88" rx="10"/>
-<text class="subhead" x="1290.0" y="388" text-anchor="middle">MAE / SimMIM</text>
-<text class="fine" x="1290.0" y="412" text-anchor="middle">masked pixel reconstruction</text>
-<path class="line" d="M1290.0 314 V464"/>
-<rect class="leaf" x="1152" y="476" width="276" height="88" rx="10"/>
-<text class="subhead" x="1290.0" y="508" text-anchor="middle">BEiT / iBOT</text>
-<text class="fine" x="1290.0" y="532" text-anchor="middle">token or code prediction</text>
-<path class="line" d="M1290.0 314 V584"/>
-<rect class="leaf" x="1152" y="596" width="276" height="88" rx="10"/>
-<text class="subhead" x="1290.0" y="628" text-anchor="middle">I-JEPA / V-JEPA 2</text>
-<text class="fine" x="1290.0" y="652" text-anchor="middle">latent-target prediction</text>
-<path class="line" d="M1640.0 314 V344"/>
-<rect class="leaf" x="1502" y="356" width="276" height="88" rx="10"/>
-<text class="subhead" x="1640.0" y="388" text-anchor="middle">CLIP</text>
-<text class="fine" x="1640.0" y="412" text-anchor="middle">image-text contrastive</text>
-<text class="fine" x="1640.0" y="431" text-anchor="middle">alignment</text>
-<path class="line" d="M1640.0 314 V464"/>
-<rect class="leaf" x="1502" y="476" width="276" height="88" rx="10"/>
-<text class="subhead" x="1640.0" y="508" text-anchor="middle">ImageBind</text>
-<text class="fine" x="1640.0" y="532" text-anchor="middle">shared multimodal space</text>
-<path class="line" d="M1640.0 314 V584"/>
-<rect class="leaf" x="1502" y="596" width="276" height="88" rx="10"/>
-<text class="subhead" x="1640.0" y="628" text-anchor="middle">Video-text objectives</text>
-<text class="fine" x="1640.0" y="652" text-anchor="middle">cross-modal retrieval /</text>
-<text class="fine" x="1640.0" y="671" text-anchor="middle">prediction</text>
-<rect x="110" y="743" width="1580" height="54" rx="10" fill="#f8fafc" stroke="#c6ced7" stroke-width="1.5"/>
-<text class="fine" x="900" y="775" text-anchor="middle" style="font-size:17px">Cross-cutting mechanisms: self-distillation, clustering, redundancy reduction, and temporal prediction can occur within or across families.</text>
-<rect x="110" y="818" width="1580" height="104" rx="12" fill="#ffffff" stroke="#3b6fb6" stroke-width="2"/>
-<text class="subhead" x="140" y="853">Reading the map</text>
-<text class="method" x="140" y="883">The useful question is not only which family a method belongs to, but what its loss makes the encoder preserve.</text>
-<text class="fine" x="140" y="907">CPC is both temporal and contrastive; V-JEPA predicts in latent space; masked-image methods differ in their target representation.</text>
+<path class="wire" d="M900 156 V176 H190 V190"/>
+<rect class="familybox" x="30" y="190" width="320" height="72" rx="10"/>
+<text class="family" x="190" y="234" text-anchor="middle">Pretext prediction</text>
+<path class="wire" d="M190 262 V281"/><rect class="leaf" x="30" y="271" width="320" height="64" rx="8"/><text class="method" x="190" y="310" text-anchor="middle">Rotation prediction</text><path class="wire" d="M190 262 V364"/><rect class="leaf" x="30" y="354" width="320" height="64" rx="8"/><text class="method" x="190" y="393" text-anchor="middle">Jigsaw prediction</text><path class="wire" d="M190 262 V447"/><rect class="leaf" x="30" y="437" width="320" height="64" rx="8"/><text class="method" x="190" y="476" text-anchor="middle">Colorization</text>
+
+<path class="wire" d="M900 156 V176 H545 V190"/>
+<rect class="familybox" x="385" y="190" width="320" height="72" rx="10"/>
+<text class="family" x="545" y="221" text-anchor="middle">Contrastive</text><text class="family" x="545" y="249" text-anchor="middle">identification</text>
+<path class="wire" d="M545 262 V281"/><rect class="leaf" x="385" y="271" width="320" height="64" rx="8"/><text class="method" x="545" y="310" text-anchor="middle">SimCLR / NT-Xent</text><path class="wire" d="M545 262 V364"/><rect class="leaf" x="385" y="354" width="320" height="64" rx="8"/><text class="method" x="545" y="393" text-anchor="middle">MoCo</text><path class="wire" d="M545 262 V447"/><rect class="leaf" x="385" y="437" width="320" height="64" rx="8"/><text class="method" x="545" y="476" text-anchor="middle">CPC*</text>
+
+<path class="wire" d="M900 156 V176 H900 V190"/>
+<rect class="familybox" x="740" y="190" width="320" height="72" rx="10"/>
+<text class="family" x="900" y="221" text-anchor="middle">Non-contrastive</text><text class="family" x="900" y="249" text-anchor="middle">joint embedding</text>
+<path class="wire" d="M900 262 V281"/><rect class="leaf" x="740" y="271" width="320" height="64" rx="8"/><text class="method" x="900" y="310" text-anchor="middle">SimSiam</text><path class="wire" d="M900 262 V364"/><rect class="leaf" x="740" y="354" width="320" height="64" rx="8"/><text class="method" x="900" y="393" text-anchor="middle">BYOL / DINO</text><path class="wire" d="M900 262 V447"/><rect class="leaf" x="740" y="437" width="320" height="64" rx="8"/><text class="method" x="900" y="476" text-anchor="middle">Barlow Twins / VICReg</text>
+
+<path class="wire" d="M900 156 V176 H1255 V190"/>
+<rect class="familybox" x="1095" y="190" width="320" height="72" rx="10"/>
+<text class="family" x="1255" y="221" text-anchor="middle">Masked modeling</text><text class="family" x="1255" y="249" text-anchor="middle">and prediction</text>
+<path class="wire" d="M1255 262 V281"/><rect class="leaf" x="1095" y="271" width="320" height="64" rx="8"/><text class="method" x="1255" y="310" text-anchor="middle">MAE / SimMIM</text><path class="wire" d="M1255 262 V364"/><rect class="leaf" x="1095" y="354" width="320" height="64" rx="8"/><text class="method" x="1255" y="393" text-anchor="middle">BEiT / iBOT</text><path class="wire" d="M1255 262 V447"/><rect class="leaf" x="1095" y="437" width="320" height="64" rx="8"/><text class="method" x="1255" y="476" text-anchor="middle">I-JEPA / V-JEPA 2</text>
+
+<path class="wire" d="M900 156 V176 H1610 V190"/>
+<rect class="familybox" x="1450" y="190" width="320" height="72" rx="10"/>
+<text class="family" x="1610" y="221" text-anchor="middle">Cross-modal</text><text class="family" x="1610" y="249" text-anchor="middle">alignment</text>
+<path class="wire" d="M1610 262 V281"/><rect class="leaf" x="1450" y="271" width="320" height="64" rx="8"/><text class="method" x="1610" y="310" text-anchor="middle">CLIP</text><path class="wire" d="M1610 262 V364"/><rect class="leaf" x="1450" y="354" width="320" height="64" rx="8"/><text class="method" x="1610" y="393" text-anchor="middle">ImageBind</text><path class="wire" d="M1610 262 V447"/><rect class="leaf" x="1450" y="437" width="320" height="64" rx="8"/><text class="method" x="1610" y="476" text-anchor="middle">Video-text objectives</text>
+
+<rect x="52" y="535" width="1696" height="42" rx="8" fill="#f8fafc" stroke="#c6ced7" stroke-width="1.5"/>
+<text class="small" x="900" y="562" text-anchor="middle">Cross-cutting mechanisms: self-distillation, clustering and redundancy reduction can span families; CPC is both temporal and contrastive.</text>
+<text class="small" x="900" y="615" text-anchor="middle">The useful question is not just where a method sits, but what its objective rewards the encoder for preserving.</text>
 </svg>
