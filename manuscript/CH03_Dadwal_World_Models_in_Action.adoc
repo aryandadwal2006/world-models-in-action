@@ -43,9 +43,9 @@ That difference is the central idea of this chapter: a learning objective specif
 
 We will build and test these ideas using rendered observations from the DeepMind Control Suite (DMC)footnote:[Tunyasuvunakool, S. et al. (2020). "`dm_control: Software and tasks for continuous control.`" _Software Impacts_, 6, 100022. https://doi.org/10.1016/j.simpa.2020.100022.]. The experiments use tasks such as balancing a cart-pole and spinning a finger-controlled body. For the self-supervised experiments, the encoder receives images without the simulator’s physics-state labels. We then use the simulator’s state variables to evaluate what the learned representations retain. A separate supervised reference provides a comparison later in the chapter. These tests let us examine the representations directly instead of assuming that a successful training objective must have learned the right state.
 
-____
 <<<
 
+____
 *TIP: Hardware, GPU selection, and rendering* The runners call `+worldmodels.train.get_device()+`, which selects CUDA when `+torch.cuda.is_available()+` is true and CPU otherwise. No device flag is needed, and the code does not select Apple MPS. The snippet below prints the selected device and, for CUDA, the GPU name. If it prints `+cpu+`, check that PyTorch has a CUDA-enabled build and that the driver exposes the GPU. Rendering through MuJoCo/OpenGL is separate; cached observations avoid repeating it.
 ____
 
@@ -2147,6 +2147,7 @@ ____
 * Latent bottlenecks: The sweep found that Cartpole’s mean probe R² rose from approximately −0.008 at latexmath:[d=2] to latexmath:[0.321] at latexmath:[d=64], then remained similar at latexmath:[d=256]. Cheetah’s probe R² continued rising to latexmath:[0.422] at latexmath:[d=256]. The smallest useful representation depends on the task and the measured plateau; it cannot be determined simply by counting physical state variables.
 * Prediction over time: CPC uses a causal GRU context and multi-horizon InfoNCE to identify the correct future latent among candidates. Top-1 retrieval reached 95.0%, 94.1%, and 92.4% at horizons one, two, and three, respectively, against a 3.5% query-weighted in-batch chance level. These results demonstrate future-latent identification under the tested protocol, not complete state recovery, action-conditioned dynamics, stable physical rollouts, or planning utility.
 * Assembling the encoder: A common `+encode(obs)+` and `+update(state, obs)+` interface connects the learned visual encoder to the Chapter 1 agent loop, while dynamics and reward remain to be implemented. Across all these methods, the governing principle is that a representation-learning objective is a specification of what information the representation is paid to keep.
+
 == Appendix A: InfoNCE bound and gradient details
 This appendix contains the algebra moved out of §3.3 to preserve the main chapter’s teaching flow while retaining the full derivation. It uses the same notation as Table 3.1. The claims are conditional on the sampling assumptions described in §3.3; the recorded trajectory batch is not an ideal independent-negative sampler.
 
@@ -2222,6 +2223,7 @@ The gradient is perpendicular to latexmath:[u], so each score’s local update c
 === Why this bound is not a physical-state guarantee
 
 The lower bound concerns mutual information shared by paired-view representations under the stated sampling assumptions. It does not establish that cart position, angle, velocity, or an action-conditioned predictive state is linearly available. The data-processing inequality also limits shared information to information that survives the view-generation pipeline. These are the precise reasons the chapter follows the training objective with held-out state probes.
+
 == References and figure credits
 === Benchmark and environment
 
