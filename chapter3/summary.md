@@ -1,0 +1,15 @@
+# Summary
+
+- Pretext tasks: Rotation prediction, jigsaw prediction, and colorization create supervision from the structure of observations. Their limitation is that solving a pretext task does not guarantee that the representation preserves the information needed by a world model. The chosen prediction target determines what the model is paid to learn.
+
+- Contrastive learning: NT-Xent turns the identification of matching views into a classification problem, using similarities between positive and negative examples. On Cartpole, the training loss fell from approximately 3.78 to 3.11 over 15 epochs across the three-seed run. State probes showed that positions were more linearly accessible than velocities, and stacking two consecutive frames did not reliably improve velocity decoding under the tested configuration.
+
+- Collapse and its remedies: An attraction-only objective has a trivial constant-representation solution, so agreement between views is not enough. SimSiam, BYOL, Barlow Twins, and VICReg introduce different mechanisms to avoid collapse or constrain redundancy. Their effectiveness must be assessed using more than the training loss alone, including feature spread, effective rank, and downstream probes.
+
+- Masked prediction: A masked autoencoder hides 75% of image patches and predicts their pixel values, with reconstruction loss applied only to the masked patches. In the standalone Cartpole experiment, its frozen-feature probe achieved mean R² of $0.170\pm0.004$ across three seeds. Reconstruction and state decodability are different measurements, and the method-family comparison is not a controlled ablation of the loss alone.
+
+- Latent bottlenecks: The sweep found that Cartpole's mean probe R² rose from approximately −0.008 at $d=2$ to $0.321$ at $d=64$, then remained similar at $d=256$. Cheetah's probe R² continued rising to $0.422$ at $d=256$. The smallest useful representation depends on the task and the measured plateau; it cannot be determined simply by counting physical state variables.
+
+- Prediction over time: CPC uses a causal GRU context and multi-horizon InfoNCE to identify the correct future latent among candidates. Top-1 retrieval reached 95.0%, 94.1%, and 92.4% at horizons one, two, and three, respectively, against a 3.5% query-weighted in-batch chance level. These results demonstrate future-latent identification under the tested protocol, not complete state recovery, action-conditioned dynamics, stable physical rollouts, or planning utility.
+
+- Assembling the encoder: A common `encode(obs)` and `update(state, obs)` interface connects the learned visual encoder to the Chapter 1 agent loop, while dynamics and reward remain to be implemented. Across all these methods, the governing principle is that a representation-learning objective is a specification of what information the representation is paid to keep.
