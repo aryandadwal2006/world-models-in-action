@@ -1,6 +1,8 @@
 = World Models in Action
+:doctype: book
 :chapter: 3
 :sectnums!:
+:!chapter-signifier:
 :figure-caption: Figure {chapter}
 :listing-caption: Listing {chapter}
 :table-caption: Table {chapter}
