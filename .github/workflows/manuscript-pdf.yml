@@ -10,10 +10,11 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build-pdf:
+    if: ${{ github.event_name != 'push' || github.event.head_commit.message != 'build: update Chapter 3 PDF' }}
     name: Build AsciiDoc and publish PDF artifact
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -55,3 +56,16 @@ jobs:
           path: manuscript/CH03_Dadwal_World_Models_in_Action.pdf
           if-no-files-found: error
           retention-days: 30
+
+      - name: Commit generated PDF beside its source
+        if: github.ref == 'refs/heads/manuscript'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f manuscript/CH03_Dadwal_World_Models_in_Action.pdf
+          if git diff --cached --quiet; then
+            echo "PDF is unchanged; no commit required."
+            exit 0
+          fi
+          git commit -m "build: update Chapter 3 PDF"
+          git push origin HEAD:manuscript
