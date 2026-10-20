@@ -1,6 +1,6 @@
 = World Models in Action
 :chapter: 3
-:sectnums:
+:sectnums!:
 :figure-caption: Figure {chapter}
 :listing-caption: Listing {chapter}
 :table-caption: Table {chapter}
@@ -23,7 +23,7 @@
 :icons: font
 
 [#unique_chapter3_title_ID,reftext={chapter},caption='{chapter}']
-= Representation learning before generation
+= 3. Representation learning before generation
 
 This chapter covers
 
@@ -90,7 +90,7 @@ On macOS or Linux, activate the environment with `+source .venv/bin/activate+` i
 
 The book’s listings are short excerpts from the canonical `+worldmodels/+` implementations; the `+ch03/+` runners add the full data protocol, seed management, evaluation, plotting, and saved results. Start with the link:../ch03/README.md[Chapter 3 code map], which documents experiment-specific settings and commands. Full multi-seed comparisons, the latent-dimension sweep, and CPC can take hours on CPU, depending on hardware and configuration. The runners select CUDA automatically when PyTorch detects it; the TIP above shows how to verify the selected device. Data collection is a separate rendering step, and downstream experiments read cached `+.npz+` files. When changing or reproducing an experiment, use isolated output paths so that canonical result JSONs, checkpoints, and figures are not overwritten.
 
-== Learning a state without labels
+== 3.1 Learning a state without labels
 
 A useful state is not simply a smaller copy of an image. It is a description that preserves the information needed to understand the situation. For a moving system, that may include positions and velocities, even when those quantities are not directly available as labels.
 
@@ -113,7 +113,7 @@ Minimality means that the representation avoids carrying unnecessary information
 
 The two requirements must be considered together. An encoder that retains every pixel may preserve useful information, but it has not necessarily learned a compact state. An encoder that discards almost everything may be compact, but it can also lose the information needed to distinguish different situations.
 
-=== Aliasing: when compression loses the wrong information
+=== 3.1.1 Aliasing: when compression loses the wrong information
 
 Suppose two cart-pole observations look identical. In one underlying situation, the cart is moving to the left; in the other, it is moving to the right. If both observations map to the same representation latexmath:[z], a downstream model receiving only that representation cannot distinguish the two situations.
 
@@ -157,7 +157,7 @@ image::CH03_F02_Dadwal.svg[The encoder's contract,pdfwidth=88%]
 
 The example illustrates a possibility, not a universal claim that velocity is impossible to infer from a single image. A single frame may contain visual or statistical clues correlated with velocity. Whether those clues are enough is a question to measure, not an assumption to make. Later in the chapter, we will compare state measurements from single-frame representations with those from stacked frames.
 
-=== Why not train directly on the state?
+=== 3.1.2 Why not train directly on the state?
 
 Let latexmath:[y] denote the physical quantities we want the representation to retain. In our experiments, latexmath:[y] consists of the simulator’s generalized positions followed by its generalized velocities.
 
@@ -193,7 +193,7 @@ In his ICLR 2020 keynote, Yann LeCun described self-supervision through the gene
 
 This idea provides a useful map of the chapter: first learn from transformations and views, then from missing visual content, and finally from temporal relationships.
 
-=== The objective determines what the encoder is rewarded for keeping
+=== 3.1.3 The objective determines what the encoder is rewarded for keeping
 
 Self-supervised learning is not one algorithm. It is a family of methods that construct different training signals. Each signal rewards the encoder for retaining some information, while leaving other information optional.
 
@@ -219,7 +219,7 @@ The objective is not the only influence. Architecture, training data, transforma
 
 This principle gives us a way to evaluate methods rather than simply collect them. We can examine what their objectives encourage, then measure what their learned representations actually retain.
 
-=== Why use a benchmark rather than a toy world?
+=== 3.1.4 Why use a benchmark rather than a toy world?
 
 The experiments in this chapter use the DeepMind Control Suite (DMC), a collection of physics-based control tasks built on MuJoCo. The observations are rendered by the simulator rather than drawn by a custom world designed solely to demonstrate a particular learning method. The suite gives us both rendered images for training and simulator variables against which to evaluate the resulting representations.
 
@@ -235,7 +235,7 @@ Cartpole balance is the main task because its small state makes results relative
 .Rendered observations from the three tasks
 image::CH03_F03_Dadwal.png[Rendered observations from the three tasks,pdfwidth=88%]
 
-=== The experimental contract
+=== 3.1.5 The experimental contract
 
 The data-collection code records rendered frames and the corresponding simulator state. It samples actions uniformly within each task’s action bounds, steps the environment, and caches the observations and state variables. The training and validation datasets are collected using independent environment seeds.
 
@@ -287,13 +287,13 @@ The purpose of this setup is not to assume that a particular representation will
 
 The next section begins with simple pretext tasks. They show how a target can be generated directly from an observation, and why solving a pretext task does not automatically guarantee that an encoder has learned the right state.
 
-== Pretext tasks: supervision from structure
+== 3.2 Pretext tasks: supervision from structure
 
 A pretext task turns an unlabeled observation into a training example with a known target. The target comes from a transformation or relationship in the data, so we do not need a person to annotate each example.
 
 Rotation prediction is a simple place to begin. It lets us construct the target explicitly, derive the loss from an ordinary classification problem, and then ask the central question of this chapter: does solving the pretext task require the encoder to preserve the information a world model needs?
 
-=== Rotation prediction
+=== 3.2.1 Rotation prediction
 
 Take a rendered cart-pole frame latexmath:[x]. Rotate it by a multiple of 90 degrees and ask a network to predict which rotation was applied. We use four possible rotations: zero, 90, 180, and 270 degrees.
 
@@ -370,7 +370,7 @@ The value is measured in nats, because we use the natural logarithm. A model tha
 
 Notice what we have done. We have not supplied the physics state latexmath:[y], the cart position, or the pole angle as a training label. The objective only asks the model to identify the applied rotation. Equation 3.2 is an ordinary four-class classification loss; the special feature is how its labels are generated.
 
-=== Two other pretext tasks
+=== 3.2.2 Two other pretext tasks
 
 Rotation prediction is one example of using structure in the input to create a target. Two other classic tasks take a different approach.
 
@@ -393,7 +393,7 @@ NOTE
 
 Gui and colleagues survey these and many other pretext tasks. This chapter uses rotation prediction because its target and loss are easy to derive. The purpose is not to cover every pretext task, but to understand what a chosen target requires the encoder to learn.
 
-=== Why a correct pretext answer may still be the wrong goal
+=== 3.2.3 Why a correct pretext answer may still be the wrong goal
 
 Return to the principle from Section 3.1: the training objective determines what information the representation is required to keep. Rotation prediction rewards features that help identify the rotation label. If the scene layout or background already makes that label easy to infer, the objective may be solvable without preserving the pole angle with the precision that control requires.
 
@@ -403,7 +403,7 @@ That is the limitation we need to solve. Rather than ask the encoder to predict 
 
 This leads to instance discrimination, the starting point for contrastive learning. We will make two altered views of an observation and ask the model to recognize them as views of the same source. The choice of alterations will matter: it defines which changes the objective encourages the encoder to ignore. In the next section, we will build this idea from first principles and derive the loss that implements it.
 
-== Contrastive learning from first principles
+== 3.3 Contrastive learning from first principles
 
 Section 3.2 showed how to manufacture a training target by transforming an observation. But the target determines what the encoder is asked to learn, and recognizing a rotation does not necessarily require a useful physical state.
 
@@ -411,7 +411,7 @@ Contrastive learning changes the question. Instead of asking which transformatio
 
 The idea is simple. Making two views agree encourages the encoder to retain information shared by both. Making it distinguish them from other views encourages the encoder to retain information that identifies the source. The mathematics turns this idea into a classification loss.
 
-=== Views, positives, and negatives
+=== 3.3.1 Views, positives, and negatives
 
 A view of an observation latexmath:[x] is an altered copy of it. Write the view as
 
@@ -493,7 +493,7 @@ ____
 
 A batch drawn from trajectories can contain frames that are almost identical, such as neighbouring steps from one episode. The basic objective still treats views from different source frames as negatives. These are called false negatives: two observations may differ in source identity while sharing much of their physical state. These numbers describe a hypothetical uniform draw from the full 30,000-frame cache, assuming 1,000 frames per episode: the probability that another frame comes from the same episode is latexmath:[999/29{,}999], about 3.3%, and the chance of selecting a frame within five steps is at most latexmath:[10/29{,}999], about 0.033%. The primary contrastive run actually samples a 5,000-frame episode-stratified subset, so these percentages are illustrative for the full cache; the experiment does not report an observed false-negative frequency for its sampled pool. We keep the simple in-batch rule and report its results rather than silently changing the negative set.
 
-=== From similarity to a loss
+=== 3.3.2 From similarity to a loss
 
 We now need a numerical measure of how well two representations match. We will build the objective in three steps: define a similarity score, turn the candidate views into a classification problem, and minimize the classification error.
 
@@ -600,7 +600,7 @@ Batch size sets the number of negatives: latexmath:[K=2N-2]. A larger batch asks
 **Production placeholder, not final artwork.** See `../images/CH03_F06_Dadwal.md` for the required composition, source assets, credits, and acceptance checks.
 ====
 
-=== What InfoNCE actually optimizes
+=== 3.3.3 What InfoNCE actually optimizes
 
 NT-Xent is one instance of the broader InfoNCE objective, used in contrastive predictive coding (van den Oord et al., 2018) and closely related to the contrastive formulation used by SimCLR (Chen et al., 2020). For each anchor, InfoNCE compares one positive with latexmath:[K] negatives. Its mathematical properties help explain both what contrastive learning encourages and what it cannot guarantee.
 
@@ -712,7 +712,7 @@ equation 3.7 describes the anchor’s role in one loss. The same representation 
 
 The key limitation remains: these gradients arrange the representations to solve the specified identification problem. The objective does not know whether the features used for identification are cart position, pole angle, texture, or some combination. That is why the following experiments evaluate the encoder rather than treating a falling loss as proof of a useful state.
 
-=== Training a contrastive encoder
+=== 3.3.4 Training a contrastive encoder
 
 We now train the loss on rendered frames from cartpole_balance. The model has two parts: a convolutional encoder that produces the representation used later, and a projection head used during contrastive training.
 
@@ -881,7 +881,7 @@ Figure 3.8 is a qualitative two-component PCA projection of validation represent
 
 The visual projection can show that the numerical outputs change during training, but it cannot tell us what the dimensions encode. We now need an evaluation that asks the physical question directly.
 
-=== Reading the state back with a linear probe
+=== 3.3.5 Reading the state back with a linear probe
 
 The simulator provides the physical state associated with each rendered frame. That state never enters the self-supervised loss. We can use it after training to ask which physical quantities are available in the representation.
 
@@ -976,9 +976,9 @@ The larger lesson is the one that motivated this chapter. The encoder is optimiz
 
 The next section examines a failure that can occur even before asking which physical variables are represented: collapse, in which different inputs map to nearly identical representations and the model satisfies a similarity objective without learning a useful distinction.
 
-== The collapse problem and how it is avoided
+== 3.4 The collapse problem and how it is avoided
 
-=== Demonstrating collapse
+=== 3.4.1 Demonstrating collapse
 
 Consider the simplest possible objective for two views of each frame: make their representations equal. Let latexmath:[p_n^{(1)}] and latexmath:[p_n^{(2)}] denote the vectors compared by the loss for the two views of frame latexmath:[n]. For a batch of latexmath:[N] frames and representations of dimension latexmath:[d], define
 
@@ -1088,7 +1088,7 @@ A small spread is not, on its own, proof that a representation contains no infor
 
 The negative pairs therefore give contrastive learning a mechanism that attraction alone lacks. But they bring their own design choices, including the number and quality of the negatives. The next section examines alternatives that do not require them.
 
-=== Three mechanisms in brief
+=== 3.4.2 Three mechanisms in brief
 
 SimSiam, BYOL, and Barlow Twins use different mechanisms to avoid collapse without contrastive negative pairs. Their shared starting point is that two views of the same frame should produce related representations. What differs is how each method prevents that requirement from being satisfied by an uninformative constant output.
 
@@ -1255,7 +1255,7 @@ The runs also do not establish a universal method ranking. They use a common red
 
 The mechanisms examined so far prevent collapse through asymmetry or relationships between coordinates. VICReg makes the requirements explicit in three terms: maintain agreement between views, keep variation in each coordinate above a floor, and reduce covariance between different coordinates.
 
-=== VICReg: making the anti-collapse force explicit
+=== 3.4.3 VICReg: making the anti-collapse force explicit
 
 VICReg stands for variance-invariance-covariance regularization. It receives two batches of embeddings, latexmath:[Z^A] and latexmath:[Z^B], each with latexmath:[N] rows and latexmath:[d] coordinates. It combines three terms, each with a distinct purpose.
 
@@ -1420,9 +1420,9 @@ VICReg avoids explicit negative pairs, but that does not make it free of design 
 
 The methods in this section address collapse through different mechanisms: NT-Xent uses negative pairs, SimSiam and BYOL introduce asymmetric training paths, Barlow Twins reduces cross-correlation, and VICReg imposes explicit variance and covariance constraints. None of these mechanisms alone establishes that the resulting representation is a sufficient physical state. The next section explores a different learning signal: rather than aligning two representations, a masked autoencoder learns to reconstruct parts of the observation that were hidden from it.
 
-== Masked prediction
+== 3.5 Masked prediction
 
-=== From masked words to masked patches
+=== 3.5.1 From masked words to masked patches
 
 BERT trains a language model by hiding selected tokens and asking it to predict them from the surrounding context. The targets are the identities of the missing tokens, not a human-written label for the whole sentence. The model learns from the structure already present in the text.
 
@@ -1436,7 +1436,7 @@ This is an asymmetric architecture. The encoder processes the visible patches wi
 
 There is an important boundary to the analogy with language. A rendered physics frame is far simpler than a natural image, and our images contain a stable background. Reconstructing a Cartpole frame is not the same as reconstructing the physical state that generated it. In particular, a single image need not reveal velocity. The experiment tests what this compact MAE learns under its particular data, architecture, and training budget.
 
-=== Building a masked autoencoder
+=== 3.5.2 Building a masked autoencoder
 
 The first operation is to turn an image into a sequence of patches. For a batch of images, the resulting tensor has shape
 
@@ -1524,7 +1524,7 @@ The MAE implementation exposes a 64-dimensional representation for evaluation. S
 
 NOTE — Other generative objectives: Variational autoencoders and generative adversarial networks introduce additional objectives and trade-offs. They are deferred to the generative chapters.
 
-=== Reconstruction versus representation
+=== 3.5.3 Reconstruction versus representation
 
 A reconstruction loss measures how well the model rebuilds its input. A state probe asks a different question: how much information about the simulator’s state can be recovered by a linear map from the learned representation? Good reconstruction does not guarantee a strong state representation, just as a strong state probe does not guarantee pixel-accurate reconstruction.
 
@@ -1593,9 +1593,9 @@ The result is consistent with the chapter’s central distinction: the training 
 
 Before predicting in a representation space, we should ask how much representational capacity the state needs. The next section studies that question through latent bottlenecks.
 
-== Latent bottlenecks and compact state
+== 3.6 Latent bottlenecks and compact state
 
-=== The information bottleneck as a lens
+=== 3.6.1 The information bottleneck as a lens
 
 Let latexmath:[X] denote an observation, latexmath:[Z] its learned representation, and latexmath:[Y] a task-relevant variable. For a world model, latexmath:[X] might be an image and latexmath:[Y] might describe the physical state needed to predict what happens next.
 
@@ -1629,7 +1629,7 @@ The same distinction applies to VICReg. Its invariance, variance, and covariance
 
 In this chapter’s experiments, the simulator’s physics state remains an evaluation target. The contrastive loss does not receive that state as a training label, and the latent-dimension sweep does not calculate mutual information directly. We use a linear probe to measure one concrete property: how much of the state is linearly recoverable from the learned features.
 
-=== Choosing the latent dimension
+=== 3.6.2 Choosing the latent dimension
 
 The practical question is how many dimensions the encoder needs. It is tempting to set the latent dimension equal to the number of physical state variables. That is not a reliable rule.
 
@@ -1719,9 +1719,9 @@ SIDEBAR — The bottleneck in one paragraph. The latent dimension limits the coo
 
 The distinction between reconstruction, invariance, and predictive information now becomes more concrete. Section 3.5 showed that reconstructing pixels does not guarantee that state is linearly available. This section shows that even a representation with more dimensions is useful only to the extent that it preserves the distinctions a probe can recover. In the next section, the question changes from which static observations should agree to which future observation follows from the past.
 
-== Predicting over time: from invariance to prediction
+== 3.7 Predicting over time: from invariance to prediction
 
-=== Why the future is not just another view
+=== 3.7.1 Why the future is not just another view
 
 Return to the view-generation decision from Section 3.3. Two augmented versions of the same frame are positive examples because the objective asks the encoder to preserve information that survives those augmentations. The brightness and small crop changes are intended to be nuisance variations, so the learned representation should be relatively insensitive to them.
 
@@ -1735,7 +1735,7 @@ Our measurements from the earlier sections make this distinction concrete. Table
 
 A frame-level invariance objective has no direct reason to preserve velocity. A temporal objective can instead reward a context for retaining information that helps identify a future observation. CPC is one way to implement that change.
 
-=== Contrastive predictive coding
+=== 3.7.2 Contrastive predictive coding
 
 CPC, introduced by van den Oord and colleagues, learns by predicting future representations rather than reconstructing future pixels. It encodes a sequence of observations into latent vectors, summarizes the available past in a context vector, and trains that context to identify the correct future latent among other candidates.
 
@@ -1862,7 +1862,7 @@ This experiment is therefore not a controlled comparison between action-conditio
 **Production placeholder, not final artwork.** See `../images/CH03_F15_Dadwal.md` for the required composition, source assets, credits, and acceptance checks.
 ====
 
-=== CPC evaluation: future retrieval and state probes
+=== 3.7.3 CPC evaluation: future retrieval and state probes
 
 A low CPC loss means that the correct future latent receives high probability under the model’s candidate distribution. But the loss alone is harder to interpret than a direct retrieval measurement. We therefore evaluate the trained compatibility scores on held-out sequence windows and ask whether the correct future latent ranks above the other candidates.
 
@@ -1949,9 +1949,9 @@ These methods differ in what they reward, but the agent should not need a differ
 
 This is where the chapter’s work returns to the agent loop from Chapter 1. We will use a trained contrastive encoder behind a common interface. The dynamics and reward components remain placeholders; this section assembles the representation component rather than claiming to complete the world model.
 
-== Assembling the encoder
+== 3.8 Assembling the encoder
 
-=== A common encoder interface
+=== 3.8.1 A common encoder interface
 
 The current repository implements the shared interface in `+worldmodels/models/encoders.py+`. The Encoder class wraps a backbone, such as the ConvEncoder trained in Section 3.3. It exposes two methods:
 
@@ -2015,7 +2015,7 @@ The word state in this interface refers to the encoder’s recurrent hidden stat
 
 The wrapper also does not dictate how the encoder was trained. A different compatible backbone can be substituted without changing the calls made by the agent loop. The interface is small, but it creates an important separation: training objectives can change while the rest of the agent continues to consume an observation and an updated internal state.
 
-=== Verifying the contract
+=== 3.8.2 Verifying the contract
 
 The repository’s ch03/12_assemble_encoder.py runner checks this interface using a saved contrastive encoder checkpoint. It loads the encoder with a latent dimension of 16 and wraps it with a recurrent hidden dimension of 32. The script then processes ten validation frames in order, passing the previous hidden state into each subsequent update.
 
@@ -2025,7 +2025,7 @@ This is an interface smoke test, not an evaluation of representation quality. It
 
 The interface therefore completes a software contract, not the scientific contract from Chapter 2. Whether the representation is useful depends on the measurements from the preceding sections and on what the later dynamics and reward components require.
 
-=== What each objective pays to preserve
+=== 3.8.3 What each objective pays to preserve
 
 The experiments show why a common interface does not imply that all encoders learn equivalent representations. The objective used during training determines which relationships are rewarded. Table 3.5 summarizes the central trade-off from this chapter.
 
@@ -2057,7 +2057,7 @@ CPC changes the target from reconstructing an observation to identifying its fut
 
 The common pattern is that an objective cannot be judged solely by whether its loss decreases. We need to examine what its representation preserves, what it discards, and whether those properties match the agent’s requirements.
 
-=== Checking the Chapter 2 contracts
+=== 3.8.4 Checking the Chapter 2 contracts
 
 The measurements in this chapter give partial evidence about the contracts introduced in Chapter 2. They do not settle every question about the learned state. The following checklist separates what was measured from what remains unverified.
 
@@ -2075,8 +2075,6 @@ The measurements in this chapter give partial evidence about the contracts intro
 ====
 **Production placeholder, not final artwork.** See `../images/CH03_F17_Dadwal.md` for the required composition, source assets, credits, and acceptance checks.
 ====
-
-:sectnums!:
 
 === Exercises
 
