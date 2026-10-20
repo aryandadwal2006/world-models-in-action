@@ -1,0 +1,3 @@
+# Supplied 2024 taxonomy image — reference only
+
+The accompanying `CH03_F01_Dadwal_Reference_2024.png` preserves the user-supplied reference visual. It is **not** inserted in the manuscript because its taxonomy is dated and presents partly overlapping methods as a simple tree. The manuscript instead uses the new editable `CH03_F01_Dadwal.svg`, which is objective-centered, calls out overlap explicitly, and includes newer latent-prediction methods. Keep the supplied image for provenance/design comparison; do not cite it as an independent literature source.

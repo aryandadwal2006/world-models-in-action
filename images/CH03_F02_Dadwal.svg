@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">The encoder's contract</title>
+  <desc id="desc">A visual encoder should preserve state-relevant information and discard nuisance variation. Different physical states can alias to the same representation.</desc>
+  <defs>
+    <style>
+      .h1{font:700 34px Arial,sans-serif;fill:#142433}
+      .h2{font:700 23px Arial,sans-serif;fill:#142433}
+      .body{font:400 20px Arial,sans-serif;fill:#253746}
+      .small{font:400 17px Arial,sans-serif;fill:#536273}
+      .box{fill:#fff;stroke:#596a7b;stroke-width:2.3}
+      .accent{fill:#eef3fa;stroke:#3b6fb6;stroke-width:2.8}
+      .line{fill:none;stroke:#5d6b7b;stroke-width:2.7}
+      .good{fill:none;stroke:#3b6fb6;stroke-width:3}
+      .bad{fill:none;stroke:#8e969e;stroke-width:2.3;stroke-dasharray:8 7}
+    </style>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#5d6b7b"/></marker>
+    <marker id="blueArrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#3b6fb6"/></marker>
+  </defs>
+  <rect width="1600" height="900" fill="#fff"/>
+  <text x="800" y="54" class="h1" text-anchor="middle">The encoder's contract</text>
+  <text x="800" y="86" class="small" text-anchor="middle">Preserve distinctions needed to describe the physical state; discard irrelevant visual detail.</text>
+
+  <!-- Main three-stage path -->
+  <rect x="55" y="125" width="445" height="340" rx="16" class="box"/>
+  <rect x="578" y="125" width="445" height="340" rx="16" class="accent"/>
+  <rect x="1100" y="125" width="445" height="340" rx="16" class="box"/>
+  <text x="277" y="163" class="h2" text-anchor="middle">Observation (x)</text>
+  <text x="800" y="163" class="h2" text-anchor="middle">Visual encoder (fθ)</text>
+  <text x="1322" y="163" class="h2" text-anchor="middle">Representation (z)</text>
+
+  <!-- Cart-pole icon, using the same graphic language in both panels -->
+  <line x1="110" y1="340" x2="435" y2="340" class="line"/>
+  <rect x="230" y="307" width="88" height="34" rx="5" fill="#dfe4e9" stroke="#34495e" stroke-width="2.5"/>
+  <circle cx="250" cy="347" r="11" fill="#fff" stroke="#34495e" stroke-width="2.3"/>
+  <circle cx="298" cy="347" r="11" fill="#fff" stroke="#34495e" stroke-width="2.3"/>
+  <line x1="274" y1="307" x2="315" y2="225" stroke="#34495e" stroke-width="9" stroke-linecap="round"/>
+  <circle cx="274" cy="307" r="7" fill="#fff" stroke="#34495e" stroke-width="2.3"/>
+  <line x1="100" y1="205" x2="445" y2="205" stroke="#b5bec7" stroke-width="1.5" stroke-dasharray="4 7"/>
+  <text x="277" y="395" class="small" text-anchor="middle">Pixels include state and nuisance detail</text>
+  <rect x="95" y="414" width="174" height="30" rx="7" fill="#eef3fa" stroke="#aabbd0"/>
+  <text x="182" y="435" class="small" text-anchor="middle">position • angle • motion</text>
+  <rect x="284" y="414" width="190" height="30" rx="7" fill="#f5f5f5" stroke="#c5c9ce"/>
+  <text x="379" y="435" class="small" text-anchor="middle">lighting • texture • noise</text>
+
+  <path d="M500 290 H566" class="line" marker-end="url(#arrow)"/>
+  <rect x="640" y="218" width="321" height="64" rx="10" fill="#fff" stroke="#3b6fb6" stroke-width="2.2"/>
+  <text x="800" y="244" class="body" text-anchor="middle">Compress the observation</text>
+  <text x="800" y="267" class="small" text-anchor="middle">learn features from a training objective</text>
+  <path d="M676 317 H924" class="good" marker-end="url(#blueArrow)"/>
+  <text x="800" y="349" class="body" text-anchor="middle">Keep what the objective requires</text>
+  <text x="800" y="378" class="small" text-anchor="middle">What it does not require may be lost.</text>
+  <text x="800" y="418" class="small" text-anchor="middle">No coordinate is guaranteed to equal one state variable.</text>
+
+  <path d="M1023 290 H1088" class="line" marker-end="url(#arrow)"/>
+  <text x="1322" y="211" class="small" text-anchor="middle">A compact vector of d numbers</text>
+  <g fill="#d9e4f2" stroke="#3b6fb6" stroke-width="1.5">
+    <rect x="1170" y="244" width="34" height="68" rx="5"/><rect x="1214" y="226" width="34" height="86" rx="5"/><rect x="1258" y="258" width="34" height="54" rx="5"/><rect x="1302" y="236" width="34" height="76" rx="5"/><rect x="1346" y="248" width="34" height="64" rx="5"/><rect x="1390" y="220" width="34" height="92" rx="5"/><rect x="1434" y="254" width="34" height="58" rx="5"/>
+  </g>
+  <text x="1322" y="350" class="body" text-anchor="middle">Preserve relevant information</text>
+  <text x="1322" y="380" class="body" text-anchor="middle">Discard unnecessary detail</text>
+  <text x="1322" y="420" class="small" text-anchor="middle">Compact does not automatically mean sufficient.</text>
+
+  <!-- Aliasing diagnostic -->
+  <rect x="55" y="500" width="1490" height="340" rx="16" fill="#fbfcfd" stroke="#8793a0" stroke-width="2"/>
+  <text x="800" y="540" class="h2" text-anchor="middle">Aliasing: a distinction that compression can lose</text>
+  <g transform="translate(110,575)">
+    <rect x="0" y="0" width="330" height="135" rx="10" class="box"/>
+    <line x1="24" y1="95" x2="300" y2="95" class="line"/>
+    <rect x="130" y="69" width="72" height="26" rx="4" fill="#dfe4e9" stroke="#34495e" stroke-width="2"/>
+    <circle cx="145" cy="101" r="8" fill="#fff" stroke="#34495e" stroke-width="2"/><circle cx="187" cy="101" r="8" fill="#fff" stroke="#34495e" stroke-width="2"/>
+    <line x1="166" y1="69" x2="198" y2="23" stroke="#34495e" stroke-width="7" stroke-linecap="round"/>
+    <text x="165" y="124" class="small" text-anchor="middle">frame A: moving left</text>
+  </g>
+  <g transform="translate(110,720)">
+    <rect x="0" y="0" width="330" height="95" rx="10" class="box"/>
+    <line x1="24" y1="62" x2="300" y2="62" class="line"/>
+    <rect x="130" y="36" width="72" height="26" rx="4" fill="#dfe4e9" stroke="#34495e" stroke-width="2"/>
+    <circle cx="145" cy="68" r="8" fill="#fff" stroke="#34495e" stroke-width="2"/><circle cx="187" cy="68" r="8" fill="#fff" stroke="#34495e" stroke-width="2"/>
+    <line x1="166" y1="36" x2="198" y2="3" stroke="#34495e" stroke-width="7" stroke-linecap="round"/>
+    <text x="165" y="88" class="small" text-anchor="middle">frame B: moving right</text>
+  </g>
+  <path d="M450 642 C520 642 515 645 575 645" class="line" marker-end="url(#arrow)"/>
+  <path d="M450 768 C515 768 525 682 575 682" class="line" marker-end="url(#arrow)"/>
+  <rect x="590" y="615" width="360" height="112" rx="13" class="accent"/>
+  <text x="770" y="654" class="h2" text-anchor="middle">Same representation z</text>
+  <g transform="translate(650,674)" fill="#d9e4f2" stroke="#3b6fb6" stroke-width="1.4">
+    <rect x="0" y="0" width="20" height="31" rx="3"/><rect x="28" y="0" width="20" height="31" rx="3"/><rect x="56" y="0" width="20" height="31" rx="3"/><rect x="84" y="0" width="20" height="31" rx="3"/><rect x="112" y="0" width="20" height="31" rx="3"/><rect x="140" y="0" width="20" height="31" rx="3"/><rect x="168" y="0" width="20" height="31" rx="3"/><rect x="196" y="0" width="20" height="31" rx="3"/><rect x="224" y="0" width="20" height="31" rx="3"/>
+  </g>
+  <path d="M950 670 H1015" class="bad" marker-end="url(#arrow)"/>
+  <rect x="1030" y="603" width="465" height="143" rx="12" class="box"/>
+  <text x="1262" y="642" class="h2" text-anchor="middle">Information has been lost</text>
+  <text x="1262" y="676" class="body" text-anchor="middle">The downstream model cannot tell</text>
+  <text x="1262" y="704" class="body" text-anchor="middle">the two situations apart.</text>
+  <text x="800" y="870" class="small" text-anchor="middle">The sketch illustrates a possible failure, not a claim that velocity is always unknowable from one frame.</text>
+</svg>
