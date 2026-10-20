@@ -458,10 +458,10 @@ This is the intended benefit of the augmentation pipeline. If brightness changes
 
 A shift of a few pixels may be harmless for a cart-pole. A shift large enough to move the cart or pole out of view could erase information needed to estimate the state. The positive-pair definition therefore specifies which changes should be treated as irrelevant. The following equations show how the loss enforces this requirement.
 
-[#ch3-listing-L02,reftext={chapter}.{counter:listing},caption='{listing-caption}.{counter:listing-number} ']
-.Generating two views from a batch
 The excerpt is from worldmodels/data/augment.py. It uses the existing ViewPipeline implementation.
 
+[#ch3-listing-L02,reftext={chapter}.{counter:listing},caption='{listing-caption}.{counter:listing-number} ']
+.Generating two views from a batch
 [source,python]
 ----
 def augment_single(self, images):
@@ -1029,10 +1029,10 @@ If the variance is distributed equally across all latexmath:[d] directions, the 
 
 The normalization removes overall scale. Multiplying every representation by latexmath:[10^{-5}] does not change the effective rank, because all covariance eigenvalues are multiplied by the same squared factor and the normalized latexmath:[q_j] remain unchanged. This is useful for measuring dimensional collapse, but it means effective rank cannot detect a representation whose spread has shrunk almost to zero.
 
-[#ch3-listing-L07,reftext={chapter}.{counter:listing},caption='{listing-caption}.{counter:listing-number} ']
-.Measuring spread and effective rank
 The following excerpt is from the diagnostic code in ch03/06_collapse_demo.py. It computes both measurements from a matrix of representations.
 
+[#ch3-listing-L07,reftext={chapter}.{counter:listing},caption='{listing-caption}.{counter:listing-number} ']
+.Measuring spread and effective rank
 [source,python]
 ----
 def feature_diagnostics(features):
