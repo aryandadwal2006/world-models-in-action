@@ -44,6 +44,8 @@ That difference is the central idea of this chapter: a learning objective specif
 We will build and test these ideas using rendered observations from the DeepMind Control Suite (DMC)footnote:[Tunyasuvunakool, S. et al. (2020). "`dm_control: Software and tasks for continuous control.`" _Software Impacts_, 6, 100022. https://doi.org/10.1016/j.simpa.2020.100022.]. The experiments use tasks such as balancing a cart-pole and spinning a finger-controlled body. For the self-supervised experiments, the encoder receives images without the simulator’s physics-state labels. We then use the simulator’s state variables to evaluate what the learned representations retain. A separate supervised reference provides a comparison later in the chapter. These tests let us examine the representations directly instead of assuming that a successful training objective must have learned the right state.
 
 ____
+<<<
+
 *TIP: Hardware, GPU selection, and rendering* The runners call `+worldmodels.train.get_device()+`, which selects CUDA when `+torch.cuda.is_available()+` is true and CPU otherwise. No device flag is needed, and the code does not select Apple MPS. The snippet below prints the selected device and, for CUDA, the GPU name. If it prints `+cpu+`, check that PyTorch has a CUDA-enabled build and that the driver exposes the GPU. Rendering through MuJoCo/OpenGL is separate; cached observations avoid repeating it.
 ____
 
@@ -2137,7 +2139,6 @@ ____
 *NOTE: Interpreting Finger Spin probes.* Finger Spin’s rendered spinner has latexmath:[\pi]-periodic symmetry: a static image does not uniquely identify its absolute latexmath:[2\pi] angle. Account for this when interpreting the probe scores. Distinguish a variable that is unobservable from a single image because of the rendering symmetry from one that is merely difficult to decode under the tested model and training budget.
 ____
 
-Summary
 == Summary
 * Pretext tasks: Rotation prediction, jigsaw prediction, and colorization create supervision from the structure of observations. Their limitation is that solving a pretext task does not guarantee that the representation preserves the information needed by a world model. The chosen prediction target determines what the model is paid to learn.
 * Contrastive learning: NT-Xent turns the identification of matching views into a classification problem, using similarities between positive and negative examples. On Cartpole, the training loss fell from approximately 3.78 to 3.11 over 15 epochs across the three-seed run. State probes showed that positions were more linearly accessible than velocities, and stacking two consecutive frames did not reliably improve velocity decoding under the tested configuration.
