@@ -50,7 +50,7 @@ python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
 python -m unittest discover -s tests -v
-python ch03/04_train_contrastive.py --seed 0
+python ch03/04_train_contrastive.py --seed 0 --checkpoints-dir checkpoints/quickstart --figures-dir ch03/figures/quickstart --results-dir ch03/results/quickstart
 ```
 
 On macOS or Linux, activate the environment with `source .venv/bin/activate` instead. The full multi-seed comparison, latent-dimension sweep, and CPC sequence experiment can take hours on CPU, depending on hardware and configuration. This chapter does not claim a universal runtime or measured GPU speed-up. The device selection applies to PyTorch training only; rendering the Control Suite is a separate dependency, and cached observations mean rendering is normally a one-time data-collection step.
