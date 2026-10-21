@@ -55,7 +55,8 @@ role:
     font_style: bold
     font_color: 111111
     margin_top: 0
-    margin_bottom: 24
+    # Match the supplied Chapter 2 opener: a compact gap before the red chapter heading.
+    margin_bottom: 9
 
 prose:
   margin_bottom: 9
