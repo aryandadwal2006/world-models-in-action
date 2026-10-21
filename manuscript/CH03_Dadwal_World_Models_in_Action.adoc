@@ -87,13 +87,11 @@ Suppose two cart-pole observations look identical. In one underlying situation, 
 
 This is an example of aliasing: different underlying states become indistinguishable in the representation.
 
-Before examining individual objectives, figure 3.1 maps their major families by the type of training signal. This overview updates the 2024 taxonomy supplied as a visual reference. The branches are not mutually exclusive: CPC is both temporal and contrastive, and masked prediction includes pixel, token, and latent targets. The methods later in the chapter are evaluated through their own measured tasks rather than ranked by this diagram.
+Before examining individual objectives, figure 3.1 maps their major families by training signal. It is a teaching-oriented synthesis informed by Gui et al. (2024), Uelwer et al. (2025), and Meta’s V-JEPA 2 publication (2025), not an exhaustive taxonomy. The categories are not mutually exclusive: CPC is both temporal and contrastive, and masked prediction includes pixel, token, and latent targets. The methods are evaluated through their own measured tasks rather than ranked by this diagram.
 
 [#ch3-figure-F01,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Self-supervised learning: a map of training signals
 image::CH03_F01_Dadwal.svg[Self-supervised learning: a map of training signals,pdfwidth=100%]
-
-The categories are a teaching-oriented synthesis, informed by Gui et al. (2024), Uelwer et al. (2025), and Meta’s V-JEPA 2 release (2025). The diagram is not an exhaustive or mutually exclusive taxonomy.
 
 table 3.1 gathers the notation used in the objectives, probe definitions, and experiment descriptions.
 
@@ -1241,8 +1239,7 @@ Consider what the three terms do to degenerate solutions.
 
 These examples show why no one of the three terms replaces the others. Variance prevents coordinates from becoming constant, covariance discourages redundancy, and invariance links representations of positive views. Their combination makes the constraints explicit, instead of relying solely on the behavior of the training procedure.
 
-*Supplementary code excerpt — VICReg loss (not a numbered listing)*
-
+A compact implementation keeps the three penalties explicit:
 
 [source,python]
 ----
