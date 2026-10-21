@@ -11,15 +11,15 @@ page:
 font:
   catalog:
     Liberation Serif:
-      normal: /usr/share/fonts/truetype/liberation2/LiberationSerif-Regular.ttf
-      bold: /usr/share/fonts/truetype/liberation2/LiberationSerif-Bold.ttf
-      italic: /usr/share/fonts/truetype/liberation2/LiberationSerif-Italic.ttf
-      bold_italic: /usr/share/fonts/truetype/liberation2/LiberationSerif-BoldItalic.ttf
+      normal: /usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf
+      bold: /usr/share/fonts/truetype/liberation/LiberationSerif-Bold.ttf
+      italic: /usr/share/fonts/truetype/liberation/LiberationSerif-Italic.ttf
+      bold_italic: /usr/share/fonts/truetype/liberation/LiberationSerif-BoldItalic.ttf
     Liberation Mono:
-      normal: /usr/share/fonts/truetype/liberation2/LiberationMono-Regular.ttf
-      bold: /usr/share/fonts/truetype/liberation2/LiberationMono-Bold.ttf
-      italic: /usr/share/fonts/truetype/liberation2/LiberationMono-Italic.ttf
-      bold_italic: /usr/share/fonts/truetype/liberation2/LiberationMono-BoldItalic.ttf
+      normal: /usr/share/fonts/truetype/liberation/LiberationMono-Regular.ttf
+      bold: /usr/share/fonts/truetype/liberation/LiberationMono-Bold.ttf
+      italic: /usr/share/fonts/truetype/liberation/LiberationMono-Italic.ttf
+      bold_italic: /usr/share/fonts/truetype/liberation/LiberationMono-BoldItalic.ttf
 
 base:
   font_family: Liberation Serif
