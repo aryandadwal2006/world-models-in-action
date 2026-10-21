@@ -5,7 +5,7 @@ extends: default
 page:
   size: Letter
   layout: portrait
-  margin: [0.92in, 1.15in, 0.72in, 1.15in]
+  margin: [0.96in, 1.15in, 0.72in, 1.15in]
   background_color: FFFFFF
 
 font:
@@ -56,7 +56,7 @@ role:
     font_color: 111111
     margin_top: 0
     # Match the supplied Chapter 2 opener: a compact gap before the red chapter heading.
-    margin_bottom: 9
+    margin_bottom: 11
 
 prose:
   margin_bottom: 9
