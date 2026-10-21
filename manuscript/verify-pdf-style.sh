@@ -45,11 +45,16 @@ class Words(HTMLParser):
     def handle_starttag(self, tag, attrs):
         if tag == "word":
             values = dict(attrs)
-            self.active = {
-                "text": "",
-                "x": float(values["xMin"]),
-                "y": float(values["yMin"]),
-            }
+            # pdftotext can emit empty or non-positioned word elements for
+            # control characters; ignore those rather than failing the check.
+            if "xMin" in values and "yMin" in values:
+                self.active = {
+                    "text": "",
+                    "x": float(values["xMin"]),
+                    "y": float(values["yMin"]),
+                }
+            else:
+                self.active = None
 
     def handle_data(self, data):
         if self.active is not None:
