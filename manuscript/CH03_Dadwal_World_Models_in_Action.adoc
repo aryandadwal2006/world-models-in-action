@@ -373,10 +373,7 @@ where latexmath:[K] is the number of negatives for each anchor. For example, a b
 
 [#ch3-figure-F05,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Figure 3.5 artwork pending: Constructing positives and negatives in a batch
-[NOTE]
-====
-**Production placeholder, not final artwork.** See `../images/CH03_F05_Dadwal.md` for the required composition, source assets, credits, and acceptance checks.
-====
+NOTE: Artwork pending; see link:../images/CH03_F05_Dadwal.md[figure brief].
 
 The transformation latexmath:[t] is a design decision, not a cosmetic detail. If the encoder must identify two views of the same frame, changes introduced randomly by latexmath:[t] cannot reliably identify the source. The encoder is therefore encouraged to become insensitive to those changes.
 
@@ -523,10 +520,7 @@ Batch size sets the number of negatives: latexmath:[K=2N-2]. A larger batch asks
 
 [#ch3-figure-F06,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Figure 3.6 artwork pending: NT-Xent for one anchor
-[NOTE]
-====
-**Production placeholder, not final artwork.** See `../images/CH03_F06_Dadwal.md` for the required composition, source assets, credits, and acceptance checks.
-====
+NOTE: Artwork pending; see link:../images/CH03_F06_Dadwal.md[figure brief].
 
 === What InfoNCE actually optimizes
 
@@ -657,59 +651,18 @@ The channel count grows from 32 to 64, 128, and 256. The final 256 × 4 × 4 fea
 Source: worldmodels/models/encoders.py. This excerpt is condensed from the canonical implementation, with the architecture and behavior unchanged.
 
 [#ch3-listing-L03,reftext={chapter}.{counter:listing},caption='{listing-caption}.{counter:listing-number} ']
-.The convolutional encoder and projection head
+.The encoder representation and projection head
 
 [source,python]
 ----
-class ConvEncoder(nn.Module):
-    def __init__(
-        self,
-        in_channels: int = 3,
-        latent_dim: int = 16,
-        base_channels: int = 32,
-    ) -> None:
-        super().__init__()
-        self.in_channels = in_channels
-        self.latent_dim = latent_dim
-        self.conv_net = nn.Sequential(
-            nn.Conv2d(in_channels, base_channels, 4, 2, 1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(base_channels, base_channels * 2, 4, 2, 1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(base_channels * 2, base_channels * 4, 4, 2, 1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(base_channels * 4, base_channels * 8, 4, 2, 1),
-            nn.ReLU(inplace=True),
-        )
-        flat_dim = (base_channels * 8) * 4 * 4
-        self.fc = nn.Linear(flat_dim, latent_dim)
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        if x.ndim != 4:
-            raise ValueError("ConvEncoder expects input shaped (B, C, H, W)")
-        features = self.conv_net(x)
-        return self.fc(torch.flatten(features, start_dim=1))
-
-class ProjectionHead(nn.Module):
-    def __init__(self, in_dim: int = 16, hidden_dim: int = 64, out_dim: int = 16) -> None:
-        super().__init__()
-        self.net = nn.Sequential(
-            nn.Linear(in_dim, hidden_dim),
-            nn.ReLU(inplace=True),
-            nn.Linear(hidden_dim, out_dim),
-        )
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self.net(x)
+z = encoder(images)
+p = projection_head(z)
 ----
 
-A Each convolution halves the spatial height and width.
-
-B Maps the flattened feature map to the 16-dimensional representation.
-
-C Maps the representation to the projection used by the contrastive loss.
-
-With the default channel count, the encoder has 755,696 parameters and the projection head has 2,128. The encoder uses no batch normalization, so the representation of one frame does not depend on the other images in its batch.
+The encoder maps each 64 × 64 RGB frame to a 16-dimensional representation. The
+projection head maps that representation to the space used by the contrastive
+loss. The distinction matters: downstream tasks use the encoder representation,
+not the projection used to train it.
 
 The loss is applied to the projection latexmath:[p=g_\phi(z)], not directly to latexmath:[z]. This follows the design used in SimCLR, where a nonlinear projection head is used during contrastive pretraining while the representation before that head is retained for downstream tasks (Chen et al., 2020). The reason for separating the two is practical: the projection can become invariant to some details needed by later tasks, while the encoder representation remains available to downstream components. This chapter adopts that setup without claiming that the two alternatives have been compared experimentally here.
 
@@ -759,32 +712,22 @@ The training script ch03/04_train_contrastive.py loads cached cart-pole frames, 
 Source: ch03/04_train_contrastive.py, condensed from the existing runner.
 
 [#ch3-listing-L05,reftext={chapter}.{counter:listing},caption='{listing-caption}.{counter:listing-number} ']
-.One contrastive training step
+.One contrastive update
 
 [source,python]
 ----
-for batch in train_loader:
-    images = batch["image"].to(device)
-    view_1, view_2 = view_pipeline(images)               #A
-    z1 = encoder(view_1)
-    z2 = encoder(view_2)
-    p1 = proj_head(z1)
-    p2 = proj_head(z2)                                   #B
-    loss = nt_xent_loss(
-        p1, p2, temperature=args.temperature
-    )                                                    #C
-    optimizer.zero_grad()
-    loss.backward()
-    optimizer.step()                                     #D
+view_a, view_b = view_pipeline(images)
+z_a = encoder(view_a)
+z_b = encoder(view_b)
+p_a, p_b = projector(z_a), projector(z_b)
+loss = nt_xent_loss(p_a, p_b)
+optimizer.zero_grad()
+loss.backward()
+optimizer.step()
 ----
 
-A Creates two independently transformed views of every frame.
-
-B Encodes each view and applies the projection head.
-
-C Computes NT-Xent on the two batches of projected features.
-
-D Backpropagates the loss and updates both networks.
+The two transformed views share the same encoder and projection head. The loss
+updates both networks; the physics-state labels are not part of this step.
 
 The recorded run uses 5,000 training frames sampled evenly across the 30 training episodes, a batch size of 64, a 16-dimensional latent, Adam with learning rate latexmath:[10^{-3}], temperature latexmath:[\tau=0.5], and 15 epochs. The held-out validation set is sampled across the five validation episodes. The training frames are selected across episodes and across time within each episode; the script does not simply take the first 5,000 frames.
 
@@ -802,10 +745,7 @@ Figure 3.8 is a qualitative two-component PCA projection of validation represent
 
 [#ch3-figure-F08,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Figure 3.8 artwork pending: PCA projections of validation representations
-[NOTE]
-====
-**Production placeholder, not final artwork.** See `../images/CH03_F08_Dadwal.md` for the required composition, source assets, credits, and acceptance checks.
-====
+NOTE: Artwork pending; see link:../images/CH03_F08_Dadwal.md[figure brief].
 
 The visual projection can show that the numerical outputs change during training, but it cannot tell us what the dimensions encode. We now need an evaluation that asks the physical question directly.
 
@@ -841,35 +781,18 @@ Here, latexmath:[M] is the number of training examples used to fit the probe; la
 Source: worldmodels/eval/probes.py, the canonical LinearProbe implementation.
 
 [#ch3-listing-L06,reftext={chapter}.{counter:listing},caption='{listing-caption}.{counter:listing-number} ']
-.Fitting a ridge probe to frozen features
+.Evaluating a frozen representation
 
 [source,python]
 ----
-def fit(self, x, y):
-    x_scaled = self._fit_feature_scaler(x)             #A
-    n, d = x_scaled.shape
-    x_bias = np.concatenate(
-        [x_scaled, np.ones((n, 1))], axis=1
-    )                                                  #B
-    reg = np.zeros((d + 1, d + 1))
-    reg[:d, :d] = np.sqrt(self.alpha) * np.eye(d)      #C
-    augmented_x = np.vstack([x_bias, reg])
-    augmented_y = np.vstack([
-        y, np.zeros((d + 1, y.shape[1]))
-    ])
-    self.weights, *_ = np.linalg.lstsq(
-        augmented_x, augmented_y, rcond=None
-    )                                                  #D
-    return self
+probe.fit(z_train, y_train)
+y_pred = probe.predict(z_validation)
+r2 = r2_score(y_validation, y_pred)
 ----
 
-A Standardizes features with statistics from the probe’s training data.
-
-B Adds a bias column, which is not penalized.
-
-C Adds the rows that implement the ridge penalty.
-
-D Solves the augmented least-squares problem corresponding to equation 3.8.
+This sketch shows the evaluation logic, not the probe implementation. The
+repository standardizes features using training-set statistics, fits a ridge
+readout, and applies periodic scoring to angular targets where needed.
 
 The score is computed on held-out validation frames. For ordinary state variables, latexmath:[R^2=1] is perfect prediction, latexmath:[R^2=0] matches the constant-mean baseline, and a negative value is worse than that baseline. Angular targets use the circular score described above.
 
@@ -958,32 +881,21 @@ The normalization removes overall scale. Multiplying every representation by lat
 The following excerpt is from the diagnostic code in ch03/06_collapse_demo.py. It computes both measurements from a matrix of representations.
 
 [#ch3-listing-L07,reftext={chapter}.{counter:listing},caption='{listing-caption}.{counter:listing-number} ']
-.Measuring spread and effective rank
+.Feature spread and effective rank
+
 [source,python]
 ----
-def feature_diagnostics(features):
-    features = np.asarray(features, dtype=np.float64)
-    centered = features - features.mean(axis=0, keepdims=True)
-    singular_values = np.linalg.svd(centered, compute_uv=False)
-    eigenvalues = singular_values ** 2                   #A
-    total = float(eigenvalues.sum())
-    if total <= 1e-15:
-        rank = 0.0
-    else:
-        q = eigenvalues / total                           #B
-        entropy = -np.sum(q * np.log(np.maximum(q, 1e-15)))
-        rank = float(np.exp(entropy))                     #C
-    spread = float(np.std(features, axis=0).mean())       #D
-    return {"mean_dim_std": spread, "effective_rank": rank}
+centered = features - features.mean(axis=0)
+s = np.linalg.svd(centered, compute_uv=False)
+q = s**2 / (s**2).sum()
+rank = np.exp(-(q * np.log(q + 1e-15)).sum())
+spread = features.std(axis=0).mean()
 ----
 
-A The squared singular values give the covariance eigenvalues up to a common factor.
-
-B Normalizes the eigenvalues, removing the influence of overall scale.
-
-C Computes the effective rank from the entropy.
-
-D Averages the standard deviation across representation coordinates.
+Effective rank summarizes how broadly variance is distributed across feature
+directions; spread measures the average scale of individual coordinates.
+Effective rank is undefined when every singular value is zero, so the full
+implementation checks this degenerate case explicitly.
 
 The full repository function also validates its input and handles the degenerate all-zero case. We use this diagnostic on the encoder output, not just the projection head, because the encoder output is the representation retained for later use.
 
@@ -995,10 +907,7 @@ The experiment uses cart-pole balance, 3,000 training frames sampled across epis
 
 [#ch3-figure-F09,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Figure 3.9 artwork pending: Encoder spread with and without negatives
-[NOTE]
-====
-**Production placeholder, not final artwork.** See `../images/CH03_F09_Dadwal.md` for the required composition, source assets, credits, and acceptance checks.
-====
+NOTE: Artwork pending; see link:../images/CH03_F09_Dadwal.md[figure brief].
 
 Under attraction only, the encoder spread falls from approximately latexmath:[5.2\times10^{-4}] at initialization to latexmath:[7.8\times10^{-5}] after 15 epochs. The training loss falls to approximately latexmath:[2.6\times10^{-10}]. Under NT-Xent, the encoder spread reaches approximately 2.42, while the final training loss is approximately 3.16. The two conditions behave very differently: attraction alone can achieve an almost-zero loss while allowing its already small representation variation to shrink further.
 
@@ -1166,10 +1075,7 @@ D Penalizes off-diagonal correlations.
 
 [#ch3-figure-F10,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Figure 3.10 artwork pending: Three mechanisms for avoiding collapse
-[NOTE]
-====
-**Production placeholder, not final artwork.** See `../images/CH03_F10_Dadwal.md` for the required composition, source assets, credits, and acceptance checks.
-====
+NOTE: Artwork pending; see link:../images/CH03_F10_Dadwal.md[figure brief].
 
 ==== What did the reduced-scale study measure?
 
@@ -1337,10 +1243,7 @@ The recorded VICReg curves in Figure 3.11 show the total loss and three unweight
 
 [#ch3-figure-F11,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Figure 3.11 artwork pending: VICReg terms and their training curves
-[NOTE]
-====
-**Production placeholder, not final artwork.** See `../images/CH03_F11_Dadwal.md` for the required composition, source assets, credits, and acceptance checks.
-====
+NOTE: Artwork pending; see link:../images/CH03_F11_Dadwal.md[figure brief].
 
 In this standalone configuration, the state probe reports mean latexmath:[R^2=0.248\pm0.005] across three seeds. Cart position and pole angle are more linearly recoverable than the velocities. These results describe this run’s architecture, sample cap, training budget, and probe. The contrastive training run in Section 3.3 uses a different budget and number of training frames, so these scores should not be interpreted as a controlled comparison of objectives. The objective-comparison study later in Section 3.5 uses a separately specified protocol.
 
@@ -1381,40 +1284,22 @@ A learned linear layer embeds each patch into a 64-dimensional token. Positional
 Source: `+worldmodels/models/masked_autoencoder.py+`; reconstruction loss: `+worldmodels/losses/reconstruction.py+`. This is a shortened excerpt; patchification and decoder helpers remain in the canonical module.
 
 [#ch3-listing-L10,reftext={chapter}.{counter:listing},caption='{listing-caption}.{counter:listing-number} ']
-.Masking and the MAE forward pass
+.The masked-prediction path (schematic)
 
 [source,python]
 ----
-def forward_encoder(self, x: torch.Tensor):
-    patches = self.patchify(x)
-    tokens = self.patch_embed(patches) + self.encoder_pos_embed
-    b, n, d = tokens.shape
-    len_keep = int(n * (1.0 - self.mask_ratio))
-
-    noise = torch.rand(b, n, device=x.device)
-    ids_shuffle = torch.argsort(noise, dim=1)
-    ids_restore = torch.argsort(ids_shuffle, dim=1)
-    ids_keep = ids_shuffle[:, :len_keep]
-    visible = torch.gather(
-        tokens, 1, ids_keep.unsqueeze(-1).expand(-1, -1, d)
-    )
-
-    mask = torch.ones(b, n, device=x.device)
-    mask[:, :len_keep] = 0.0
-    mask = torch.gather(mask, 1, ids_restore)
-
-    encoded_visible = self.encoder_transformer(visible)
-    z = encoded_visible.mean(dim=1)
-    return z, encoded_visible, mask, ids_restore
-
-
-def forward(self, x: torch.Tensor):
-    patches = self.patchify(x)
-    _, encoded_visible, mask, ids_restore = self.forward_encoder(x)
-    pred_patches = self.forward_decoder(encoded_visible, ids_restore)
-    loss = masked_mse_loss(patches, pred_patches, mask)
-    return loss, pred_patches, mask
+visible, restore_ids, mask = random_mask(
+    patch_tokens, keep_ratio=0.25
+)
+encoded = encoder(visible)
+predicted = decoder(encoded, restore_ids)
+loss = masked_mse(patch_targets, predicted, mask)
 ----
+
+This schematic omits patch indexing and decoder details. The defining choices
+are that the encoder processes only visible patches and that reconstruction
+error is computed only for the hidden patches. The complete implementation
+handles masking, positional order, and the reconstruction target.
 
 The random values in noise define a permutation of the patch positions. ids_keep selects the visible tokens, while ids_restore records how to put the visible tokens and mask tokens back into their original order for decoding. The mask uses 1 for a hidden patch and 0 for a visible patch. These details are important: a decoder must know which predicted patch belongs in which image location.
 
@@ -1441,10 +1326,7 @@ The physics states collected from the simulator do not enter this objective. The
 
 [#ch3-figure-F12,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Figure 3.12 artwork pending: A masked autoencoder and its reconstructions
-[NOTE]
-====
-**Production placeholder, not final artwork.** See `../images/CH03_F12_Dadwal.md` for the required composition, source assets, credits, and acceptance checks.
-====
+NOTE: Artwork pending; see link:../images/CH03_F12_Dadwal.md[figure brief].
 
 The completed Figure 3.12 combines real reconstruction outputs with a separately drawn architecture schematic. The reconstruction panel alone does not show the encoder’s visible-token path, mask-token restoration, or masked-patch loss; these remain part of the production brief in `images/CH03_F12_Dadwal.md`.
 
@@ -1512,10 +1394,7 @@ These observations do not isolate the objective as the cause. MAE uses a patch-t
 
 [#ch3-figure-F13,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Figure 3.13 artwork pending: Joint embedding and pixel reconstruction
-[NOTE]
-====
-**Production placeholder, not final artwork.** See `../images/CH03_F13_Dadwal.md` for the required composition, source assets, credits, and acceptance checks.
-====
+NOTE: Artwork pending; see link:../images/CH03_F13_Dadwal.md[figure brief].
 
 The result is consistent with the chapter’s central distinction: the training objective specifies what the encoder is directly rewarded for preserving. Masked prediction is useful when reconstructing hidden observations is the desired task, but pixel reconstruction alone does not ensure that the resulting features expose the physical state. World models ultimately need a representation that can support prediction and planning, not just one that can rebuild an image.
 
@@ -1586,40 +1465,20 @@ The run uses Adam with a learning rate of latexmath:[10^{-3}], a batch size of 6
 Source: `+ch03/10_bottleneck_sweep.py+`. The full runner handles task configuration, seeds, episode-aware sampling, checkpointing, metrics, and plot generation.
 
 [#ch3-listing-L11,reftext={chapter}.{counter:listing},caption='{listing-caption}.{counter:listing-number} ']
-.The latent-dimension sweep driver
+.The logic of a latent-dimension sweep (schematic)
 
 [source,python]
 ----
-def train_and_evaluate(
-    train_loader, val_loader, latent_dim, seed, args, device
-):
-    set_seed(seed)
-    encoder = ConvEncoder(latent_dim=latent_dim).to(device)
-    projector = ProjectionHead(latent_dim, 64, latent_dim).to(device)
-    optimizer = torch.optim.Adam(
-        list(encoder.parameters()) + list(projector.parameters()),
-        lr=args.lr,
-    )
-    pipeline = ViewPipeline()
-
-    for _ in range(args.epochs):
-        encoder.train()
-        projector.train()
-        for batch in train_loader:
-            x = batch["image"].to(device)
-            v1, v2 = pipeline(x)
-            loss = nt_xent_loss(
-                projector(encoder(v1)),
-                projector(encoder(v2)),
-            )
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-
-    return evaluate_linear_probe(
-        encoder, train_loader, val_loader, device
-    )
+for d in [2, 4, 8, 16, 64, 256]:
+    encoder = train_encoder(latent_dim=d)
+    features = encoder(validation_images)
+    score = linear_probe_r2(features, validation_state)
+    record(d, score)
 ----
+
+This sketch isolates the comparison: change the representation dimension, train
+under the same protocol, and measure held-out state decodability. The runner
+contains the full training and evaluation procedures.
 
 The sweep measures held-out linear-probe R², averaged across the task’s physical-state variables. The probe standardizes frozen latent features before fitting a ridge-regression readout. Its angular-state evaluation uses periodic handling, so the score is not distorted merely because an angle crosses a wraparound boundary. The reported spread is the standard deviation across the three trained seeds, not across independently collected environments.
 
@@ -1785,10 +1644,7 @@ This is not a controlled comparison between action-conditioned and action-free p
 
 [#ch3-figure-F15,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Figure 3.15 artwork pending: Contrastive predictive coding identifies a future latent
-[NOTE]
-====
-**Production placeholder, not final artwork.** See `../images/CH03_F15_Dadwal.md` for the required composition, source assets, credits, and acceptance checks.
-====
+NOTE: Artwork pending; see link:../images/CH03_F15_Dadwal.md[figure brief].
 
 === CPC evaluation: future retrieval and state probes
 
@@ -1892,51 +1748,18 @@ The second method can operate in either of two ways. Without a recurrent layer, 
 Source: `+worldmodels/models/encoders.py+`. The excerpt below is taken from the canonical implementation.
 
 [#ch3-listing-L13,reftext={chapter}.{counter:listing},caption='{listing-caption}.{counter:listing-number} ']
-.The encoder interface
+.Two ways to use the encoder
 
 [source,python]
 ----
-class Encoder(nn.Module):
-    """Small interface for a learned visual representation."""
-
-    def __init__(
-        self,
-        backbone: nn.Module,
-        recurrent_hidden_dim: Optional[int] = None,
-    ) -> None:
-        super().__init__()
-        self.backbone = backbone
-        self.recurrent_hidden_dim = recurrent_hidden_dim
-        if recurrent_hidden_dim is not None:
-            latent_dim = getattr(backbone, "latent_dim", 16)
-            self.gru_cell = nn.GRUCell(
-                latent_dim, recurrent_hidden_dim
-            )
-        else:
-            self.gru_cell = None
-
-    def encode(self, obs: torch.Tensor) -> torch.Tensor:
-        if obs.ndim == 3:
-            obs = obs.unsqueeze(0)
-        return self.backbone(obs)
-
-    def update(
-        self,
-        state: Optional[torch.Tensor],
-        obs: torch.Tensor,
-    ) -> torch.Tensor:
-        z = self.encode(obs)
-        if self.gru_cell is None:
-            return z
-        if state is None:
-            state = torch.zeros(
-                z.shape[0],
-                self.recurrent_hidden_dim,
-                device=z.device,
-                dtype=z.dtype,
-            )
-        return self.gru_cell(z, state)
+z = encoder.encode(observation)
+state = encoder.update(previous_state, observation)
 ----
+
+The first call returns a visual representation. The second does the same and,
+when a recurrent wrapper is configured, also updates its hidden state. Without
+that wrapper, there is no memory across calls. The hidden state is learned
+internal state, not the simulator's ground-truth physics state.
 
 The wrapper keeps the representation-learning architecture separate from the agent’s interface. The backbone determines how observations are encoded. The optional GRU cell determines how successive encodings are combined into a persistent hidden state.
 
@@ -2000,10 +1823,7 @@ The measurements provide partial evidence about the learned representations, but
 
 [#ch3-figure-F17,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Figure 3.17 artwork pending: The learned encoder in the agent loop
-[NOTE]
-====
-**Production placeholder, not final artwork.** See `../images/CH03_F17_Dadwal.md` for the required composition, source assets, credits, and acceptance checks.
-====
+NOTE: Artwork pending; see link:../images/CH03_F17_Dadwal.md[figure brief].
 :sectnums!:
 
 == Exercises
