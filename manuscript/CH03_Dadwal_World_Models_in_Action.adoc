@@ -830,8 +830,7 @@ figure 3.9 compares the measured single-frame and two-frame state probes, includ
 image::CH03_Aliasing_Diagnostic.svg[Single-frame and two-frame state-probe comparison, pdfwidth=100%]
 
 The plot uses means and standard deviations across three seeds, with circular
-scoring for angular targets. Full measurements are retained in
-`+ch03/results/table_03_03_aliasing_diagnostic.json+`.
+scoring for angular targets. The complete measurements are available in link:../ch03/results/table_03_03_aliasing_diagnostic.json[the committed JSON results file].
 
 The result is more limited than the hypothesis that a second frame will recover velocity. Position is more readily decoded than velocity from a single frame, but stacking two frames does not reliably improve the velocity measurements in this configuration. Cart-velocity latexmath:[R^2] increases by only about latexmath:[0.002], while the pole-angular-velocity score becomes slightly worse. The position scores also do not improve.
 
@@ -1413,9 +1412,7 @@ isolation. Each method uses seeds 0, 1, and 2, 12 epochs, a batch size of 64,
 a learning rate of latexmath:[10^{-3}], 3,500 training frames, and 1,000
 validation frames. Error bars show standard deviation across the three trained
 seeds, not uncertainty across independently collected environments. The
-per-variable scores are retained in
-`+ch03/results/table_03_04_comparison.json+`; they are omitted here to keep
-the main comparison readable.
+Per-variable scores are available in link:../ch03/results/table_03_04_comparison.json[the committed JSON results file]; they are omitted here to keep the main comparison readable.
 
 For Finger Spin, the absolute spinner hinge angle is excluded from the aggregate position score. Its rendered geometry has latexmath:[\pi]-periodic symmetry, so a static image cannot uniquely identify its absolute latexmath:[2\pi] angle. The position summary therefore averages the other position variables, and the velocity summary averages the task’s velocity variables. The exclusion is part of the metric definition, not a discarded unsuccessful prediction.
 
@@ -1806,7 +1803,7 @@ Once an encoder has been trained, downstream code needs a stable way to obtain i
 [#unique_section2_ch3_061_a_common_encoder_interface_ID, reftext={chapter}.{section}.{counter:subsection}, caption='{chapter}.{section}.{subsection}']
 === A common encoder interface
 
-The current repository implements the shared interface in `+worldmodels/models/encoders.py+`. The Encoder class wraps a backbone, such as the ConvEncoder trained in Section 3.3. It exposes two methods:
+The shared interface is implemented in link:../worldmodels/models/encoders.py[the encoder module]. The Encoder class wraps a backbone, such as the ConvEncoder used in contrastive training. It exposes two methods:
 
 `+encode(obs)+` maps an observation to its latent representation.
 
@@ -2091,6 +2088,8 @@ The updated taxonomy discussion also draws on the following sources:
 
 - Uelwer, T., Robine, J., Wagner, S. S., Höftmann, M., Upschulte, E., Konietzny, S., Behrendt, M., et al. (2025). “A survey on self-supervised methods for visual representation learning.” *Machine Learning*, 114, Article 111. https://doi.org/10.1007/s10994-024-06708-7
 - Assran, M., Bardes, A., Fan, D., Garrido, Q., Howes, R., Komeili, M., et al. (2025). “V-JEPA 2: Self-Supervised Video Models Enable Understanding, Prediction and Planning.” Meta AI research publication, June 11, 2025. https://ai.meta.com/research/publications/v-jepa-2-self-supervised-video-models-enable-understanding-prediction-and-planning/
+
+<<<
 
 [#unique_section_ch3_075_summary_ID, caption='Summary']
 == Summary
