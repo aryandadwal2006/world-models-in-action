@@ -12,6 +12,11 @@ on:
 permissions:
   contents: write
 
+# A generated-PDF commit must not race another manuscript edit/build.
+concurrency:
+  group: manuscript-pdf-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-pdf:
     if: ${{ github.event_name != 'push' || !contains(github.event.head_commit.message, '[pdf-generated]') }}
@@ -64,6 +69,12 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Never push a PDF from a stale checkout over a newer manuscript commit.
+          remote_head="$(git ls-remote origin refs/heads/manuscript | cut -f1)"
+          if [[ "$remote_head" != "$GITHUB_SHA" ]]; then
+            echo "The manuscript branch advanced during this build; a newer run will publish the PDF."
+            exit 0
+          fi
           git add -f manuscript/CH03_Dadwal_World_Models_in_Action.pdf
           if git diff --cached --quiet; then
             echo "PDF is unchanged; no commit required."
