@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="450" viewBox="0 0 1100 450" role="img" aria-labelledby="title desc"><title id="title">The NT-Xent classification view</title><desc id="desc">Original schematic for a technical chapter on self-supervised representation learning.</desc><rect width="1100" height="450" fill="#ffffff"/><style>text{font-family:Arial,Helvetica,sans-serif;fill:#222;font-size:22px}.title{font-size:27px;font-weight:700}.head{font-size:22px;font-weight:700;fill:#3B6FB6}.small{font-size:18px;fill:#444}.tiny{font-size:16px;fill:#555}.card{fill:#fff;stroke:#aab5c2;stroke-width:2}.blue{fill:#eaf2fb;stroke:#3B6FB6;stroke-width:2}.gold{fill:#fff3d8;stroke:#b8862d;stroke-width:2}.red{fill:#fbecea;stroke:#b84b41;stroke-width:2}.line{stroke:#596b7c;stroke-width:3;fill:none;stroke-linecap:round;stroke-linejoin:round}.accent{stroke:#3B6FB6;stroke-width:3;fill:none;stroke-linecap:round;stroke-linejoin:round}.dash{stroke:#8b98a6;stroke-width:2;stroke-dasharray:7 6;fill:none}</style>
+<text x="40" y="42" class="title">NT-Xent turns matching views into a classification problem</text>
+<rect x="35" y="82" width="220" height="252" rx="12" class="card"/><rect x="300" y="82" width="250" height="252" rx="12" class="card"/><rect x="595" y="82" width="210" height="252" rx="12" class="card"/><rect x="850" y="82" width="215" height="252" rx="12" class="card"/>
+<text x="145" y="117" text-anchor="middle" class="head">1. Anchor + views</text><text x="425" y="117" text-anchor="middle" class="head">2. Similarity logits</text><text x="700" y="117" text-anchor="middle" class="head">3. Softmax</text><text x="958" y="117" text-anchor="middle" class="head">4. Cross-entropy</text>
+<rect x="65" y="145" width="160" height="53" rx="7" class="blue"/><text x="145" y="178" text-anchor="middle">Anchor zᵢ</text>
+<rect x="65" y="213" width="160" height="44" rx="7" class="gold"/><text x="145" y="241" text-anchor="middle" class="small">positive zᵢ⁺</text>
+<rect x="65" y="269" width="160" height="44" rx="7" class="red"/><text x="145" y="297" text-anchor="middle" class="small">negative candidates</text>
+<text x="425" y="162" text-anchor="middle" class="small">sᵢⱼ = sim(zᵢ, zⱼ) / τ</text>
+<rect x="335" y="184" width="180" height="31" rx="5" class="gold"/><text x="425" y="206" text-anchor="middle" class="small">positive logit</text>
+<rect x="335" y="222" width="180" height="31" rx="5" class="card"/><text x="425" y="244" text-anchor="middle" class="small">negative logit 1</text>
+<rect x="335" y="260" width="180" height="31" rx="5" class="card"/><text x="425" y="282" text-anchor="middle" class="small">… negative K</text>
+<path d="M 255 210 L 295 210" class="accent"/><polygon points="287,202 301,210 287,218" fill="#3B6FB6"/>
+<path d="M 550 210 L 590 210" class="accent"/><polygon points="582,202 596,210 582,218" fill="#3B6FB6"/>
+<text x="700" y="157" text-anchor="middle" class="small">pᵢ(j) = softmax(logits)</text>
+<rect x="635" y="185" width="130" height="34" rx="6" class="gold"/><text x="700" y="208" text-anchor="middle">p(positive)</text>
+<rect x="635" y="229" width="130" height="34" rx="6" class="card"/><text x="700" y="252" text-anchor="middle" class="small">p(negative)</text>
+<text x="700" y="302" text-anchor="middle" class="tiny">temperature τ</text>
+<path d="M 805 210 L 845 210" class="accent"/><polygon points="837,202 851,210 837,218" fill="#3B6FB6"/>
+<text x="958" y="170" text-anchor="middle" class="small">target: positive class</text>
+<text x="958" y="220" text-anchor="middle" font-size="27" font-weight="700">−log pᵢ(i⁺)</text>
+<text x="958" y="268" text-anchor="middle" class="small">lower loss when</text><text x="958" y="293" text-anchor="middle" class="small">positive ranks higher</text>
+<text x="550" y="384" text-anchor="middle" class="small">Schematic only: actual similarities and probabilities depend on the learned embeddings and τ.</text>
+</svg>
