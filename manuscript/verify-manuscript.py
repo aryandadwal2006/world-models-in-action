@@ -96,11 +96,6 @@ if summary_heading not in lines:
     errors.append("Missing final Summary section.")
 else:
     summary_idx = lines.index(summary_heading)
-    if any(
-        (not inside and re.match(r"^=+\s", line))
-        for inside, line in []
-    ):
-        errors.append("Internal heading validation failure.")
     if any(re.match(r"^=+\s", line) for line in lines[summary_idx + 1 :]):
         errors.append("Summary is not the final section heading.")
     summary_bullets = [line for line in lines[summary_idx + 1 :] if line.startswith("* ")]
