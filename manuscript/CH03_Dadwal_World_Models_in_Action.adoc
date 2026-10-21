@@ -309,13 +309,13 @@ Colorization takes a grayscale image and trains a model to predict its color cha
 Figure 3.4 puts the three tasks side by side using the same cart-pole frame. Each task creates its own target, but the targets ask for different things.
 
 [#ch3-figure-F04,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.Figure 3.4 artwork pending: Three pretext tasks from one frame
+.Three ways to create a learning target from one observation
 [NOTE]
 ====
-**Artwork placeholder.** See `../images/CH03_F04_Dadwal.md` for the figure brief and source notes.
+Figure to be produced: compare rotation prediction, colorization, and future-frame prediction using the same observation. Make each target explicit and show what the encoder is trained to predict.
 ====
 
-Credit: Redraw and adapt the task overview from Figure 4 of Gui et al., A Survey on Self-supervised Learning: Algorithms, Applications, and Future Trends (2024), using our own Control Suite render for the example image. Cite the survey in the figure credit line.
+Credit: Conceptual overview adapted from Gui et al. (2024); use an original Control Suite render for the example image.
 
 NOTE
 
