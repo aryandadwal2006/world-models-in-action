@@ -741,7 +741,7 @@ image::CH03_F07_Dadwal.png[NT-Xent training loss on Cartpole,pdfwidth=88%]
 
 The loss is still decreasing at the final epoch, so this run ends at its chosen training budget rather than at a demonstrated convergence point. Its trend is evidence that the network is learning to solve the batch-identification task. It is not, by itself, evidence that the representation has captured the physical state.
 
-Figure 3.8 is a qualitative two-component PCA projection of validation representations. The production plot must use wrapped pole-angle bins and episode-stratified validation sampling, as specified in `images/CH03_F08_Dadwal.md`. A two-dimensional projection cannot establish which physical variables are linearly recoverable.
+A two-dimensional PCA projection can reveal broad structure in the learned features, but it cannot establish which physical variables are linearly recoverable. The linear probes provide the quantitative test.
 
 [#ch3-figure-F08,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Figure 3.8 artwork pending: PCA projections of validation representations
@@ -1328,9 +1328,9 @@ The physics states collected from the simulator do not enter this objective. The
 .Figure 3.12 artwork pending: A masked autoencoder and its reconstructions
 NOTE: Artwork pending; see link:../images/CH03_F12_Dadwal.md[figure brief].
 
-The completed Figure 3.12 combines real reconstruction outputs with a separately drawn architecture schematic. The reconstruction panel alone does not show the encoder’s visible-token path, mask-token restoration, or masked-patch loss; these remain part of the production brief in `images/CH03_F12_Dadwal.md`.
+The key architectural distinction is that the encoder sees only visible patches; the decoder inserts mask tokens and predicts the hidden pixels. Only the hidden patches contribute to the reconstruction loss.
 
-The MAE implementation exposes a 64-dimensional representation for evaluation. Specifically, SimpleMAE.encode() runs the encoder over all image patches and mean-pools its final tokens. The linear probe uses this representation directly. The constructor still accepts a legacy latent_dim argument, but that argument does not set the feature dimension used by the current MAE probe.
+For evaluation, the experiment uses a 64-dimensional feature vector formed by mean-pooling the encoder’s patch tokens. The probe is applied to this frozen representation, not to the decoder’s pixel predictions.
 
 Variational autoencoders and generative adversarial networks use additional objectives and trade-offs, but are outside the comparison here.
 
@@ -1346,7 +1346,7 @@ This is a hypothesis about the objective, not a conclusion that follows from the
 
 The standalone MAE experiment uses seeds 0, 1, and 2, 4,000 episode-stratified training frames, 1,000 validation frames, 15 epochs, a batch size of 64, and Adam with learning rate latexmath:[10^{-3}]. Its probe uses the mean-pooled 64-dimensional encoder tokens. Across the three training seeds, the mean R² across the four Cartpole state variables is latexmath:[0.170\pm0.004]. This is the result recorded in ch03/results/mae_metrics.json.
 
-Table 3.3 compares complete method configurations rather than loss functions in isolation. Each method uses seeds 0, 1, and 2, 12 epochs, a batch size of 64, learning rate latexmath:[10^{-3}], 3,500 training samples, and 1,000 validation samples. Its position and velocity scores aggregate their respective state variables. The reported uncertainty is the standard deviation across the three trained seeds, not across independent environments.
+Table 3.3 compares complete configurations, not loss functions in isolation. All four methods use three seeds, 12 epochs, a batch size of 64, 3,500 training frames, and 1,000 validation frames. Error bars show the standard deviation across trained seeds, not across independently collected environments.
 
 
 
@@ -1377,7 +1377,7 @@ These observations do not isolate the objective as the cause. MAE uses a patch-t
 .Figure 3.13 artwork pending: Joint embedding and pixel reconstruction
 NOTE: Artwork pending; see link:../images/CH03_F13_Dadwal.md[figure brief].
 
-The result is consistent with the chapter’s central distinction: the training objective specifies what the encoder is directly rewarded for preserving. Masked prediction is useful when reconstructing hidden observations is the desired task, but pixel reconstruction alone does not ensure that the resulting features expose the physical state. World models ultimately need a representation that can support prediction and planning, not just one that can rebuild an image.
+The result illustrates the central distinction: a training objective encourages the encoder to preserve information that helps solve its target. Masked prediction is useful when reconstructing hidden observations matters, but pixel reconstruction alone does not ensure that physical state variables will be easy to decode. A representation intended for a world model must also support prediction.
 
 Before predicting in a representation space, we should ask how much representational capacity the state needs. The next section studies that question through latent bottlenecks.
 
@@ -1704,7 +1704,7 @@ The state probes provide a complementary picture. Current position is relatively
 
 The experiment also receives no action input. Because the frames were generated under a random policy, the learned context does not distinguish state-driven change from the effects of the actions taken. The study is not a controlled test of action-conditioning; it simply does not include it. We must not interpret the retrieval score as action-conditioned transition prediction or as a universal ceiling on what CPC can achieve.
 
-WARNING — A GRU is a placeholder, not a memory guarantee. The context vector summarizes a finite sequence through a learned recurrent state. A GRU does not guarantee that information needed over long periods will be retained. The memory chapter returns to that question using an environment designed to test long-term memory, rather than treating this short-window retrieval task as a memory benchmark.
+WARNING — A recurrent state is not a memory guarantee. A GRU compresses a finite history into a fixed-width vector, and training on short windows does not establish that it will retain information over much longer intervals. This experiment measures future-latent retrieval on short sequences, not long-term memory.
 
 CPC asks a context to identify a future embedding rather than enforce agreement between two views or reconstruct missing pixels. This makes the role of temporal prediction explicit, but retrieval alone does not show that a model can generate a physically accurate future or choose an action.
 
@@ -1980,7 +1980,7 @@ The lower bound concerns mutual information shared by paired-view representation
 
 === Figure credits
 
-Figure 3.1 is an original objective-centred redraw informed by Gui et al. (2024), Uelwer et al. (2025), and the V-JEPA 2 release (2025). Figure 3.4 adapts the conceptual pretext-task overview from Gui et al. (2024). Figure 3.10 adapts the high-level Siamese-method comparison from Gui et al. (2024). Figure 3.12’s MAE architecture panel is adapted from Gui et al. (2024) and informed by He et al. (2022); its reconstruction panel comes from the committed experiment output. Figure 3.13 adapts the conceptual distinction between joint embedding and pixel reconstruction from Gui et al. (2024). Figures 3.2, 3.5, 3.6, 3.11, 3.15, and 3.17 are original diagrams. The DMC observations in Figure 3.3 are the book’s own renders of the simulator. Figures 3.7, 3.8, 3.9, 3.11’s curves, 3.12’s reconstructions, 3.14, and 3.16 derive from committed experiment outputs; unfinished outputs are documented by same-stem Markdown briefs in `images/`.
+Figure 3.1 is an original objective-centred redraw informed by Gui et al. (2024), Uelwer et al. (2025), and V-JEPA 2. Figure 3.3 uses the book’s own renders of the DeepMind Control Suite. Figures 3.7, 3.14, and 3.16 are based on committed experimental outputs. Table 3.3 re-plots the recorded state-probe results. Adapted diagrams will carry source attribution alongside the finished artwork.
 
 === Updated taxonomy sources
 
