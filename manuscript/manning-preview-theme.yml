@@ -5,7 +5,7 @@ extends: default
 page:
   size: Letter
   layout: portrait
-  margin: [0.78in, 1.15in, 0.72in, 1.15in]
+  margin: [0.92in, 1.15in, 0.72in, 1.15in]
   background_color: FFFFFF
 
 font:
