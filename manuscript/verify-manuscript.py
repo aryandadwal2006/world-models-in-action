@@ -70,26 +70,80 @@ for pattern, message in (
     if re.search(pattern, source, re.IGNORECASE):
         errors.append(message)
 
-# Math and listing passthrough blocks may contain literal lines beginning with '='.
-# Only evaluate actual AsciiDoc headings outside those blocks.
-inside_passthrough = False
+# The Manning scaffold uses anchors and reference captions on section headings.
+# Scan only actual headings: code, passthrough math, examples, sidebar content,
+# and admonition bodies can contain lines that resemble headings.
+fenced_delimiters = {"++++", "----", "****", "____", "===="}
+inside_delimiter = None
+section_numbers_disabled = False
+heading_records = []
 for line_number, line in enumerate(lines, start=1):
-    if line.strip() == "++++":
-        inside_passthrough = not inside_passthrough
+    if line.strip() == ":sectnums!:":
+        section_numbers_disabled = True
+
+    if inside_delimiter is not None:
+        if line.strip() == inside_delimiter:
+            inside_delimiter = None
         continue
-    if inside_passthrough:
+
+    if line.strip() in fenced_delimiters:
+        inside_delimiter = line.strip()
         continue
-    match = re.match(r"^(=+)\s+(.*)$", line)
+
+    match = re.match(r"^(=+)\\s+(.*)$", line)
     if not match:
         continue
+
     level = len(match.group(1))
-    heading = line
+    heading_text = match.group(2)
     if level >= 5:
-        errors.append(f"Heading at line {line_number} exceeds the allowed section hierarchy: {heading}")
-    if len(heading) > 120:
-        errors.append(f"Overlong heading at line {line_number}: {heading[:120]}...")
-    if heading.endswith("."):
-        errors.append(f"Heading at line {line_number} ends in a period: {heading}")
+        errors.append(
+            f"Heading at line {line_number} exceeds the allowed section hierarchy: {line}"
+        )
+    if len(line) > 120:
+        errors.append(f"Overlong heading at line {line_number}: {line[:120]}...")
+    if line.endswith("."):
+        errors.append(f"Heading at line {line_number} ends in a period: {line}")
+
+    if level not in (2, 3, 4):
+        continue
+
+    heading_records.append((line_number, level, heading_text, section_numbers_disabled))
+    previous = lines[line_number - 2] if line_number > 1 else ""
+    expected_prefix = {
+        2: "[#unique_section_ch3_",
+        3: "[#unique_section2_ch3_",
+        4: "[#unique_section3_ch3_",
+    }[level]
+    if not previous.startswith(expected_prefix):
+        errors.append(
+            f"Heading at line {line_number} lacks the Manning-style {level}-level anchor: "
+            f"{heading_text}"
+        )
+    elif "caption=" not in previous:
+        errors.append(f"Heading at line {line_number} anchor has no caption: {heading_text}")
+    elif not section_numbers_disabled and level == 2:
+        if "reftext={chapter}.{counter:section}" not in previous or \
+           "caption='{chapter}.{section}'" not in previous:
+            errors.append(
+                f"Section anchor does not follow the template counter/caption convention "
+                f"at line {line_number}: {heading_text}"
+            )
+    elif not section_numbers_disabled and level == 3:
+        if "reftext={chapter}.{section}.{counter:subsection}" not in previous or \
+           "caption='{chapter}.{section}.{subsection}'" not in previous:
+            errors.append(
+                f"Subsection anchor does not follow the template counter/caption convention "
+                f"at line {line_number}: {heading_text}"
+            )
+
+# IDs are link targets; duplicates silently redirect readers to the wrong place.
+anchor_ids = re.findall(r"^\\[#([^,\\]]+)", source, re.MULTILINE)
+seen_ids = set()
+for anchor_id in anchor_ids:
+    if anchor_id in seen_ids:
+        errors.append(f"Duplicate AsciiDoc anchor ID: {anchor_id}")
+    seen_ids.add(anchor_id)
 
 summary_heading = "== Summary"
 if summary_heading not in lines:
