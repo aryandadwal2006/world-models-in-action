@@ -27,7 +27,11 @@ The supplied taxonomy image was from 2024. The current Figure 3.1 is an updated 
 
 ## Device note in the chapter
 
-The manuscript explains that `worldmodels.train.get_device()` selects CUDA automatically when PyTorch detects a CUDA GPU, otherwise CPU; it includes a direct verification snippet. This applies to PyTorch training only. MuJoCo/OpenGL rendering is a separate dependency, and cached data avoids repeated rendering.
+The manuscript keeps device selection to one sentence: the runners select CUDA when PyTorch detects a compatible GPU and otherwise use CPU. Full setup and rendering instructions belong in `../ch03/README.md`. MuJoCo/OpenGL rendering is separate from PyTorch training, and cached observations avoid repeating it.
+
+## Core paper references
+
+`../agent_memory_mustread/core_papers/` contains unmodified PDFs for SimCLR, Barlow Twins, and V-JEPA 2, with attribution and licensing details in its `README.md`. The same index links to CPC, SimSiam, BYOL, VICReg, MAE, and I-JEPA without mirroring files whose redistribution terms have not been verified.
 
 ## Validation
 
