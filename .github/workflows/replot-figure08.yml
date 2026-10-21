@@ -43,7 +43,9 @@ jobs:
         run: |
           python -m py_compile ch03/latent_projection.py ch03/13_replot_latent_projection.py ch03/04_train_contrastive.py
           python ch03/13_replot_latent_projection.py
+          cp ch03/figures/fig03_07_latent_projection_seed_0.png images/CH03_F08_Dadwal.png
           cp ch03/figures/fig03_07_latent_projection_seed_0.png images/CH03_F08_Dadwal_Source.png
+          cp images/CH03_F11_Dadwal_Source.png images/CH03_F11_Dadwal.png
 
       - name: Verify the manuscript and all figure paths
         run: python manuscript/verify-manuscript.py
@@ -52,7 +54,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add ch03/figures/fig03_07_latent_projection_seed_0.png images/CH03_F08_Dadwal_Source.png
+          git add ch03/figures/fig03_07_latent_projection_seed_0.png images/CH03_F08_Dadwal.png images/CH03_F08_Dadwal_Source.png images/CH03_F11_Dadwal.png
           if git diff --cached --quiet; then
             echo "The regenerated figure matches the committed assets; no update is needed."
             exit 0
