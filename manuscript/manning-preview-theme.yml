@@ -1,0 +1,118 @@
+extends: default
+
+# Author-side preview theme based on the supplied Chapter 1/2 PDFs and the
+# Manning AsciiDoc structure template. This is not Manning's production DTP theme.
+page:
+  size: Letter
+  layout: portrait
+  margin: [0.78in, 1.15in, 0.72in, 1.15in]
+  background_color: FFFFFF
+
+font:
+  catalog:
+    Liberation Serif:
+      normal: /usr/share/fonts/truetype/liberation2/LiberationSerif-Regular.ttf
+      bold: /usr/share/fonts/truetype/liberation2/LiberationSerif-Bold.ttf
+      italic: /usr/share/fonts/truetype/liberation2/LiberationSerif-Italic.ttf
+      bold_italic: /usr/share/fonts/truetype/liberation2/LiberationSerif-BoldItalic.ttf
+    Liberation Mono:
+      normal: /usr/share/fonts/truetype/liberation2/LiberationMono-Regular.ttf
+      bold: /usr/share/fonts/truetype/liberation2/LiberationMono-Bold.ttf
+      italic: /usr/share/fonts/truetype/liberation2/LiberationMono-Italic.ttf
+      bold_italic: /usr/share/fonts/truetype/liberation2/LiberationMono-BoldItalic.ttf
+
+base:
+  font_family: Liberation Serif
+  font_size: 11.25
+  font_color: 181818
+  text_align: justify
+  line_height_length: 16.5
+  line_height: $base_line_height_length / $base_font_size
+  vertical_rhythm: 11.5
+  horizontal_rhythm: 12
+  border_color: D0D0D0
+
+heading:
+  font_family: $base_font_family
+  font_color: C33B2B
+  font_style: bold
+  text_align: left
+  line_height: 1.05
+  margin_top: $vertical_rhythm * 0.75
+  margin_bottom: $vertical_rhythm * 0.55
+  min_height_after: $base_line_height_length
+  h1_font_size: 18
+  h2_font_size: 14.5
+  h3_font_size: 12
+  h4_font_size: 11.25
+  h5_font_size: 11.25
+  h6_font_size: 10.5
+
+role:
+  book-title:
+    font_family: $base_font_family
+    font_size: 20
+    font_style: bold
+    font_color: 111111
+    margin_top: 0
+    margin_bottom: 24
+
+prose:
+  margin_bottom: 9
+
+caption:
+  align: left
+  font_family: $base_font_family
+  font_size: 9.75
+  font_color: 222222
+  font_style: italic
+  margin_inside: 4
+  margin_outside: 0
+
+code:
+  font_family: Liberation Mono
+  font_size: 9
+  font_color: 181818
+  background_color: F7F7F7
+  border_color: D8D8D8
+  border_width: 0.5
+  padding: 7
+  line_height: 1.15
+
+codespan:
+  font_family: Liberation Mono
+  font_color: 222222
+
+list:
+  indent: 18
+  item_spacing: 5
+
+table:
+  background_color: FFFFFF
+  border_color: C8C8C8
+  border_width: 0.5
+  grid_width: 0.5
+  cell_padding: 4
+
+title-page: false
+
+header:
+  height: 0
+  border_width: 0
+  recto:
+    right:
+      content: ''
+  verso:
+    left:
+      content: ''
+
+footer:
+  height: 0
+  border_width: 0
+  padding: [0, 0, 0, 0]
+  recto:
+    right:
+      content: ''
+  verso:
+    left:
+      content: ''
