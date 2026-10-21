@@ -3,6 +3,7 @@
 
 from pathlib import Path
 import argparse
+import re
 import sys
 
 parser = argparse.ArgumentParser()
@@ -153,6 +154,102 @@ for anchor_id in anchor_ids:
         errors.append(f"Duplicate AsciiDoc anchor ID: {anchor_id}")
     seen_ids.add(anchor_id)
 
+# Enforce the Manning Manual of Style section hierarchy: an individual
+# heading level must not have exactly one child heading, and a heading must
+# begin with regular explanatory prose rather than another heading or block.
+heading_children = {record[0]: 0 for record in heading_records}
+heading_stack = []
+for record in heading_records:
+    while heading_stack and heading_stack[-1][1] >= record[1]:
+        heading_stack.pop()
+    if heading_stack:
+        heading_children[heading_stack[-1][0]] += 1
+    heading_stack.append(record)
+
+for line_number, level, heading_text, _disabled in heading_records:
+    if level in (2, 3) and heading_children[line_number] == 1:
+        errors.append(
+            f"Heading at line {line_number} has only one child heading, which violates "
+            f"the Manning hierarchy rule: {heading_text}"
+        )
+
+for line_number, _level, heading_text, _disabled in heading_records:
+    if heading_text == "Summary":
+        continue  # The manual explicitly allows the Summary to begin with bullets.
+    index = line_number  # zero-based index of the line immediately after the heading
+    while index < len(lines) and (
+        not lines[index].strip() or lines[index].strip().startswith("[#")
+    ):
+        index += 1
+    if index >= len(lines):
+        errors.append(f"Heading at line {line_number} has no following prose: {heading_text}")
+        continue
+    following = lines[index].strip()
+    if heading_level(following):
+        errors.append(
+            f"Stacked headings at lines {line_number} and {index + 1}: {heading_text}"
+        )
+    elif following.startswith((
+        "[latexmath]", "image::", "[source", "[NOTE]", "[TIP]", "[WARNING]",
+        "[IMPORTANT]", "[CAUTION]", "|===", "* ", "- ", "."
+    )):
+        errors.append(
+            f"Heading at line {line_number} is followed by a non-prose block instead of a sentence: "
+            f"{heading_text}"
+        )
+
+# Section titles use sentence case, with the first word after a colon capitalized.
+for line_number, _level, heading_text, _disabled in heading_records:
+    if ":" in heading_text:
+        after_colon = heading_text.split(":", 1)[1].lstrip()
+        if after_colon and after_colon[0].isalpha() and not after_colon[0].isupper():
+            errors.append(
+                f"Heading at line {line_number} does not capitalize the word after a colon: {heading_text}"
+            )
+
+# Figure, table, and listing references must appear in the prose before their
+# numbered objects, as required by the publisher's style guide.
+for kind in ("figure", "table", "listing"):
+    anchors = [
+        (idx, line)
+        for idx, line in enumerate(lines)
+        if line.startswith(f"[#ch3-{kind}-")
+    ]
+    for object_number, (idx, _line) in enumerate(anchors, start=1):
+        reference = re.compile(rf"\\b{kind} 3\\.{object_number}\\b")
+        if not reference.search("\\n".join(lines[:idx])):
+            errors.append(
+                f"{kind.capitalize()} 3.{object_number} is not mentioned in the text before its anchor."
+            )
+
+# Manning code-listing captions must fit on one line (65 characters including
+# the number) and must not end with a period.
+listing_anchors = [
+    idx for idx, line in enumerate(lines) if line.startswith("[#ch3-listing-")
+]
+for listing_number, idx in enumerate(listing_anchors, start=1):
+    title_index = idx + 1
+    while title_index < len(lines) and not lines[title_index].strip():
+        title_index += 1
+    if title_index >= len(lines) or not lines[title_index].startswith("."):
+        errors.append(f"Listing 3.{listing_number} has no caption immediately after its anchor.")
+        continue
+    caption = lines[title_index][1:].strip()
+    if len(f"Listing 3.{listing_number} {caption}") > 65:
+        errors.append(
+            f"Listing 3.{listing_number} caption exceeds the 65-character Manning limit: {caption}"
+        )
+    if caption.endswith("."):
+        errors.append(f"Listing 3.{listing_number} caption ends in a period: {caption}")
+
+# All running references use lowercase, unlike the display captions.
+for line_number, line in enumerate(lines, start=1):
+    if re.search(r"\\b(?:Figure|Table|Listing) 3\\.\\d+\\b", line):
+        errors.append(
+            f"Use lowercase in running references to figures, tables, and listings "
+            f"(line {line_number}): {line.strip()}"
+        )
+
 figure_anchor_count = sum(line.startswith("[#ch3-figure-") for line in lines)
 table_anchor_count = sum(line.startswith("[#ch3-table-") for line in lines)
 if figure_anchor_count != 20:
@@ -206,4 +303,4 @@ if errors:
     print("\n".join(f"ERROR: {error}" for error in errors))
     sys.exit(1)
 
-print("OK: Manning-oriented source structure, heading hierarchy, final Summary, callouts, 20 figures, two tables, and all figure paths are consistent.")
+print("OK: Manning anchors, nesting and prose flow, numbered object callouts, listing captions, final Summary, 20 figures, two tables, and all figure paths are consistent.")
