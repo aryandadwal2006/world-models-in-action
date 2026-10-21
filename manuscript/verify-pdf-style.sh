@@ -25,6 +25,82 @@ if ! pdffonts "$pdf" | grep -qi "LiberationSerif"; then
   exit 1
 fi
 
+# The supplied Chapter 2 PDF is the closest visual reference for this opener.
+# Check title and chapter-heading coordinates against its visible top-page
+# proportions; this catches a document that passes text checks but floats the
+# title too high or leaves an excessive gap before the chapter heading.
+bbox_file="$(mktemp)"
+trap 'rm -f "$bbox_file"' EXIT
+pdftotext -f 1 -l 1 -bbox "$pdf" "$bbox_file"
+python3 - "$bbox_file" <<'PY'
+from html.parser import HTMLParser
+import sys
+
+class Words(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.items = []
+        self.active = None
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "word":
+            values = dict(attrs)
+            self.active = {
+                "text": "",
+                "x": float(values["xMin"]),
+                "y": float(values["yMin"]),
+            }
+
+    def handle_data(self, data):
+        if self.active is not None:
+            self.active["text"] += data
+
+    def handle_endtag(self, tag):
+        if tag == "word" and self.active is not None:
+            self.items.append(self.active)
+            self.active = None
+
+parser = Words()
+parser.feed(open(sys.argv[1], encoding="utf-8").read())
+items = parser.items
+tokens = [item["text"].strip() for item in items]
+
+def sequence_index(sequence, start=0):
+    for idx in range(start, len(tokens) - len(sequence) + 1):
+        if tokens[idx:idx + len(sequence)] == sequence:
+            return idx
+    return None
+
+title_idx = sequence_index(["World", "Models", "in", "Action"])
+heading_idx = sequence_index(
+    ["Representation", "learning", "before", "generation"],
+    (title_idx or 0) + 4,
+)
+if title_idx is None or heading_idx is None:
+    raise SystemExit("ERROR: title/heading sequence is not extractable from the first page.")
+
+title_y = min(word["y"] for word in items[title_idx:title_idx + 4])
+heading_y = min(word["y"] for word in items[heading_idx:heading_idx + 4])
+title_x = items[title_idx]["x"]
+heading_x = items[heading_idx]["x"]
+gap = heading_y - title_y
+
+print(
+    f"First-page geometry: book-title y={title_y:.1f} pt, "
+    f"chapter-title y={heading_y:.1f} pt, gap={gap:.1f} pt, "
+    f"left edges={title_x:.1f}/{heading_x:.1f} pt"
+)
+if not 68 <= title_y <= 84:
+    raise SystemExit("ERROR: book title sits outside the publisher-sample top-page range.")
+if not 96 <= heading_y <= 115:
+    raise SystemExit("ERROR: chapter title sits outside the publisher-sample vertical range.")
+if not 22 <= gap <= 42:
+    raise SystemExit("ERROR: title-to-chapter-heading spacing differs from the publisher sample.")
+if abs(title_x - heading_x) > 2:
+    raise SystemExit("ERROR: book title and chapter heading are not left-aligned.")
+
+PY
+
 if pdfinfo "$pdf" | grep -Eqi '^Page size:.*A4'; then
   echo "ERROR: preview PDF is A4; the chapter references are US Letter." >&2
   exit 1
