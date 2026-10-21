@@ -305,7 +305,7 @@ Rotation prediction is one example of using structure in the input to create a t
 
 Jigsaw prediction divides an image into a grid of tiles, shuffles them using a permutation selected from a predefined set, and trains the model to identify that permutation. The spatial relationships between tiles supply the learning signal. This can encourage features that capture local appearance and spatial arrangement, but it does not directly require the model to preserve physical variables such as velocity.
 
-Colorization takes a grayscale image and trains a model to predict its color channels. The target is derived from the original image, so human labeling is unnecessary. Predicting color can encourage the model to use contextual information, but good color reconstruction is not the same as learning a state suitable for control. The objective rewards information useful for recovering color; it does not explicitly require every geometric or dynamical distinction that a downstream world model may need.
+Colorization takes a grayscale image and trains a model to predict its color channels. The target is derived from the original image, so human labeling is unnecessary. Predicting color can encourage the model to use contextual information, but good color reconstruction is not the same as learning a state suitable for control. The objective rewards information useful for recovering color; it does not require every geometric or dynamical distinction a downstream world model needs.
 
 Figure 3.4 puts the three tasks side by side using the same cart-pole frame. Each task creates its own target, but the targets ask for different things.
 
@@ -951,7 +951,7 @@ The symmetric objective evaluates each view as the prediction and the other view
 \tag{3.10}
 ++++
 
-The operator latexmath:[\mathrm{sg}] means stop-gradient. It leaves the target’s value unchanged, but treats it as a constant when calculating the gradient. The predictor is trained to match the opposite branch’s representation, while the target branch does not receive gradients through that particular loss term.
+The notation `sg` means stop-gradient. It leaves the target’s value unchanged, but treats it as a constant when calculating the gradient. The predictor is trained to match the opposite branch’s representation, while the target branch does not receive gradients through that particular loss term.
 
 This asymmetry is central to SimSiam. The method also uses a projector and a predictor with batch normalization, following its original design. The stop-gradient changes the optimization process, but it is not a universal mathematical guarantee that every possible configuration avoids collapse. Its effectiveness is established primarily through the method’s experiments, and our reduced-scale study measures the result of the full configuration rather than performing an ablation of each component.
 
