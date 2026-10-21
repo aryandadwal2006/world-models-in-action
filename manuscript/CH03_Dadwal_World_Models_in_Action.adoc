@@ -1657,29 +1657,17 @@ image::CH03_F16_Dadwal.png[CPC future-latent retrieval by horizon,pdfwidth=88%]
 _Panel A. Static-encoder and recurrent-context probes for current and next-state variables._
 
 [#ch3-table-T04,reftext={chapter}.{counter:table},caption='{table-caption}.{counter:table-number} ']
-.CPC state probes and future-latent retrieval
-[width="100%",cols="20%,20%,20%,20%,20%",options="header",]
-|===
-|State variable |Static latexmath:[z_t] → latexmath:[s_t] |Context latexmath:[c_t] → latexmath:[s_t] |Static latexmath:[z_t] → latexmath:[s_{t+1}] |Context latexmath:[c_t] → latexmath:[s_{t+1}]
-|Cart position |0.770 ± 0.033 |0.805 ± 0.084 |0.770 ± 0.033 |0.806 ± 0.084
-|Pole angle |0.515 ± 0.037 |0.560 ± 0.051 |0.514 ± 0.039 |0.559 ± 0.050
-|Cart velocity |0.013 ± 0.006 |0.016 ± 0.006 |0.014 ± 0.006 |0.016 ± 0.006
-|Pole angular velocity |−0.347 ± 0.017 |−0.348 ± 0.030 |−0.345 ± 0.017 |−0.346 ± 0.029
-|===
+.CPC state probes and candidate separation across horizons
+image::CH03_CPC_Evaluation.svg[CPC state-probe and horizon-evaluation plot, pdfwidth=100%]
 
-_Panel B. CPC future-latent retrieval, InfoNCE loss, and positive–hardest-negative margin._
+The state-probe values and the loss/margin curves summarize five trained seeds.
+The query-weighted in-batch chance level for top-1 retrieval is 3.5%. The
+evaluation windows come from five episodes, so they are not 200 independent
+trajectory samples.
 
-[width="100%",cols="20%,20%,20%,20%,20%",options="header",]
-|===
-|Future horizon |Top-1 retrieval |Top-5 retrieval |InfoNCE loss |Positive–hardest-negative margin
-|1 step |95.0% ± 0.8 pp |100.0% ± 0.0 pp |0.115 ± 0.016 |12.96 ± 0.65
-|2 steps |94.1% ± 0.7 pp |100.0% ± 0.0 pp |0.133 ± 0.017 |11.52 ± 0.54
-|3 steps |92.4% ± 0.5 pp |100.0% ± 0.0 pp |0.171 ± 0.018 |9.50 ± 0.50
-|===
+ The uncertainty shown is the standard deviation across the five trained seeds, not a confidence interval over 200 independent episodes.
 
-Note: Chance top-1 retrieval for this query-weighted in-batch evaluation is 3.5%. The uncertainty shown is the standard deviation across the five trained seeds, not a confidence interval over 200 independent episodes.
-
-Top-1 retrieval is high at all three horizons and declines from 95.0% at one step to 92.4% at three steps. InfoNCE loss rises with horizon, while the margin between the positive and hardest negative decreases. These metrics are consistent with identifying the matching future latent becoming less separated from other candidates at longer horizons, even though the correct candidate remains ranked first most of the time.
+The retrieval plot and the two curves tell a consistent story: the matching future latent is usually ranked first, but candidate separation weakens as the prediction horizon grows. Retrieval asks which candidate matches the context; it does not measure the physical accuracy of a predicted state.
 
 Top-5 retrieval reaches 100% in each seed at all three horizons. This tells us that the positive candidate reliably appears among the five highest-scoring candidates in the batches used for evaluation. It does not mean the model can predict five steps into the future with perfect physical accuracy.
 
