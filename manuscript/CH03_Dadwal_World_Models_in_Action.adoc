@@ -945,13 +945,13 @@ The symmetric objective evaluates each view as the prediction and the other view
 [latexmath]
 ++++
 
-\frac12D\big(p_1,\operatorname{sg}(z_2)\big)
+\frac12D\big(p_1,\mathrm{sg}(z_2)\big)
 +
-\frac12D\big(p_2,\operatorname{sg}(z_1)\big)
+\frac12D\big(p_2,\mathrm{sg}(z_1)\big)
 \tag{3.10}
 ++++
 
-The operator latexmath:[\operatorname{sg}] means stop-gradient. It leaves the target’s value unchanged, but treats it as a constant when calculating the gradient. The predictor is trained to match the opposite branch’s representation, while the target branch does not receive gradients through that particular loss term.
+The operator latexmath:[\mathrm{sg}] means stop-gradient. It leaves the target’s value unchanged, but treats it as a constant when calculating the gradient. The predictor is trained to match the opposite branch’s representation, while the target branch does not receive gradients through that particular loss term.
 
 This asymmetry is central to SimSiam. The method also uses a projector and a predictor with batch normalization, following its original design. The stop-gradient changes the optimization process, but it is not a universal mathematical guarantee that every possible configuration avoids collapse. Its effectiveness is established primarily through the method’s experiments, and our reduced-scale study measures the result of the full configuration rather than performing an ablation of each component.
 
