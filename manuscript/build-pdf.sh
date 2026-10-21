@@ -9,7 +9,6 @@ bundle exec asciidoctor-pdf \
   -r asciidoctor-mathematical \
   -a stem=latexmath \
   -a mathematical-format=svg \
-  -a pdf-theme=default \
   -a allow-uri-read \
   -o CH03_Dadwal_World_Models_in_Action.pdf \
   CH03_Dadwal_World_Models_in_Action.adoc
