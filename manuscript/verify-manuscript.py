@@ -3,7 +3,6 @@
 
 from pathlib import Path
 import argparse
-import re
 import sys
 
 parser = argparse.ArgumentParser()
@@ -216,8 +215,8 @@ for kind in ("figure", "table", "listing"):
         if line.startswith(f"[#ch3-{kind}-")
     ]
     for object_number, (idx, _line) in enumerate(anchors, start=1):
-        reference = re.compile(rf"\\b{kind} 3\\.{object_number}\\b")
-        if not reference.search("\\n".join(lines[:idx])):
+        reference = f"{kind} 3.{object_number}"
+        if reference not in "\n".join(lines[:idx]):
             errors.append(
                 f"{kind.capitalize()} 3.{object_number} is not mentioned in the text before its anchor."
             )
@@ -244,7 +243,7 @@ for listing_number, idx in enumerate(listing_anchors, start=1):
 
 # All running references use lowercase, unlike the display captions.
 for line_number, line in enumerate(lines, start=1):
-    if re.search(r"\\b(?:Figure|Table|Listing) 3\\.\\d+\\b", line):
+    if any(marker in line for marker in ("Figure 3.", "Table 3.", "Listing 3.")):
         errors.append(
             f"Use lowercase in running references to figures, tables, and listings "
             f"(line {line_number}): {line.strip()}"
@@ -256,6 +255,9 @@ if figure_anchor_count != 20:
     errors.append(f"Expected 20 numbered figures after promoting the plot panels; found {figure_anchor_count}.")
 if table_anchor_count != 2:
     errors.append(f"Expected the two actual tables; found {table_anchor_count} table anchors.")
+listing_anchor_count = sum(line.startswith("[#ch3-listing-") for line in lines)
+if listing_anchor_count != 12:
+    errors.append(f"Expected 12 numbered code listings; found {listing_anchor_count} listing anchors.")
 
 summary_heading = "== Summary"
 if summary_heading not in lines:
@@ -267,6 +269,20 @@ else:
     summary_bullets = [line for line in lines[summary_idx + 1 :] if line.startswith("* ")]
     if len(summary_bullets) < 4:
         errors.append(f"Summary has only {len(summary_bullets)} top-level bullets.")
+    for bullet in summary_bullets:
+        text = bullet[2:]
+        sentence_boundaries = sum(
+            1
+            for index in range(len(text) - 2)
+            if text[index] in ".!?"
+            and text[index + 1].isspace()
+            and text[index + 2].isupper()
+        )
+        sentence_count = sentence_boundaries + 1
+        if sentence_count > 2:
+            errors.append(
+                f"Summary bullet has {sentence_count} sentences; the Manning guide recommends one or two: {bullet}"
+            )
     if not lines[-1].strip().startswith("* "):
         errors.append("Summary must be the last content, with no trailing paragraph or production note.")
 
