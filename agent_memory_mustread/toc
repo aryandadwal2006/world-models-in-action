@@ -1,0 +1,150 @@
+World Models
+Part I — Foundations
+1. Introducing World Models
+
+1.1 What is a world model?
+1.2 Prediction versus generation
+1.3 State, dynamics, and planning
+1.4 Persistent state in AI systems
+1.5 Why agents need world models
+1.6 A simple predictive agent
+1.7 Summary
+
+2. The Anatomy of a World Model
+
+2.1 Observations and latent state
+2.2 Transition dynamics
+2.3 Reward and value estimation
+2.4 Planning loops
+2.5 Memory and temporal consistency
+2.6 World models versus sequence models
+2.7 Why visual quality is insufficient
+
+Prediction fidelity
+Long-horizon consistency
+Action grounding
+Planning utility
+Failure modes
+2.8 Summary
+3. Representation Learning Before Generation
+
+3.1 Self-supervised learning foundations
+3.2 Contrastive learning
+3.3 Masked prediction
+3.4 Latent bottlenecks
+3.5 Compact state representations
+3.6 Building a simple latent encoder
+3.7 Summary
+
+4. JEPA and Predictive Representation Learning
+
+4.1 Why predict in latent space?
+4.2 JEPA (Joint-Embedding Predictive Architecture)
+
+I-JEPA
+V-JEPA
+V-JEPA 2
+LeJEPA
+4.3 Action-conditioned predictive representations
+4.4 Implementing a miniature JEPA system
+4.5 Summary
+5. State-Space Models as Temporal Memory
+
+5.1 Why temporal memory matters
+5.2 Limits of transformers for long horizons
+5.3 State-space model intuition
+5.4 S4 fundamentals
+5.5 Mamba and selective state spaces
+5.6 Using SSMs inside world models
+5.7 Building a sequence backbone
+5.8 Summary
+
+Part II — Predicting Futures and Planning With Them
+6. Latent Dynamics and Imagined Rollouts
+
+6.1 Learning transition functions
+6.2 Deterministic and stochastic dynamics
+6.3 Rollout stability
+6.4 Uncertainty estimation
+6.5 Multi-step prediction
+6.6 Building a latent-dynamics model
+6.7 Summary
+
+7. Planning With Learned World Models
+
+7.1 Planning in latent space
+7.2 Model-predictive control
+7.3 Dreamer-style imagination
+7.4 Value estimation through imagined futures
+7.5 Sample efficiency
+7.6 Building a planning loop
+7.7 Summary
+
+Part III — Generative World Models
+8. Generative Models Inside Predictive Systems
+
+8.1 Variational autoencoders
+8.2 Autoregressive generation
+8.3 GANs
+8.4 Generative reconstruction versus predictive representation
+8.5 Summary
+
+9. Diffusion for World Modeling
+
+9.1 Denoising fundamentals
+9.2 Latent diffusion
+9.3 Video diffusion
+9.4 Action-conditioned diffusion
+9.5 Diffusion as a simulator
+9.6 Building a small diffusion world model
+9.7 Summary
+
+10. Interactive Video World Models
+
+10.1 Action-conditioned video prediction
+10.2 Playable environments
+10.3 Memory and object permanence
+10.4 Genie-style systems
+10.5 Real-time interaction constraints
+10.6 Building an interactive simulator
+10.7 Summary
+
+Part IV — Embodied World Models and Open Problems
+11. World Models for Robotics and Embodied AI
+
+11.1 Learning from video and interaction
+11.2 Manipulation and locomotion
+11.3 Navigation and control
+11.4 Zero-shot adaptation
+11.5 Sim-to-real transfer
+11.6 Building a simple embodied agent
+11.7 Summary
+
+12. Scaling, Failure Modes, and Open Problems
+
+12.1 Dataset construction
+12.2 Synthetic rollouts
+12.3 Compute and memory bottlenecks
+12.4 Training stability
+12.5 Real-time inference
+12.6 Deployment considerations
+12.7 Open problems
+
+Hallucinated dynamics
+Temporal drift
+Poor action grounding
+Evaluation gaps
+Long-horizon uncertainty
+12.8 The future of embodied predictive systems
+12.9 Summary
+Appendices
+Appendix A. Mathematical Foundations
+Appendix B. PyTorch Implementation Notes
+Appendix C. Recommended Papers and Open-Source Projects
+Appendix D. Building a Complete World Model
+Designing the architecture
+Training the encoder
+Learning latent dynamics
+Adding planning
+Evaluating performance
+Extending the system
