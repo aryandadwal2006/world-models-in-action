@@ -10,6 +10,7 @@ All figure stems follow the attached Manning template: `CH03_F##_Dadwal`. The As
 - `CH03_F07_Dadwal.png`: recorded NT-Xent curve from `ch03/figures/fig03_06_contrastive_loss.png`; panel labels should be polished for publication, and the curve is still falling at the last epoch.
 - `CH03_F14_Dadwal.png`: recorded two-task latent-dimension sweep from `ch03/figures/fig03_14_bottleneck_sweep.png`.
 - `CH03_F16_Dadwal.png`: primary matched-16-frame CPC retrieval plot from `ch03/figures/fig03_16_cpc_future_retrieval.png`.
+- `CH03_State_Probe_Comparison.svg`: editable two-panel plot of mean position and velocity probe R² with standard-deviation error bars. Values are sourced from the chapter's committed comparison results.
 
 The four empirical PNGs listed above are byte-for-byte copies of the repository's canonical runner outputs. They are not reconstructed by hand.
 
