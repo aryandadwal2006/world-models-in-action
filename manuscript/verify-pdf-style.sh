@@ -25,7 +25,7 @@ if ! pdffonts "$pdf" | grep -qi "LiberationSerif"; then
   exit 1
 fi
 
-# The supplied Chapter 2 PDF is the closest visual reference for this opener.
+# The supplied Chapter 2 PDF is the closest visual reference for this opener. Its title is roughly 76 pt from the top and the chapter heading roughly 124 pt.
 # Check title and chapter-heading coordinates against its visible top-page
 # proportions; this catches a document that passes text checks but floats the
 # title too high or leaves an excessive gap before the chapter heading.
@@ -100,11 +100,11 @@ print(
     f"chapter-title y={heading_y:.1f} pt, gap={gap:.1f} pt, "
     f"left edges={title_x:.1f}/{heading_x:.1f} pt"
 )
-if not 68 <= title_y <= 84:
+if not 72 <= title_y <= 80:
     raise SystemExit("ERROR: book title sits outside the publisher-sample top-page range.")
-if not 110 <= heading_y <= 130:
+if not 120 <= heading_y <= 130:
     raise SystemExit("ERROR: chapter title sits outside the calibrated publisher-sample vertical range.")
-if not 38 <= gap <= 56:
+if not 45 <= gap <= 53:
     raise SystemExit("ERROR: title-to-chapter-heading spacing differs from the calibrated publisher-sample range.")
 if abs(title_x - heading_x) > 2:
     raise SystemExit("ERROR: book title and chapter heading are not left-aligned.")
