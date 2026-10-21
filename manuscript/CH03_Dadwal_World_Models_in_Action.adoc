@@ -50,11 +50,11 @@ We begin with pretext tasks, then derive contrastive learning and examine why re
 
 We finish by exposing the learned representation through a small encoder interface. A static encoder maps a frame, or a fixed stack of frames, to a latent vector without retaining memory between calls. An optional recurrent wrapper carries a learned hidden state across observations. Neither one is a complete world model: action-conditioned transition prediction and a method for evaluating or planning over futures are separate components.
 
-____
-*NOTE: Three components, three different jobs*
-
+[sidebar]
+.Three components, three different jobs
+****
 A *static visual encoder* maps the current image, or a fixed stack of images, to a latent vector latexmath:[z_t]. It has no memory across calls. A *recurrent wrapper* is optional: it takes the current visual latent and a previous hidden state latexmath:[h_{t-1}], then returns an updated hidden state latexmath:[h_t]. That hidden state is a learned model state, not the simulator’s physical state. A *full world model* additionally needs a transition model that predicts future state or observations conditioned on actions, and components that evaluate or plan over possible futures. The GRU wrapper and CPC experiment in this chapter do not, by themselves, implement that full system.
-____
+****
 
 == Learning a state without labels
 
@@ -139,11 +139,10 @@ Availability. A deployed agent does not automatically know the exact positions a
 
 Labels remain useful whenever they can be obtained. A simulator can supply its internal state, a synthetic data generator can produce targets, and demonstrations can provide training signals. These are legitimate alternatives, each with its own requirements. Self-supervised learning addresses a different opportunity: the observations themselves contain relationships that can be turned into learning signals without manually labelling every example.
 
-____
-*DEFINITION — Self-supervised learning*
-____
-
+[sidebar]
+====
 Self-supervised learning trains a model using a target constructed from the data itself, rather than a human-provided label. The model solves a task designed to produce this target, often called a pretext task. The pretext task is a means of learning a representation; its answer is not necessarily the final goal.
+====
 
 Consider a simple example. Take an image, rotate it by a known amount, and ask a model to identify the rotation. We do not need a person to annotate the transformed image: we already know which rotation we applied. The transformation generates the target automatically.
 
@@ -151,11 +150,10 @@ This clarifies the distinction between three learning settings. In supervised le
 
 The terminology varies across the literature. Some surveys treat self-supervised learning as a subset of unsupervised learning; other authors emphasize that self-supervised methods do use a supervisory signal, even though it is generated from the data. This chapter uses the more explicit distinction above. For a broader taxonomy of self-supervised methods, see Gui and colleagues’ A Survey on Self-supervised Learning: Algorithms, Applications, and Future Trends (2024).
 
-____
-*NOTE — Predicting what is missing*
-____
-
+[NOTE]
+====
 In his ICLR 2020 keynote, Yann LeCun described self-supervision through the general idea of predicting missing information (LeCun, 2020). The missing part might be a region of an image, the future given the past, or an obscured portion of an observation. These are not the same objective, but each turns structure already present in the data into a training signal.
+====
 
 This idea provides a useful map of the chapter: first learn from transformations and views, then from missing visual content, and finally from temporal relationships.
 
@@ -173,10 +171,9 @@ Temporal prediction asks the model to use earlier observations to identify or pr
 
 The central principle is therefore:
 
-____
-**> **SIDEBAR — The principle behind this chapter****
-____
-
+[sidebar]
+.The principle behind representation learning
+****
 A representation-learning objective specifies what information the representation is encouraged to retain. Information the objective does not require may be discarded.
 
 Contrastive learning rewards information that helps distinguish a positive view from other views. Masked prediction rewards information that helps reconstruct hidden content. Temporal prediction rewards information that helps identify or anticipate what comes next.
@@ -184,7 +181,7 @@ Contrastive learning rewards information that helps distinguish a positive view 
 The objective is not the only influence. Architecture, training data, transformations, and training budget also shape the representation. A decreasing training loss does not, by itself, establish that the learned state is useful for prediction or planning.
 
 This principle gives us a way to evaluate methods rather than simply collect them. We can examine what their objectives encourage, then measure what their learned representations actually retain.
-
+****
 === Why use a benchmark rather than a toy world?
 
 The experiments in this chapter use the DeepMind Control Suite (DMC), a collection of physics-based control tasks built on MuJoCo. The observations are rendered by the simulator rather than drawn by a custom world designed solely to demonstrate a particular learning method. The suite gives us both rendered images for training and simulator variables against which to evaluate the resulting representations.
@@ -207,11 +204,10 @@ The data-collection code records rendered frames and the corresponding simulator
 
 The key distinction is between training signal and evaluation target. For the self-supervised experiments, the training objectives receive rendered frames, not the stored physics-state labels. We use those labels to evaluate which physical quantities can be recovered from a learned representation. Section 3.5 also includes a separate supervised reference that is trained using state labels; that model is explicitly treated as a supervised comparison, not as a self-supervised method.
 
-____
-*NOTE — Why the simulator state is still useful*
-____
-
+[NOTE]
+====
 Using state variables for evaluation does not make the self-supervised objective supervised. It gives us a reference against which to test the representation after learning. The distinction must remain explicit: the self-supervised encoder does not receive these labels as its training target, while the supervised reference later in the chapter does.
+====
 
 Data collection records rendered frames alongside simulator state variables, using independent environment seeds for training and validation. The self-supervised objectives receive images only; the stored physics state is held back for evaluation. The supervised reference is separate because it is trained using state labels. The data-collection runner handles rendering, action sampling, and caching; those operational details belong in the code repository.
 
@@ -412,11 +408,10 @@ C Calls the pipeline twice, producing independent views.
 
 The view pipeline is small, but its consequences run through the entire method. Contrastive learning can encourage invariance only to transformations that the training process actually applies. The choice of transformations is therefore part of the learning objective, even though it does not appear as a term in the loss equation.
 
-____
-*NOTE — False negatives in trajectory batches*
-____
-
+[NOTE]
+====
 A batch drawn from trajectories can contain frames that are almost identical, such as neighbouring steps from one episode. The basic objective still treats views from different source frames as negatives. These are called false negatives: two observations may differ in source identity while sharing much of their physical state. These numbers describe a hypothetical uniform draw from the full 30,000-frame cache, assuming 1,000 frames per episode: the probability that another frame comes from the same episode is latexmath:[999/29{,}999], about 3.3%, and the chance of selecting a frame within five steps is at most latexmath:[10/29{,}999], about 0.033%. The primary contrastive run actually samples a 5,000-frame episode-stratified subset, so these percentages are illustrative for the full cache; the experiment does not report an observed false-negative frequency for its sampled pool. We keep the simple in-batch rule and report its results rather than silently changing the negative set.
+====
 
 === From similarity to a loss
 
@@ -506,17 +501,15 @@ If the classifier cannot distinguish the positive and assigns the same probabili
 
 For general batch size latexmath:[N], an exactly uniform probability distribution over the candidates gives loss latexmath:[\log(2N-1)]. This is the uninformative reference value for this classification problem.
 
-____
-*WARNING — Comparing NT-Xent losses*
-____
-
+[WARNING]
+====
 Compare NT-Xent loss values only when the batch size and temperature are the same. The number of candidate views changes with batch size, and the temperature changes the softmax probabilities. A lower numerical loss under a different configuration does not necessarily mean a better representation.
+====
 
-____
-*TIP — Batch size controls the negatives*
-____
-
+[TIP]
+====
 Batch size sets the number of negatives: latexmath:[K=2N-2]. A larger batch asks the model to distinguish the positive from more candidates, but it also requires memory for more views and their similarity scores.
+====
 
 [#ch3-figure-F06,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .The NT-Xent classification view
@@ -529,10 +522,9 @@ NT-Xent is one instance of the broader InfoNCE objective, used in contrastive pr
 
 First, we need a measure of shared information.
 
-____
-*DEFINITION — Mutual information*
-____
-
+[sidebar]
+.Mutual information
+****
 The mutual information latexmath:[I(a;b)] between random variables latexmath:[a] and latexmath:[b] measures how much knowing one reduces uncertainty about the other. It is the expected log ratio between their joint distribution and the product of their marginal distributions:
 
 [latexmath]
@@ -546,6 +538,7 @@ I(a;b)=
 ++++
 
 Mutual information is zero when latexmath:[a] and latexmath:[b] are independent. With natural logarithms, it is measured in nats.
+****
 
 Let latexmath:[a] and latexmath:[b] be the representations of two views of the same frame. This is the positive pair. Let latexmath:[b_1,\ldots,b_K] be representations of negative views drawn independently from the marginal distribution of latexmath:[b]. For a positive score function (flatexmath:[a,b]), InfoNCE is
 
@@ -913,11 +906,10 @@ This finding needs a careful interpretation. The randomly initialized encoder al
 
 Effective rank gives a complementary result. Under attraction only, the final encoder effective rank remains about 12.4 out of 16, even as spread shrinks to roughly latexmath:[10^{-5}]. Under NT-Xent, effective rank drops sharply early in training and then recovers to about 7.0 by the final epoch. An effective-rank measurement alone would therefore have failed to identify the attraction-only representation’s extremely small scale.
 
-____
-*NOTE — Interpreting small spread*
-____
-
+[NOTE]
+====
 A small spread is not, on its own, proof that a representation contains no information. A representation can encode distinctions at a small scale. The recorded experiment does not probe the attraction-only encoder for physical-state information, so we do not claim that its tiny variation is necessarily useless. The result is narrower: the objective does not demand spread or prevent a constant representation from minimizing the loss.
+====
 
 ==== Why does NT-Xent behave differently?
 
@@ -1860,9 +1852,10 @@ The existing aliasing diagnostic compares single-frame features with features fo
 
 Predict which Finger Spin state variables will be easier to decode from a single frame and which, if any, will benefit from stacking two frames. Then compare single-frame and stacked-frame probe scores across the same three seeds.
 
-____
-*NOTE: Interpreting Finger Spin probes.* Finger Spin’s rendered spinner has latexmath:[\pi]-periodic symmetry: a static image does not uniquely identify its absolute latexmath:[2\pi] angle. Account for this when interpreting the probe scores. Distinguish a variable that is unobservable from a single image because of the rendering symmetry from one that is merely difficult to decode under the tested model and training budget.
-____
+[NOTE]
+====
+**Interpreting Finger Spin probes.** Finger Spin’s rendered spinner has latexmath:[\pi]-periodic symmetry: a static image does not uniquely identify its absolute latexmath:[2\pi] angle. Account for this when interpreting the probe scores. Distinguish a variable that is unobservable from a single image because of the rendering symmetry from one that is merely difficult to decode under the tested model and training budget.
+====
 
 == Appendix A: InfoNCE bound and gradient details
 This appendix gives the full derivation of the InfoNCE bound and the associated gradient. It uses the notation in Table 3.1. The bound depends on its sampling assumptions; the experiment’s trajectory batch is not an ideal independent-negative sampler.
