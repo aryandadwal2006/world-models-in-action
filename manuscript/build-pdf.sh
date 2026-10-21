@@ -11,7 +11,7 @@ bundle exec asciidoctor-pdf \
   -a doctype=article \
   -a notitle \
   -a toc! \
-  -a sectnumlevels=2 \
+  -a sectnumlevels=3 \
   -a pdf-theme=manning-preview-theme.yml \
   -a pdf-themesdir=. \
   -a stem=latexmath \
