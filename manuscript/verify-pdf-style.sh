@@ -47,11 +47,11 @@ class Words(HTMLParser):
             values = dict(attrs)
             # pdftotext can emit empty or non-positioned word elements for
             # control characters; ignore those rather than failing the check.
-            if "xMin" in values and "yMin" in values:
+            if "xmin" in values and "ymin" in values:
                 self.active = {
                     "text": "",
-                    "x": float(values["xMin"]),
-                    "y": float(values["yMin"]),
+                    "x": float(values["xmin"]),
+                    "y": float(values["ymin"]),
                 }
             else:
                 self.active = None
