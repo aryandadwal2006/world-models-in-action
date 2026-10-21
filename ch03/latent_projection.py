@@ -14,6 +14,7 @@ from matplotlib.lines import Line2D
 from matplotlib.colors import Normalize
 from matplotlib.cm import ScalarMappable
 import numpy as np
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
 
 ANGLE_BINS = (
@@ -95,6 +96,46 @@ def plot_latent_projection(
         ax.set_axisbelow(True)
     axes[0].set_ylabel("Pooled principal component 2", fontsize=9)
 
+    # The random-init encoder's feature spread is orders of magnitude smaller
+    # than the trained encoder's. Keep the main axes comparable, but show a
+    # clearly marked zoom so the pre-training panel is not mistaken for a
+    # single observation. The inset has its own scale by design.
+    inset = inset_axes(
+        axes[0],
+        width="46%",
+        height="46%",
+        loc="lower left",
+        borderpad=1.25,
+    )
+    for _label, marker, membership in ANGLE_BINS:
+        mask = membership(theta)
+        if not np.any(mask):
+            continue
+        inset.scatter(
+            before_2d[mask, 0],
+            before_2d[mask, 1],
+            c=cart_position[mask],
+            cmap="Greys",
+            norm=norm,
+            marker=marker,
+            s=11,
+            alpha=0.78,
+            edgecolors="#303030",
+            linewidths=0.2,
+            rasterized=True,
+        )
+    before_min = np.min(before_2d, axis=0)
+    before_max = np.max(before_2d, axis=0)
+    before_pad = np.maximum((before_max - before_min) * 0.12, 1e-6)
+    inset.set_xlim(before_min[0] - before_pad[0], before_max[0] + before_pad[0])
+    inset.set_ylim(before_min[1] - before_pad[1], before_max[1] + before_pad[1])
+    inset.tick_params(labelsize=6, length=2)
+    inset.grid(True, linestyle=":", linewidth=0.35, color="#b0b0b0", alpha=0.5)
+    inset.set_title("Pre-training zoom; own scale", fontsize=7, pad=2)
+    for spine in inset.spines.values():
+        spine.set_linewidth(0.8)
+        spine.set_color("#4b4b4b")
+
     all_projection = np.concatenate([before_2d, after_2d], axis=0)
     mins = np.min(all_projection, axis=0)
     maxs = np.max(all_projection, axis=0)
@@ -124,7 +165,7 @@ def plot_latent_projection(
     colorbar.set_label("Cart position (lighter → darker)", fontsize=8)
     colorbar.ax.tick_params(labelsize=7)
     fig.suptitle(
-        "Shared PCA basis and axis scales; marker shape shows wrapped pole angle",
+        "Shared PCA basis and main-axis scale; inset magnifies tiny pre-training spread",
         fontsize=10,
         y=0.99,
     )
