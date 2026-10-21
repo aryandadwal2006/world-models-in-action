@@ -314,14 +314,9 @@ Figure 3.4 puts the three tasks side by side using the same cart-pole frame. Eac
 
 [#ch3-figure-F04,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Three ways to create a learning target from one observation
-[NOTE]
-====
-Figure to be produced: compare rotation prediction, colorization, and future-frame prediction using the same observation. Make each target explicit and show what the encoder is trained to predict.
-====
+image::CH03_F04_Dadwal.svg[Three self-supervised pretext tasks,pdfwidth=96%]
 
-Credit: Conceptual overview adapted from Gui et al. (2024); use an original Control Suite render for the example image.
-
-NOTE
+Conceptual task categories informed by Gui et al. (2024). The diagram uses original schematics rather than an adapted published figure.
 
 Gui and colleagues survey these and many other pretext tasks. This chapter uses rotation prediction because its target and loss are easy to derive. The purpose is not to cover every pretext task, but to understand what a chosen target requires the encoder to learn.
 
@@ -378,9 +373,7 @@ where latexmath:[K] is the number of negatives for each anchor. For example, a b
 [#ch3-figure-F05,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Positive and negative pairs in a contrastive batch
 
-[quote]
-____
-Figure to be produced: one anchor, its positive view, and several negative examples from other observations. Use arrows to show which pair is pulled together and which pairs are separated.
+image::CH03_F05_Dadwal.svg[Positive and negative pairs in a contrastive batch,pdfwidth=96%]
 ____
 
 The transformation latexmath:[t] is a design decision, not a cosmetic detail. If the encoder must identify two views of the same frame, changes introduced randomly by latexmath:[t] cannot reliably identify the source. The encoder is therefore encouraged to become insensitive to those changes.
@@ -529,10 +522,7 @@ Batch size sets the number of negatives: latexmath:[K=2N-2]. A larger batch asks
 [#ch3-figure-F06,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .The NT-Xent classification view
 
-[quote]
-____
-Figure to be produced: show one anchor comparing its positive candidate against the batch candidates, with the positive as the target class. Include the temperature-scaled similarity logits, not a decorative neural-network illustration.
-____
+image::CH03_F06_Dadwal.svg[The NT-Xent classification view,pdfwidth=96%]
 
 === What InfoNCE actually optimizes
 
@@ -758,9 +748,7 @@ A two-dimensional PCA projection can reveal broad structure in the learned featu
 [#ch3-figure-F08,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .A two-dimensional view of the learned representations
 
-[quote]
-____
-Figure to be produced from the committed validation embeddings: use readable, episode-aware colors and a legend. Label PCA as a projection, not evidence that the representation contains or lacks a particular state variable.
+image::CH03_F08_Dadwal_Source.png[Before-training and after-training PCA projections for contrastive embeddings,pdfwidth=96%]
 ____
 
 The visual projection can show that the numerical outputs change during training, but it cannot tell us what the dimensions encode. We now need an evaluation that asks the physical question directly.
@@ -919,9 +907,7 @@ The experiment uses cart-pole balance, 3,000 training frames sampled across epis
 [#ch3-figure-F09,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .How representation collapse appears
 
-[quote]
-____
-Figure to be produced from the recorded embeddings: compare the distribution of features under a collapsed and a non-collapsed run. State the measured statistic and avoid implying that a two-dimensional sketch proves collapse.
+image::CH03_F09_Dadwal.svg[Final encoder feature spread under attraction-only and NT-Xent objectives,pdfwidth=96%]
 ____
 
 Under attraction only, the encoder spread falls from approximately latexmath:[5.2\times10^{-4}] at initialization to latexmath:[7.8\times10^{-5}] after 15 epochs. The training loss falls to approximately latexmath:[2.6\times10^{-10}]. Under NT-Xent, the encoder spread reaches approximately 2.42, while the final training loss is approximately 3.16. The two conditions behave very differently: attraction alone can achieve an almost-zero loss while allowing its already small representation variation to shrink further.
@@ -1093,9 +1079,7 @@ D Penalizes off-diagonal correlations.
 [#ch3-figure-F10,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Different methods prevent collapse in different ways
 
-[quote]
-____
-Figure to be produced: contrast negative-pair separation, stop-gradient with a target branch, and explicit variance/covariance regularization. Use one concise mechanism per panel and do not imply that these methods are mathematically identical.
+image::CH03_F10_Dadwal.svg[Different mechanisms used to prevent representation collapse,pdfwidth=96%]
 ____
 
 ==== What did the reduced-scale study measure?
@@ -1265,9 +1249,7 @@ The recorded VICReg curves in Figure 3.11 show the total loss and three unweight
 [#ch3-figure-F11,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .The three terms in VICReg
 
-[quote]
-____
-Figure to be produced from the recorded run: plot invariance, variance, and covariance terms on a common training-step axis, with readable units and a legend. Do not combine incomparable raw scales without making the scale explicit.
+image::CH03_F11_Dadwal_Source.png[Recorded VICReg total loss and component curves,pdfwidth=96%]
 ____
 
 In this standalone configuration, the state probe reports mean latexmath:[R^2=0.248\pm0.005] across three seeds. Cart position and pole angle are more linearly recoverable than the velocities. These results describe this run’s architecture, sample cap, training budget, and probe. The contrastive training run in Section 3.3 uses a different budget and number of training frames, so these scores should not be interpreted as a controlled comparison of objectives. The objective-comparison study later in Section 3.5 uses a separately specified protocol.
@@ -1352,9 +1334,9 @@ The physics states collected from the simulator do not enter this objective. The
 [#ch3-figure-F12,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Visible patches, latent encoding, and masked-patch reconstruction
 
-[quote]
-____
-Figure to be produced: show the input divided into visible and masked patches, the encoder operating only on visible patches, mask tokens inserted in the decoder, and reconstruction loss computed on masked patches. Pair the schematic with real reconstructions from the committed run.
+image::CH03_F12_Dadwal.svg[Masked autoencoder architecture,pdfwidth=96%]
+
+image::CH03_F12_Dadwal_Source.png[Original frames, masked inputs, and reconstructions from the recorded run,pdfwidth=96%]
 ____
 
 The key architectural distinction is that the encoder sees only visible patches; the decoder inserts mask tokens and predicts the hidden pixels. Only the hidden patches contribute to the reconstruction loss.
@@ -1405,9 +1387,7 @@ These observations do not isolate the objective as the cause. MAE uses a patch-t
 [#ch3-figure-F13,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Predicting a representation is not the same as reconstructing pixels
 
-[quote]
-____
-Figure to be produced: compare a target-encoder/predictor path in latent space with an encoder/decoder path that reconstructs image patches. Label the training target in each path and keep the distinction clear.
+image::CH03_F13_Dadwal.svg[Latent prediction and pixel reconstruction have different targets,pdfwidth=96%]
 ____
 
 The result illustrates the central distinction: a training objective encourages the encoder to preserve information that helps solve its target. Masked prediction is useful when reconstructing hidden observations matters, but pixel reconstruction alone does not ensure that physical state variables will be easy to decode. A representation intended for a world model must also support prediction.
@@ -1659,10 +1639,7 @@ This is not a controlled comparison between action-conditioned and action-free p
 [#ch3-figure-F15,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Contrastive predictive coding predicts a future latent
 
-[quote]
-____
-Figure to be produced: show observations through time, a context encoder ending at time t, a predictor, and the encoded future target at t+k. Distinguish the positive future target from the negatives and label the horizon k.
-____
+image::CH03_F15_Dadwal.svg[Contrastive predictive coding and candidate future latents,pdfwidth=96%]
 
 === CPC evaluation: future retrieval and state probes
 
@@ -1830,9 +1807,7 @@ The measurements provide partial evidence about the learned representations, but
 [#ch3-figure-F17,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Using a learned encoder in a control loop
 
-[quote]
-____
-Figure to be produced: show observation → encoder → compact representation → policy/action → environment → next observation. Distinguish the trained encoder from the policy and do not suggest the encoder alone performs planning.
+image::CH03_F17_Dadwal.svg[The learned encoder as one component of a control loop,pdfwidth=96%]
 ____
 :sectnums!:
 
