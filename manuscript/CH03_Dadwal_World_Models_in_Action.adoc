@@ -16,7 +16,6 @@
 :!listing:
 :!table:
 :stem: latexmath
-:stylesheet: css/manning.css
 
 [#unique_chapter3_title_ID,reftext={chapter},caption='{chapter}']
 = Representation learning before generation
@@ -1550,7 +1549,7 @@ When latexmath:[\beta] is small, compression receives more weight relative to re
 
 This gives a useful interpretation of a compact state. If an image contains a cart, a pole, a floor, lighting, and background details, the agent may not need to encode all those details equally. It needs enough information to distinguish states that matter for prediction and control. But compression must stop before two physically different situations that require different decisions become indistinguishable in the representation.
 
-That is the connection to the contracts from Chapter 2. A representation needs sufficiency for the task, but minimality asks it not to retain unnecessary detail. A bottleneck can help with the second goal while making the first harder to satisfy.
+A representation needs to preserve enough information for the task without carrying unnecessary detail. A bottleneck can help limit irrelevant detail, but an overly narrow representation can also discard information needed for prediction.
 
 There is an important distinction between this information-theoretic objective and simply choosing a small vector. A deterministic encoder with a low-dimensional continuous output is not, by that fact alone, optimizing latexmath:[I(Z;X)]. In formal information-bottleneck formulations, the relationship between input and representation is treated probabilistically, and the mutual-information terms must be defined and optimized or bounded appropriately. A deterministic autoencoder with a narrow latent layer imposes a practical capacity constraint; it does not automatically implement equation 3.19.
 
