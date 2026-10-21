@@ -102,10 +102,10 @@ def plot_latent_projection(
     # single observation. The inset has its own scale by design.
     inset = inset_axes(
         axes[0],
-        width="46%",
-        height="46%",
-        loc="lower left",
-        borderpad=1.25,
+        width="44%",
+        height="40%",
+        loc="upper right",
+        borderpad=1.15,
     )
     for _label, marker, membership in ANGLE_BINS:
         mask = membership(theta)
@@ -129,7 +129,7 @@ def plot_latent_projection(
     before_pad = np.maximum((before_max - before_min) * 0.12, 1e-6)
     inset.set_xlim(before_min[0] - before_pad[0], before_max[0] + before_pad[0])
     inset.set_ylim(before_min[1] - before_pad[1], before_max[1] + before_pad[1])
-    inset.tick_params(labelsize=6, length=2)
+    inset.tick_params(labelsize=5, length=2)
     inset.grid(True, linestyle=":", linewidth=0.35, color="#b0b0b0", alpha=0.5)
     inset.set_title("Pre-training zoom; own scale", fontsize=7, pad=2)
     for spine in inset.spines.values():
