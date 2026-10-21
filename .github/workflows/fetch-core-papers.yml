@@ -1,0 +1,54 @@
+name: Fetch openly licensed core papers
+
+on:
+  push:
+    branches: [manuscript]
+    paths:
+      - '.github/workflows/fetch-core-papers.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fetch-papers:
+    name: Fetch papers with verified redistribution licenses
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out manuscript branch
+        uses: actions/checkout@v4
+        with:
+          ref: manuscript
+          fetch-depth: 0
+
+      - name: Download official paper PDFs
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p agent_memory_mustread/core_papers
+          curl --fail --location --retry 3 --retry-delay 2 \
+            https://proceedings.mlr.press/v119/chen20j/chen20j.pdf \
+            --output agent_memory_mustread/core_papers/chen-etal-2020-simclr.pdf
+          curl --fail --location --retry 3 --retry-delay 2 \
+            https://proceedings.mlr.press/v139/zbontar21a/zbontar21a.pdf \
+            --output agent_memory_mustread/core_papers/zbontar-etal-2021-barlow-twins.pdf
+          curl --fail --location --retry 3 --retry-delay 2 \
+            https://arxiv.org/pdf/2506.09985 \
+            --output agent_memory_mustread/core_papers/assran-etal-2025-vjepa2.pdf
+          file agent_memory_mustread/core_papers/*.pdf
+          test "$(find agent_memory_mustread/core_papers -maxdepth 1 -name '*.pdf' | wc -l)" -eq 3
+
+      - name: Commit the papers to manuscript branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add agent_memory_mustread/core_papers/*.pdf
+          if git diff --cached --quiet; then
+            echo "Paper files are unchanged."
+            exit 0
+          fi
+          git commit -m "Fetch openly licensed core papers [open-papers]"
+          git push origin HEAD:manuscript
