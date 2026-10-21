@@ -4,10 +4,10 @@
 <defs>
   <style>
     .title { font: 700 34px Arial, sans-serif; fill: #142433; }
-    .note { font: 400 22px Arial, sans-serif; fill: #536273; }
-    .family { font: 700 27px Arial, sans-serif; fill: #142433; }
-    .method { font: 600 24px Arial, sans-serif; fill: #223345; }
-    .small { font: 400 21px Arial, sans-serif; fill: #46586a; }
+    .note { font: 400 24px Arial, sans-serif; fill: #536273; }
+    .family { font: 700 34px Arial, sans-serif; fill: #142433; }
+    .method { font: 600 30px Arial, sans-serif; fill: #223345; }
+    .small { font: 400 26px Arial, sans-serif; fill: #46586a; }
     .root { fill: #eaf0f7; stroke: #3b6fb6; stroke-width: 3; }
     .familybox { fill: #f5f7fa; stroke: #526579; stroke-width: 2; }
     .leaf { fill: #fff; stroke: #9aa8b7; stroke-width: 1.6; }
