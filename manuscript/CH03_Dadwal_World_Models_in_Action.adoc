@@ -741,7 +741,7 @@ A two-dimensional PCA projection can reveal broad structure in the learned featu
 [#ch3-figure-F08,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .A two-dimensional view of the learned representations
 
-image::CH03_F08_Dadwal_Source.png[Before-training and after-training PCA projections for contrastive embeddings,pdfwidth=96%]
+image::CH03_F08_Dadwal.png[Before-training and after-training PCA projections for contrastive embeddings,pdfwidth=96%]
 
 The visual projection can show that the numerical outputs change during training, but it cannot tell us what the dimensions encode. We now need an evaluation that asks the physical question directly.
 
@@ -1238,7 +1238,7 @@ The recorded VICReg curves in Figure 3.11 show the total loss and three unweight
 [#ch3-figure-F11,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .The three terms in VICReg
 
-image::CH03_F11_Dadwal_Source.png[Recorded VICReg total loss and component curves,pdfwidth=96%]
+image::CH03_F11_Dadwal.png[Recorded VICReg total loss and component curves,pdfwidth=96%]
 
 In this standalone configuration, the state probe reports mean latexmath:[R^2=0.248\pm0.005] across three seeds. Cart position and pole angle are more linearly recoverable than the velocities. These results describe this run’s architecture, sample cap, training budget, and probe. The contrastive training run in Section 3.3 uses a different budget and number of training frames, so these scores should not be interpreted as a controlled comparison of objectives. The objective-comparison study later in Section 3.5 uses a separately specified protocol.
 
