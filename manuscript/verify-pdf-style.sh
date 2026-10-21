@@ -85,9 +85,14 @@ if title_idx is None or heading_idx is None:
     raise SystemExit("ERROR: title/heading sequence is not extractable from the first page.")
 
 title_y = min(word["y"] for word in items[title_idx:title_idx + 4])
-heading_y = min(word["y"] for word in items[heading_idx:heading_idx + 4])
+# The extracted sequence starts at the words after the visible section number.
+# Include that number when comparing left edges and measuring the heading top.
+heading_start_idx = heading_idx
+if heading_idx > 0 and tokens[heading_idx - 1].endswith("."):
+    heading_start_idx = heading_idx - 1
+heading_y = min(word["y"] for word in items[heading_start_idx:heading_idx + 4])
 title_x = items[title_idx]["x"]
-heading_x = items[heading_idx]["x"]
+heading_x = items[heading_start_idx]["x"]
 gap = heading_y - title_y
 
 print(
