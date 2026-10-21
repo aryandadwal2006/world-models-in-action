@@ -5,7 +5,7 @@ extends: default
 page:
   size: Letter
   layout: portrait
-  margin: [0.96in, 1.15in, 0.72in, 1.15in]
+  margin: [0.99in, 1.15in, 0.72in, 1.15in]
   background_color: FFFFFF
 
 font:
@@ -40,6 +40,7 @@ heading:
   line_height: 1.05
   margin_top: $vertical_rhythm * 0.75
   margin_bottom: $vertical_rhythm * 0.55
+  h1_margin_top: $vertical_rhythm
   min_height_after: $base_line_height_length
   h1_font_size: 18
   h2_font_size: 14.5
