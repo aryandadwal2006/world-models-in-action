@@ -1,81 +1,83 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="600" viewBox="0 0 1600 600" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="780" viewBox="0 0 1100 780" role="img" aria-labelledby="title desc">
 <title id="title">Self-supervised objectives grouped by training signal</title>
-<desc id="desc">Five overlapping families of self-supervised learning: pretext prediction, contrastive learning, joint embedding, masked prediction, and cross-modal alignment. Representative examples are listed beneath each family.</desc>
+<desc id="desc">Five overlapping families of self-supervised learning: pretext prediction, contrastive learning, joint embedding, masked prediction, and cross-modal alignment. Representative examples are listed under each family.</desc>
 <defs>
   <style>
-    .title { font: 700 34px Arial, Helvetica, sans-serif; fill: #142433; }
-    .note { font: 400 27px Arial, Helvetica, sans-serif; fill: #536273; }
-    .root-text { font: 700 35px Arial, Helvetica, sans-serif; fill: #142433; }
-    .family { font: 700 32px Arial, Helvetica, sans-serif; fill: #142433; }
-    .method { font: 600 32px Arial, Helvetica, sans-serif; fill: #223345; }
-    .small { font: 400 27px Arial, Helvetica, sans-serif; fill: #46586a; }
+    .title { font: 700 31px Arial, Helvetica, sans-serif; fill: #142433; }
+    .note { font: 400 22px Arial, Helvetica, sans-serif; fill: #536273; }
+    .root-text { font: 700 30px Arial, Helvetica, sans-serif; fill: #142433; }
+    .family { font: 700 31px Arial, Helvetica, sans-serif; fill: #142433; }
+    .method { font: 600 26px Arial, Helvetica, sans-serif; fill: #223345; }
+    .small { font: 400 22px Arial, Helvetica, sans-serif; fill: #46586a; }
     .root { fill: #eaf0f7; stroke: #3b6fb6; stroke-width: 3; }
     .familybox { fill: #f5f7fa; stroke: #526579; stroke-width: 2; }
     .leaf { fill: #fff; stroke: #9aa8b7; stroke-width: 1.8; }
     .wire { fill: none; stroke: #68798b; stroke-width: 2.4; }
   </style>
 </defs>
-<rect width="1600" height="600" fill="#ffffff"/>
-<text class="title" x="800" y="39" text-anchor="middle">Organizing self-supervised objectives by training signal</text>
-<text class="note" x="800" y="70" text-anchor="middle">Representative examples; methods can belong to more than one family</text>
+<rect width="1100" height="780" fill="#ffffff"/>
+<text class="title" x="550" y="38" text-anchor="middle">Organizing self-supervised objectives by training signal</text>
+<text class="note" x="550" y="68" text-anchor="middle">Representative examples; methods can belong to more than one family</text>
+<rect class="root" x="235" y="88" width="630" height="52" rx="11"/>
+<text class="root-text" x="550" y="121" text-anchor="middle">Self-supervised representation learning</text>
 
-<rect class="root" x="470" y="88" width="660" height="58" rx="12"/>
-<text class="root-text" x="800" y="126" text-anchor="middle">Self-supervised representation learning</text>
+<!-- Upper row: three families -->
+<path class="wire" d="M550 140 V158 H190 V177 M550 158 V177 M910 158 H550"/>
+<path class="wire" d="M190 229 V242 M190 290 V302 M190 350 V362"/>
+<path class="wire" d="M550 229 V242 M550 290 V302 M550 350 V362"/>
+<path class="wire" d="M910 229 V242 M910 290 V302 M910 350 V362"/>
 
-<path class="wire" d="M800 146 V164 H170 M485 164 H1430"/>
-<path class="wire" d="M170 164 V180 M485 164 V180 M800 164 V180 M1115 164 V180 M1430 164 V180"/>
-<path class="wire" d="M170 235 V247 M170 300 V309 M170 362 V371 M170 424 V449"/>
-<path class="wire" d="M485 235 V247 M485 300 V309 M485 362 V371 M485 424 V449"/>
-<path class="wire" d="M800 235 V247 M800 300 V309 M800 362 V371 M800 424 V449"/>
-<path class="wire" d="M1115 235 V247 M1115 300 V309 M1115 362 V371 M1115 424 V449"/>
-<path class="wire" d="M1430 235 V247 M1430 300 V309 M1430 362 V371 M1430 424 V449"/>
+<rect class="familybox" x="25" y="177" width="330" height="52" rx="9"/>
+<text class="family" x="190" y="211" text-anchor="middle">Pretext prediction</text>
+<rect class="leaf" x="25" y="242" width="330" height="48" rx="7"/>
+<text class="method" x="190" y="273" text-anchor="middle">Rotation prediction</text>
+<rect class="leaf" x="25" y="302" width="330" height="48" rx="7"/>
+<text class="method" x="190" y="333" text-anchor="middle">Jigsaw prediction</text>
+<rect class="leaf" x="25" y="362" width="330" height="48" rx="7"/>
+<text class="method" x="190" y="393" text-anchor="middle">Colorization</text>
 
-<rect class="familybox" x="25" y="180" width="290" height="55" rx="9"/>
-<text class="family" x="170" y="216" text-anchor="middle">Pretext prediction</text>
-<rect class="leaf" x="25" y="247" width="290" height="53" rx="7"/>
-<text class="method" x="170" y="281" text-anchor="middle">Rotation</text>
-<rect class="leaf" x="25" y="309" width="290" height="53" rx="7"/>
-<text class="method" x="170" y="343" text-anchor="middle">Jigsaw</text>
-<rect class="leaf" x="25" y="371" width="290" height="53" rx="7"/>
-<text class="method" x="170" y="405" text-anchor="middle">Colorization</text>
+<rect class="familybox" x="385" y="177" width="330" height="52" rx="9"/>
+<text class="family" x="550" y="211" text-anchor="middle">Contrastive learning</text>
+<rect class="leaf" x="385" y="242" width="330" height="48" rx="7"/>
+<text class="method" x="550" y="273" text-anchor="middle">SimCLR / NT-Xent</text>
+<rect class="leaf" x="385" y="302" width="330" height="48" rx="7"/>
+<text class="method" x="550" y="333" text-anchor="middle">MoCo</text>
+<rect class="leaf" x="385" y="362" width="330" height="48" rx="7"/>
+<text class="method" x="550" y="393" text-anchor="middle">CPC</text>
 
-<rect class="familybox" x="340" y="180" width="290" height="55" rx="9"/>
-<text class="family" x="485" y="216" text-anchor="middle">Contrastive</text>
-<rect class="leaf" x="340" y="247" width="290" height="53" rx="7"/>
-<text class="method" x="485" y="281" text-anchor="middle">SimCLR / NT-Xent</text>
-<rect class="leaf" x="340" y="309" width="290" height="53" rx="7"/>
-<text class="method" x="485" y="343" text-anchor="middle">MoCo</text>
-<rect class="leaf" x="340" y="371" width="290" height="53" rx="7"/>
-<text class="method" x="485" y="405" text-anchor="middle">CPC</text>
+<rect class="familybox" x="745" y="177" width="330" height="52" rx="9"/>
+<text class="family" x="910" y="211" text-anchor="middle">Joint embedding</text>
+<rect class="leaf" x="745" y="242" width="330" height="48" rx="7"/>
+<text class="method" x="910" y="273" text-anchor="middle">SimSiam</text>
+<rect class="leaf" x="745" y="302" width="330" height="48" rx="7"/>
+<text class="method" x="910" y="333" text-anchor="middle">BYOL / DINO</text>
+<rect class="leaf" x="745" y="362" width="330" height="48" rx="7"/>
+<text class="method" x="910" y="393" text-anchor="middle">Barlow Twins / VICReg</text>
 
-<rect class="familybox" x="655" y="180" width="290" height="55" rx="9"/>
-<text class="family" x="800" y="216" text-anchor="middle">Joint embedding</text>
-<rect class="leaf" x="655" y="247" width="290" height="53" rx="7"/>
-<text class="method" x="800" y="281" text-anchor="middle">SimSiam</text>
-<rect class="leaf" x="655" y="309" width="290" height="53" rx="7"/>
-<text class="method" x="800" y="343" text-anchor="middle">BYOL / DINO</text>
-<rect class="leaf" x="655" y="371" width="290" height="53" rx="7"/>
-<text class="method" x="800" y="405" text-anchor="middle">Barlow / VICReg</text>
+<!-- Lower row: two families connected to the same root by the outside branch -->
+<path class="wire" d="M865 115 H1086 V443 H350 V462 M750 443 V462"/>
+<path class="wire" d="M350 514 V526 M350 574 V586 M350 634 V646"/>
+<path class="wire" d="M750 514 V526 M750 574 V586 M750 634 V646"/>
 
-<rect class="familybox" x="970" y="180" width="290" height="55" rx="9"/>
-<text class="family" x="1115" y="216" text-anchor="middle">Masked prediction</text>
-<rect class="leaf" x="970" y="247" width="290" height="53" rx="7"/>
-<text class="method" x="1115" y="281" text-anchor="middle">MAE / SimMIM</text>
-<rect class="leaf" x="970" y="309" width="290" height="53" rx="7"/>
-<text class="method" x="1115" y="343" text-anchor="middle">BEiT / iBOT</text>
-<rect class="leaf" x="970" y="371" width="290" height="53" rx="7"/>
-<text class="method" x="1115" y="405" text-anchor="middle" font-size="29">I-JEPA / V-JEPA 2</text>
+<rect class="familybox" x="120" y="462" width="460" height="52" rx="9"/>
+<text class="family" x="350" y="496" text-anchor="middle">Masked modeling and prediction</text>
+<rect class="leaf" x="120" y="526" width="460" height="48" rx="7"/>
+<text class="method" x="350" y="557" text-anchor="middle">MAE / SimMIM</text>
+<rect class="leaf" x="120" y="586" width="460" height="48" rx="7"/>
+<text class="method" x="350" y="617" text-anchor="middle">BEiT / iBOT</text>
+<rect class="leaf" x="120" y="646" width="460" height="48" rx="7"/>
+<text class="method" x="350" y="677" text-anchor="middle">I-JEPA / V-JEPA 2</text>
 
-<rect class="familybox" x="1285" y="180" width="290" height="55" rx="9"/>
-<text class="family" x="1430" y="216" text-anchor="middle">Cross-modal</text>
-<rect class="leaf" x="1285" y="247" width="290" height="53" rx="7"/>
-<text class="method" x="1430" y="281" text-anchor="middle">CLIP</text>
-<rect class="leaf" x="1285" y="309" width="290" height="53" rx="7"/>
-<text class="method" x="1430" y="343" text-anchor="middle">ImageBind</text>
-<rect class="leaf" x="1285" y="371" width="290" height="53" rx="7"/>
-<text class="method" x="1430" y="405" text-anchor="middle">Video-text</text>
+<rect class="familybox" x="630" y="462" width="460" height="52" rx="9"/>
+<text class="family" x="860" y="496" text-anchor="middle">Cross-modal alignment</text>
+<rect class="leaf" x="630" y="526" width="460" height="48" rx="7"/>
+<text class="method" x="860" y="557" text-anchor="middle">CLIP</text>
+<rect class="leaf" x="630" y="586" width="460" height="48" rx="7"/>
+<text class="method" x="860" y="617" text-anchor="middle">ImageBind</text>
+<rect class="leaf" x="630" y="646" width="460" height="48" rx="7"/>
+<text class="method" x="860" y="677" text-anchor="middle">Video-text objectives</text>
 
-<rect x="40" y="462" width="1520" height="68" rx="9" fill="#f8fafc" stroke="#c6ced7" stroke-width="1.6"/>
-<text class="small" x="800" y="490" text-anchor="middle">CPC is temporal and contrastive; collapse remedies can span families.</text>
-<text class="small" x="800" y="518" text-anchor="middle">The useful question is what each objective rewards the encoder for preserving.</text>
+<rect x="32" y="715" width="1036" height="48" rx="8" fill="#f8fafc" stroke="#c6ced7" stroke-width="1.6"/>
+<text class="small" x="550" y="735" text-anchor="middle">CPC is temporal and contrastive; collapse remedies can span families.</text>
+<text class="small" x="550" y="756" text-anchor="middle">Ask what each objective rewards the encoder for preserving.</text>
 </svg>
