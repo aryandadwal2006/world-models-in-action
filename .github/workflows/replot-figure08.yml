@@ -1,0 +1,61 @@
+name: Regenerate Chapter 3 Figure 3.8
+
+on:
+  push:
+    branches:
+      - manuscript
+    paths:
+      - "ch03/04_train_contrastive.py"
+      - "ch03/latent_projection.py"
+      - "ch03/13_replot_latent_projection.py"
+      - ".github/workflows/replot-figure08.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: chapter3-figure08-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  replot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out manuscript branch
+        uses: actions/checkout@v4
+        with:
+          ref: manuscript
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install plotting dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install numpy matplotlib
+          python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+
+      - name: Regenerate shared-basis PCA plot from committed data and weights
+        run: |
+          python -m py_compile ch03/latent_projection.py ch03/13_replot_latent_projection.py ch03/04_train_contrastive.py
+          python ch03/13_replot_latent_projection.py
+          cp ch03/figures/fig03_07_latent_projection_seed_0.png images/CH03_F08_Dadwal_Source.png
+
+      - name: Verify the manuscript and all figure paths
+        run: python manuscript/verify-manuscript.py
+
+      - name: Commit regenerated figures to manuscript branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ch03/figures/fig03_07_latent_projection_seed_0.png images/CH03_F08_Dadwal_Source.png
+          if git diff --cached --quiet; then
+            echo "The regenerated figure matches the committed assets; no update is needed."
+            exit 0
+          fi
+          git commit -m "[figure-generated] regenerate Figure 3.8 with shared PCA"
+          git push origin HEAD:manuscript
