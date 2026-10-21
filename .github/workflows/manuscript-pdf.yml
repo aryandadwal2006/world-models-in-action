@@ -27,6 +27,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y \
             build-essential cmake pkg-config bison flex fonts-lyx \
+            fonts-liberation2 poppler-utils \
             libxml2-dev libxslt1-dev libgmp-dev libffi-dev \
             libcairo2-dev libpango1.0-dev libgdk-pixbuf2.0-dev libglib2.0-dev \
             libzstd-dev libwebp-dev libgtk-3-dev
@@ -46,8 +47,9 @@ jobs:
           bundle install
           bash ./build-pdf.sh
 
-      - name: Check generated PDF
-        run: test -s manuscript/CH03_Dadwal_World_Models_in_Action.pdf
+      - name: Verify PDF matches the manuscript preview style
+        working-directory: manuscript
+        run: bash ./verify-pdf-style.sh
 
       - name: Upload PDF artifact
         uses: actions/upload-artifact@v4
