@@ -60,4 +60,20 @@ jobs:
             exit 0
           fi
           git commit -m "[figure-generated] regenerate Figure 3.8 with shared PCA"
-          git push origin HEAD:manuscript
+          # A PDF build may push its generated artifact while this job runs.
+          # Rebase the figure-only commit onto the newest branch before pushing.
+          for attempt in 1 2 3 4 5; do
+            git fetch origin manuscript
+            if ! git rebase origin/manuscript; then
+              git rebase --abort
+              echo "Could not rebase generated figures onto manuscript branch." >&2
+              exit 1
+            fi
+            if git push origin HEAD:manuscript; then
+              exit 0
+            fi
+            echo "Push raced another branch update (attempt $attempt/5); retrying."
+            sleep 2
+          done
+          echo "Could not publish regenerated figures after five attempts." >&2
+          exit 1
