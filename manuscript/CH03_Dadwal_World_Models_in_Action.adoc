@@ -140,9 +140,10 @@ Availability. A deployed agent does not automatically know the exact positions a
 Labels remain useful whenever they can be obtained. A simulator can supply its internal state, a synthetic data generator can produce targets, and demonstrations can provide training signals. These are legitimate alternatives, each with its own requirements. Self-supervised learning addresses a different opportunity: the observations themselves contain relationships that can be turned into learning signals without manually labelling every example.
 
 [sidebar]
-====
+.Self-supervised learning
+****
 Self-supervised learning trains a model using a target constructed from the data itself, rather than a human-provided label. The model solves a task designed to produce this target, often called a pretext task. The pretext task is a means of learning a representation; its answer is not necessarily the final goal.
-====
+****
 
 Consider a simple example. Take an image, rotate it by a known amount, and ask a model to identify the rotation. We do not need a person to annotate the transformed image: we already know which rotation we applied. The transformation generates the target automatically.
 
@@ -1479,9 +1480,16 @@ These results support the direction of the hypothesis: the four-variable task ap
 
 The experiment is also not a controlled comparison of latent dimensions in which all else is mathematically identical. Each point comes from a newly trained encoder and projection head. The result therefore reflects how the fixed architecture, contrastive objective, data, and training budget work at each output dimension. The evidence answers a practical question about this training setup, not a universal law connecting physical-state dimension to optimal latent size.
 
-TIP — Choose the smallest dimension that has saturated. Start with a sweep rather than selecting latexmath:[d] by intuition. Look for the smallest dimension at which the measured state probe stops improving meaningfully, and include variation across seeds. If performance is still rising at the largest tested dimension, the sweep has not yet identified a plateau.
+[TIP]
+====
+Choose the smallest dimension that has saturated. Start with a sweep rather than selecting latexmath:[d] by intuition. Look for the smallest dimension at which the measured state probe stops improving meaningfully, and include variation across seeds. If performance is still rising at the largest tested dimension, the sweep has not yet identified a plateau.
+====
 
-SIDEBAR — The bottleneck in one paragraph. The latent dimension limits the coordinates available to the representation. Too little capacity can make task-relevant distinctions difficult to preserve; more capacity can improve decodability, but also costs computation and may not help the task. The right dimension is not automatically the state-vector length. It is the smallest practical representation that retains enough information for the work the agent must do, judged by measurements relevant to that work.
+[sidebar]
+.The bottleneck in one paragraph
+****
+The latent dimension limits the coordinates available to the representation. Too little capacity can make task-relevant distinctions difficult to preserve; more capacity can improve decodability, but also costs computation and may not help the task. The right dimension is not automatically the state-vector length. It is the smallest practical representation that retains enough information for the work the agent must do, judged by measurements relevant to that work.
+****
 
 The distinction between reconstruction, invariance, and predictive information now becomes more concrete. Section 3.5 showed that reconstructing pixels does not guarantee that state is linearly available. This section shows that even a representation with more dimensions is useful only to the extent that it preserves the distinctions a probe can recover. In the next section, the question changes from which static observations should agree to which future observation follows from the past.
 
@@ -1611,7 +1619,10 @@ The matrix multiplication produces a batch-by-batch score matrix. Row latexmath:
 
 The GRU is unidirectional. Although the implementation processes a tensor containing multiple time steps at once, the context output at index latexmath:[t] is computed causally from the sequence up to that time step. Future latents are targets used to calculate the loss; they are not inputs to the context at latexmath:[t].
 
-WARNING — Causality. A context used to predict the future may contain the current observation and earlier observations, but not the future target. If future frames influence the context, the model can identify the target using information that would not be available at prediction time.
+[WARNING]
+====
+**Causality.** A context used to predict the future may contain the current observation and earlier observations, but not the future target. If future frames influence the context, the model can identify the target using information that would not be available at prediction time.
+====
 
 ==== What enters the experiment
 
@@ -1691,7 +1702,10 @@ The state probes provide a complementary picture. Current position is relatively
 
 The experiment also receives no action input. Because the frames were generated under a random policy, the learned context does not distinguish state-driven change from the effects of the actions taken. The study is not a controlled test of action-conditioning; it simply does not include it. We must not interpret the retrieval score as action-conditioned transition prediction or as a universal ceiling on what CPC can achieve.
 
-WARNING — A recurrent state is not a memory guarantee. A GRU compresses a finite history into a fixed-width vector, and training on short windows does not establish that it will retain information over much longer intervals. This experiment measures future-latent retrieval on short sequences, not long-term memory.
+[WARNING]
+====
+**A recurrent state is not a memory guarantee.** A GRU compresses a finite history into a fixed-width vector, and training on short windows does not establish that it will retain information over much longer intervals. This experiment measures future-latent retrieval on short sequences, not long-term memory.
+====
 
 CPC asks a context to identify a future embedding rather than enforce agreement between two views or reconstruct missing pixels. This makes the role of temporal prediction explicit, but retrieval alone does not show that a model can generate a physically accurate future or choose an action.
 
