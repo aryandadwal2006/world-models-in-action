@@ -821,8 +821,8 @@ The aliasing diagnostic compares a contrastive encoder receiving a single frame 
 
 
 
-[#ch3-table-T02,reftext={chapter}.{counter:table},caption='{table-caption}.{counter:table-number} ']
-.State probes from one frame and a two-frame stack
+[#ch3-figure-Aliasing,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
+.Single-frame and two-frame state probe comparison
 image::CH03_Aliasing_Diagnostic.svg[Single-frame and two-frame state-probe comparison, pdfwidth=100%]
 
 The plot uses means and standard deviations across three seeds, with circular
@@ -1271,7 +1271,7 @@ The variance calculation uses population variance, while the covariance estimate
 
 The standalone VICReg runner is ch03/08_vicreg.py. It uses the convolutional encoder and projection head from Section 3.3.4, with 4,000 training frames, batch size 64, 15 epochs, Adam at learning rate latexmath:[10^{-3}], and three seeds. The three loss terms operate on the 16-dimensional projection-head outputs; the downstream state probe reads the encoder output before the projection head.
 
-The recorded VICReg curves in Figure 3.11 show the total loss and three unweighted loss components. The variance hinge falls close to zero by around epoch five, while the covariance term rises early and then declines. The invariance term remains comparatively small. This pattern is consistent with the variance floor being established before the covariance penalty reduces redundancy, though the experiment does not separately test that causal interpretation.
+The recorded VICReg curves in Figure 3.12 show the total loss and three unweighted loss components. The variance hinge falls close to zero by around epoch five, while the covariance term rises early and then declines. The invariance term remains comparatively small. This pattern is consistent with the variance floor being established before the covariance penalty reduces redundancy, though the experiment does not separately test that causal interpretation.
 
 [#ch3-figure-F11,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .The three terms in VICReg
@@ -1387,12 +1387,12 @@ This is a hypothesis about the objective, not a conclusion that follows from the
 
 The standalone MAE experiment uses seeds 0, 1, and 2, 4,000 episode-stratified training frames, 1,000 validation frames, 15 epochs, a batch size of 64, and Adam with learning rate latexmath:[10^{-3}]. Its probe uses the mean-pooled 64-dimensional encoder tokens. Across the three training seeds, the mean R² across the four Cartpole state variables is latexmath:[0.170\pm0.004]. This is the result recorded in ch03/results/mae_metrics.json.
 
-Table 3.3 compares complete configurations, not loss functions in isolation. All four methods use three seeds, 12 epochs, a batch size of 64, 3,500 training frames, and 1,000 validation frames. Error bars show the standard deviation across trained seeds, not across independently collected environments.
+Figure 3.16 compares complete configurations, not loss functions in isolation. All four methods use three seeds, 12 epochs, a batch size of 64, 3,500 training frames, and 1,000 validation frames. Error bars show the standard deviation across trained seeds, not across independently collected environments.
 
 
 
-[#ch3-table-T03,reftext={chapter}.{counter:table},caption='{table-caption}.{counter:table-number} ']
-.Method-family state-probe comparison across tasks
+[#ch3-figure-StateProbeComparison,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
+.State-probe comparison across method families
 image::CH03_State_Probe_Comparison.svg[Mean held-out state-probe scores, pdfwidth=100%]
 
 The figure compares complete model configurations, not objective functions in
@@ -1412,7 +1412,7 @@ The per-variable results make the aggregates easier to interpret. The entries ar
 
 R² values below zero mean that the probe performs worse on the validation data than a constant predictor using the validation-target mean. In these runs, velocity is difficult to decode linearly across methods. The MAE’s Cartpole position score is below those of the contrastive and VICReg representations in this comparison, while its Cartpole velocity score is less negative. On Finger Spin, MAE performs poorly on the second position variable and has negative velocity scores. No single aggregate tells the whole story.
 
-These observations do not isolate the objective as the cause. MAE uses a patch-transformer encoder and decoder, and its evaluated feature vector is 64-dimensional. The contrastive and VICReg representations in this comparison use a convolutional backbone with a 16-dimensional latent representation. The supervised reference additionally uses privileged state labels during pretraining. Table 3.3 is therefore a method-family comparison under a stated budget, not a loss-only ablation. The measurements describe these complete configurations; they do not establish that masked reconstruction is inherently inferior to contrastive learning or VICReg.
+These observations do not isolate the objective as the cause. MAE uses a patch-transformer encoder and decoder, and its evaluated feature vector is 64-dimensional. The contrastive and VICReg representations in this comparison use a convolutional backbone with a 16-dimensional latent representation. The supervised reference additionally uses privileged state labels during pretraining. Figure 3.16 is therefore a method-family comparison under a stated budget, not a loss-only ablation. The measurements describe these complete configurations; they do not establish that masked reconstruction is inherently inferior to contrastive learning or VICReg.
 
 [#ch3-figure-F13,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Predicting a representation is not the same as reconstructing pixels
@@ -1513,7 +1513,7 @@ The sweep measures held-out linear-probe R², averaged across the task’s physi
 [#unique_section3_ch3_049_the_measured_result_ID, caption='The measured result']
 ==== The measured result
 
-The recorded sweep output is shown in Figure 3.14.
+The recorded sweep output is shown in Figure 3.16.
 
 [#ch3-figure-F14,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .State-probe performance across latent dimensions
@@ -1556,7 +1556,7 @@ That may be undesirable for a world model. The future depends on the current sit
 
 This is not a claim that temporal contrastive learning must always discard dynamics. The result depends on how temporal positives are constructed and what else the objective asks the model to preserve. The narrower point is that invariance and prediction impose different requirements. Invariance says which observations should agree; prediction says which future observations are compatible with a given past.
 
-Our measurements from the earlier sections make this distinction concrete. Table 3.2 showed that velocity was poorly decoded from the learned single-frame representation under the tested configuration. Stacking two frames did not reliably fix the problem under those same experimental conditions. These results do not prove that velocity is fundamentally absent from images or impossible to recover from short sequences. They show that the representation and training setup did not make it reliably linearly available.
+Our measurements from the earlier sections make this distinction concrete. Figure 3.9 showed that velocity was poorly decoded from the learned single-frame representation under the tested configuration. Stacking two frames did not reliably fix the problem under those same experimental conditions. These results do not prove that velocity is fundamentally absent from images or impossible to recover from short sequences. They show that the representation and training setup did not make it reliably linearly available.
 
 A frame-level invariance objective has no direct reason to preserve velocity. A temporal objective can instead reward a context for retaining information that helps identify a future observation. CPC is one way to implement that change.
 
@@ -1729,7 +1729,7 @@ image::CH03_F16_Dadwal.png[CPC future-latent retrieval by horizon,pdfwidth=88%]
 
 _Panel A. Static-encoder and recurrent-context probes for current and next-state variables._
 
-[#ch3-table-T04,reftext={chapter}.{counter:table},caption='{table-caption}.{counter:table-number} ']
+[#ch3-figure-CpcEvaluation,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .CPC state probes and candidate separation across horizons
 image::CH03_CPC_Evaluation.svg[CPC state-probe and horizon-evaluation plot, pdfwidth=100%]
 
@@ -1824,7 +1824,7 @@ The interface check establishes only that the components can be connected. Repre
 [#unique_section2_ch3_063_what_each_objective_encourages_the_encoder_to_preserve_ID, reftext={chapter}.{section}.{counter:subsection}, caption='{chapter}.{section}.{subsection}']
 === What each objective encourages the encoder to preserve
 
-The experiments show why a common interface does not imply that all encoders learn equivalent representations. The training objective determines which relationships are rewarded. Table 3.5 summarizes the resulting trade-offs.
+The experiments show why a common interface does not imply that all encoders learn equivalent representations. The training objective determines which relationships are rewarded. Table 3.2 summarizes the resulting trade-offs.
 
 
 
@@ -1913,7 +1913,7 @@ The bottleneck sweep measures state-probe performance at latent dimensions latex
 
 At what dimension does Cartpole’s probe approach a plateau? Does Cheetah show the same pattern within the tested range? Relate the results to the tasks’ four- and eighteen-dimensional physical states, respectively, and explain why the optimal latent dimension need not equal the number of state variables.
 
-Use Figure 3.14 and ch03/results/bottleneck_sweep_metrics.json. Identify the smallest tested dimension that appears to approach saturation for each task, and state what further experiment would be needed if performance is still rising at the largest dimension.
+Use Figure 3.16 and ch03/results/bottleneck_sweep_metrics.json. Identify the smallest tested dimension that appears to approach saturation for each task, and state what further experiment would be needed if performance is still rising at the largest dimension.
 
 [arabic, start=6]
 . Extending CPC’s prediction horizon
