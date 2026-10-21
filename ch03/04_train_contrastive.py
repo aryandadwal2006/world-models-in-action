@@ -32,6 +32,7 @@ from worldmodels.eval.probes import evaluate_linear_probe, extract_features
 from worldmodels.losses.ntxent import nt_xent_loss
 from worldmodels.models.encoders import ConvEncoder, ProjectionHead
 from worldmodels.train import get_device, load_json, save_json, set_seed
+from ch03.latent_projection import plot_latent_projection
 
 
 EXPERIMENT_VERSION = 3
@@ -131,114 +132,6 @@ def build_experiment_config(args: argparse.Namespace) -> Dict[str, object]:
             "contrast_range": 0.1,
         },
     }
-
-
-def plot_latent_projection(
-    z_untrained: np.ndarray,
-    z_trained: np.ndarray,
-    physics_states: np.ndarray,
-    filepath: str,
-) -> None:
-    """Plot a 2D PCA projection before and after contrastive training."""
-    def _project_2d(z: np.ndarray) -> np.ndarray:
-        z_centered = z - np.mean(z, axis=0)
-        _, _, vt = np.linalg.svd(
-            z_centered,
-            full_matrices=False,
-        )
-        return z_centered @ vt[:2].T
-
-    p_untrained = _project_2d(z_untrained)
-    p_trained = _project_2d(z_trained)
-
-    cart_pos = physics_states[:, 0]
-    c_norm = (
-        (cart_pos - cart_pos.min())
-        / (cart_pos.max() - cart_pos.min() + 1e-8)
-    )
-    gray_shades = [
-        str(round(0.15 + 0.7 * value, 2))
-        for value in c_norm
-    ]
-
-    pole_angle = physics_states[:, 1]
-    markers = np.where(
-        pole_angle < -0.1,
-        "v",
-        np.where(pole_angle > 0.1, "^", "o"),
-    )
-
-    fig, axes = plt.subplots(
-        1,
-        2,
-        figsize=(8.5, 3.8),
-    )
-
-    plot_specs = [
-        (
-            axes[0],
-            p_untrained,
-            "Before Training (Random Weights)",
-        ),
-        (
-            axes[1],
-            p_trained,
-            "After NT-Xent Contrastive Training",
-        ),
-    ]
-
-    marker_specs = [
-        ("v", "Pole Left (< -0.1 rad)"),
-        ("o", "Pole Upright ([-0.1, 0.1])"),
-        ("^", "Pole Right (> 0.1 rad)"),
-    ]
-
-    for ax, projection, title in plot_specs:
-        for marker, _label in marker_specs:
-            indices = np.where(markers == marker)[0]
-            if len(indices) == 0:
-                continue
-
-            subset = indices[:150]
-
-            for index in subset:
-                ax.scatter(
-                    projection[index, 0],
-                    projection[index, 1],
-                    marker=marker,
-                    color=gray_shades[index],
-                    edgecolors="black",
-                    linewidths=0.5,
-                    s=32,
-                    alpha=0.85,
-                )
-
-        ax.set_title(
-            title,
-            fontsize=10,
-            pad=6,
-        )
-        ax.set_xlabel(
-            "Principal Component 1",
-            fontsize=9,
-        )
-        ax.set_ylabel(
-            "Principal Component 2",
-            fontsize=9,
-        )
-        ax.grid(
-            True,
-            linestyle="--",
-            alpha=0.3,
-        )
-
-    plt.tight_layout()
-    plt.savefig(
-        filepath,
-        dpi=300,
-        bbox_inches="tight",
-    )
-    plt.close(fig)
 
 
 def load_compatible_seed_metrics(
@@ -751,7 +644,7 @@ def main() -> None:
     )
 
     print(
-        f"Saved Figure 3.7 -> {fig07_path}"
+        f"Saved Figure 3.8 -> {fig07_path}"
     )
 
     maybe_plot_three_seed_loss_band(
