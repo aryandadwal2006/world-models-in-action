@@ -1,6 +1,7 @@
 = World Models in Action
 :chapter: 3
 :sectnums:
+:sectnumlevels: 2
 :figure-caption: Figure {chapter}
 :listing-caption: Listing {chapter}
 :table-caption: Table {chapter}
@@ -16,6 +17,9 @@
 :!listing:
 :!table:
 :stem: latexmath
+
+[.book-title]
+World Models in Action
 
 [#unique_chapter3_title_ID,reftext={chapter},caption='{chapter}']
 = Representation learning before generation
