@@ -102,10 +102,10 @@ print(
 )
 if not 68 <= title_y <= 84:
     raise SystemExit("ERROR: book title sits outside the publisher-sample top-page range.")
-if not 96 <= heading_y <= 115:
-    raise SystemExit("ERROR: chapter title sits outside the publisher-sample vertical range.")
-if not 22 <= gap <= 42:
-    raise SystemExit("ERROR: title-to-chapter-heading spacing differs from the publisher sample.")
+if not 110 <= heading_y <= 130:
+    raise SystemExit("ERROR: chapter title sits outside the calibrated publisher-sample vertical range.")
+if not 38 <= gap <= 56:
+    raise SystemExit("ERROR: title-to-chapter-heading spacing differs from the calibrated publisher-sample range.")
 if abs(title_x - heading_x) > 2:
     raise SystemExit("ERROR: book title and chapter heading are not left-aligned.")
 
