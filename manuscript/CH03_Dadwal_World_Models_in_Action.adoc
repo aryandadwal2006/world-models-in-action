@@ -355,7 +355,7 @@ A view of an observation latexmath:[x] is an altered copy of it. Write the view 
 
 where latexmath:[t] is a randomly selected transformation. The transformation is applied to the image, not to the underlying physical system.
 
-In this chapter, the view pipeline uses two kinds of alteration. It shifts the image by a random integer offset of up to three pixels in each direction, then applies random brightness and contrast changes. The brightness offset is sampled from latexmath:[[-0.1,0.1]], and the contrast factor from $[0.9,1.1]. The values are clipped to the valid image range.
+In this chapter, the view pipeline uses two kinds of alteration. It shifts the image by a random integer offset of up to three pixels in each direction, then applies random brightness and contrast changes. The brightness offset is sampled from latexmath:[[-0.1,0.1]], and the contrast factor from latexmath:[[0.9,1.1]]. The values are clipped to the valid image range.
 
 These changes are deliberately modest. They alter pixel values and image alignment, but they are intended to leave the physical situation unchanged.
 
