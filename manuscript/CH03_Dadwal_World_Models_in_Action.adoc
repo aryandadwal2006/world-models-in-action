@@ -669,7 +669,6 @@ The encoder in worldmodels/models/encoders.py contains four convolutional layers
 
 The channel count grows from 32 to 64, 128, and 256. The final 256 × 4 × 4 feature map is flattened and projected to a 16-dimensional vector latexmath:[z=f_\theta(x)].
 
-Source: worldmodels/models/encoders.py. This excerpt is condensed from the canonical implementation, with the architecture and behavior unchanged.
 
 listing 3.2 isolates the encoder representation from the projection used by the contrastive loss.
 
@@ -689,7 +688,6 @@ not the projection used to train it.
 
 The loss is applied to the projection latexmath:[p=g_\phi(z)], not directly to latexmath:[z]. This follows the design used in SimCLR, where a nonlinear projection head is used during contrastive pretraining while the representation before that head is retained for downstream tasks (Chen et al., 2020). The reason for separating the two is practical: the projection can become invariant to some details needed by later tasks, while the encoder representation remains available to downstream components. This chapter adopts that setup without claiming that the two alternatives have been compared experimentally here.
 
-Source: worldmodels/losses/ntxent.py, the canonical implementation.
 
 listing 3.3 implements the vectorized NT-Xent objective derived above.
 
@@ -732,7 +730,6 @@ The repository also includes ch03/03_ntxent_from_scratch.py. It compares a direc
 
 **The training loop.** The training script ch03/04_train_contrastive.py loads cached cart-pole frames, creates the two views, runs both through the shared encoder, applies the projection head, and evaluates NT-Xent. The optimizer updates the encoder and projection-head parameters together.
 
-Source: ch03/04_train_contrastive.py, condensed from the existing runner.
 
 listing 3.4 shows the operations in one contrastive training update.
 
@@ -805,7 +802,6 @@ Let latexmath:[\check z_n] be a representation standardized using the training-s
 
 Here, latexmath:[M] is the number of training examples used to fit the probe; latexmath:[W] and latexmath:[b] are the linear weights and bias; and latexmath:[\alpha] controls the ridge penalty. The current probe implementation uses latexmath:[\alpha=10^{-3}], standardizes the frozen features, and solves the ridge problem by least squares. The encoder is not updated when the probe is fitted.
 
-Source: worldmodels/eval/probes.py, the canonical LinearProbe implementation.
 
 listing 3.5 sketches the frozen-feature readout used for evaluation.
 
@@ -1019,7 +1015,6 @@ The target therefore changes gradually rather than tracking every online update 
 
 The target network is not optimized by gradient descent. Its parameters are updated by the exponential moving average, which provides the asymmetry in BYOL’s learning procedure. As with SimSiam, this mechanism is not a general proof of collapse prevention for every configuration. The experiment tests the implemented method at the declared scale and budget.
 
-Source: worldmodels/losses/noncontrastive.py.
 
 listing 3.7 contrasts stop-gradient training with a moving target network.
 
@@ -1086,7 +1081,6 @@ The diagonal term rewards agreement across views. The off-diagonal term discoura
 
 A constant coordinate cannot be standardized into a meaningful unit-variance signal. The code clamps the standard deviation at latexmath:[10^{-6}]; if a coordinate is constant, its standardized values are zero, and its diagonal term contributes a penalty of one. Collapse therefore incurs a positive loss. However, because the method standardizes the features, this objective does not set a minimum scale for the unstandardized representation itself.
 
-Source: worldmodels/losses/noncontrastive.py.
 
 listing 3.8 expresses the Barlow Twins objective using its cross-correlation matrix.
 
@@ -1249,7 +1243,6 @@ These examples show why no one of the three terms replaces the others. Variance 
 
 *Supplementary code excerpt — VICReg loss (not a numbered listing)*
 
-Source: worldmodels/losses/vicreg.py.
 
 [source,python]
 ----
@@ -1412,7 +1405,6 @@ This is a hypothesis about the objective, not a conclusion that follows from the
 **The probe results.** The standalone MAE experiment uses seeds 0, 1, and 2, 4,000 episode-stratified training frames, 1,000 validation frames, 15 epochs, a batch size of 64, and Adam with learning rate latexmath:[10^{-3}]. Its probe uses the mean-pooled 64-dimensional encoder tokens. Across the three training seeds, the mean R² across the four Cartpole state variables is latexmath:[0.170\pm0.004]. This is the result recorded in ch03/results/mae_metrics.json.
 
 figure 3.14 compares complete configurations, not loss functions in isolation. All four methods use three seeds, 12 epochs, a batch size of 64, 3,500 training frames, and 1,000 validation frames. Error bars show the standard deviation across trained seeds, not across independently collected environments.
-
 
 
 [#ch3-figure-StateProbeComparison,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
@@ -1674,7 +1666,6 @@ The model does not directly regress the future latent with a squared-error objec
 
 In the repository, worldmodels/models/temporal_cpc.py defines TemporalCPC. Its forward method encodes a batch of image sequences, runs the GRU, and calculates cross-entropy over candidate future latents at each valid context and horizon.
 
-Source: `+worldmodels/models/temporal_cpc.py+`. The full runner lives in `+ch03/11_temporal_cpc.py+`.
 
 listing 3.11 shows the context encoder and horizon-specific compatibility scoring used by CPC.
 
@@ -1764,7 +1755,6 @@ figure 3.18 plots future-latent retrieval by prediction horizon under the batch-
 image::CH03_F16_Dadwal.png[CPC future-latent retrieval by horizon,pdfwidth=88%]
 
 
-
 figure 3.19 combines the state-probe comparison with the horizon-wise loss and hardest-negative margin.
 
 [#ch3-figure-CpcEvaluation,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
@@ -1828,7 +1818,6 @@ The current repository implements the shared interface in `+worldmodels/models/e
 
 The second method can operate in either of two ways. Without a recurrent layer, it simply returns the encoded observation. With a recurrent layer, it passes the representation and previous recurrent state through a GRU cell. On the first call, when no previous state exists, it initializes the hidden state to zeros.
 
-Source: `+worldmodels/models/encoders.py+`. The excerpt below is taken from the canonical implementation.
 
 listing 3.12 shows the interface calls for an encoder with or without recurrent state.
 
@@ -1867,7 +1856,6 @@ The interface check establishes only that the components can be connected. Repre
 === What each objective encourages the encoder to preserve
 
 The experiments show why a common interface does not imply that all encoders learn equivalent representations. The training objective determines which relationships are rewarded. table 3.2 summarizes the resulting trade-offs.
-
 
 
 [#ch3-table-T05,reftext={chapter}.{counter:table},caption='{table-caption}.{counter:table-number} ']
