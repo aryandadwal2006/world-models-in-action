@@ -9,6 +9,7 @@ on:
       - "ch03/latent_projection.py"
       - "ch03/13_replot_latent_projection.py"
       - ".github/workflows/replot-figure08.yml"
+      - "manuscript/verify-manuscript.py"
 
 permissions:
   contents: write
