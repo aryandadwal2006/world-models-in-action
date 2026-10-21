@@ -90,7 +90,7 @@ for line_number, line in enumerate(lines, start=1):
         inside_delimiter = line.strip()
         continue
 
-    match = re.match(r"^(=+)\\s+(.*)$", line)
+    match = re.match(r"^(=+)\s+(.*)$", line)
     if not match:
         continue
 
@@ -138,7 +138,7 @@ for line_number, line in enumerate(lines, start=1):
             )
 
 # IDs are link targets; duplicates silently redirect readers to the wrong place.
-anchor_ids = re.findall(r"^\\[#([^,\\]]+)", source, re.MULTILINE)
+anchor_ids = re.findall(r"^\[#([^,\]]+)", source, re.MULTILINE)
 seen_ids = set()
 for anchor_id in anchor_ids:
     if anchor_id in seen_ids:
