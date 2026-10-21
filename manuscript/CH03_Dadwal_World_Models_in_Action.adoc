@@ -1333,7 +1333,7 @@ where latexmath:[B] is the batch size, latexmath:[N=64] is the number of patches
 
 A learned linear layer embeds each patch into a 64-dimensional token. Positional embeddings distinguish the patches’ locations. The model then samples a different random mask for each image in the batch. It retains 16 tokens and sends only those tokens through the encoder.
 
-Source: `+worldmodels/models/masked_autoencoder.py+`; reconstruction loss: `+worldmodels/losses/reconstruction.py+`. This is a shortened excerpt; patchification and decoder helpers remain in the canonical module.
+For readability, this excerpt omits patchification and decoder helpers; the canonical implementation supplies both.
 
 listing 3.9 isolates the visible-patch encoder and masked-patch reconstruction path.
 
@@ -1510,7 +1510,6 @@ The repository’s ch03/10_bottleneck_sweep.py trains a separate contrastive enc
 
 The run uses Adam with a learning rate of latexmath:[10^{-3}], a batch size of 64, and 10 training epochs. It selects 3,000 training frames and 1,000 validation frames, spreading the selected indices across episodes rather than taking a single prefix of each dataset. The contrastive objective operates on two augmented views of each frame. Once training is complete, the linear probe is fitted to the frozen encoder features, not the projection head’s output.
 
-Source: `+ch03/10_bottleneck_sweep.py+`. The full runner handles task configuration, seeds, episode-aware sampling, checkpointing, metrics, and plot generation.
 
 listing 3.10 reduces the latent-dimension sweep to its essential training-and-probe steps.
 
@@ -1844,13 +1843,11 @@ The wrapper also does not dictate how the encoder was trained. A different compa
 [#unique_section2_ch3_062_verifying_the_interface_ID, reftext={chapter}.{section}.{counter:subsection}, caption='{chapter}.{section}.{subsection}']
 === Verifying the interface
 
-The repository’s ch03/12_assemble_encoder.py runner checks this interface using a saved contrastive encoder checkpoint. It loads the encoder with a latent dimension of 16 and wraps it with a recurrent hidden dimension of 32. The script then processes ten validation frames in order, passing the previous hidden state into each subsequent update.
+A smoke test loads a saved contrastive encoder, wraps it with a 32-dimensional GRU, and processes ten validation frames sequentially, carrying the hidden state from one frame to the next.
 
-The expected recurrent-state shape is `+(1, 32)+`. The committed output in ch03/results/table_03_06_synthesis.json records that shape and the ten frames tested.
+The resulting recurrent-state shape is `+(1, 32)+`.
 
-This is an interface check, not an evaluation of representation quality. It verifies that the checkpoint loads, the encoder processes observations, and the recurrent state has the expected shape for the tested sequence. It does not establish that the representation is sufficient for control, that the recurrent state captures all relevant history, or that the system can act successfully in the environment.
-
-The interface check establishes only that the components can be connected. Representation quality must be judged from the measurements above and from whether the retained information supports the intended predictive task.
+This is an interface check, not an evaluation of representation quality. It verifies that the checkpoint loads, observations are encoded, and recurrent state carries across the tested sequence. It does not establish that the representation is sufficient for control, that recurrent state captures all relevant history, or that the system can act successfully. Representation quality must still be judged by held-out probes and by the predictive task it is intended to support.
 
 [#unique_section2_ch3_063_what_each_objective_encourages_the_encoder_to_preserve_ID, reftext={chapter}.{section}.{counter:subsection}, caption='{chapter}.{section}.{subsection}']
 === What each objective encourages the encoder to preserve
@@ -2100,10 +2097,8 @@ The updated taxonomy discussion also draws on the following sources:
 
 [#unique_section_ch3_075_summary_ID, caption='Summary']
 == Summary
-* Pretext tasks: Rotation prediction, jigsaw prediction, and colorization create targets from the structure of observations. Solving a pretext task does not guarantee that the representation preserves the distinctions needed for prediction.
-* Contrastive learning: NT-Xent turns matching-view identification into a classification problem. In the three-seed Cartpole run, loss fell from about 3.78 to 3.11, while probes showed that positions were more linearly accessible than velocities and stacking two frames did not reliably improve velocity decoding.
-* Collapse and its remedies: Attraction alone has a constant-representation solution. SimSiam, BYOL, Barlow Twins, and VICReg use different mechanisms to constrain collapse or redundancy, which should be evaluated with feature spread, effective rank, and downstream probes as well as training loss.
-* Masked prediction: A masked autoencoder hides 75% of image patches and minimizes pixel error on the masked patches. Its standalone Cartpole probe reached mean R² of latexmath:[0.170\pm0.004] across three seeds, illustrating that reconstruction and state decodability are different measurements.
-* Latent bottlenecks: Cartpole probe R² rose from about −0.008 at latexmath:[d=2] to 0.321 at latexmath:[d=64] and stayed similar at latexmath:[d=256], while Cheetah reached 0.422 at latexmath:[d=256]. The useful dimension depends on the task and measured saturation, not simply on the number of physical state variables.
-* Prediction over time: CPC top-1 future-latent retrieval reached 95.0%, 94.1%, and 92.4% at horizons one, two, and three, versus a 3.5% in-batch chance level. These results establish retrieval under the tested protocol, not complete state recovery, action-conditioned dynamics, accurate physical rollouts, or planning utility.
-* Assembling the encoder: The `+encode(obs)+` and `+update(state, obs)+` methods expose a visual representation and an optional recurrent hidden state. They do not supply action-conditioned transition dynamics or planning, and the training objective remains one influence on the information retained.
+* Pretext and contrastive learning: Data-created targets and matching-view classification impose useful but limited constraints. In the three-seed Cartpole run, NT-Xent loss fell from about 3.78 to 3.11, but positions were more linearly accessible than velocities and stacking two frames did not reliably improve velocity decoding.
+* Collapse and its remedies: Attraction alone admits a constant-representation solution. SimSiam, BYOL, Barlow Twins, and VICReg use different mechanisms to limit collapse or redundancy; assess them with feature spread, effective rank, and held-out probes, not training loss alone.
+* Masked reconstruction: The MAE hides 75% of image patches and predicts their pixels. Its standalone Cartpole probe reached mean R² of latexmath:[0.170\pm0.004], showing that reconstruction quality and physical-state decodability are different measurements.
+* Capacity and temporal prediction: Cartpole probe R² rose from about −0.008 at latexmath:[d=2] to 0.321 at latexmath:[d=64] and was similar at latexmath:[d=256]; Cheetah still reached 0.422 at latexmath:[d=256]. CPC retrieval was 95.0%, 94.1%, and 92.4% at horizons one, two, and three versus 3.5% chance, but this is not evidence of complete state recovery, action-conditioned dynamics, or planning utility.
+* Encoder interface: The `+encode(obs)+` and `+update(state, obs)+` methods expose a visual representation and optional recurrent state. They do not supply action-conditioned dynamics or planning.
