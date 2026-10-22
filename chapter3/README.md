@@ -1,8 +1,23 @@
-# Chapter 3 manuscript workspace
+# Legacy Chapter 3 section-draft workspace
 
-This folder is the section-by-section Markdown working copy of the uploaded Chapter 3 Word draft. It is based on the source text in `ch3_draft(1).docx`, checked against `chapter_03_design.md` and the current experiment-readiness findings. The original DOCX is not modified by this conversion.
+**Status (22 October 2026): archived working material, not the current chapter source.**
 
-## Reading order
+This directory contains section-by-section Markdown drafts converted from an earlier Word draft. They remain available for historical wording and planning context, but their figure register, production checklist, numbering, and remaining-work notes are stale relative to the composed chapter.
+
+## Current sources of truth
+
+- **Authored chapter source:** [`manuscript/CH03_Dadwal_World_Models_in_Action.adoc`](../manuscript/CH03_Dadwal_World_Models_in_Action.adoc)
+- **Author-side PDF preview and build instructions:** [`manuscript/README.md`](../manuscript/README.md)
+- **Current asset-to-printed-figure map:** [`images/README.md`](../images/README.md)
+- **Current figure/table crosswalk:** [`figure-and-table-production.md`](figure-and-table-production.md)
+- **Code and experiment source:** [`ch03/README.md`](../ch03/README.md), `worldmodels/`, `ch03/results/`
+- **Historical design rationale:** [`chapter_03_design.md`](../chapter_03_design.md), explicitly marked as superseded planning material.
+
+Do not use the section drafts or the old numbered plans in this folder as the authority for current prose, figure numbering, table numbering, or production readiness. Stable image filename stems do not always match the figures' printed numbers.
+
+## Retained draft order
+
+These files are retained as reference material, in their former order:
 
 1. [`00-introduction.md`](00-introduction.md)
 2. [`3.1-learning-a-state-without-labels.md`](3.1-learning-a-state-without-labels.md)
@@ -16,23 +31,22 @@ This folder is the section-by-section Markdown working copy of the uploaded Chap
 10. [`exercises.md`](exercises.md)
 11. [`summary.md`](summary.md)
 12. [`appendix-a-proof-details.md`](appendix-a-proof-details.md)
-13. [`figure-and-table-production.md`](figure-and-table-production.md)
-14. [`references-and-credits.md`](references-and-credits.md)
+13. [`references-and-credits.md`](references-and-credits.md)
 
-## Source-of-truth rule
+## Technical and empirical source-of-truth rules
 
-- Use `worldmodels/` for conceptual code listings; use `ch03/` for experiment configuration, figures, tables, and recorded results.
-- Use the canonical result JSON files in `ch03/results/` for numeric claims. Do not overwrite canonical results while testing changes.
-- Do not claim that CPC measures physical rollout, action-conditioned dynamics, or planning. Its primary result is held-out, in-batch future-latent retrieval; secondary results are linear state probes.
-- The uploaded DOCX has no embedded images. It is a content/figure-direction draft, so this workspace preserves detailed production briefs without claiming the art is already present. The image filenames and detailed art briefs are listed in `figure-and-table-production.md`; they must be inserted or drawn separately during book production.
-- Table 3.1 and Table 3.2 were missing from the DOCX and have been drafted here. Table 3.1 is placed before Table 3.2 in §3.1 so table numbering follows first appearance; its taxonomy provides an overview before the method-by-method treatment. Table 3.4 and Table 3.5 are each treated as one numbered table with panel A/B, avoiding duplicate numbering. The extra contract-check table is converted to an unnumbered checklist under §3.8.
-- The VICReg code example is marked as supplementary and unnumbered so the numbered code-listing sequence stays aligned with the design (MAE Listing 3.10, bottleneck Listing 3.11, CPC Listing 3.12, encoder Listing 3.13).
-- Appendix A receives the InfoNCE-bound proof and derivative algebra that the design document assigns to the appendix.
+- Read conceptual implementations from `worldmodels/`; read experiment configuration and runners from `ch03/`.
+- Read numeric results from committed JSON files under `ch03/results/`. Do not overwrite canonical result files when reproducing experiments.
+- CPC's primary result is held-out, in-batch future-latent retrieval. It is not a physical rollout, action-conditioned prediction, missing-frame reconstruction, or evidence of planning utility.
+- Physics-state targets are used for evaluation probes and the explicitly supervised reference arm, not to train the self-supervised objectives.
+- A source-level or test-suite pass does not replace a separate visual review of the built PDF.
 
-## Runtime and hardware
+## Build and validation
 
-The prose now states that `worldmodels.train.get_device()` chooses CUDA automatically when `torch.cuda.is_available()` is true and CPU otherwise. It shows a code snippet to print the selected device and GPU name. This selection covers PyTorch model computation; MuJoCo/OpenGL rendering remains a separate dependency and cached data avoids rendering during subsequent training runs. Do not state or imply a benchmarked speed-up unless a hardware-specific runtime is recorded.
+For the current chapter preview, follow the instructions in [`manuscript/README.md`](../manuscript/README.md). From a full checkout, the structural verifier can be run with:
 
-## Remaining author/production work
+```bash
+python manuscript/verify-manuscript.py
+```
 
-Review every Markdown section for voice, line-level polish, citations, formula rendering, and Manning pagination. The current layout is a content workspace, not a print-ready manuscript. In particular, Figure 3.7 must be regenerated with the corrected angle bins/sampling; Figure 3.9 needs its two diagnostic panels composed and the near-zero spread made visible; Figure 3.4 needs a batch-level relationship schematic; and Figures 3.1, 3.3, 3.5, 3.10, 3.11's conceptual panel, 3.13, 3.15, and 3.17 need final artwork. The detailed register specifies all instructions and captions.
+The PDF is an author-side preview, not Manning's final production typesetting.
