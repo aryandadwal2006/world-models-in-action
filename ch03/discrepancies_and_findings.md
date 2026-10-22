@@ -1,7 +1,9 @@
 # Chapter 3 Findings Ledger
 
 **Updated:** 18 October 2026  
-**Purpose:** Maintain one current account of empirical findings, fixes, and interpretation limits. This ledger supersedes earlier dated status notes in the commit history.
+**Purpose:** Maintain the code/experiment account of empirical findings, fixes, and interpretation limits. This ledger supersedes earlier dated experiment-status notes in the commit history.
+
+> **Scope clarification (22 October 2026):** this ledger documents implementation and experiment findings, not the current manuscript's printed numbering or production status. Its legacy references to Tables 3.3–3.5 are experiment-history labels. The composed chapter uses 20 numbered figures and two numbered tables; use `images/README.md` and `chapter3/figure-and-table-production.md` to map current artwork and printed object numbers.
 
 ## Release status
 
@@ -92,14 +94,11 @@ The former custom recursive gap rollout used a bilinear compatibility output as 
 
 The model receives frames, not actions, and the data were collected under random actions. These results do not test action-conditioned prediction, long-horizon latent rollout, or planning. The matched 16-frame results are primary; the earlier 25-frame evaluation is a sensitivity diagnostic.
 
-### 8. Remaining manuscript-production checks
+### 8. Scope boundary for manuscript work
 
-These are not blockers for merging the cleaned code companion, but they remain necessary for the finished book:
+This ledger preserves the code audit's empirical caveats; it is not the live manuscript TODO list. The composed AsciiDoc chapter is maintained on the `manuscript` branch. Numerical claims should continue to be grounded in the canonical JSON files listed below, but manuscript figure/table numbering must come from the current crosswalk rather than this ledger's legacy table labels.
 
-1. Insert the current numbers and method caveats from the canonical JSON files into the authored manuscript and table captions.
-2. Visually inspect the canonical CPC retrieval figure and the final collapse figures in production layout.
-3. Keep the Chapter 2 forklift-occlusion example as conceptual motivation only. The present CPC result measures future-latent retrieval and does not recreate an occlusion or missing-frame experiment.
-4. Keep the regression workflow green on the active `main` head after code changes. Tests validate software contracts, not the full numerical reproduction of every experiment.
+The code and data review does not certify PDF layout. The current preview and structural verification instructions are in `manuscript/README.md`. Keep the Chapter 2 occlusion example as conceptual motivation only: the recorded CPC experiment evaluates in-batch future-latent retrieval, not missing-frame reconstruction or a physical rollout. Keep the regression workflow green on the active `main` code-release head; tests validate software contracts, not full numerical reproduction of every experiment.
 
 ## Canonical paths
 
