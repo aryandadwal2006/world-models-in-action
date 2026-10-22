@@ -2,9 +2,19 @@
 
 [![Chapter 3 regression tests](https://github.com/aryandadwal2006/world-models-in-action/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/aryandadwal2006/world-models-in-action/actions/workflows/tests.yml)
 
-Code companion for *World Models in Action*. This branch reorganizes Chapter 3 so the implementation worth studying line by line is separate from full experiment runners and audit artifacts.
+Code companion and Chapter 3 authoring repository for *World Models in Action*.
 
-## Source of truth
+## Branch roles
+
+- **`main`** is the canonical code-companion/reproducibility release: core implementations, experiment runners, regression tests, and empirical artifacts.
+- **`manuscript`** contains that code context plus the current composed Chapter 3 AsciiDoc source, figure assets, author-side PDF preview, and manuscript build workflow.
+- **Current chapter source:** [`manuscript/CH03_Dadwal_World_Models_in_Action.adoc`](manuscript/CH03_Dadwal_World_Models_in_Action.adoc).
+- **Current figure-number crosswalk:** [`images/README.md`](images/README.md). Do not infer printed figure numbers from the legacy `F##` asset stems.
+- The `chapter3/` section-by-section drafts and `chapter_03_design.md` are historical planning material, not current manuscript sources.
+
+The PDF under `manuscript/` is an author-side preview, not Manning's final production typesetting.
+
+## Code source of truth
 
 - **Core implementations:** `worldmodels/`. Models, losses, sequence sampling, data handling, and evaluation utilities live here.
 - **Experiment runners:** `ch03/`. These preserve the full data protocol, training configuration, multi-seed runs, evaluations, plotting, and metric export needed for the chapter.
@@ -28,7 +38,7 @@ The repository includes cached DMC train/validation datasets for the chapter exp
 
 ## Reading order
 
-Start with the code map in [Chapter 3 README](ch03/README.md). It maps the conceptual listings to the canonical source files and maps each chapter figure/table to its supplementary experiment runner.
+Start with the code map in [Chapter 3 README](ch03/README.md). It maps conceptual listings to canonical source files and the empirical artifacts used by the chapter. For the current prose, figure numbering, and PDF build, use [the manuscript README](manuscript/README.md).
 
 ## Re-run an experiment
 
@@ -42,4 +52,4 @@ python ch03/09_masked_autoencoder.py
 python ch03/11_temporal_cpc.py
 ```
 
-The training scripts may overwrite their standard checkpoints, metrics, or figures, so use isolated output paths for new runs. CPC's primary evaluation is held-out future-latent retrieval using the trained InfoNCE scores; the historical recursive gap-rollout diagnostic is not the canonical CPC result. The primary matched-length result is in `ch03/results/table_03_05_cpc_metrics.json`. For exact settings, provenance, and interpretation limits, read [the Chapter 3 code map](ch03/README.md) and [the publication-readiness audit](ch03/publication_readiness_audit.md) before interpreting stored scores as general claims.
+The training scripts may overwrite their standard checkpoints, metrics, or figures, so use isolated output paths for new runs. CPC's primary evaluation is held-out future-latent retrieval using the trained InfoNCE scores; it is not physical-state prediction, action-conditioned transition prediction, recursive rollout, or planning. For exact settings, provenance, and interpretation limits, read [the Chapter 3 code map](ch03/README.md) and [the publication-readiness audit](ch03/publication_readiness_audit.md) before interpreting stored scores as general claims.
