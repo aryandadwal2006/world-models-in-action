@@ -1,6 +1,14 @@
-# Chapter 3 Design — Representation Learning Before Generation (v3)
+# Chapter 3 Design — Representation Learning Before Generation (v3; archived)
 
-**Book:** World Models in Action (Manning) · **Status:** design document, not manuscript
+**Book:** World Models in Action (Manning) · **Status:** archived planning snapshot; not the current manuscript specification
+
+> **Current status (22 October 2026):** this v3 plan is historical context, not the live chapter source or production checklist. The composed chapter is `manuscript/CH03_Dadwal_World_Models_in_Action.adoc` on the `manuscript` branch. The adjacent PDF is an author-side preview, not the final Manning proof.
+>
+> **Use these current records instead:** `manuscript/README.md` for build/validation; `images/README.md` and `chapter3/figure-and-table-production.md` for the current printed figure/asset crosswalk; `ch03/README.md` for canonical implementation and experiment paths; canonical JSON files under `ch03/results/` for numerical evidence.
+>
+> **Important differences from this plan:** the composed chapter has 20 numbered figure anchors, two numbered table anchors (Table 3.1 notation and Table 3.2 representation-objective trade-offs), and 12 numbered listing anchors. The former 15-figure plan, reserved Figure 3.8 slot, planned Tables 3.3–3.6, and unchecked Manning checklist below are not current instructions. Stable asset stems and legacy result filenames do not determine printed object numbers.
+>
+> Preserve the material below as historical design rationale only. Do not use it to renumber or restructure the composed chapter without an explicit new revision plan.
 **Inputs used:** v2 design, CH01 text, CH02 AsciiDoc source, Manning Manual of Style, MQR, Gui et al. "A Survey on Self-supervised Learning" (arXiv:2301.05712), dm_control official repository (github.com/google-deepmind/dm_control), world-model benchmark survey discussion
 
 ---
