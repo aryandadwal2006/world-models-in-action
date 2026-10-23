@@ -885,17 +885,17 @@ Different methods prevent collapse in different ways, and their mechanisms are n
 |===
 |Method |Anti-collapse mechanism |Important limitation
 |SimSiam
-|Stop-gradient through one target branch, with a predictor and normalization.
-|Asymmetry changes the optimization path, but is not a universal proof of a useful or non-collapsed state.
+|Stop-gradient target branch, predictor, and normalization.
+|Asymmetry alone does not guarantee a useful, non-collapsed state.
 |BYOL
-|A target encoder is updated by an exponential moving average of online parameters.
-|The target changes gradually; success still depends on the complete training configuration.
+|Exponential-moving-average target encoder.
+|Success still depends on the full training setup.
 |Barlow Twins
-|Cross-correlation diagonal terms encourage agreement, while off-diagonal terms discourage redundancy.
-|Coordinate decorrelation does not guarantee that every variable needed for prediction is represented.
+|Match correlation diagonals; penalize off-diagonal redundancy.
+|Decorrelation does not ensure physical-state sufficiency.
 |VICReg
-|An invariance term is combined with an explicit variance floor and covariance penalty.
-|It constrains feature statistics, not physical-state sufficiency.
+|Invariance plus variance floor and covariance penalty.
+|Feature constraints do not guarantee state sufficiency.
 |===
 
 The reduced-scale cart-pole comparison uses five seeds. Mean frozen-feature probe scores are 0.266 for SimSiam, 0.268 for BYOL, and 0.285 for Barlow Twins. Their effective ranks out of 32 dimensions are 4.23, 7.07, and 11.18, while average coordinate spreads are about 1.93, 0.306, and 0.0616, respectively. The methods produce similar mean probe scores but noticeably different feature statistics. These measurements do not establish a universal ranking: the runs use small models and data, and do not isolate the objective from every architectural choice.
