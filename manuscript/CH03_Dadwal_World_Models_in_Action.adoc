@@ -32,13 +32,11 @@ This chapter covers
 * Masked prediction and latent bottlenecks
 * Measuring and assembling a state representation
 
-A useful world model begins with an internal state that preserves the distinctions needed to predict what happens next. An encoder must extract this state from observations such as images, even when no labels identify which visual details correspond to position, velocity, or other relevant quantities. How can we train such an encoder from raw observations alone?
+A world model needs a representation of the current situation that preserves the distinctions needed to predict what happens next. An encoder must learn that representation from observations such as images, even when the training data do not label position, velocity, or other physical quantities.
 
-This chapter develops one answer: self-supervised learning, in which a model learns from training signals derived from the data itself rather than from human-provided labels. An image contains more structure than its pixel values alone suggest. Different views may depict the same underlying scene. A missing region may be predictable from its surroundings. An earlier observation may contain clues about what comes next. Each relationship provides a possible learning signal, and each encourages the encoder to retain a different kind of information.
+Self-supervised learning turns structure in observations into training signals. A model can identify a transformation, match two views of a frame, reconstruct hidden pixels, or use a context to identify a future representation. These objectives ask for different things, so their success does not automatically imply that the resulting state is useful for prediction or planning.
 
-That difference is the central idea of this chapter: a learning objective specifies what information a representation is encouraged to retain. A contrastive objective rewards features that remain consistent across selected views. Masked prediction rewards features that help reconstruct missing parts of an observation. Temporal prediction rewards features that help anticipate later observations. None of these objectives automatically guarantees a good state for a world model. The important question is not simply whether the training loss decreases, but whether the resulting representation preserves the information that prediction and planning require.
-
-We will build and test these ideas using rendered observations from the DeepMind Control Suite (DMC; Tunyasuvunakool et al., 2020). The experiments use tasks such as balancing a cart-pole and spinning a finger-controlled body. For the self-supervised experiments, the encoder receives images without the simulator’s physics-state labels. We then use the simulator’s state variables to evaluate what the learned representations retain. A separate supervised reference provides a comparison later in the chapter. These tests let us examine the representations directly instead of assuming that a successful training objective must have learned the right state.
+We compare those learning signals using rendered tasks from the DeepMind Control Suite. The encoders train on images; simulator state variables are reserved for post-training probes, except for a clearly separated supervised reference. The goal is to measure what the learned representations retain, not to assume that any objective must succeed.
 
 <<<
 
@@ -46,11 +44,7 @@ The runners select CUDA automatically when PyTorch detects a compatible GPU; oth
 
 Reported uncertainty is the standard deviation across trained model seeds, not across episodes or trajectories. Each experiment’s results file records the seeds and configuration used.
 
-We begin with pretext tasks, then derive contrastive learning and examine why representation collapse occurs. Masked prediction provides a different learning signal; latent-dimension experiments show how capacity affects what can be decoded; temporal prediction tests whether a representation of the past can identify a future observation.
-
-We finish by exposing the learned representation through a small encoder interface. A static encoder maps a frame, or a fixed stack of frames, to a latent vector without retaining memory between calls. An optional recurrent wrapper carries a learned hidden state across observations. Neither one is a complete world model: action-conditioned transition prediction and a method for evaluating or planning over futures are separate components.
-
-[sidebar]
+The chapter moves from pretext tasks to contrastive and non-contrastive objectives, masked prediction, latent-capacity experiments, and temporal prediction. It ends by connecting the learned encoder to the larger state–dynamics–planning system.[sidebar]
 .Three components, three different jobs
 ****
 A *static visual encoder* maps the current image, or a fixed stack of images, to a latent vector latexmath:[z_t]. It has no memory across calls. A *recurrent wrapper* is optional: it takes the current visual latent and a previous hidden state latexmath:[h_{t-1}], then returns an updated hidden state latexmath:[h_t]. That hidden state is a learned model state, not the simulator’s physical state. A *full world model* additionally needs a transition model that predicts future state or observations conditioned on actions, and components that evaluate or plan over possible futures. The GRU wrapper and CPC experiment in this chapter do not, by themselves, implement that full system.
@@ -58,8 +52,7 @@ A *static visual encoder* maps the current image, or a fixed stack of images, to
 
 [#unique_section_ch3_001_learning_a_state_without_labels_ID, reftext={chapter}.{counter:section}, caption='{chapter}.{section}']
 == Learning a state without labels
-
-A useful state is not simply a smaller copy of an image. It is a description that preserves the information needed to understand the situation. For a moving system, that may include positions and velocities, even when those quantities are not directly available as labels.
+Chapter 2 established the state contract: a representation should preserve decision-relevant distinctions while discarding irrelevant visual detail. This section asks how to learn such a representation from unlabeled observations.
 
 Let latexmath:[x] denote an observation, such as an image rendered by a simulator. An encoder latexmath:[f_\theta], parameterized by latexmath:[\theta], transforms it into a representation latexmath:[z]:
 
@@ -70,24 +63,11 @@ Let latexmath:[x] denote an observation, such as an image rendered by a simulato
 \tag{3.1}
 ++++
 
-We will use latexmath:[z] for the representation throughout this chapter. It is a vector of latexmath:[d] numbers, where latexmath:[d] is the latent dimension. The encoder’s job is to turn a high-dimensional observation into a form that later components of the world model can use.
-
-But what should those numbers preserve? A useful state should retain information that matters for predicting the future while avoiding detail that does not help with the task. We can make this requirement concrete by separating two properties.
-
-Sufficiency means that the representation preserves the information about the physical state that is available in the observation. If the representation loses a distinction that matters, a downstream dynamics model cannot recover it just by training harder.
-
-Minimality means that the representation avoids carrying unnecessary information. For a cart-pole, this might mean retaining the cart’s position and the pole’s angle while ignoring irrelevant differences in brightness or background texture.
-
-The two requirements must be considered together. An encoder that retains every pixel may preserve useful information, but it has not necessarily learned a compact state. An encoder that discards almost everything may be compact, but it can also lose the information needed to distinguish different situations.
-
-[#unique_section2_ch3_002_aliasing_when_compression_loses_the_wrong_information_ID, reftext={chapter}.{section}.{counter:subsection}, caption='{chapter}.{section}.{subsection}']
+The encoder maps an observation to a vector of latexmath:[d] numbers. Sufficiency means retaining information needed for downstream prediction; minimality means not carrying detail that adds no value for the task. A representation can fail in either direction: it may preserve too much raw appearance, or compress away a distinction needed to predict what happens next.[#unique_section2_ch3_002_aliasing_when_compression_loses_the_wrong_information_ID, reftext={chapter}.{section}.{counter:subsection}, caption='{chapter}.{section}.{subsection}']
 === Aliasing: When compression loses the wrong information
+Aliasing occurs when observations that require different predictions map to the same representation. For example, visually similar cart-pole frames may correspond to opposite cart velocities. The encoder then discards a distinction that a downstream model cannot recover from the representation alone.
 
-Suppose two cart-pole observations look identical. In one underlying situation, the cart is moving to the left; in the other, it is moving to the right. If both observations map to the same representation latexmath:[z], a downstream model receiving only that representation cannot distinguish the two situations.
-
-This is an example of aliasing: different underlying states become indistinguishable in the representation.
-
-Before examining individual objectives, figure 3.1 maps their major families by training signal. It is a teaching-oriented synthesis informed by Gui et al. (2024), Uelwer et al. (2025), and Meta’s V-JEPA 2 publication (2025), not an exhaustive taxonomy. The categories are not mutually exclusive: CPC is both temporal and contrastive, and masked prediction includes pixel, token, and latent targets. The methods are evaluated through their own measured tasks rather than ranked by this diagram.
+figure 3.1 is a map of the major self-supervised training signals, not an exhaustive taxonomy or a ranking of methods.
 
 [#ch3-figure-F01,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Self-supervised learning: a map of training signals
@@ -127,66 +107,20 @@ The example illustrates a possibility, not a universal claim that velocity is im
 
 [#unique_section2_ch3_003_why_not_train_directly_on_the_state_ID, reftext={chapter}.{section}.{counter:subsection}, caption='{chapter}.{section}.{subsection}']
 === Why not train directly on the state?
+When physical labels are available, an encoder can be trained to predict them directly. In many settings, however, exact state labels are costly or unavailable, and the chosen labels may omit information needed by another task.
 
-Let latexmath:[y] denote the physical quantities we want the representation to retain. In our experiments, latexmath:[y] consists of the simulator’s generalized positions followed by its generalized velocities.
-
-If latexmath:[y] were available for every training observation, we could train an encoder to predict these quantities directly. The prediction error would provide a clear signal about which information the encoder needs to retain. In real settings, however, the exact physical state is often unavailable.
-
-There are three difficulties with relying on labelled data alone.
-
-Cost. Human annotations and physical measurements require effort or additional instrumentation. An agent can collect images continuously, but obtaining an exact label for every image may be expensive.
-
-Task dependence. Labels reflect the task for which they were designed. An encoder trained to recognize objects might learn their identities while neglecting motion information needed by a dynamics model.
-
-Availability. A deployed agent does not automatically know the exact positions and velocities of every object it observes. It receives images and whatever additional sensor readings are available to it.
-
-Labels remain useful whenever they can be obtained. A simulator can supply its internal state, a synthetic data generator can produce targets, and demonstrations can provide training signals. These are legitimate alternatives, each with its own requirements. Self-supervised learning addresses a different opportunity: the observations themselves contain relationships that can be turned into learning signals without manually labelling every example.
-
-[sidebar]
-.Self-supervised learning
-****
-Self-supervised learning trains a model using a target constructed from the data itself, rather than a human-provided label. The model solves a task designed to produce this target, often called a pretext task. The pretext task is a means of learning a representation; its answer is not necessarily the final goal.
-****
-
-Consider a simple example. Take an image, rotate it by a known amount, and ask a model to identify the rotation. We do not need a person to annotate the transformed image: we already know which rotation we applied. The transformation generates the target automatically.
-
-This clarifies the distinction between three learning settings. In supervised learning, an externally supplied label tells the model what to predict. In classical unsupervised learning, an objective seeks structure in the inputs without using an externally supplied label or a separately constructed prediction target. In self-supervised learning, the model has a target, but the data or a transformation of the data supplies it.
-
-The terminology varies across the literature. Some surveys treat self-supervised learning as a subset of unsupervised learning; other authors emphasize that self-supervised methods do use a supervisory signal, even though it is generated from the data. This chapter uses the more explicit distinction above. For a broader taxonomy of self-supervised methods, see Gui and colleagues’ A Survey on Self-supervised Learning: Algorithms, Applications, and Future Trends (2024).
-
-[NOTE]
-====
-In his ICLR 2020 keynote, Yann LeCun described self-supervision through the general idea of predicting missing information (LeCun, 2020). The missing part might be a region of an image, the future given the past, or an obscured portion of an observation. These are not the same objective, but each turns structure already present in the data into a training signal.
-====
-
-This idea provides a useful map of the chapter: first learn from transformations and views, then from missing visual content, and finally from temporal relationships.
+Self-supervised learning constructs its target from the observations or a transformation of them. Rotation class, a second view, a hidden image patch, or a future embedding can provide a training signal without a person labelling every frame. The signal is automatic, but the target still reflects a design choice: solving it need not produce a state that is sufficient for control.
 
 [#unique_section2_ch3_004_the_objective_determines_what_the_encoder_is_rewarded_ID, reftext={chapter}.{section}.{counter:subsection}, caption='{chapter}.{section}.{subsection}']
 === The objective determines what the encoder is rewarded for keeping
-
-Self-supervised learning is not one algorithm. It is a family of methods that construct different training signals. Each signal rewards the encoder for retaining some information, while leaving other information optional.
-
-Rotation prediction asks the model to identify a transformation applied to an image. It rewards features useful for recognizing that transformation. Those features need not be the features most useful for predicting a system’s future.
-
-Contrastive learning creates two altered views of the same observation and trains their representations to identify one another. The choice of alterations matters: features that survive those transformations can help identify a positive pair, while features that vary may be treated as less useful.
-
-Masked prediction hides part of an observation and asks the model to predict the missing content from what remains visible. It rewards information that helps reconstruction. Some of that information may describe physical state; some may describe visual details irrelevant to control.
-
-Temporal prediction asks the model to use earlier observations to identify or predict later ones. It provides a learning signal tied to what happens over time, although success still depends on the data, the prediction task, and the model.
-
-The central principle is therefore:
+The objective determines which relationships the encoder must preserve to reduce its loss. Contrastive learning rewards information shared across chosen views; masked prediction rewards information useful for reconstructing hidden content; temporal prediction rewards information useful for distinguishing or anticipating later observations.
 
 [sidebar]
 .The principle behind representation learning
 ****
-A representation-learning objective specifies what information the representation is encouraged to retain. Information the objective does not require may be discarded.
-
-Contrastive learning rewards information that helps distinguish a positive view from other views. Masked prediction rewards information that helps reconstruct hidden content. Temporal prediction rewards information that helps identify or anticipate what comes next.
-
-The objective is not the only influence. Architecture, training data, transformations, and training budget also shape the representation. A decreasing training loss does not, by itself, establish that the learned state is useful for prediction or planning.
-
-This principle gives us a way to evaluate methods rather than simply collect them. We can examine what their objectives encourage, then measure what their learned representations actually retain.
+A representation-learning objective encourages the model to retain information that helps solve its training task. Information not required by that task may be discarded. Architecture, data, augmentations, and training budget also matter, so a falling loss is not proof that the learned state is useful for prediction or planning.
 ****
+
 [#unique_section2_ch3_005_why_use_a_benchmark_rather_than_a_toy_world_ID, reftext={chapter}.{section}.{counter:subsection}, caption='{chapter}.{section}.{subsection}']
 === Why use a benchmark rather than a toy world?
 
@@ -213,16 +147,11 @@ The key distinction is between training signal and evaluation target. For the se
 
 [NOTE]
 ====
-Using state variables for evaluation does not make the self-supervised objective supervised. It gives us a reference against which to test the representation after learning. The distinction must remain explicit: the self-supervised encoder does not receive these labels as its training target, while the supervised reference later in the chapter does.
+The self-supervised objectives receive rendered images only; simulator state variables are held back for evaluation. The separately trained supervised reference uses state labels and is not a self-supervised method.
 ====
 
-Data collection records rendered frames alongside simulator state variables, using independent environment seeds for training and validation. The self-supervised objectives receive images only; the stored physics state is held back for evaluation. The supervised reference is separate because it is trained using state labels. The data-collection runner handles rendering, action sampling, and caching; those operational details belong in the code repository.
+The common benchmark lets us compare the information made available by each objective without presuming that any objective succeeds.
 
-The purpose of this setup is not to assume that a particular representation will succeed. It gives us a consistent way to ask what each learning objective has preserved. Where a result matches our expectations, we can quantify the match. Where it does not, we will report the measurement at the scope supported by the experiment.
-
-We begin with simple pretext tasks, which show how a target can be derived from an observation and why solving that task may still leave the encoder without the state information a world model needs.
-
-[#unique_section_ch3_007_pretext_tasks_supervision_from_structure_ID, reftext={chapter}.{counter:section}, caption='{chapter}.{section}']
 == Pretext tasks: Supervision from structure
 
 A pretext task turns an unlabeled observation into a training example with a known target. The target comes from a transformation or relationship in the data, so we do not need a person to annotate each example.
@@ -339,12 +268,9 @@ This leads to instance discrimination, the starting point for contrastive learni
 
 [#unique_section_ch3_011_contrastive_learning_from_first_principles_ID, reftext={chapter}.{counter:section}, caption='{chapter}.{section}']
 == Contrastive learning from first principles
+Contrastive learning asks whether two altered observations came from the same source. It constructs positive pairs from independent views of one frame and negatives from other frames, then trains an encoder to rank the positive above the alternatives.
 
-Section 3.2 showed how to manufacture a training target by transforming an observation. But the target determines what the encoder is asked to learn, and recognizing a rotation does not necessarily require a useful physical state.
-
-Contrastive learning changes the question. Instead of asking which transformation was applied, it asks which observations came from the same source. We take two altered views of one frame and train a model to identify them as a pair among other views.
-
-The idea is simple. Making two views agree encourages the encoder to retain information shared by both. Making it distinguish them from other views encourages the encoder to retain information that identifies the source. The mathematics turns this idea into a classification loss.
+The loss makes this identification task explicit. Its usefulness depends on the view transformations and candidate set: changes treated as irrelevant should preserve information the agent needs, and negatives may depict similar physical states.
 
 [#unique_section2_ch3_012_views_positives_and_negatives_ID, reftext={chapter}.{section}.{counter:subsection}, caption='{chapter}.{section}.{subsection}']
 === Views, positives, and negatives
@@ -382,9 +308,9 @@ where latexmath:[K] is the number of negatives for each anchor. For example, a b
 figure 3.5 shows the positive view paired with an anchor and the negative candidates used in the batch.
 
 [#ch3-figure-F05,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.Positive and negative pairs in a contrastive batch
+.From paired views to a contrastive loss
 
-image::CH03_F05_Dadwal.svg[Positive and negative pairs in a contrastive batch,pdfwidth=96%]
+image::CH03_F05_Dadwal.svg[From paired views to NT-Xent classification,pdfwidth=100%]
 
 The transformation latexmath:[t] is a design decision, not a cosmetic detail. If the encoder must identify two views of the same frame, changes introduced randomly by latexmath:[t] cannot reliably identify the source. The encoder is therefore encouraged to become insensitive to those changes.
 
@@ -532,14 +458,8 @@ Compare NT-Xent loss values only when the batch size and temperature are the sam
 Batch size sets the number of negatives: latexmath:[K=2N-2]. A larger batch asks the model to distinguish the positive from more candidates, but it also requires memory for more views and their similarity scores.
 ====
 
-figure 3.6 depicts NT-Xent as a candidate-classification problem in which the matching view is the correct class.
+The combined schematic in figure 3.5 links the positive-pair construction to the candidate-classification form of NT-Xent. The derivation supplies the equations that the visual leaves implicit.
 
-[#ch3-figure-F06,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.The NT-Xent classification view
-
-image::CH03_F06_Dadwal.svg[The NT-Xent classification view,pdfwidth=96%]
-
-[#unique_section2_ch3_017_what_infonce_actually_optimizes_ID, reftext={chapter}.{section}.{counter:subsection}, caption='{chapter}.{section}.{subsection}']
 === What InfoNCE actually optimizes
 
 NT-Xent is one instance of the broader InfoNCE objective, used in contrastive predictive coding (van den Oord et al., 2018) and closely related to the contrastive formulation used by SimCLR (Chen et al., 2020). For each anchor, InfoNCE compares one positive with latexmath:[K] negatives. Its mathematical properties help explain both what contrastive learning encourages and what it cannot guarantee.
@@ -753,7 +673,7 @@ The recorded run uses 5,000 training frames sampled evenly across the 30 trainin
 
 A batch contains latexmath:[N=64] source frames, or 128 views, giving latexmath:[K=126] negatives per anchor. Results are recorded for three seeds: 0, 1, and 2. The physics state is stored with each frame, but the contrastive training objective operates on the images and projected representations, not on that state.
 
-figure 3.7 shows the recorded three-seed NT-Xent training loss on Cartpole. The mean falls from approximately 3.779 in the first epoch to 3.106 in the final epoch, with a seed standard deviation of about 0.005 at epoch 15. The curve is still decreasing at the final epoch, so this is the end of the chosen training budget, not a demonstrated convergence point.
+figure 3.6 shows the recorded three-seed NT-Xent training loss on Cartpole. The mean falls from approximately 3.779 in the first epoch to 3.106 in the final epoch, with a seed standard deviation of about 0.005 at epoch 15. The curve is still decreasing at the final epoch, so this is the end of the chosen training budget, not a demonstrated convergence point.
 
 [#ch3-figure-F07,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .NT-Xent training loss on Cartpole
@@ -761,14 +681,7 @@ image::CH03_F07_Dadwal.png[NT-Xent training loss on Cartpole,pdfwidth=88%]
 
 The loss is still decreasing at the final epoch, so this run ends at its chosen training budget rather than at a demonstrated convergence point. Its trend is evidence that the network is learning to solve the batch-identification task. It is not, by itself, evidence that the representation has captured the physical state.
 
-figure 3.8 presents the two-dimensional PCA projection before and after training. It can reveal broad structure in learned features, but it cannot establish which physical variables are linearly recoverable; the linear probes provide the quantitative test.
-
-[#ch3-figure-F08,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.A two-dimensional view of the learned representations
-
-image::CH03_F08_Dadwal.png[Before-training and after-training PCA projections for contrastive embeddings,pdfwidth=96%]
-
-The visual projection can show that the numerical outputs change during training, but it cannot tell us what the dimensions encode. We now need an evaluation that asks the physical question directly.
+A two-dimensional PCA projection can show broad geometric changes in embeddings, but it cannot establish which physical variables are recoverable. We therefore use held-out linear probes as the quantitative test of what the encoder retains.
 
 [#unique_section2_ch3_020_reading_the_state_back_with_a_linear_probe_ID, reftext={chapter}.{section}.{counter:subsection}, caption='{chapter}.{section}.{subsection}']
 === Reading the state back with a linear probe
@@ -823,7 +736,7 @@ A probe’s limitations are important. A high score means the physical variable 
 
 **Does adding a second frame recover velocity?** The aliasing diagnostic compares a contrastive encoder receiving a single frame with one receiving two consecutive frames stacked along the channel dimension. Both are evaluated using a frozen-feature linear probe. The experiment uses three seeds, a latent dimension of 16, 12 training epochs, up to 2,000 training examples, and up to 500 validation examples. For the two-frame case, selected frame windows do not cross episode boundaries.
 
-figure 3.9 compares the measured single-frame and two-frame state probes, including their variation across seeds.
+figure 3.7 compares the measured single-frame and two-frame state probes, including their variation across seeds.
 
 [#ch3-figure-Aliasing,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Single-frame and two-frame state probe comparison
@@ -928,7 +841,7 @@ The repository’s collapse demonstration compares two training conditions using
 
 The experiment uses cart-pole balance, 3,000 training frames sampled across episodes, batch size 64, 15 epochs, and three seeds. It measures the spread of the encoder output before training and after every epoch. The recorded results are stored in ch03/results/collapse_demo_metrics.json.
 
-figure 3.10 plots the final encoder feature spread under attraction-only training and NT-Xent.
+figure 3.8 plots the final encoder feature spread under attraction-only training and NT-Xent.
 
 [#ch3-figure-F09,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .How representation collapse appears
@@ -960,172 +873,34 @@ SimSiam, BYOL, and Barlow Twins use different mechanisms to avoid collapse witho
 
 The repository implements reduced-scale versions of all three methods. The study uses cart-pole frames, five random seeds, 30 epochs, up to 6,000 training frames, batch size 128, and Adam with learning rate latexmath:[10^{-3}]. The encoder output has 32 dimensions, while the projection and predictor heads use 128-dimensional embeddings. These experiments examine the core mechanisms at small scale; they are not exact reproductions of the large-scale ImageNet experiments in the original papers.
 
-[#unique_section3_ch3_028_simsiam_stop_the_gradient_through_the_target_ID, caption='SimSiam: stop the gradient through the target']
-==== SimSiam: Stop the gradient through the target
+Different methods prevent collapse in different ways, and their mechanisms are not interchangeable. The table summarizes the design choices; the reduced-scale experiment then compares feature statistics and frozen-feature probes.
 
-SimSiam uses a shared encoder and projector for the two views, plus a predictor applied to one branch. Let latexmath:[z_1,z_2] be the projected representations and latexmath:[p_1,p_2] their predictor outputs.
+[#ch3-table-T06,reftext={chapter}.{counter:table},caption='{table-caption}.{counter:table-number} ']
+.Three mechanisms used to avoid collapse
+[width="100%",cols="18%,36%,46%",options="header"]
+|===
+|Method |Anti-collapse mechanism |Important limitation
+|SimSiam
+|Stop-gradient through one target branch, with a predictor and normalization.
+|Asymmetry changes the optimization path, but is not a universal proof of a useful or non-collapsed state.
+|BYOL
+|A target encoder is updated by an exponential moving average of online parameters.
+|The target changes gradually; success still depends on the complete training configuration.
+|Barlow Twins
+|Cross-correlation diagonal terms encourage agreement, while off-diagonal terms discourage redundancy.
+|Coordinate decorrelation does not guarantee that every variable needed for prediction is represented.
+|VICReg
+|An invariance term is combined with an explicit variance floor and covariance penalty.
+|It constrains feature statistics, not physical-state sufficiency.
+|===
 
-For a predictor output latexmath:[p] and target representation latexmath:[z], define the negative cosine similarity:
+The reduced-scale cart-pole comparison uses five seeds. Mean frozen-feature probe scores are 0.266 for SimSiam, 0.268 for BYOL, and 0.285 for Barlow Twins. Their effective ranks out of 32 dimensions are 4.23, 7.07, and 11.18, while average coordinate spreads are about 1.93, 0.306, and 0.0616, respectively. The methods produce similar mean probe scores but noticeably different feature statistics. These measurements do not establish a universal ranking: the runs use small models and data, and do not isolate the objective from every architectural choice.
 
-[latexmath]
-++++
-
-D(p,z)=-
-\frac{p}{\lVert p\rVert_2}
-\cdot
-\frac{z}{\lVert z\rVert_2}.
-\tag{3.9}
-++++
-
-The symmetric objective evaluates each view as the prediction and the other view as the target:
-
-[latexmath]
-++++
-
-\frac12D\big(p_1,\mathrm{sg}(z_2)\big)
-+
-\frac12D\big(p_2,\mathrm{sg}(z_1)\big)
-\tag{3.10}
-++++
-
-The notation `sg` means stop-gradient. It leaves the target’s value unchanged, but treats it as a constant when calculating the gradient. The predictor is trained to match the opposite branch’s representation, while the target branch does not receive gradients through that particular loss term.
-
-This asymmetry is central to SimSiam. The method also uses a projector and a predictor with batch normalization, following its original design. The stop-gradient changes the optimization process, but it is not a universal mathematical guarantee that every possible configuration avoids collapse. Its effectiveness is established primarily through the method’s experiments, and our reduced-scale study measures the result of the full configuration rather than performing an ablation of each component.
-
-[#unique_section3_ch3_029_byol_a_slowly_moving_target_ID, caption='BYOL: a slowly moving target']
-==== BYOL: A slowly moving target
-
-BYOL also compares online predictions with target representations, but its target branch is a separate network. The online network contains an encoder, projector, and predictor and is updated by gradient descent. The target network contains an encoder and projector, receives no gradient, and changes through an exponential moving average of the online parameters.
-
-Let latexmath:[\theta_o] denote the online parameters, latexmath:[\theta_t] the target parameters, and latexmath:[m\in[0,1]) the momentum. The update is
-
-[latexmath]
-++++
-
-\boxed{
-\theta_t\leftarrow m\theta_t+(1-m)\theta_o
-}
-\tag{3.11}
-++++
-
-The target therefore changes gradually rather than tracking every online update immediately. The online network learns to predict the slowly changing target. In the repository implementation, the momentum starts at 0.99 and increases toward one during training using a cosine schedule.
-
-The target network is not optimized by gradient descent. Its parameters are updated by the exponential moving average, which provides the asymmetry in BYOL’s learning procedure. As with SimSiam, this mechanism is not a general proof of collapse prevention for every configuration. The experiment tests the implemented method at the declared scale and budget.
-
-
-listing 3.7 contrasts stop-gradient training with a moving target network.
-
-[#ch3-listing-L08,reftext={chapter}.{counter:listing},caption='{listing-caption}.{counter:listing-number} ']
-.Stop-gradient and the target-network update
-
-[source,python]
-----
-def simsiam_loss(p1, z2, p2, z1):
-    def d(p, z):
-        p = F.normalize(p, dim=1)
-        z = F.normalize(z.detach(), dim=1)               #A
-        return -(p * z).sum(dim=1).mean()                 #B
-
-    return 0.5 * d(p1, z2) + 0.5 * d(p2, z1)             #C
-
-
-def update_target_ema(online_model, target_model, decay=0.99):
-    with torch.no_grad():
-        for po, pt in zip(
-            online_model.parameters(), target_model.parameters()
-        ):
-            pt.data.mul_(decay)                           #D
-            pt.data.add_(po.data, alpha=1.0 - decay)
-----
-
-A Detaches the target from the gradient computation.
-
-B Computes negative cosine similarity for the batch.
-
-C Averages the two directions, as in equation 3.10.
-
-D Moves the target parameters toward the online parameters, as in equation 3.11.
-
-The code above contains two distinct mechanisms. SimSiam stops the gradient through the target representation; BYOL updates the target network by exponential moving average. They should not be conflated: BYOL’s target-network update is not simply another spelling of SimSiam’s stop-gradient.
-
-[#unique_section3_ch3_030_barlow_twins_reduce_redundancy_between_coordinates_ID, caption='Barlow Twins: reduce redundancy between coordinates']
-==== Barlow Twins: Reduce redundancy between coordinates
-
-Barlow Twins takes a different approach. It standardizes each coordinate of the two embedding batches and computes their cross-correlation matrix. If the views agree coordinate by coordinate, the diagonal should approach one. If different coordinates are uncorrelated, the off-diagonal entries should approach zero.
-
-Let latexmath:[\hat z^A_{b,i}] and latexmath:[\hat z^B_{b,j}] denote standardized coordinates latexmath:[i] and latexmath:[j] for frame latexmath:[b] in two view batches. The cross-correlation matrix is
-
-[latexmath]
-++++
-
-C_{ij}=\frac1N\sum_{b=1}^{N}
-\hat z^A_{b,i}\hat z^B_{b,j}.
-\tag{3.12}
-++++
-
-The loss penalizes deviation of diagonal entries from one and penalizes nonzero off-diagonal entries:
-
-[latexmath]
-++++
-
-\sum_i(1-C_{ii})^2
-+
-\lambda\sum_i\sum_{j\ne i}C_{ij}^2
-\tag{3.13}
-++++
-
-The diagonal term rewards agreement across views. The off-diagonal term discourages different dimensions from carrying redundant, linearly correlated information. The implementation uses latexmath:[\lambda=0.005].
-
-A constant coordinate cannot be standardized into a meaningful unit-variance signal. The code clamps the standard deviation at latexmath:[10^{-6}]; if a coordinate is constant, its standardized values are zero, and its diagonal term contributes a penalty of one. Collapse therefore incurs a positive loss. However, because the method standardizes the features, this objective does not set a minimum scale for the unstandardized representation itself.
-
-
-listing 3.8 expresses the Barlow Twins objective using its cross-correlation matrix.
-
-[#ch3-listing-L09,reftext={chapter}.{counter:listing},caption='{listing-caption}.{counter:listing-number} ']
-.The Barlow Twins cross-correlation loss
-
-[source,python]
-----
-def barlow_twins_loss(z1, z2, lambd=0.005):
-    n, d = z1.shape
-    s1 = z1.std(dim=0, unbiased=False).clamp_min(1e-6)
-    s2 = z2.std(dim=0, unbiased=False).clamp_min(1e-6)
-    a = (z1 - z1.mean(dim=0)) / s1                      #A
-    b = (z2 - z2.mean(dim=0)) / s2
-    c = a.T @ b / n                                     #B
-    diag = (torch.diagonal(c) - 1).pow(2).sum()         #C
-    off = ~torch.eye(d, dtype=torch.bool, device=z1.device)
-    off_diag = c[off].pow(2).sum()                      #D
-    return diag + lambd * off_diag
-----
-
-A Standardizes every coordinate across the batch.
-
-B Computes the cross-correlation matrix in equation 3.12.
-
-C Penalizes diagonal entries that differ from one.
-
-D Penalizes off-diagonal correlations.
-
-figure 3.11 places the anti-collapse mechanisms side by side: negative pairs, asymmetric training paths, and variance/covariance constraints.
+The feature-spread comparison is shown below.
 
 [#ch3-figure-F10,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Different methods prevent collapse in different ways
-
-image::CH03_F10_Dadwal.svg[Different mechanisms used to prevent representation collapse,pdfwidth=96%]
-
-[#unique_section3_ch3_031_what_did_the_reduced_scale_study_measure_ID, caption='What did the reduced-scale study measure?']
-==== What did the reduced-scale study measure?
-
-The recorded comparison in ch03/results/three_mechanisms_diagnostics.json reports frozen-encoder state-probe latexmath:[R^2], effective rank, and feature spread for the three implementations. Across five seeds, the mean probe scores are 0.266 for SimSiam, 0.268 for BYOL, and 0.285 for Barlow Twins.
-
-The effective ranks, out of 32 encoder dimensions, are 4.23 for SimSiam, 7.07 for BYOL, and 11.18 for Barlow Twins. Their average coordinate standard deviations differ markedly: approximately 1.93, 0.306, and 0.0616, respectively.
-
-These measurements illustrate why spread, effective rank, and state probes must be read together. Barlow Twins has the highest mean probe score in this run, but its advantage is modest relative to variation across seeds. Its much smaller spread does not, by itself, mean that its representation has collapsed: the Barlow Twins objective standardizes coordinates before applying the loss, and the frozen-feature probe also standardizes its inputs. The rank and probe provide complementary information.
-
-The runs also do not establish a universal method ranking. They use a common reduced-scale study on cart-pole frames, but the architectures and training mechanisms differ, and the experiment is not an exact reproduction of the original large-scale benchmarks. Nor does the comparison isolate one loss term while holding every other architectural choice fixed. Its conclusion is limited to the measured configurations: all three methods retained nontrivial variation under these settings, with different representation statistics and similar mean probe scores.
-
-The mechanisms examined so far prevent collapse through asymmetry or relationships between coordinates. VICReg makes the requirements explicit in three terms: maintain agreement between views, keep variation in each coordinate above a floor, and reduce covariance between different coordinates.
+image::CH03_F10_Dadwal.svg[Different methods used to prevent representation collapse,pdfwidth=96%]
 
 [#unique_section2_ch3_032_vicreg_making_the_anti_collapse_force_explicit_ID, reftext={chapter}.{section}.{counter:subsection}, caption='{chapter}.{section}.{subsection}']
 === VICReg: Making the anti-collapse force explicit
@@ -1152,7 +927,7 @@ The variance hinge is
 v(Z)=\frac1d\sum_{j=1}^{d}
 \max\big(0,\gamma-S(Z_{:,j})\big)
 }
-\tag{3.14}
+\tag{3.9}
 ++++
 
 Here, latexmath:[\gamma] is the minimum target standard deviation and latexmath:[\epsilon>0] stabilizes the square root. The repository uses latexmath:[\gamma=1] and latexmath:[\epsilon=10^{-4}].
@@ -1175,7 +950,7 @@ s(Z^A,Z^B)=
 \sum_{n=1}^{N}
 \left\lVert z_n^A-z_n^B\right\rVert_2^2
 }
-\tag{3.15}
+\tag{3.10}
 ++++
 
 This is the positive-view attraction from the collapse demonstration, but now it is only one part of the objective. By itself, it would allow a constant representation. In VICReg, the variance and covariance terms constrain what solutions can minimize the total loss.
@@ -1202,7 +977,7 @@ Its diagonal contains the coordinate variances. Its off-diagonal entries contain
 c(Z)=\frac1d
 \sum_{i\ne j}[C(Z)]_{ij}^{2}
 }
-\tag{3.16}
+\tag{3.11}
 ++++
 
 If all off-diagonal entries are zero, the coordinates are pairwise uncorrelated in the batch. This reduces second-order redundancy, but it does not establish that the coordinates are statistically independent: nonlinear dependence can remain even when covariance is zero.
@@ -1223,7 +998,7 @@ L_{\mathrm{VICReg}}
 &+\nu\big[c(Z^A)+c(Z^B)\big].
 \end{aligned}
 }
-\tag{3.17}
+\tag{3.12}
 ++++
 
 The implementation uses latexmath:[\lambda=25], latexmath:[\mu=25], and latexmath:[\nu=1]. These coefficients set the relative influence of invariance, variance, and covariance penalties. Both embedding batches receive their own variance and covariance penalties.
@@ -1264,9 +1039,9 @@ def vicreg_loss(za, zb, sim_coeff=25.0, std_coeff=25.0,
     return total, sim, var, cov
 ----
 
-A Computes the invariance term from equation 3.15.
+A Computes the invariance term from equation 3.10.
 
-B Computes the regularized standard deviation used by equation 3.14.
+B Computes the regularized standard deviation used by equation 3.9.
 
 C Penalizes coordinates whose standard deviation is below latexmath:[\gamma].
 
@@ -1281,7 +1056,7 @@ The variance calculation uses population variance, while the covariance estimate
 
 The standalone VICReg runner is ch03/08_vicreg.py. It uses the convolutional encoder and projection head from Section 3.3.4, with 4,000 training frames, batch size 64, 15 epochs, Adam at learning rate latexmath:[10^{-3}], and three seeds. The three loss terms operate on the 16-dimensional projection-head outputs; the downstream state probe reads the encoder output before the projection head.
 
-The recorded VICReg curves in figure 3.12 show the total loss and three unweighted loss components. The variance hinge falls close to zero by around epoch five, while the covariance term rises early and then declines. The invariance term remains comparatively small. This pattern is consistent with the variance floor being established before the covariance penalty reduces redundancy, though the experiment does not separately test that causal interpretation.
+The recorded VICReg curves in figure 3.10 show the total loss and three unweighted loss components. The variance hinge falls close to zero by around epoch five, while the covariance term rises early and then declines. The invariance term remains comparatively small. This pattern is consistent with the variance floor being established before the covariance penalty reduces redundancy, though the experiment does not separately test that causal interpretation.
 
 [#ch3-figure-F11,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .The three terms in VICReg
@@ -1331,7 +1106,7 @@ A learned linear layer embeds each patch into a 64-dimensional token. Positional
 
 For readability, this excerpt omits patchification and decoder helpers; the canonical implementation supplies both.
 
-listing 3.9 isolates the visible-patch encoder and masked-patch reconstruction path.
+listing 3.7 isolates the visible-patch encoder and masked-patch reconstruction path.
 
 [#ch3-listing-L10,reftext={chapter}.{counter:listing},caption='{listing-caption}.{counter:listing-number} ']
 .The masked-prediction path (schematic)
@@ -1367,14 +1142,14 @@ M_{bi}\left[
 }{
 \displaystyle\sum_{b=1}^{B}\sum_{i=1}^{N}M_{bi}
 }.
-\tag{3.18}
+\tag{3.13}
 ++++
 
 The denominator counts masked patches, so each hidden patch contributes its mean pixel-channel error. Visible patches do not contribute to the loss, even though the decoder produces predictions for them too. This matches the implementation in masked_mse_loss.
 
 The physics states collected from the simulator do not enter this objective. They remain available for evaluation, including the linear-probe tests used elsewhere in the chapter. The only training target here is the hidden image content.
 
-figure 3.13 pairs the masked-autoencoder data path with recorded examples of original frames, masked inputs, and reconstructions.
+figure 3.11 pairs the masked-autoencoder data path with recorded examples of original frames, masked inputs, and reconstructions.
 
 [#ch3-figure-F12,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Visible patches, latent encoding, and masked-patch reconstruction
@@ -1394,13 +1169,13 @@ Variational autoencoders and generative adversarial networks use additional obje
 
 A reconstruction loss measures how well the model rebuilds its input. A state probe asks a different question: how much information about the simulator’s state can be recovered by a linear map from the learned representation? Good reconstruction does not guarantee a strong state representation, just as a strong state probe does not guarantee pixel-accurate reconstruction.
 
-Consider the target in equation 3.18. The error is measured across the pixels of every masked patch, including patches containing the floor and background. These pixels are part of the image and therefore part of the objective, even when their appearance says little about the cart’s position or the pole’s angular velocity. The encoder can be rewarded for retaining information that helps reconstruct pixels without being equally rewarded for making every physical variable easy to decode linearly.
+Consider the target in equation 3.13. The error is measured across the pixels of every masked patch, including patches containing the floor and background. These pixels are part of the image and therefore part of the objective, even when their appearance says little about the cart’s position or the pole’s angular velocity. The encoder can be rewarded for retaining information that helps reconstruct pixels without being equally rewarded for making every physical variable easy to decode linearly.
 
 This is a hypothesis about the objective, not a conclusion that follows from the equation alone. We test it by examining reconstructions and measuring frozen-feature linear probes. The interpretation must remain bounded by the experiment: Cartpole frames at latexmath:[64\times64], the current patch-transformer architecture, a 75% masking ratio, and the stated training budget. These frames are far simpler than natural video, so this comparison does not establish a general ranking of reconstruction and contrastive methods.
 
 **The probe results.** The standalone MAE experiment uses seeds 0, 1, and 2, 4,000 episode-stratified training frames, 1,000 validation frames, 15 epochs, a batch size of 64, and Adam with learning rate latexmath:[10^{-3}]. Its probe uses the mean-pooled 64-dimensional encoder tokens. Across the three training seeds, the mean R² across the four Cartpole state variables is latexmath:[0.170\pm0.004]. This is the result recorded in ch03/results/mae_metrics.json.
 
-figure 3.14 compares complete configurations, not loss functions in isolation. All four methods use three seeds, 12 epochs, a batch size of 64, 3,500 training frames, and 1,000 validation frames. Error bars show the standard deviation across trained seeds, not across independently collected environments.
+figure 3.12 compares complete configurations, not loss functions in isolation. All four methods use three seeds, 12 epochs, a batch size of 64, 3,500 training frames, and 1,000 validation frames. Error bars show the standard deviation across trained seeds, not across independently collected environments.
 
 
 [#ch3-figure-StateProbeComparison,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
@@ -1422,9 +1197,9 @@ The per-variable results make the aggregates easier to interpret. The entries ar
 
 R² values below zero mean that the probe performs worse on the validation data than a constant predictor using the validation-target mean. In these runs, velocity is difficult to decode linearly across methods. The MAE’s Cartpole position score is below those of the contrastive and VICReg representations in this comparison, while its Cartpole velocity score is less negative. On Finger Spin, MAE performs poorly on the second position variable and has negative velocity scores. No single aggregate tells the whole story.
 
-These observations do not isolate the objective as the cause. MAE uses a patch-transformer encoder and decoder, and its evaluated feature vector is 64-dimensional. The contrastive and VICReg representations in this comparison use a convolutional backbone with a 16-dimensional latent representation. The supervised reference additionally uses privileged state labels during pretraining. figure 3.14 is therefore a method-family comparison under a stated budget, not a loss-only ablation. The measurements describe these complete configurations; they do not establish that masked reconstruction is inherently inferior to contrastive learning or VICReg.
+These observations do not isolate the objective as the cause. MAE uses a patch-transformer encoder and decoder, and its evaluated feature vector is 64-dimensional. The contrastive and VICReg representations in this comparison use a convolutional backbone with a 16-dimensional latent representation. The supervised reference additionally uses privileged state labels during pretraining. figure 3.12 is therefore a method-family comparison under a stated budget, not a loss-only ablation. The measurements describe these complete configurations; they do not establish that masked reconstruction is inherently inferior to contrastive learning or VICReg.
 
-figure 3.15 contrasts a model trained to predict a latent representation with one trained to reconstruct pixel values.
+figure 3.13 contrasts a model trained to predict a latent representation with one trained to reconstruct pixel values.
 
 [#ch3-figure-F13,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Predicting a representation is not the same as reconstructing pixels
@@ -1452,7 +1227,7 @@ The information bottleneck asks for a representation that preserves information 
 
 \mathcal{L}_{\mathrm{IB}}
 = I(Z;X)-\beta I(Z;Y).
-\tag{3.19}
+\tag{3.14}
 ++++
 
 Here, latexmath:[I(A;B)] is the mutual information between random variables latexmath:[A] and latexmath:[B]. It measures statistical dependence: it is zero when the variables are independent and increases as knowing one variable provides more information about the other. The coefficient latexmath:[\beta] controls the exchange between compression and relevance.
@@ -1469,9 +1244,9 @@ This gives a useful interpretation of a compact state. If an image contains a ca
 
 A representation needs to preserve enough information for the task without carrying unnecessary detail. A bottleneck can help limit irrelevant detail, but an overly narrow representation can also discard information needed for prediction.
 
-There is an important distinction between this information-theoretic objective and simply choosing a small vector. A deterministic encoder with a low-dimensional continuous output is not, by that fact alone, optimizing latexmath:[I(Z;X)]. In formal information-bottleneck formulations, the relationship between input and representation is treated probabilistically, and the mutual-information terms must be defined and optimized or bounded appropriately. A deterministic autoencoder with a narrow latent layer imposes a practical capacity constraint; it does not automatically implement equation 3.19.
+There is an important distinction between this information-theoretic objective and simply choosing a small vector. A deterministic encoder with a low-dimensional continuous output is not, by that fact alone, optimizing latexmath:[I(Z;X)]. In formal information-bottleneck formulations, the relationship between input and representation is treated probabilistically, and the mutual-information terms must be defined and optimized or bounded appropriately. A deterministic autoencoder with a narrow latent layer imposes a practical capacity constraint; it does not automatically implement equation 3.14.
 
-The same distinction applies to VICReg. Its invariance, variance, and covariance penalties encourage particular properties of learned embeddings, but VICReg does not optimize the information-bottleneck objective in equation 3.19. The equation is a conceptual lens for understanding what we want from a representation, not a claim that every self-supervised objective is secretly an information-bottleneck algorithm.
+The same distinction applies to VICReg. Its invariance, variance, and covariance penalties encourage particular properties of learned embeddings, but VICReg does not optimize the information-bottleneck objective in equation 3.14. The equation is a conceptual lens for understanding what we want from a representation, not a claim that every self-supervised objective is secretly an information-bottleneck algorithm.
 
 In this chapter’s experiments, the simulator’s physics state remains an evaluation target. The contrastive loss does not receive that state as a training label, and the latent-dimension sweep does not calculate mutual information directly. We use a linear probe to measure one concrete property: how much of the state is linearly recoverable from the learned features.
 
@@ -1505,7 +1280,7 @@ The repository’s ch03/10_bottleneck_sweep.py trains a separate contrastive enc
 The run uses Adam with a learning rate of latexmath:[10^{-3}], a batch size of 64, and 10 training epochs. It selects 3,000 training frames and 1,000 validation frames, spreading the selected indices across episodes rather than taking a single prefix of each dataset. The contrastive objective operates on two augmented views of each frame. Once training is complete, the linear probe is fitted to the frozen encoder features, not the projection head’s output.
 
 
-listing 3.10 reduces the latent-dimension sweep to its essential training-and-probe steps.
+listing 3.8 reduces the latent-dimension sweep to its essential training-and-probe steps.
 
 [#ch3-listing-L11,reftext={chapter}.{counter:listing},caption='{listing-caption}.{counter:listing-number} ']
 .The logic of a latent-dimension sweep (schematic)
@@ -1528,7 +1303,7 @@ The sweep measures held-out linear-probe R², averaged across the task’s physi
 [#unique_section3_ch3_049_the_measured_result_ID, caption='The measured result']
 ==== The measured result
 
-The recorded sweep output is shown in figure 3.16.
+The recorded sweep output is shown in figure 3.14.
 
 [#ch3-figure-F14,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .State-probe performance across latent dimensions
@@ -1573,7 +1348,7 @@ That may be undesirable for a world model. The future depends on the current sit
 
 This is not a claim that temporal contrastive learning must always discard dynamics. The result depends on how temporal positives are constructed and what else the objective asks the model to preserve. The narrower point is that invariance and prediction impose different requirements. Invariance says which observations should agree; prediction says which future observations are compatible with a given past.
 
-Our measurements from the earlier sections make this distinction concrete. figure 3.9 showed that velocity was poorly decoded from the learned single-frame representation under the tested configuration. Stacking two frames did not reliably fix the problem under those same experimental conditions. These results do not prove that velocity is fundamentally absent from images or impossible to recover from short sequences. They show that the representation and training setup did not make it reliably linearly available.
+Our measurements from the earlier sections make this distinction concrete. figure 3.7 showed that velocity was poorly decoded from the learned single-frame representation under the tested configuration. Stacking two frames did not reliably fix the problem under those same experimental conditions. These results do not prove that velocity is fundamentally absent from images or impossible to recover from short sequences. They show that the representation and training setup did not make it reliably linearly available.
 
 A frame-level invariance objective has no direct reason to preserve velocity. A temporal objective can instead reward a context for retaining information that helps identify a future observation. CPC is one way to implement that change.
 
@@ -1611,7 +1386,7 @@ For each prediction horizon latexmath:[k], CPC learns a matrix latexmath:[W_k]. 
 ++++
 
 \exp\!\left(z_{t+k}^{\top}W_kc_t\right).
-\tag{3.20}
+\tag{3.15}
 ++++
 
 Here, latexmath:[z_{t+k}] is the candidate representation at a future time, latexmath:[c_t] is the context available at time latexmath:[t], and latexmath:[W_k] is specific to horizon latexmath:[k]. The matrix lets the model learn which relationships between context coordinates and future latent coordinates are useful for identifying a match.
@@ -1660,7 +1435,7 @@ The model does not directly regress the future latent with a squared-error objec
 In the repository, worldmodels/models/temporal_cpc.py defines TemporalCPC. Its forward method encodes a batch of image sequences, runs the GRU, and calculates cross-entropy over candidate future latents at each valid context and horizon.
 
 
-listing 3.11 shows the context encoder and horizon-specific compatibility scoring used by CPC.
+listing 3.9 shows the context encoder and horizon-specific compatibility scoring used by CPC.
 
 [#ch3-listing-L12,reftext={chapter}.{counter:listing},caption='{listing-caption}.{counter:listing-number} ']
 .CPC context and compatibility scoring
@@ -1705,7 +1480,7 @@ That omission matters. In a controlled physical system, the next state depends n
 
 This is not a controlled comparison between action-conditioned and action-free prediction, so it does not measure how much actions would improve the results. Because the context receives no actions, the experiment evaluates future-latent identification under the sampled policy, not the consequences of alternative actions.
 
-figure 3.17 traces the CPC learning signal from past observations through a context vector to candidate future latents.
+figure 3.15 traces the CPC learning signal from past observations through a context vector to candidate future latents.
 
 [#ch3-figure-F15,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Contrastive predictive coding predicts a future latent
@@ -1741,29 +1516,15 @@ The random top-1 chance rate is therefore 3.5%, rather than latexmath:[1/200]. T
 
 The top-1 retrieval rate is the fraction of queries for which the matching future latent receives the highest score in its batch. Top-5 retrieval counts a match as correct if it appears among the five highest-scoring candidates. The positive-minus-hardest-negative margin measures the score gap between the correct future and the most competitive incorrect candidate. Because the logits are raw bilinear scores, that margin is a score difference, not a probability.
 
-figure 3.18 plots future-latent retrieval by prediction horizon under the batch-candidate evaluation.
-
-[#ch3-figure-F16,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.CPC future-latent retrieval by horizon
-image::CH03_F16_Dadwal.png[CPC future-latent retrieval by horizon,pdfwidth=88%]
-
-
-figure 3.19 combines the state-probe comparison with the horizon-wise loss and hardest-negative margin.
+The consolidated evaluation below combines the state-probe comparison with horizon-wise retrieval and candidate-separation diagnostics.
 
 [#ch3-figure-CpcEvaluation,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.CPC state probes and candidate separation across horizons
-image::CH03_CPC_Evaluation.svg[CPC state-probe and horizon-evaluation plot, pdfwidth=100%]
+.CPC state probes, retrieval, and candidate separation
+image::CH03_CPC_Evaluation.svg[CPC state probes, future retrieval, and candidate-separation metrics,pdfwidth=100%]
 
-The state-probe values and the loss/margin curves summarize five trained seeds.
-The query-weighted in-batch chance level for top-1 retrieval is 3.5%. The
-evaluation windows come from five episodes, so they are not 200 independent
-trajectory samples.
+The state-probe values and loss/margin curves summarize five trained seeds. The query-weighted in-batch chance level for top-1 retrieval is 3.5%. The 200 evaluation windows come from five validation episodes, so they are not 200 independent trajectory samples. Error bars show standard deviation across trained seeds, not a confidence interval over independent episodes.
 
- The uncertainty shown is the standard deviation across the five trained seeds, not a confidence interval over 200 independent episodes.
-
-The retrieval plot and the two curves tell a consistent story: the matching future latent is usually ranked first, but candidate separation weakens as the prediction horizon grows. Retrieval asks which candidate matches the context; it does not measure the physical accuracy of a predicted state.
-
-Top-5 retrieval reaches 100% in each seed at all three horizons. This tells us that the positive candidate reliably appears among the five highest-scoring candidates in the batches used for evaluation. It does not mean the model can predict five steps into the future with perfect physical accuracy.
+Top-1 retrieval is 95.0%, 94.1%, and 92.4% at horizons one through three, respectively; top-5 retrieval is 100% at each horizon. Candidate separation weakens with horizon. These are rankings among in-batch future-latent candidates, not physical prediction scores.
 
 The candidate protocol also limits the claim. Candidates come from only the selected validation windows and are compared within batches; the benchmark does not test retrieval across every possible future state or every possible trajectory. The five episodes contribute many windows, but windows from the same episode are not independent evidence of generalization to wholly new environments.
 
@@ -1812,7 +1573,7 @@ The shared interface is implemented in link:../worldmodels/models/encoders.py[th
 The second method can operate in either of two ways. Without a recurrent layer, it simply returns the encoded observation. With a recurrent layer, it passes the representation and previous recurrent state through a GRU cell. On the first call, when no previous state exists, it initializes the hidden state to zeros.
 
 
-listing 3.12 shows the interface calls for an encoder with or without recurrent state.
+listing 3.10 shows the interface calls for an encoder with or without recurrent state.
 
 [#ch3-listing-L13,reftext={chapter}.{counter:listing},caption='{listing-caption}.{counter:listing-number} ']
 .Two ways to use the encoder
@@ -1828,11 +1589,7 @@ when a recurrent wrapper is configured, also updates its hidden state. Without
 that wrapper, there is no memory across calls. The hidden state is learned
 internal state, not the simulator's ground-truth physics state.
 
-The wrapper keeps the representation-learning architecture separate from the agent’s interface. The backbone determines how observations are encoded. The optional GRU cell determines how successive encodings are combined into a persistent hidden state.
-
-The word state in this interface refers to the encoder’s recurrent hidden state, not the simulator’s ground-truth physical state. During normal operation, the agent does not receive qpos or qvel from the simulator. It receives the rendered observation and carries its own internal state between calls.
-
-The wrapper also does not dictate how the encoder was trained. A different compatible backbone can be substituted without changing the calls made by the agent loop. The interface is small, but it creates an important separation: training objectives can change while the rest of the agent continues to consume an observation and an updated internal state.
+The optional GRU carries a learned hidden state across observations; without it, calls are stateless. This hidden state is not the simulator’s ground-truth qpos/qvel. The interface is independent of the training objective, but it supplies neither action-conditioned transition dynamics nor planning.
 
 [#unique_section2_ch3_062_verifying_the_interface_ID, reftext={chapter}.{section}.{counter:subsection}, caption='{chapter}.{section}.{subsection}']
 === Verifying the interface
@@ -1846,7 +1603,7 @@ This is an interface check, not an evaluation of representation quality. It veri
 [#unique_section2_ch3_063_what_each_objective_encourages_the_encoder_to_preserve_ID, reftext={chapter}.{section}.{counter:subsection}, caption='{chapter}.{section}.{subsection}']
 === What each objective encourages the encoder to preserve
 
-The experiments show why a common interface does not imply that all encoders learn equivalent representations. The training objective determines which relationships are rewarded. table 3.2 summarizes the resulting trade-offs.
+The experiments show why a common interface does not imply that all encoders learn equivalent representations. The training objective determines which relationships are rewarded. table 3.3 summarizes the resulting trade-offs.
 
 
 [#ch3-table-T05,reftext={chapter}.{counter:table},caption='{table-caption}.{counter:table-number} ']
@@ -1880,15 +1637,31 @@ The common pattern is that an objective cannot be judged solely by whether its l
 
 The measurements provide partial evidence about the learned representations, but they do not settle every question. The following summary separates what was measured from what remains unverified.
 
-*Evidence and limits*
+The measurements address parts of the state contract, but leave several stronger claims untested. table 3.4 maps each requirement to evidence and its limits.
 
-* *Sufficiency: preserve information relevant to the task* Evidence: Frozen-feature linear probes measure whether physical state variables are linearly recoverable. Position variables are often more decodable than velocities. The MAE, contrastive, and VICReg comparison also shows that results differ across complete model configurations. Remaining limit: A linear probe measures explicit linear decodability, not all information present in a representation. These experiments do not demonstrate successful control or planning.
-* *Minimality: avoid retaining unnecessary detail* Evidence: The latent-dimension sweep measures probe performance from latexmath:[d=2] through latexmath:[d=256]. Cartpole approaches a plateau between latexmath:[d=64] and latexmath:[d=256], while Cheetah performance is still rising at latexmath:[d=256]. Remaining limit: The sweep does not measure mutual information directly, prove a globally minimal representation, or establish a plateau for Cheetah.
-* *Aliasing: distinguish situations that require different predictions or actions* Evidence: The aliasing diagnostic compares single-frame and stacked-frame representations. Mean cart-velocity R² changes only from approximately 0.006 to 0.009, while pole-angular-velocity R² becomes slightly worse, from approximately −0.367 to −0.375. Remaining limit: Under the tested resolution, augmentation, architecture, and budget, stacking two frames did not reliably recover velocity. This does not prove that temporal information can never resolve the ambiguity.
-* *Markov property and predictive state: retain history relevant to the future* Evidence: CPC’s GRU context identifies matching future latents with top-1 retrieval of approximately 92%–95% across the three tested horizons. The mean next-state probe R² is numerically higher for the context than for the static encoder. Remaining limit: The context does not make every physical variable linearly decodable. The experiment does not establish conditional independence from earlier history, accurate recursive physical prediction, or stable long-horizon rollouts.
-* *Action-conditioned dynamics: predict outcomes in relation to actions* Evidence: The CPC experiment measures future-latent identification using sequences collected under a random policy. Remaining limit: The model receives frames but not actions. This experiment does not evaluate action-conditioned prediction or establish planning utility.
+[#ch3-table-T07,reftext={chapter}.{counter:table},caption='{table-caption}.{counter:table-number} ']
+.Chapter 2's state contract: evidence and remaining questions
+[width="100%",cols="22%,39%,39%",options="header"]
+|===
+|Contract question |Evidence in this chapter |What remains untested
+|Sufficiency
+|Frozen-feature linear probes measure whether simulator variables can be decoded from the representation.
+|Low R² does not prove the information is absent; no experiment demonstrates successful control or planning.
+|Compactness
+|The latent-dimension sweep measures how probe performance changes with representation size.
+|It does not establish a globally minimal state or directly measure mutual information.
+|Aliasing and memory
+|Single-frame and stacked-frame probes test selected ambiguities; CPC adds a recurrent context and a future-latent retrieval task.
+|Stacking two frames does not reliably recover velocity in this configuration. No formal Markov-sufficiency test is performed.
+|Temporal prediction
+|CPC retrieves the matching future latent at 95.0%, 94.1%, and 92.4% top-1 across the three tested horizons.
+|Retrieval is not a recursive physical-state rollout, a long-horizon consistency test, or proof of state sufficiency.
+|Action-conditioned dynamics
+|The chapter distinguishes the encoder interface from the larger transition-and-planning system.
+|CPC receives observations, not actions. Action-conditioned prediction and planning utility are not measured.
+|===
 
-figure 3.20 places the encoder in a larger control loop and distinguishes representation from action-conditioned dynamics and planning.
+figure 3.17 places the encoder in a larger control loop and distinguishes representation from action-conditioned dynamics and planning.
 
 [#ch3-figure-F17,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Using a learned encoder in a control loop
@@ -1936,7 +1709,7 @@ The bottleneck sweep measures state-probe performance at latent dimensions latex
 
 At what dimension does Cartpole’s probe approach a plateau? Does Cheetah show the same pattern within the tested range? Relate the results to the tasks’ four- and eighteen-dimensional physical states, respectively, and explain why the optimal latent dimension need not equal the number of state variables.
 
-Use figure 3.16 and ch03/results/bottleneck_sweep_metrics.json. Identify the smallest tested dimension that appears to approach saturation for each task, and state what further experiment would be needed if performance is still rising at the largest dimension.
+Use figure 3.14 and ch03/results/bottleneck_sweep_metrics.json. Identify the smallest tested dimension that appears to approach saturation for each task, and state what further experiment would be needed if performance is still rising at the largest dimension.
 
 [arabic, start=6]
 . Extending CPC’s prediction horizon
