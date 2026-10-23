@@ -1,39 +1,39 @@
 # Chapter 3 figures and source assets
 
-Figure stems use the Manning chapter template's CH03_F##_Dadwal convention. The manuscript sets :imagesdir: ../images/; image paths in the AsciiDoc are relative to this directory.
+Figure stems follow the Manning chapter template's `CH03_F##_Dadwal` convention. The manuscript sets `:imagesdir: ../images/`; image paths in the AsciiDoc are relative to this directory.
 
 ## Artwork embedded in the manuscript
 
-- **CH03_F01_Dadwal.svg**: objective-centred map of self-supervised learning signals, informed by Gui et al. (2024), Uelwer et al. (2025), and V-JEPA 2 (2025).
-- **CH03_F02_Dadwal.svg**: original schematic of a useful representation and the aliasing problem.
-- **CH03_F03_Dadwal.png**: rendered observations from the selected DeepMind Control Suite tasks.
-- **CH03_F04_Dadwal.svg**: rotation prediction, colorization, and future-frame prediction from a common source observation.
-- **CH03_F05_Dadwal.svg**: anchor, positive view, and negative views in a contrastive batch.
-- **CH03_F06_Dadwal.svg**: NT-Xent as a temperature-scaled candidate-classification objective.
-- **CH03_F07_Dadwal.png**: committed NT-Xent training-loss plot. The loss is still decreasing at the last epoch, so the figure does not show demonstrated convergence.
-- **CH03_F08_Dadwal.png** (Figure 3.8): before/after PCA projection regenerated from the committed seed-0 checkpoint and validation data. Both panels use a pooled PCA basis and shared main axes; marker shapes encode four wrapped-angle bins and grayscale encodes cart position. Because the random-initialized features have much smaller spread, a clearly marked inset magnifies the pre-training panel using its own scale. The `_Source` copy is retained for provenance.
-- **CH03_F09_Dadwal.svg** (Figure 3.10): endpoint spread comparison from committed collapse-demo metrics, with a logarithmic axis that makes both the tiny attraction-only spread and contrastive spread visible. The caption/body explicitly limit what this statistic establishes.
-- **CH03_F10_Dadwal.svg** (Figure 3.11): conceptual comparison of negative pairs, asymmetric training paths, and variance/covariance constraints.
-- **CH03_F11_Dadwal.png** (Figure 3.12): committed VICReg total-loss and component curves. The `_Source` copy is retained.
-- **CH03_F12_Dadwal.svg** (Figure 3.13): masked autoencoder architecture; paired with CH03_F12_Dadwal_Source.png, which shows original inputs, masking, and recorded reconstructions.
-- **CH03_State_Probe_Comparison.svg** (Figure 3.14): mean state-probe position/velocity R² with standard-deviation error bars, sourced from committed comparison outputs.
-- **CH03_F13_Dadwal.svg** (Figure 3.15): latent-space prediction versus pixel reconstruction.
-- **CH03_F14_Dadwal.png** (Figure 3.16): committed two-task latent-dimension sweep.
-- **CH03_F15_Dadwal.svg** (Figure 3.17): CPC context and candidate-future latent scoring.
-- **CH03_F16_Dadwal.png** (Figure 3.18): primary CPC future-latent retrieval plot from the committed evaluation.
-- **CH03_CPC_Evaluation.svg** (Figure 3.19): complementary plot showing CPC state probes and horizon-wise evaluation metrics.
-- **CH03_F17_Dadwal.svg** (Figure 3.20): encoder as one component of a larger control loop.
-- **CH03_Aliasing_Diagnostic.svg** (Figure 3.9): single-frame versus two-frame probe results.
+- **Figure 3.1 — `CH03_F01_Dadwal.svg`**: objective-centred map of self-supervised learning signals, informed by Gui et al. (2024), Uelwer et al. (2025), and V-JEPA 2 (2025).
+- **Figure 3.2 — `CH03_F02_Dadwal.svg`**: original schematic of a useful representation and the aliasing problem.
+- **Figure 3.3 — `CH03_F03_Dadwal.png`**: rendered observations from the selected DeepMind Control Suite tasks.
+- **Figure 3.4 — `CH03_F04_Dadwal.svg`**: corrected pretext-task comparison: rotation prediction, jigsaw prediction, and colorization.
+- **Figure 3.5 — `CH03_F05_Dadwal.svg`**: composite schematic connecting anchor/positive/negative pairs to the NT-Xent candidate-classification pipeline.
+- **Figure 3.6 — `CH03_F07_Dadwal.png`**: committed NT-Xent training-loss plot; the loss is still decreasing at the final epoch and does not demonstrate convergence.
+- **Figure 3.7 — `CH03_Aliasing_Diagnostic.svg`**: single-frame versus two-frame state-probe results.
+- **Figure 3.8 — `CH03_F09_Dadwal.svg`**: endpoint feature-spread comparison from committed collapse-demo metrics.
+- **Figure 3.9 — `CH03_F10_Dadwal.svg`**: conceptual comparison of negative pairs, asymmetric training paths, and variance/covariance constraints.
+- **Figure 3.10 — `CH03_F11_Dadwal.png`**: committed VICReg total-loss and component curves.
+- **Figure 3.11 — `CH03_F12_Dadwal.svg`** plus **`CH03_F12_Dadwal_Source.png`**: MAE architecture and reconstruction examples.
+- **Figure 3.12 — `CH03_State_Probe_Comparison.svg`**: mean state-probe position/velocity scores with seed-level standard-deviation error bars.
+- **Figure 3.13 — `CH03_F13_Dadwal.svg`**: latent-space prediction versus pixel reconstruction.
+- **Figure 3.14 — `CH03_F14_Dadwal.png`**: committed two-task latent-dimension sweep.
+- **Figure 3.15 — `CH03_F15_Dadwal.svg`**: CPC context and candidate-future latent scoring. It is a retrieval experiment, not an action-conditioned physical rollout.
+- **Figure 3.16 — `CH03_CPC_Evaluation.svg`**: consolidated CPC view of state probes, horizon-wise candidate separation, and top-1/top-5 retrieval rates. Top-1 rates are 95.0%, 94.1%, and 92.4% at horizons one through three; top-5 is 100% at each horizon under the stated in-batch protocol.
+- **Figure 3.17 — `CH03_F17_Dadwal.svg`**: encoder as one component of a larger control loop; it does not itself model transitions or plan.
 
-The PNGs listed above are based on committed experiment outputs, not recreated by hand. The vector schematics were made specifically for this manuscript. They are conceptual diagrams, not renderings of unpublished model results.
+Empirical PNGs come from committed experiment outputs. Vector schematics are original conceptual illustrations.
 
-## Archived and source assets
+## Retained but not embedded in this revision
 
-- **CH03_F01_Dadwal_Reference_2024.png**: archived 2024 taxonomy image supplied as a reference; it is not inserted in the current manuscript.
-- **CH03_F05_Dadwal_Source.png**: legacy image of view pairs, retained for provenance; the new batch-level schematic is used instead.
-- The same-stem Markdown briefs are original art-production specifications retained for audit history. They are not referenced as live placeholders in the reader-facing AsciiDoc.
-- **CH03_F09_Dadwal_PanelA.png** and **CH03_F09_Dadwal_PanelB.png**: earlier collapse panels retained for provenance; the logarithmic SVG summary is embedded instead.
+- **`CH03_F06_Dadwal.svg`**: former standalone NT-Xent classification diagram; its content is folded into Figure 3.5.
+- **`CH03_F08_Dadwal.png`** and its source copy: before/after PCA projection, dropped because the qualitative projection added little beyond the quantitative state probes.
+- **`CH03_F16_Dadwal.png`**: former standalone CPC retrieval plot; its rates are stated in prose and summarized in Figure 3.16.
+- **`CH03_F01_Dadwal_Reference_2024.png`**: archived 2024 taxonomy image, not embedded.
+- **`CH03_F05_Dadwal_Source.png`**: legacy pair-illustration source, retained for provenance.
+- **`CH03_F09_Dadwal_PanelA.png`** and **`CH03_F09_Dadwal_PanelB.png`**: earlier collapse panels retained for provenance.
+- Same-stem Markdown files are original art-production briefs retained for audit history; they are not reader-facing placeholders.
 
-## Figure readiness
+## Readiness notes
 
-All 20 numbered figure anchors resolve to real artwork, and the two remaining numbered tables contain actual tabular material. Three former table anchors were correctly converted to figures because each displayed a plot rather than a table. The manuscript no longer includes visible figure-production notes. Figure numbering follows document order; stable source filenames retain their F## identifiers even after the three plot panels were promoted to numbered figures.
+All 17 numbered figure anchors resolve to artwork. Four numbered tables cover notation, anti-collapse mechanisms, objective trade-offs, and the Chapter 2 contract-to-evidence summary. Figure numbers follow source order, not the numeric suffix in asset filenames.
