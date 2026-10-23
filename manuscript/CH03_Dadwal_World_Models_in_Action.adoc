@@ -1641,7 +1641,7 @@ The common pattern is that an objective cannot be judged solely by whether its l
 
 The measurements provide partial evidence about the learned representations, but they do not settle every question. The following summary separates what was measured from what remains unverified.
 
-The measurements address parts of the state contract, but leave several stronger claims untested. table 3.4 maps each requirement to evidence and its limits.
+The measurements address parts of the state contract, but leave several stronger claims untested. The table below maps each requirement to evidence and its limits.
 
 [#ch3-table-T07,reftext={chapter}.{counter:table},caption='{table-caption}.{counter:table-number} ']
 .Chapter 2's state contract: evidence and remaining questions
