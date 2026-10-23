@@ -286,16 +286,24 @@ else:
     if not lines[-1].strip().startswith("* "):
         errors.append("Summary must be the last content, with no trailing paragraph or production note.")
 
+retired_figure_stems = {
+    "CH03_F06_Dadwal",  # folded into Figure 3.5
+    "CH03_F08_Dadwal",  # low-evidence PCA projection removed
+    "CH03_F16_Dadwal",  # CPC retrieval plot folded into Figure 3.16
+}
 for n in range(1, 18):
     stem = f"CH03_F{n:02d}_Dadwal"
-    if stem not in source:
+    if stem not in source and stem not in retired_figure_stems:
         errors.append(f"Missing figure reference: {stem}")
     assets = [
         path
         for ext in ("png", "svg", "jpg", "jpeg")
         for path in img.glob(f"{stem}*.{ext}")
     ]
-    if not assets and not (args.allow_unfetched_assets and n in (3, 7, 14, 16)):
+    # Retired assets may remain for provenance; only live figure slots must be embedded.
+    if stem not in retired_figure_stems and not assets and not (
+        args.allow_unfetched_assets and n in (3, 7, 14, 16)
+    ):
         errors.append(f"Missing final figure asset: {stem}")
 
 for line in lines:
@@ -319,4 +327,4 @@ if errors:
     print("\n".join(f"ERROR: {error}" for error in errors))
     sys.exit(1)
 
-print("OK: Manning anchors, nesting and prose flow, numbered object callouts, listing captions, final Summary, 20 figures, two tables, and all figure paths are consistent.")
+print("OK: Manning anchors, nesting and prose flow, numbered object callouts, listing captions, final Summary, 17 figures, four tables, ten listings, and all live figure paths are consistent.")

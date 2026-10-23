@@ -63,7 +63,9 @@ Let latexmath:[x] denote an observation, such as an image rendered by a simulato
 \tag{3.1}
 ++++
 
-The encoder maps an observation to a vector of latexmath:[d] numbers. Sufficiency means retaining information needed for downstream prediction; minimality means not carrying detail that adds no value for the task. A representation can fail in either direction: it may preserve too much raw appearance, or compress away a distinction needed to predict what happens next.[#unique_section2_ch3_002_aliasing_when_compression_loses_the_wrong_information_ID, reftext={chapter}.{section}.{counter:subsection}, caption='{chapter}.{section}.{subsection}']
+The encoder maps an observation to a vector of latexmath:[d] numbers. Sufficiency means retaining information needed for downstream prediction; minimality means not carrying detail that adds no value for the task. A representation can fail in either direction: it may preserve too much raw appearance, or compress away a distinction needed to predict what happens next.
+
+[#unique_section2_ch3_002_aliasing_when_compression_loses_the_wrong_information_ID, reftext={chapter}.{section}.{counter:subsection}, caption='{chapter}.{section}.{subsection}']
 === Aliasing: When compression loses the wrong information
 Aliasing occurs when observations that require different predictions map to the same representation. For example, visually similar cart-pole frames may correspond to opposite cart velocities. The encoder then discards a distinction that a downstream model cannot recover from the representation alone.
 
@@ -152,6 +154,7 @@ The self-supervised objectives receive rendered images only; simulator state var
 
 The common benchmark lets us compare the information made available by each objective without presuming that any objective succeeds.
 
+[#unique_section_ch3_007_pretext_tasks_supervision_from_structure_ID, reftext={chapter}.{counter:section}, caption='{chapter}.{section}']
 == Pretext tasks: Supervision from structure
 
 A pretext task turns an unlabeled observation into a training example with a known target. The target comes from a transformation or relationship in the data, so we do not need a person to annotate each example.
@@ -460,6 +463,7 @@ Batch size sets the number of negatives: latexmath:[K=2N-2]. A larger batch asks
 
 The combined schematic in figure 3.5 links the positive-pair construction to the candidate-classification form of NT-Xent. The derivation supplies the equations that the visual leaves implicit.
 
+[#unique_section2_ch3_017_what_infonce_actually_optimizes_ID, reftext={chapter}.{section}.{counter:subsection}, caption='{chapter}.{section}.{subsection}']
 === What InfoNCE actually optimizes
 
 NT-Xent is one instance of the broader InfoNCE objective, used in contrastive predictive coding (van den Oord et al., 2018) and closely related to the contrastive formulation used by SimCLR (Chen et al., 2020). For each anchor, InfoNCE compares one positive with latexmath:[K] negatives. Its mathematical properties help explain both what contrastive learning encourages and what it cannot guarantee.
@@ -873,7 +877,7 @@ SimSiam, BYOL, and Barlow Twins use different mechanisms to avoid collapse witho
 
 The repository implements reduced-scale versions of all three methods. The study uses cart-pole frames, five random seeds, 30 epochs, up to 6,000 training frames, batch size 128, and Adam with learning rate latexmath:[10^{-3}]. The encoder output has 32 dimensions, while the projection and predictor heads use 128-dimensional embeddings. These experiments examine the core mechanisms at small scale; they are not exact reproductions of the large-scale ImageNet experiments in the original papers.
 
-Different methods prevent collapse in different ways, and their mechanisms are not interchangeable. The table summarizes the design choices; the reduced-scale experiment then compares feature statistics and frozen-feature probes.
+Different methods prevent collapse in different ways, and their mechanisms are not interchangeable. table 3.2 compares their design choices and limitations; the reduced-scale experiment then compares feature statistics and frozen-feature probes.
 
 [#ch3-table-T06,reftext={chapter}.{counter:table},caption='{table-caption}.{counter:table-number} ']
 .Three mechanisms used to avoid collapse
@@ -896,7 +900,7 @@ Different methods prevent collapse in different ways, and their mechanisms are n
 
 The reduced-scale cart-pole comparison uses five seeds. Mean frozen-feature probe scores are 0.266 for SimSiam, 0.268 for BYOL, and 0.285 for Barlow Twins. Their effective ranks out of 32 dimensions are 4.23, 7.07, and 11.18, while average coordinate spreads are about 1.93, 0.306, and 0.0616, respectively. The methods produce similar mean probe scores but noticeably different feature statistics. These measurements do not establish a universal ranking: the runs use small models and data, and do not isolate the objective from every architectural choice.
 
-The feature-spread comparison is shown below.
+The feature-spread diagnostic appears in figure 3.8; figure 3.9 summarizes the complementary anti-collapse mechanisms.
 
 [#ch3-figure-F10,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Different methods prevent collapse in different ways
@@ -1516,7 +1520,7 @@ The random top-1 chance rate is therefore 3.5%, rather than latexmath:[1/200]. T
 
 The top-1 retrieval rate is the fraction of queries for which the matching future latent receives the highest score in its batch. Top-5 retrieval counts a match as correct if it appears among the five highest-scoring candidates. The positive-minus-hardest-negative margin measures the score gap between the correct future and the most competitive incorrect candidate. Because the logits are raw bilinear scores, that margin is a score difference, not a probability.
 
-The consolidated evaluation below combines the state-probe comparison with horizon-wise retrieval and candidate-separation diagnostics.
+The consolidated evaluation below combines the state-probe comparison with horizon-wise retrieval and candidate-separation diagnostics. figure 3.16 brings these measurements together.
 
 [#ch3-figure-CpcEvaluation,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .CPC state probes, retrieval, and candidate separation
