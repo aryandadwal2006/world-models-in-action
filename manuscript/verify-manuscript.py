@@ -251,13 +251,13 @@ for line_number, line in enumerate(lines, start=1):
 
 figure_anchor_count = sum(line.startswith("[#ch3-figure-") for line in lines)
 table_anchor_count = sum(line.startswith("[#ch3-table-") for line in lines)
-if figure_anchor_count != 20:
-    errors.append(f"Expected 20 numbered figures after promoting the plot panels; found {figure_anchor_count}.")
-if table_anchor_count != 2:
-    errors.append(f"Expected the two actual tables; found {table_anchor_count} table anchors.")
+if figure_anchor_count != 17:
+    errors.append(f"Expected 17 numbered figures after consolidation; found {figure_anchor_count}.")
+if table_anchor_count != 4:
+    errors.append(f"Expected four numbered tables after adding anti-collapse and contract-evidence tables; found {table_anchor_count} table anchors.")
 listing_anchor_count = sum(line.startswith("[#ch3-listing-") for line in lines)
-if listing_anchor_count != 12:
-    errors.append(f"Expected 12 numbered code listings; found {listing_anchor_count} listing anchors.")
+if listing_anchor_count != 10:
+    errors.append(f"Expected 10 numbered code listings after removing redundant method snippets; found {listing_anchor_count} listing anchors.")
 
 summary_heading = "== Summary"
 if summary_heading not in lines:
