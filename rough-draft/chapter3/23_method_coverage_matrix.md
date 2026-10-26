@@ -162,3 +162,14 @@ See [Dense and local visual SSL](36_dense_local_visual_ssl_from_first_principles
 ## Readiness gate
 
 The broad inventory is not equivalent to completed source verification. Use [Dossier readiness and manuscript-start gate](38_dossier_readiness_and_manuscript_gate.md) to distinguish covered families, source-inspected versus executed evidence, unresolved citation work, and criteria for starting the composed manuscript.
+
+
+## 12. Masked and clustering-family source checks
+
+| Method | Pinned source | Source-verified target | Recipe caveat |
+|---|---|---|---|
+| DeepCluster | `implementations/deepcluster/` | Offline cluster assignments become pseudo-labels for cross-entropy | Re-clustering interval, cluster count and algorithm matter; repository LICENSE says CC BY-NC 4.0 |
+| BEiT | `implementations/unilm/beit/` | Cross-entropy on DALL-E tokenizer code IDs at masked positions | Separate tokenizer prerequisite; original run is resource intensive |
+| SimMIM | `implementations/simmim/` | L1 pixel reconstruction over masked regions | Mask patch size, ratio, architecture and normalization vary by config |
+| MaskFeat | `implementations/slowfast/projects/maskfeat/` | HOG regression at masked positions in the cited ImageNet config | RGB/HOG and image/video targets are configuration-dependent |
+
