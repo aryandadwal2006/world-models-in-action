@@ -193,33 +193,32 @@ image::CH03_T02_InfoNCE.svg[Anchor, positive and negative candidates, softmax an
 [#unique_section2_ch3_006_what_infoNCE_does_and_does_not_prove_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === What InfoNCE does and does not prove
 
-The denominator makes the objective relative: the model must distinguish the designated positive from sampled competitors. Maximizing positive similarity alone would not impose that ranking constraint. With unnormalized dot products it can also reward increasing feature norms; unit normalization bounds the score but does not remove dependence on the sampling protocol.
+InfoNCE is a relative objective. The anchor must assign a higher score to its designated positive than to the sampled alternatives. Maximizing the positive similarity alone would not impose this ranking constraint. With an unnormalized dot product the model can also increase scores by increasing vector norms; cosine normalization bounds the score but does not remove dependence on the candidate-sampling protocol.
 
-The labels “positive” and “negative” come from the data construction. A negative may be an image of the same semantic category as the anchor. This is called a false negative relative to that semantic task. It is not an algebraic error: it is a mismatch between the sampling label and the relationship we want the representation to encode. Augmentations create a related risk. If a transformation destroys a relevant feature, the loss may teach the encoder to ignore that feature.
+The positive label is supplied by data construction. In a two-view image objective, it means that two views came from the same source image. A negative can still depict the same semantic class as the anchor or show a nearly identical state. This is a false negative relative to a semantic objective, not an error in the cross-entropy arithmetic. The transformation distribution creates a related risk: if a view removes a relevant feature, consistency across those views can reward the encoder for ignoring it.
 
-InfoNCE is also connected to mutual information. Let positive pairs come from a joint distribution latexmath:[p(x,y)], and suppose negatives are sampled independently from the marginal latexmath:[p(y)]. The optimal scoring function for identifying the positive is proportional to the density ratio latexmath:[p(y\mid x)/p(y)]. Under these sampling assumptions, the InfoNCE loss with latexmath:[K] total candidates gives the bound
-
-[latexmath]
-++++
-I(X;Y)\ge \log K-\mathcal{L}_{\mathrm{NCE}}.
-++++
-
-The candidate count convention matters: here latexmath:[K] includes the positive. The bound is limited by latexmath:[\log K], so a finite candidate set cannot certify arbitrarily large mutual information.
-
-The density-ratio interpretation explains why this loss is useful. If a pair latexmath:[(x,y)] is more likely under the joint distribution than under independent sampling, the ratio latexmath:[p(y\mid x)/p(y)] is large. An ideal contrastive score should assign that pair a larger logit. In this sense, the critic learns to distinguish dependence between the paired views from what would be expected if the two sides were independent. The finite candidate problem is an approximation to this density-ratio comparison, and its behavior depends on how the candidate set is sampled.
-
-In practice, nearby frames, repeated examples, or multiple instances of one category can violate the ideal negative-sampling picture. A learned score may solve the constructed classification problem without capturing the semantic relation we have in mind. Most importantly, mutual information between two views is not the same as sufficiency for a later prediction: a variable can be shared between views yet be irrelevant to the future quantity that matters.
-
-The density-ratio view also gives a route to the information-theoretic bound. Imagine that one index latexmath:[i] is selected uniformly from latexmath:[K] candidates; candidate latexmath:[y_i] is sampled from latexmath:[p(y\mid x)], and the remaining candidates are sampled independently from latexmath:[p(y)]. Bayes' rule gives
+InfoNCE also has an information-theoretic interpretation, but only under a specified sampling construction. Suppose one index latexmath:[i] is selected uniformly from latexmath:[K] candidates; latexmath:[y_i] is sampled from the conditional distribution latexmath:[p(y\mid x)], while the other latexmath:[K-1] candidates are sampled independently from the marginal latexmath:[p(y)]. Bayes' rule gives
 
 [latexmath]
 ++++
 P(i\mid x,y_1,\ldots,y_K)
 =\frac{r(x,y_i)}{\sum_{j=1}^{K}r(x,y_j)},
-\qquad r(x,y)=\frac{p(y\mid x)}{p(y)}.
+\qquad
+r(x,y)=\frac{p(y\mid x)}{p(y)}.
 ++++
 
-Thus an optimal classifier ranks candidates by the density ratio. A learned score approximates this rule through its logits. The cross-entropy achieved by a restricted model cannot be lower than the optimal classification cross-entropy; under the specified sampling construction, this yields the InfoNCE lower bound on mutual information written above. If negatives are drawn from a different distribution, or examples are dependent in ways that violate the construction, the same interpretation does not automatically follow. The derivation explains the assumptions behind the bound; it does not convert an arbitrary contrastive loss into a certified measure of semantic information.
+The optimal classifier therefore ranks candidates by the density ratio: a pair receives a high score when it is more likely under the joint distribution than under independent sampling. A learned critic approximates this rule through its logits. The candidate-classification cross-entropy under this sampling construction yields the lower bound
+
+[latexmath]
+++++
+I(X;Y)\ge \log K-\mathcal{L}_{\mathrm{NCE}},
+++++
+
+where latexmath:[K] includes the positive candidate. Equivalently, latexmath:[\mathcal{L}_{\mathrm{NCE}}\ge \log K-I(X;Y)]. The finite candidate count limits this bound to latexmath:[\log K]. The bound does not grow without limit merely because training continues.
+
+The assumptions matter. Nearby frames, repeated examples or multiple instances of one category can violate independent negative sampling. If negatives come from a different distribution, or candidates are dependent, the same bound does not automatically follow. The density-ratio argument explains the role of the loss and its sampling assumptions; it does not turn an arbitrary contrastive loss into a certified measure of semantic information.
+
+Finally, mutual information shared by two views is not the same as sufficiency for a later prediction. A feature can be shared between views yet irrelevant to the future quantity of interest. The information-theoretic bound says something about dependence under the sampling model, not whether all distinctions required by a downstream predictor have been retained.
 
 [#unique_section2_ch3_007_simclr_and_moco_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === SimCLR and MoCo: two ways to construct candidates
@@ -490,6 +489,16 @@ L=\frac{1}{|M|}\sum_{i\in M}\ell(\hat y_i,y_i).
 
 This form leaves the crucial choice open: what is the target? It might be pixel values, a discrete code, a word token, a replaced-token label or a contextualized feature. The mask tells the model where information is withheld; the target tells it what relationship must be learned.
 
+For a probabilistic predictor, the general objective can be written as a conditional negative log-likelihood:
+
+[latexmath]
+++++
+L(\theta)=-\mathbb{E}_{X_V,Y_M}
+\left[\log p_\theta(Y_M\mid X_V)\right],
+++++
+
+where latexmath:[X_V] is the visible context and latexmath:[Y_M] is the hidden target. If latexmath:[Y_M] is a discrete token or code, this becomes cross-entropy. If the model uses a Gaussian likelihood with fixed variance for a continuous target, minimizing negative log-likelihood is equivalent, up to constants and scale, to minimizing squared error. Under squared error, the optimal predictor in expectation is the conditional mean latexmath:[ \mathbb{E}[Y_M\mid X_V] ]. Under cross-entropy, the optimal predicted class distribution is the conditional distribution of the target given the visible context.
+
 The distinction appears directly in the loss. With squared-error regression, a predictor is rewarded for numerical proximity to a target vector. With cross-entropy, it is rewarded for assigning probability to the correct discrete label or teacher distribution. These losses define different geometries of error. For a discrete token, predicting a related code is still wrong unless the correct code receives probability; for a continuous target, errors are penalized according to their magnitude in the chosen feature space.
 
 Masking also changes what the model is allowed to observe. A model trained to reconstruct a hidden patch from nearby visible pixels can exploit local texture continuity. A model trained to predict a contextualized teacher feature must reproduce a target shaped by the teacher's wider context and representation space. Neither target is neutral: it specifies which aspects of the missing content distinguish a good prediction from a bad one.
@@ -514,7 +523,7 @@ L_{\mathrm{MAE}}=
 {\sum_i m_i}.
 ++++
 
-The normalization is over masked patches, so visible patches do not contribute to the loss. Under squared error, the conditional mean is the best prediction in expected squared-error terms. If several patch contents are plausible from the visible context, the conditional mean can blur those alternatives. Pixel reconstruction can nevertheless learn useful features; its limitation is that pixel accuracy does not guarantee that the retained encoder feature preserves every variable needed for a later prediction. The encoder, rather than the reconstruction decoder, is usually the component transferred to a downstream task.
+The normalization is over masked patches, so visible patches do not contribute to the loss. Under squared error, the conditional mean is the best prediction in expected squared-error terms. If several patch contents are plausible from the visible context, the conditional mean can blur those alternatives. Pixel reconstruction can nevertheless learn useful features; its limitation is that pixel accuracy does not guarantee that the retained encoder feature preserves every variable needed for a later prediction. The encoder, rather than the reconstruction decoder, is usually the component transferred to a downstream task. The loss's conditional mean interpretation also explains why pixel prediction can smooth ambiguous details: if different patches are equally plausible from the visible context, the mean of their pixel values can be a poor-looking average despite being optimal for squared error. That is a property of the loss, not a defect unique to MAE. Discrete code prediction instead assigns probability to one code, while a teacher-feature target asks the student to match the teacher's chosen representation. Each target changes the Bayes-optimal prediction and therefore the pressure placed on the encoder.
 
 
 [#ch3-figure-F14,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
