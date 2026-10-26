@@ -1,6 +1,6 @@
 # Chapter 3 manuscript and PDF build
 
-This folder contains the composed Chapter 3 AsciiDoc and its author-side PDF preview. The theory-first revision organizes self-supervised learning by training signals and architecture choices rather than by a long sequence of empirical experiments. Detailed paper-by-paper derivations and supporting notes are kept in rough-draft/chapter3/.
+This folder contains the composed Chapter 3 AsciiDoc manuscript and the author-side PDF workflow. The chapter is theory-led: it derives the central objectives, explains their assumptions and limitations, and points to official implementations when source-level detail is needed. It does not include custom training runs or homegrown reproductions of the research methods.
 
 ## Build a PDF
 
@@ -13,14 +13,17 @@ The build produces CH03_Dadwal_World_Models_in_Action.pdf. It is an author-side 
 
 ## Figures
 
-The theory figures are original SVG teaching schematics:
-- CH03_T01_SSL_Landscape.svg — family map.
-- CH03_T02_InfoNCE.svg — candidate classification and gradients.
-- CH03_T03_MethodMechanisms.svg — contrastive, bootstrap, teacher and statistical mechanisms.
-- CH03_T04_TargetSpaces.svg — alternate targets for masked inputs.
+The manuscript uses six original SVG teaching diagrams, all stored in the repository's images folder:
 
-The verifier checks their presence, Manning-style anchors, object references and expected figure/table counts.
+- CH03_T01_SSL_Landscape.svg — objective-family map.
+- CH03_T02_InfoNCE.svg — candidate classification and gradient.
+- CH03_T03_MethodMechanisms.svg — contrastive, bootstrap, teacher and statistical objectives.
+- CH03_T04_TargetSpaces.svg — alternative masked-prediction targets.
+- CH03_F12_Dadwal.svg — MAE's visible-patch encoder and masked-patch decoder.
+- CH03_F02_Dadwal.svg — representation contract and predictive aliasing.
 
-## Scope and implementation
+The verifier checks Manning-style anchors, figure/table counts, referenced local assets and heading structure. The diagrams are original explanatory schematics, not pasted paper images.
 
-The chapter uses only two lightweight demonstrations from the existing code companion: an InfoNCE calculation and a collapse/objective diagnostic. Official paper implementations are linked and pinned as submodules on main-extra; the chapter itself does not vendor third-party source code.
+## Code and canonical implementations
+
+The chapter contains no custom code listings. It links to official repositories for SimCLR, MoCo, BYOL, SimSiam, DINO/DINOv2/DINOv3, Barlow Twins, VICReg, MAE, DeepCluster, SwAV and CLIP. Those repositories are source references for the original methods, not evidence that this book independently implemented or reproduced them. Readers can follow the derivations without setting up a training environment.
