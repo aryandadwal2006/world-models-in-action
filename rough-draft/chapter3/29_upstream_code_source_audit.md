@@ -223,7 +223,7 @@ The Gram implementation forms similarity matrices from target and output feature
 ## 10. JEPA-family implementation paths
 
 - I-JEPA: repository pinned at facebookresearch/ijepa revision 52c1ae95d05f743e000e8f10a1f3a79b10cff048; paper https://arxiv.org/abs/2301.08243. Audit target/context block selection and target normalization from its specific config.
-- V-JEPA: paper https://arxiv.org/abs/2305.18290; code family is in facebookresearch/jepa revision 51c59d518fc63c08464af6de585f78ac0c7ed4d5.
+- V-JEPA: paper https://arxiv.org/abs/2404.08471; code family is in facebookresearch/jepa revision 51c59d518fc63c08464af6de585f78ac0c7ed4d5.
 - V-JEPA 2 / 2.1: repository pinned at facebookresearch/vjepa2 revision 204698b45b3712590f06245fbfba32d3be539812.
   - V-JEPA 2.1 training objective: https://github.com/facebookresearch/vjepa2/blob/204698b45b3712590f06245fbfba32d3be539812/app/vjepa_2_1/train.py
   - Predictor and mask-position construction: https://github.com/facebookresearch/vjepa2/blob/204698b45b3712590f06245fbfba32d3be539812/app/vjepa_2_1/models/predictor.py
