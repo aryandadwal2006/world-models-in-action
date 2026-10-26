@@ -397,7 +397,7 @@ For each feature dimension latexmath:[j], let latexmath:[\sigma_j(Z)] be its sta
 [latexmath]
 ++++
 v(Z)=\frac{1}{d}\sum_{j=1}^{d}
-\left[\max\!\left(0,\gamma-\sqrt{\operatorname{Var}(Z_j)+\epsilon}\right)\right]^2.
+\max\!\left(0,\gamma-\sqrt{\operatorname{Var}(Z_j)+\epsilon}\right).
 \tag{3.10}
 ++++
 
@@ -418,7 +418,7 @@ L_{\mathrm{VICReg}}=\lambda s(Z,Z')
 +\nu\,[c(Z)+c(Z')],
 ++++
 
-where latexmath:[\lambda,\mu,\nu] set their relative weights. The invariance term aligns paired views. The variance term penalizes a feature dimension whose standard deviation falls below latexmath:[\gamma]. The covariance term discourages linear redundancy between different dimensions. The variance hinge is squared in the original objective; that detail changes the gradient and should not be dropped when reproducing the formula.
+where latexmath:[\lambda,\mu,\nu] set their relative weights. The invariance term aligns paired views. The variance term penalizes a feature dimension whose standard deviation falls below latexmath:[\gamma]. The covariance term discourages linear redundancy between different dimensions. The original VICReg variance term uses an unsquared hinge. Once a feature's standard deviation reaches the margin, that dimension contributes zero variance penalty; the objective enforces a floor rather than rewarding ever-increasing variance.
 
 The sample covariance used for latexmath:[c(Z)] is computed after centering the feature columns. For a batch latexmath:[Z\in\mathbb{R}^{N\times d}], let latexmath:[\mu_j=N^{-1}\sum_{b=1}^{N}z_{b,j}]. Its covariance entries are
 
