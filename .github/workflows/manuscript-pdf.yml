@@ -20,7 +20,7 @@ jobs:
   build-pdf:
     if: ${{ github.event_name != 'push' || !contains(github.event.head_commit.message, '[pdf-generated]') }}
     name: Build AsciiDoc and publish PDF artifact
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
       - name: Check out the selected branch
