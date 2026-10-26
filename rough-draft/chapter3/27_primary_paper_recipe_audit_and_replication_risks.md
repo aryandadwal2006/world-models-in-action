@@ -464,3 +464,8 @@ Core loss and update conventions for these methods are now source-checked. Conti
 ## 15. DINO parser-default discrepancy
 
 The pinned official DINO main script, revision 7c446df5b9f45747937fb0d72314eb9f7b66930a, sets the argument warmup_teacher_temp_epochs to 0. Its adjacent help string says “Default: 30”. These conflict. This dossier records 0 as the executable parser default and flags the help-text inconsistency; do not use the help string alone to reconstruct a training run. Check the actual launch command and configuration for any reported result.
+
+
+## Dossier gate
+
+The criteria for considering the research notes ready to feed the printed chapter are recorded in [the dossier readiness gate](38_dossier_readiness_and_manuscript_gate.md). This is an editorial threshold, not a claim that every method belongs in the reader-facing chapter.

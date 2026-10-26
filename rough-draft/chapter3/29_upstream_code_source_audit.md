@@ -252,3 +252,8 @@ The argument warmup_teacher_temp_epochs is initialized to 0 in the parser, altho
 - **Guided diffusion:** openai/guided-diffusion at revision 22e0df8183507e13a7813f8d38d51b072ca1e67c.
 
 These source revisions were resolved to their upstream GitHub commits during the audit. That confirms the reference identity, not execution, compatibility with modern dependencies or reproduction of published results.
+
+
+## Updated CPC source status
+
+An author/team-maintained audio implementation is pinned on main-extra: facebookresearch/CPC_audio at revision b98a1bdf1fe9ea219816db7a6c28115d404a3510. This covers the audio-transfer implementation, not every detail of the original CPC paper. Dedicated official code for NNCLR and ALIGN remains unverified in the collection.

@@ -36,10 +36,11 @@ The dossier is an original synthesis, not a replacement for reading canonical pa
 26. [Visual SSL objectives](35_visual_ssl_objectives_from_first_principles.md): first-principles comparison of SimCLR, MoCo, BYOL, SimSiam, Barlow Twins, VICReg, SwAV, DINO, MAE and SimMIM.
 27. [Dense and local visual SSL](36_dense_local_visual_ssl_from_first_principles.md): local correspondence, patch targets, dense features, DINOv2/v3 and spatial evaluation.
 28. [CPC, energy-based models and diffusion](37_cpc_energy_based_and_diffusion_objectives.md): temporal latent prediction, energy models, NCE, diffusion and score-based generation, with boundaries made explicit.
-29. [Upstream code-source audit](29_upstream_code_source_audit.md): exact code paths and limitations for dedicated and shared upstream implementations.
-30. [Proposed flow and page budget](10_flow_and_page_budget.md): how to compress the dossier into a coherent reader-facing sequence.
-31. [Figure storyboard](11_figure_storyboard.md): conceptual diagrams needed in the final chapter.
-32. [Bibliography](12_bibliography.md): canonical citations and source-verification notes.
+29. [Dossier readiness gate](38_dossier_readiness_and_manuscript_gate.md): method-family coverage, source-audit status, unresolved checks and explicit criteria for starting manuscript synthesis.
+30. [Upstream code-source audit](29_upstream_code_source_audit.md): exact code paths and limitations for dedicated and shared upstream implementations.
+31. [Proposed flow and page budget](10_flow_and_page_budget.md): how to compress the dossier into a coherent reader-facing sequence.
+32. [Figure storyboard](11_figure_storyboard.md): conceptual diagrams needed in the final chapter.
+33. [Bibliography](12_bibliography.md): canonical citations and source-verification notes.
 
 The original shorter notes remain useful as focused cross-checks: [contrastive InfoNCE](02_contrastive_infoNCE.md), [negative-free bootstrapping](03_negative_free_bootstrap.md), [redundancy reduction](04_redundancy_reduction.md), [clustering and prototypes](05_clustering_and_prototypes.md), [masked prediction](06_masked_prediction.md), and [frontier boundaries](08_frontier_and_boundaries.md).
 

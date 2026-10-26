@@ -311,7 +311,7 @@ The **main-extra** branch collects upstream Git submodules at:
 
 These are pinned submodules, not locally copied source files or one ready-to-run environment. Initialize them with **git submodule update --init --recursive** from the repository root on that branch. Each repository retains its own license and dependencies. DenseCL reports GPL-3.0; VICRegL is archived and its terms are more restrictive than a blanket permissive-license label. Check each pinned repository's license before using or redistributing anything.
 
-No public author/team implementation was verified here for original CPC, NNCLR or ALIGN. Do not silently use a third-party implementation and label it official. Until an upstream source is verified, their papers remain the primary references.
+An author/team CPC source is now pinned on main-extra: facebookresearch/CPC_audio at b98a1bdf1fe9ea219816db7a6c28115d404a3510. It is an archived MIT-licensed audio implementation connected to the later cross-language transfer study, not a claim that this repository is the original 2018 CPC source or a full reproduction of all CPC settings. NNCLR and ALIGN still have no verified dedicated author/team implementation in this collection; for them, keep the paper as primary source and do not silently relabel third-party code as official.
 
 ## References
 

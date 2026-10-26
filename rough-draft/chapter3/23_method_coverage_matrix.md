@@ -157,3 +157,8 @@ See [Dense and local visual SSL](36_dense_local_visual_ssl_from_first_principles
 ## CPC, EBM and diffusion scope note
 
 [The CPC, energy-based and diffusion dossier](37_cpc_energy_based_and_diffusion_objectives.md) provides the first-principles objective boundary: future-latent candidate prediction, joint/product-of-marginal discrimination, normalized energy models, denoising diffusion, score-based SDEs and flow matching.
+
+
+## Readiness gate
+
+The broad inventory is not equivalent to completed source verification. Use [Dossier readiness and manuscript-start gate](38_dossier_readiness_and_manuscript_gate.md) to distinguish covered families, source-inspected versus executed evidence, unresolved citation work, and criteria for starting the composed manuscript.
