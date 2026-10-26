@@ -436,3 +436,12 @@ The pinned defaults are coefficients (25, 25, 1), global batch 2,048 and project
 ### Next verification pass
 
 Core loss and update conventions for these methods are now source-checked. Continue with DINO/iBOT and MAE/CLIP/SigLIP, marking exact recipe values separately from defaults and distinguishing source inspection from an executed reproduction.
+
+
+## 12. Source-backed verification additions: DINO, iBOT, MAE, CLIP and SigLIP
+
+- **DINO:** pinned facebookresearch/dino revision 7c446df5b9f45747937fb0d72314eb9f7b66930a; main_dino.py. Confirmed teacher sees two global crops, student sees all crops, same-index crop pairs are excluded, student logits use student temperature, teacher softmax uses centered logits and scheduled temperature, center uses distributed batch mean with EMA, and teacher parameter EMA follows the optimizer update.
+- **iBOT:** pinned bytedance/ibot revision da316d82636a7a7356835ef224b13d5f3ace0489; main_ibot.py and models/head.py. Confirmed distinct class/patch centers and temperature schedules, masked patch loss normalized per image by masked-patch count, class loss excludes same-view pairs, and separate center EMA updates.
+- **MAE:** pinned facebookresearch/mae revision efb2a8062c206524e35e47d04501ed4f544c0ae8; models_mae.py and main_pretrain.py. Confirmed random-noise-sort masking, visible-only encoder, sequence restoration, masked-patch pixel MSE, 0.75 default mask ratio, and optional patch normalization disabled by default.
+- **CLIP:** pinned openai/CLIP revision d05afc436d78f1c48dc0dbf8e5980a9d471f35f6; clip/model.py. Confirmed normalized image/text embeddings and exponentiated learned logit scale initialized from log(1/0.07). The public pinned tree does not include the full pretraining loop; symmetric cross entropy is recorded as the paper objective rather than a repository training function.
+- **SigLIP:** pinned google-research/big_vision revision 0127fb6b337ee2a27bf4e54dea79cff176527356; trainers/proj/image_text/siglip.py, models/proj/image_text/two_towers.py and configs/proj/image_text/siglip_lit_coco.py. Confirmed image-text logits with learned scale/bias, diagonal-positive/off-diagonal-negative signs, log-sigmoid of signed logits, sum over candidates and mean over query rows. The inspected configuration is a minimal 5,000-step COCO/LiT example and freezes the image tower; it is not the full-scale SigLIP recipe.

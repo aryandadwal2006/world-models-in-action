@@ -108,3 +108,13 @@ Before finalizing any method note, ensure the dossier has:
 | AMDIM | Bachman et al. (2019), https://arxiv.org/abs/1906.00910 | Augmented, multiscale local/global feature discrimination | 30 | Author-published Philip-Bachman/amdim-public, pinned in implementations/amdim/ |
 
 The four rows are complementary historical branches, not a strict sequence of successors. Record whether the method uses NCE or a minibatch InfoNCE softmax and do not equate their estimators without matching their sampling and normalization assumptions.
+
+
+## 9. Source-backed coverage additions
+
+| Method | Primary source | Direct contribution | Theory note | Source limits to retain |
+|---|---|---|---|---|
+| iBOT | Zhou et al. (2022), https://arxiv.org/abs/2111.07832 | DINO-style class distillation plus masked patch-token distillation | 31 | Separate class/patch centers, temperatures, masked patch reductions verified in pinned source; run config still required |
+| MAE | He et al. (2022), https://arxiv.org/abs/2111.06377 | Visible-only encoder and decoder reconstruction of masked pixels | 16, 27, 31 | Random mask/unshuffle, loss on removed patches and optional pixel normalization verified in pinned source |
+| CLIP | Radford et al. (2021), https://arxiv.org/abs/2103.00020 | Symmetric image-text batch classification with learned logit scale | 07, 27, 31 | Normalized embeddings and score matrix verified in official model code; no full public training loop at pinned revision |
+| SigLIP | Zhai et al. (2023), https://arxiv.org/abs/2303.15343 | Pairwise sigmoid loss for matched and unmatched image-text pairs | 07, 27, 31 | Pair-sign matrix, scale, bias and log-sigmoid reduction verified in Big Vision; pinned COCO/LiT config is only a minimal example |
