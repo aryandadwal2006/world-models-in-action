@@ -31,7 +31,7 @@ This chapter covers
 * Masked prediction and the choice of prediction target
 * Latent bottlenecks and the limits of representation evaluation
 
-A world model needs a representation that preserves distinctions relevant to predicting future observations. Pixels contain both useful information and details that a predictive model may not need. An encoder maps the observation \(x\) to a representation \(z=f_\theta(x)\), but compression alone does not make \(z\) useful. Two observations that should lead to different predictions must not be merged merely because their images are similar.
+A world model needs a representation that preserves distinctions relevant to predicting future observations. Pixels contain both useful information and details that a predictive model may not need. An encoder maps the observation latexmath:[x] to a representation latexmath:[z=f_\theta(x)], but compression alone does not make latexmath:[z] useful. Two observations that should lead to different predictions must not be merged merely because their images are similar.
 
 When labels are unavailable, the training signal must be constructed from the data. Methods may identify a matching view among candidates, predict a representation produced by another branch, constrain feature statistics across a batch, or predict content hidden from the encoder. These objectives differ in their targets, their assumptions and their optimization dynamics.
 
@@ -134,9 +134,9 @@ This objective is ordinary softmax cross-entropy. Write latexmath:[a_{ij}=s(z_i,
 \tag{3.5}
 ++++
 
-The positive logit receives gradient latexmath:[q_{i,p(i)}-1], which pushes it upward under gradient descent. A negative logit receives gradient latexmath:[q_{ij}], which pushes it downward. The gradient on a negative is weighted by its current probability: a hard negative receives more repulsive gradient than an already dissimilar candidate. Since \(a_{ij}=s(z_i,z_j)/\tau\), differentiation with respect to the unscaled similarity introduces the factor \(1/\tau\).
+The positive logit receives gradient latexmath:[q_{i,p(i)}-1], which pushes it upward under gradient descent. A negative logit receives gradient latexmath:[q_{ij}], which pushes it downward. The gradient on a negative is weighted by its current probability: a hard negative receives more repulsive gradient than an already dissimilar candidate. Since latexmath:[a_{ij}=s(z_i,z_j)/\tau], differentiation with respect to the unscaled similarity introduces the factor latexmath:[1/\tau].
 
-For example, suppose one anchor has cosine similarities \(0.80\), \(0.10\) and \(-0.30\) to its positive and two negatives, with \(\tau=0.5\). The logits are \(1.6\), \(0.2\) and \(-0.6\). Softmax assigns the positive probability about \(0.737\), so the loss for this anchor is \(-\log(0.737)\approx0.306\). If all three candidates received equal probability, the loss would be \(-\log(1/3)\approx1.099\). The loss measures whether the correct candidate is easy to identify relative to the candidates that happened to be sampled.
+For example, suppose one anchor has cosine similarities latexmath:[0.80], latexmath:[0.10] and latexmath:[-0.30] to its positive and two negatives, with latexmath:[\tau=0.5]. The logits are latexmath:[1.6], latexmath:[0.2] and latexmath:[-0.6]. Softmax assigns the positive probability about latexmath:[0.737], so the loss for this anchor is latexmath:[-\log(0.737)\approx0.306]. If all three candidates received equal probability, the loss would be latexmath:[-\log(1/3)\approx1.099]. The loss measures whether the correct candidate is easy to identify relative to the candidates that happened to be sampled.
 
 [#ch3-figure-F11,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .InfoNCE turns a similarity comparison into candidate classification
@@ -150,14 +150,14 @@ The denominator makes the objective relative: the model must distinguish the des
 
 The labels “positive” and “negative” come from the data construction. A negative may be an image of the same semantic category as the anchor. This is called a false negative relative to that semantic task. It is not an algebraic error: it is a mismatch between the sampling label and the relationship we want the representation to encode. Augmentations create a related risk. If a transformation destroys a relevant feature, the loss may teach the encoder to ignore that feature.
 
-InfoNCE is also connected to mutual information. Let positive pairs come from a joint distribution \(p(x,y)\), and suppose negatives are sampled independently from the marginal \(p(y)\). The optimal scoring function for identifying the positive is proportional to the density ratio \(p(y\mid x)/p(y)\). Under these sampling assumptions, the InfoNCE loss with \(K\) total candidates gives the bound
+InfoNCE is also connected to mutual information. Let positive pairs come from a joint distribution latexmath:[p(x,y)], and suppose negatives are sampled independently from the marginal latexmath:[p(y)]. The optimal scoring function for identifying the positive is proportional to the density ratio latexmath:[p(y\mid x)/p(y)]. Under these sampling assumptions, the InfoNCE loss with latexmath:[K] total candidates gives the bound
 
 [latexmath]
 ++++
 I(X;Y)\ge \log K-\mathcal{L}_{\mathrm{NCE}}.
 ++++
 
-The candidate count convention matters: here \(K\) includes the positive. The bound is limited by \(\log K\), so a finite candidate set cannot certify arbitrarily large mutual information. More importantly, real training pipelines may violate the independent-negative assumption, for example when observations are related or repeated. The bound is not a general guarantee of feature quality, and mutual information between two views is not the same as sufficiency for a later prediction.
+The candidate count convention matters: here latexmath:[K] includes the positive. The bound is limited by latexmath:[\log K], so a finite candidate set cannot certify arbitrarily large mutual information. More importantly, real training pipelines may violate the independent-negative assumption, for example when observations are related or repeated. The bound is not a general guarantee of feature quality, and mutual information between two views is not the same as sufficiency for a later prediction.
 
 [#unique_section2_ch3_007_simclr_and_moco_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === SimCLR and MoCo: two ways to construct candidates
@@ -199,7 +199,7 @@ Suppose two views of the same input are trained only to produce equal representa
 L_{\mathrm{inv}}=\frac{1}{N}\sum_{i=1}^{N}\lVert z_i-z_i'\rVert_2^2.
 ++++
 
-If the encoder maps every input to the same constant vector \(c\), then \(z_i=z_i'=c\) for every example and the loss is zero. The objective has no term requiring different inputs to remain distinguishable. A constant output is therefore a collapsed solution, even though it is useless for representing the data.
+If the encoder maps every input to the same constant vector latexmath:[c], then latexmath:[z_i=z_i'=c] for every example and the loss is zero. The objective has no term requiring different inputs to remain distinguishable. A constant output is therefore a collapsed solution, even though it is useless for representing the data.
 
 This observation does not mean every method that matches two views will collapse. It means agreement alone cannot rule collapse out. The architecture, stop-gradient placement, target updates, normalizations and optimization dynamics affect which solutions training reaches. The methods below differ in precisely those mechanisms; none should be described as having a universal guarantee based only on its loss formula.
 
@@ -208,7 +208,7 @@ This observation does not mean every method that matches two views will collapse
 
 BYOL (Grill et al., 2020) has an online encoder, a projection head and a predictor, alongside a target encoder and target projection head. Only the online network receives gradients. The target network is updated by an exponential moving average (EMA) of the online encoder and projector; it is not updated by backpropagation.
 
-Let \(z_1=g_\phi(f_\theta(x_1))\), \(p_1=q_\psi(z_1)\), and \(\bar z_2=g_{\bar\phi}(f_{\bar\theta}(x_2))\). The prediction loss for one direction is the normalized regression
+Let latexmath:[z_1=g_\phi(f_\theta(x_1))], latexmath:[p_1=q_\psi(z_1)], and latexmath:[\bar z_2=g_{\bar\phi}(f_{\bar\theta}(x_2))]. The prediction loss for one direction is the normalized regression
 
 [latexmath]
 ++++
@@ -216,7 +216,7 @@ D(p_1,\operatorname{sg}(\bar z_2))
 =2-2\frac{p_1^\top\bar z_2}{\lVert p_1\rVert_2\lVert\bar z_2\rVert_2},
 ++++
 
-where \(\operatorname{sg}\) denotes stop-gradient. A second term swaps the views. The online predictor is trained to match the target feature, while the target feature is treated as fixed for that gradient calculation.
+where latexmath:[\operatorname{sg}] denotes stop-gradient. A second term swaps the views. The online predictor is trained to match the target feature, while the target feature is treated as fixed for that gradient calculation.
 
 The target parameters change according to
 
@@ -226,10 +226,10 @@ The target parameters change according to
 \bar\phi\leftarrow m\bar\phi+(1-m)\phi,
 ++++
 
-with \(m\) close to one. The target is therefore a smoothed history of the online network, not an independently optimized network. This is the defining difference from ordinary shared-weight Siamese regression.
+with latexmath:[m] close to one. The target is therefore a smoothed history of the online network, not an independently optimized network. This is the defining difference from ordinary shared-weight Siamese regression.
 
 
-SimSiam (Chen and He, 2021) uses the same encoder and projector for both views and a predictor on each branch, but no EMA target network. With \(z_i=g(f(x_i))\) and \(p_i=q(z_i)\), its symmetric loss has the form
+SimSiam (Chen and He, 2021) uses the same encoder and projector for both views and a predictor on each branch, but no EMA target network. With latexmath:[z_i=g(f(x_i))] and latexmath:[p_i=q(z_i)], its symmetric loss has the form
 
 [latexmath]
 ++++
@@ -238,7 +238,7 @@ D(p_1,\operatorname{sg}(z_2))
 +D(p_2,\operatorname{sg}(z_1)),
 ++++
 
-where \(D\) is negative cosine similarity. The stop-gradient leaves a target's forward value unchanged but removes the gradient path through that target in the corresponding term. Because the loss is symmetric, each shared branch acts as predictor in one term and target in the other. BYOL instead maintains a separate target network whose parameters follow the EMA update.
+where latexmath:[D] is negative cosine similarity. The stop-gradient leaves a target's forward value unchanged but removes the gradient path through that target in the corresponding term. Because the loss is symmetric, each shared branch acts as predictor in one term and target in the other. BYOL instead maintains a separate target network whose parameters follow the EMA update.
 
 The predictor and stop-gradient change the optimization dynamics; they do not remove the constant-output solution from the mathematical objective. The original SimSiam study found that stop-gradient was essential to its proposed configuration. That is a method-specific result, not a theorem that any Siamese network with a detached branch must learn non-collapsed features.
 
@@ -247,7 +247,7 @@ The predictor and stop-gradient change the optimization dynamics; they do not re
 [#unique_section2_ch3_011_dino_and_self_distillation_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === DINO: match a teacher's distribution
 
-DINO (Caron et al., 2021) matches distributions rather than regressing one feature vector onto another. The student and teacher map different views to logits over learned prototype outputs. If \(a_s(x)\) and \(a_t(x)\) are their logits, the student and teacher distributions are
+DINO (Caron et al., 2021) matches distributions rather than regressing one feature vector onto another. The student and teacher map different views to logits over learned prototype outputs. If latexmath:[a_s(x)] and latexmath:[a_t(x)] are their logits, the student and teacher distributions are
 
 [latexmath]
 ++++
@@ -255,7 +255,7 @@ p_s(x)=\operatorname{softmax}\!\left(\frac{a_s(x)}{T_s}\right),\qquad
 q_t(x)=\operatorname{softmax}\!\left(\frac{a_t(x)-c}{T_t}\right).
 ++++
 
-Here \(c\) is a running center of teacher outputs, \(T_t\) controls teacher-target sharpness, and the teacher parameters follow an EMA of the student parameters. The cross-entropy between \(q_t\) and \(p_s\) is minimized across selected, different views. Centering discourages the teacher's outputs from concentrating persistently on a small subset of prototypes; a low teacher temperature sharpens the target distribution. These operations work together with the multi-crop training recipe.
+Here latexmath:[c] is a running center of teacher outputs, latexmath:[T_t] controls teacher-target sharpness, and the teacher parameters follow an EMA of the student parameters. The cross-entropy between latexmath:[q_t] and latexmath:[p_s] is minimized across selected, different views. Centering discourages the teacher's outputs from concentrating persistently on a small subset of prototypes; a low teacher temperature sharpens the target distribution. These operations work together with the multi-crop training recipe.
 
 Centering and sharpening have different roles: centering modifies output statistics to resist concentration on a small set of prototypes; sharpening lowers the entropy of the teacher's target distribution. Prototype indices are learned output coordinates, not automatically human-defined categories. DINO is best understood as self-distillation with a prototype distribution, rather than as an ordinary clustering algorithm.
 
@@ -290,7 +290,7 @@ L_{\mathrm{BT}}=\sum_i(1-C_{ii})^2+
 \tag{3.8}
 ++++
 
-If (C_{ii}) is below one, the corresponding coordinate is not perfectly aligned across views. A nonzero (C_{ij}), for (i\ne j), means coordinate (i) in one view is linearly correlated with coordinate (j) in the other. The loss pushes the cross-correlation matrix toward identity. It controls second-order cross-view statistics; it does not establish statistical independence for arbitrary distributions, nor does it assign a meaningful physical interpretation to each coordinate.
+If latexmath:[C_{ii}] is below one, the corresponding coordinate is not perfectly aligned across views. A nonzero latexmath:[C_{ij}], for latexmath:[i\ne j] means coordinate latexmath:[i] in one view is linearly correlated with coordinate latexmath:[j] in the other. The loss pushes the cross-correlation matrix toward identity. It controls second-order cross-view statistics; it does not establish statistical independence for arbitrary distributions, nor does it assign a meaningful physical interpretation to each coordinate.
 
 
 [#unique_section2_ch3_014_vicreg_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
@@ -330,7 +330,7 @@ L_{\mathrm{VICReg}}=\lambda s(Z,Z')
 +\nu\,[c(Z)+c(Z')],
 ++++
 
-where \(\lambda,\mu,\nu\) set their relative weights. The invariance term aligns paired views. The variance term penalizes a feature dimension whose standard deviation falls below \(\gamma\). The covariance term discourages linear redundancy between different dimensions. The variance hinge is squared in the original objective; that detail changes the gradient and should not be dropped when reproducing the formula.
+where latexmath:[\lambda,\mu,\nu] set their relative weights. The invariance term aligns paired views. The variance term penalizes a feature dimension whose standard deviation falls below latexmath:[\gamma]. The covariance term discourages linear redundancy between different dimensions. The variance hinge is squared in the original objective; that detail changes the gradient and should not be dropped when reproducing the formula.
 
 If every example has the same value in one dimension, its batch standard deviation is zero and the variance penalty is positive for any positive margin. That makes the anti-collapse constraint explicit. It does not prove that the surviving variation is semantically relevant. A feature can vary with background texture and still satisfy a variance floor.
 
@@ -403,7 +403,7 @@ image::CH03_T04_TargetSpaces.svg[Comparison of pixel, discrete-code and teacher-
 
 A masked autoencoder (MAE; He et al., 2022) divides an image into patches and hides a large fraction of them. Only visible patches pass through the encoder. A smaller decoder receives the encoded visible patches and learned mask tokens inserted at the missing positions; it predicts pixel values at the original patch locations. The asymmetric design saves encoder computation because the encoder never processes the hidden tokens.
 
-Let \(m_i=1\) when patch \(i\) is masked and \(0\) otherwise, with patch target \(x_i\) and prediction \(\hat x_i\). The reconstruction objective is
+Let latexmath:[m_i=1] when patch latexmath:[i] is masked and latexmath:[0] otherwise, with patch target latexmath:[x_i] and prediction latexmath:[\hat x_i]. The reconstruction objective is
 
 [latexmath]
 ++++
@@ -436,16 +436,16 @@ BERT-style masked language modeling predicts selected corrupted tokens from bidi
 [#unique_section2_ch3_024_bottleneck_dimension_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === Dimension is capacity, not useful information
 
-A latent bottleneck maps a high-dimensional observation or token grid into a constrained representation. The simplest form is a vector \(h\in\mathbb{R}^{d}\). Lowering \(d\) limits the number of coordinates, but dimension alone does not measure useful information. A small vector may preserve the few variables needed for a prediction; a wider vector may devote many dimensions to texture, illumination or other nuisance variation.
+A latent bottleneck maps a high-dimensional observation or token grid into a constrained representation. The simplest form is a vector latexmath:[h\in\mathbb{R}^{d}]. Lowering latexmath:[d] limits the number of coordinates, but dimension alone does not measure useful information. A small vector may preserve the few variables needed for a prediction; a wider vector may devote many dimensions to texture, illumination or other nuisance variation.
 
-The information-bottleneck principle expresses this trade-off using mutual information. Let \(X\) be the observation, \(Z\) its representation and \(Y\) a target relevant to the later task. A conceptual objective is
+The information-bottleneck principle expresses this trade-off using mutual information. Let latexmath:[X] be the observation, latexmath:[Z] its representation and latexmath:[Y] a target relevant to the later task. A conceptual objective is
 
 [latexmath]
 ++++
 \min \; I(X;Z)-\beta I(Z;Y).
 ++++
 
-The first term penalizes information about the input retained by \(Z\); the second rewards information about \(Y\). The coefficient \(\beta\) controls the trade-off. This is a theoretical lens, not the loss explicitly optimized by every method in this chapter. Mutual information for deterministic continuous representations requires care; practical SSL objectives usually optimize a tractable proxy.
+The first term penalizes information about the input retained by latexmath:[Z]; the second rewards information about latexmath:[Y]. The coefficient latexmath:[\beta] controls the trade-off. This is a theoretical lens, not the loss explicitly optimized by every method in this chapter. Mutual information for deterministic continuous representations requires care; practical SSL objectives usually optimize a tractable proxy.
 
 The important question is not “how small can the vector be?” It is “which distinctions can be discarded without changing the predictions we need to make?” A representation useful for image retrieval may be insufficient for predicting motion if it merges observations with different velocities or hidden states.
 
@@ -462,7 +462,7 @@ h=f_\theta(x),\qquad z=g_\phi(h).
 
 The loss is calculated on latexmath:[z], while the representation evaluated downstream is often latexmath:[h]. A projection head gives the pretraining objective a dedicated space in which to impose its constraints. It does not follow that latexmath:[z] and latexmath:[h] have the same geometry or serve the same downstream purpose.
 
-The exported tensor must be identified explicitly. Some evaluations use the feature (h) before the projector; others use intermediate or patch-level transformer features. A low pretraining loss measured on (z) is not itself evidence that the feature (h) has the same geometry or usefulness.
+The exported tensor must be identified explicitly. Some evaluations use the feature latexmath:[h] before the projector; others use intermediate or patch-level transformer features. A low pretraining loss measured on latexmath:[z] is not itself evidence that the feature latexmath:[h] has the same geometry or usefulness.
 
 
 [#unique_section2_ch3_026_global_local_ID,reftext={chapter}.{section}.{subsection},caption='{chapter}.{section}.{subsection}']
@@ -483,18 +483,18 @@ Here, *compact* means constrained and usable by downstream dynamics or planning,
 [#unique_section_ch3_026_a_world_model_audit_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
 == Compact state representations
 
-A low self-supervised loss establishes only that the representation satisfies its training objective. A linear probe, \(\hat y=Wz+b\), tests whether selected variables can be recovered by a linear map from \(z\). A poor linear-probe score does not prove that the information is absent: it may be encoded nonlinearly. A high score shows that the tested variables are accessible to that probe, but not that the representation contains every distinction needed for future prediction.
+A low self-supervised loss establishes only that the representation satisfies its training objective. A linear probe, latexmath:[\hat y=Wz+b], tests whether selected variables can be recovered by a linear map from latexmath:[z]. A poor linear-probe score does not prove that the information is absent: it may be encoded nonlinearly. A high score shows that the tested variables are accessible to that probe, but not that the representation contains every distinction needed for future prediction.
 
 Evaluation must match the claim. Feature variance and covariance can expose some collapse modes. Held-out probes test the accessibility of chosen variables. Reconstruction measures agreement with the reconstruction target. Future-latent retrieval measures identification among the sampled candidates. None of these scores alone establishes predictive sufficiency.
 
-A representation \(Z\) is sufficient for a target future \(Y\), relative to the available observation \(X\), when
+A representation latexmath:[Z] is sufficient for a target future latexmath:[Y], relative to the available observation latexmath:[X], when
 
 [latexmath]
 ++++
 P(Y\mid X)=P(Y\mid Z).
 ++++
 
-This equality says that once \(Z\) is known, the original observation provides no further information about \(Y\). If two observations map to the same \(z\) but imply different future distributions, the representation has aliased a distinction relevant to that prediction. That is the failure a useful state must avoid.
+This equality says that once latexmath:[Z] is known, the original observation provides no further information about latexmath:[Y]. If two observations map to the same latexmath:[z] but imply different future distributions, the representation has aliased a distinction relevant to that prediction. That is the failure a useful state must avoid.
 
 The important tests are distinct: inspect the transformations and target that define the pretraining problem; examine whether the features collapse; probe variables on held-out data; and evaluate prediction of the quantity for which the representation will be used.
 
@@ -535,12 +535,12 @@ Masked prediction changes both the hidden context and the target: MAE predicts p
 [#unique_section_ch3_028_exercises_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
 == Exercises
 
-. For an anchor with one positive and \(K-1\) negatives, derive the softmax-cross-entropy gradient with respect to each scaled similarity logit. Explain why a high-probability negative receives a larger gradient than a low-probability negative.
-. Using cosine similarities \(0.80\), \(0.10\), and \(-0.30\) with temperature \(0.5\), calculate the three softmax probabilities and the loss assigned to the positive.
+. For an anchor with one positive and latexmath:[K-1] negatives, derive the softmax-cross-entropy gradient with respect to each scaled similarity logit. Explain why a high-probability negative receives a larger gradient than a low-probability negative.
+. Using cosine similarities latexmath:[0.80], latexmath:[0.10], and latexmath:[-0.30] with temperature latexmath:[0.5], calculate the three softmax probabilities and the loss assigned to the positive.
 . State the parameter-update difference between BYOL and SimSiam. In each method, which pathway receives gradients, and which mechanism changes the target?
 . Write the Barlow Twins objective in terms of the cross-correlation matrix. Explain the role of its diagonal and off-diagonal terms, then contrast it with VICReg's three terms.
 . Compare the targets used by MAE, BEiT and iBOT/data2vec. For each method, state what is predicted and what the loss measures.
-. Give two observations \(x_1,x_2\) that could map to the same representation while having different future distributions. Express the resulting failure of predictive sufficiency mathematically.
+. Give two observations latexmath:[x_1,x_2] that could map to the same representation while having different future distributions. Express the resulting failure of predictive sufficiency mathematically.
 
 [#unique_section_ch3_029_references_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
 == References
