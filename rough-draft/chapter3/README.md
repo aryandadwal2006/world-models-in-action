@@ -8,26 +8,26 @@ The dossier is an original synthesis, not a replacement for reading canonical pa
 
 ## Recommended reading order
 
-1. [Source study notes](13_source_study_notes.md): the three user-supplied sources, the SSL review and the Cookbook, with source hierarchy and limitations.
+1. [Source study notes](13_source_study_notes.md): the three supplied sources, the SSL review and the Cookbook, with source hierarchy and limitations.
 2. [Landscape and scope](00_landscape_and_scope.md): broad method families and chapter boundaries.
-3. [First principles](01_first_principles.md): the representation contract, invariance, target construction, collapse and evaluation.
-4. [Contrastive family: full derivations](14_contrastive_family_full_derivations.md): candidate classification, NT-Xent, InfoNCE, MoCo, CPC and neighboring methods.
-5. [Bootstrap, statistics and prototypes](15_bootstrap_statistics_and_prototypes_full.md): BYOL, SimSiam, DINO, Barlow Twins, VICReg, W-MSE, DeepCluster and SwAV.
-6. [Masked, language and predictive methods](16_masked_language_and_predictive_methods_full.md): MAE, SimMIM, BEiT, MaskFeat, iBOT, BERT, GPT, ELECTRA, speech and JEPAs.
-7. [Training design and evaluation](17_training_design_and_evaluation.md): augmentation, projector, batch-size effects, EMA, data balance, collapse diagnostics, transfer tests and world-model-specific evaluation.
-8. [Method atlas](18_method_atlas_and_family_relations.md): additional variants, CLIP/SigLIP equations, dense-feature families and modern lineages.
-9. [Proof notebook](09_proof_notebook.md): compact derivations and explicit limits of each proof.
-10. [Theory notebook](19_theory_proofs_and_counterexamples.md): detailed InfoNCE lower-bound derivation, counterexamples, EMA, moment constraints and representation limits.
-11. [LeJEPA/SIGReg/VISReg](20_lejepa_sigreg_visreg.md): first-principles account of Gaussian embedding priors, characteristic-function tests and sliced-Wasserstein regularization.
-12. [Loss-gradient derivations](21_loss_gradient_derivations.md): gradients of InfoNCE, CLIP, BYOL/SimSiam, DINO, Barlow Twins, VICReg, SwAV, masked losses, SIGReg and VISReg.
-13. [Proposed flow and page budget](10_flow_and_page_budget.md): how to compress the dossier into a coherent reader-facing sequence.
-14. [Figure storyboard](11_figure_storyboard.md): conceptual diagrams needed in the final chapter.
-15. [Bibliography](12_bibliography.md): canonical citations and source-verification notes.
-
+3. [First principles](01_first_principles.md): representation contracts, invariance, target construction, collapse and evaluation.
+4. [Identifiability, invariance and sufficient state](22_identifiability_invariance_and_sufficient_state.md): why a self-supervised proxy loss does not certify a world-model state.
+5. [Contrastive family: full derivations](14_contrastive_family_full_derivations.md): candidate classification, NT-Xent, InfoNCE, MoCo, CPC and neighboring methods.
+6. [Bootstrap, statistics and prototypes](15_bootstrap_statistics_and_prototypes_full.md): BYOL, SimSiam, DINO, Barlow Twins, VICReg, W-MSE, DeepCluster and SwAV.
+7. [Masked, language and predictive methods](16_masked_language_and_predictive_methods_full.md): MAE, SimMIM, BEiT, MaskFeat, iBOT, BERT, GPT, ELECTRA, speech methods and JEPAs.
+8. [Cross-modal and speech methods](07_cross_modal_speech_and_language.md): short explanations of image-text and speech SSL.
+9. [Training design and evaluation](17_training_design_and_evaluation.md): augmentation, projector, batch-size effects, EMA, data balance, collapse diagnostics, transfer tests and world-model-specific evaluation.
+10. [Method atlas](18_method_atlas_and_family_relations.md): additional variants, CLIP/SigLIP equations, dense-feature families and modern lineages.
+11. [Proof notebook](09_proof_notebook.md): compact derivations and explicit limits of each proof.
+12. [Theory notebook](19_theory_proofs_and_counterexamples.md): detailed InfoNCE lower-bound derivation, counterexamples, EMA, moment constraints and representation limits.
+13. [Loss-gradient derivations](21_loss_gradient_derivations.md): gradients of InfoNCE, CLIP, BYOL/SimSiam, DINO, Barlow Twins, VICReg, SwAV, masked losses, SIGReg and VISReg.
+14. [LeJEPA/SIGReg/VISReg](20_lejepa_sigreg_visreg.md): first-principles account of Gaussian embedding priors, characteristic-function tests and sliced-Wasserstein regularization.
 15. [Method coverage matrix](23_method_coverage_matrix.md): primary-paper map across major families, coverage status and implementation checks.
-16. [Identifiability, invariance and sufficient state](22_identifiability_invariance_and_sufficient_state.md): why a self-supervised proxy loss does not by itself certify a world-model state.
+16. [Proposed flow and page budget](10_flow_and_page_budget.md): how to compress the dossier into a coherent reader-facing sequence.
+17. [Figure storyboard](11_figure_storyboard.md): conceptual diagrams needed in the final chapter.
+18. [Bibliography](12_bibliography.md): canonical citations and source-verification notes.
 
-The original shorter notes remain useful for focused cross-checks: [contrastive InfoNCE](02_contrastive_infoNCE.md), [negative-free bootstrapping](03_negative_free_bootstrap.md), [redundancy reduction](04_redundancy_reduction.md), [clustering and prototypes](05_clustering_and_prototypes.md), [masked prediction](06_masked_prediction.md), [cross-modal and speech](07_cross_modal_speech_and_language.md), [frontier boundaries](08_frontier_and_boundaries.md).
+The original shorter notes remain useful as focused cross-checks: [contrastive InfoNCE](02_contrastive_infoNCE.md), [negative-free bootstrapping](03_negative_free_bootstrap.md), [redundancy reduction](04_redundancy_reduction.md), [clustering and prototypes](05_clustering_and_prototypes.md), [masked prediction](06_masked_prediction.md), and [frontier boundaries](08_frontier_and_boundaries.md).
 
 ## Narrative thesis
 
@@ -48,6 +48,6 @@ The dossier must be exhaustive; the printed chapter must be selective. Every det
 - what later methods changed;
 - what evidence matters for a representation used by a world model.
 
-The chapter itself should derive InfoNCE/NT-Xent and its gradient in full; explain SimCLR, MoCo, BYOL, SimSiam, DINO, Barlow Twins, VICReg, DeepCluster, SwAV, MAE and major target-space choices; give compact cross-domain examples from BERT/GPT/ELECTRA, CLIP/SigLIP and speech SSL; keep rotation, jigsaw, context/colorization and CPC as lineage; and hand off full JEPA mechanics to Chapter 4.
+The reader-facing chapter should derive InfoNCE/NT-Xent and its gradient in full; explain SimCLR, MoCo, BYOL, SimSiam, DINO, Barlow Twins, VICReg, DeepCluster, SwAV, MAE and major target-space choices; give compact cross-domain examples from BERT/GPT/ELECTRA, CLIP/SigLIP and speech SSL; keep rotation, jigsaw, context/colorization and CPC as lineage; and hand off full JEPA mechanics to Chapter 4.
 
 Only two small explanatory demonstrations belong in the reader-facing chapter. The long-form derivations and literature map stay here and have no page limit.
