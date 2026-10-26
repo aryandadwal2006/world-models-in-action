@@ -349,7 +349,9 @@ D_{\mathrm{SimSiam}}(p_1,\operatorname{sg}(z_2))
 
 where latexmath:[D_{\mathrm{SimSiam}}] is negative cosine similarity. The stop-gradient leaves a target's forward value unchanged but removes the gradient path through that target in the corresponding term. Because the loss is symmetric, each shared branch acts as predictor in one term and target in the other. BYOL instead maintains a separate target network whose parameters follow the EMA update.
 
-The predictor and stop-gradient change the optimization dynamics; they do not remove the constant-output solution from the mathematical objective.The distance used in the symmetric objective can be written
+The predictor and stop-gradient change the optimization dynamics; they do not remove the constant-output solution from the mathematical objective.
+
+The distance used in the symmetric objective can be written
 
 [latexmath]
 ++++
@@ -445,7 +447,9 @@ If latexmath:[C_{ii}] is below one, the corresponding coordinate is not perfectl
 
 The diagonal and off-diagonal penalties have different purposes. The diagonal term encourages coordinate latexmath:[i] from view A to align with coordinate latexmath:[i] from view B. The off-diagonal term discourages coordinate latexmath:[i] in one view from correlating with coordinate latexmath:[j\ne i] in the other. Barlow Twins does not merely minimize the distance between the two feature vectors: it specifies a pattern for the entire batch cross-correlation matrix.
 
-For intuition, suppose two projected coordinates are duplicates, latexmath:[z_2=z_1]. Their off-diagonal cross-correlation is high, so Barlow Twins penalizes that redundancy. If a coordinate does not agree across views, its diagonal correlation falls below one and incurs a diagonal penalty. The objective therefore combines cross-view agreement with pressure against repeated linear information across dimensions. Because the features are standardized over the batch, the correlation matrix describes patterns across examples, not the similarity of two coordinates within a single example.The standardization is important: the loss is not simply comparing raw feature magnitudes. It measures how two coordinates co-vary across the batch after centering and scaling. A diagonal entry close to one means that a coordinate in the first view tracks its counterpart in the second view; an off-diagonal entry close to zero means that two different coordinates do not exhibit linear cross-view correlation under this batch distribution.
+For intuition, suppose two projected coordinates are duplicates, latexmath:[z_2=z_1]. Their off-diagonal cross-correlation is high, so Barlow Twins penalizes that redundancy. If a coordinate does not agree across views, its diagonal correlation falls below one and incurs a diagonal penalty. The objective therefore combines cross-view agreement with pressure against repeated linear information across dimensions. Because the features are standardized over the batch, the correlation matrix describes patterns across examples, not the similarity of two coordinates within a single example.
+
+The standardization is important: the loss is not simply comparing raw feature magnitudes. It measures how two coordinates co-vary across the batch after centering and scaling. A diagonal entry close to one means that a coordinate in the first view tracks its counterpart in the second view; an off-diagonal entry close to zero means that two different coordinates do not exhibit linear cross-view correlation under this batch distribution.
 
 The coefficient latexmath:[\lambda] controls the penalty for off-diagonal correlation relative to diagonal mismatch. If it is small, the objective prioritizes cross-view agreement and permits more redundancy. If it is large, decorrelation receives more weight, but decorrelation is still only a second-order constraint: two coordinates can be uncorrelated while sharing nonlinear dependence. The method reduces one measurable form of redundancy; it does not make each coordinate independent in the full probabilistic sense.
 
@@ -499,7 +503,9 @@ The sample covariance used for latexmath:[c(Z)] is computed after centering the 
 (z_{b,i}-\mu_i)(z_{b,j}-\mu_j).
 ++++
 
-The variance penalty and covariance penalty are deliberately different. A coordinate can have sufficient variance while duplicating another coordinate; covariance regularization penalizes that redundancy. A coordinate can have low covariance with every other coordinate yet be nearly constant; the variance penalty addresses that case. The invariance term then asks the two views to agree. These terms are complementary, not interchangeable.The reductions are part of the definition. In latexmath:[s(Z,Z')], the squared feature-vector difference is summed over coordinates and averaged over examples; it is not automatically the same scalar as elementwise mean-squared error that divides by both batch size and feature dimension. That difference rescales the invariance term by the embedding dimension, changing the effective balance between latexmath:[\lambda], latexmath:[\mu] and latexmath:[\nu]. When comparing equations and implementations, check whether the norm is summed per example or averaged per coordinate before interpreting the coefficients.
+The variance penalty and covariance penalty are deliberately different. A coordinate can have sufficient variance while duplicating another coordinate; covariance regularization penalizes that redundancy. A coordinate can have low covariance with every other coordinate yet be nearly constant; the variance penalty addresses that case. The invariance term then asks the two views to agree. These terms are complementary, not interchangeable.
+
+The reductions are part of the definition. In latexmath:[s(Z,Z')], the squared feature-vector difference is summed over coordinates and averaged over examples; it is not automatically the same scalar as elementwise mean-squared error that divides by both batch size and feature dimension. That difference rescales the invariance term by the embedding dimension, changing the effective balance between latexmath:[\lambda], latexmath:[\mu] and latexmath:[\nu]. When comparing equations and implementations, check whether the norm is summed per example or averaged per coordinate before interpreting the coefficients.
 
 A fully constant representation makes latexmath:[s(Z,Z')=0] and makes all off-diagonal covariances zero, but it also makes each standard deviation zero. For any positive margin latexmath:[\gamma], the variance term is therefore positive. In this sense, the variance floor makes exact constant collapse incompatible with minimizing all three terms simultaneously. This explicit penalty differs from BYOL or SimSiam, where a constant representation can make the view-agreement part of the objective small. It still does not guarantee that optimization never reaches a bad solution or that nonconstant directions encode the desired semantics.
 
@@ -657,7 +663,9 @@ The information-bottleneck principle expresses this trade-off using mutual infor
 \min \; I(X;Z)-\beta I(Z;Y).
 ++++
 
-The first term penalizes information about the input retained by latexmath:[Z]; the second rewards information about latexmath:[Y]. The coefficient latexmath:[\beta] controls the trade-off. This is a theoretical lens, not the loss explicitly optimized by every method in this chapter. Mutual information for deterministic continuous representations requires care; practical SSL objectives usually optimize a tractable proxy.The information bottleneck gives a useful idealization of *minimal sufficiency*. If latexmath:[Z] is a deterministic function of latexmath:[X] and is sufficient for latexmath:[Y], then latexmath:[Y\perp X\mid Z], so
+The first term penalizes information about the input retained by latexmath:[Z]; the second rewards information about latexmath:[Y]. The coefficient latexmath:[\beta] controls the trade-off. This is a theoretical lens, not the loss explicitly optimized by every method in this chapter. Mutual information for deterministic continuous representations requires care; practical SSL objectives usually optimize a tractable proxy.
+
+The information bottleneck gives a useful idealization of *minimal sufficiency*. If latexmath:[Z] is a deterministic function of latexmath:[X] and is sufficient for latexmath:[Y], then latexmath:[Y\perp X\mid Z], so
 
 [latexmath]
 ++++
@@ -668,7 +676,9 @@ The representation has retained all information that latexmath:[X] provides abou
 
 
 
-The important question is not “how small can the vector be?” It is “which distinctions can be discarded without changing the predictions we need to make?” A representation useful for image retrieval may be insufficient for predicting motion if it merges observations with different velocities or hidden states.This is why raw dimension is not the same as information rate. A real-valued vector with a small number of coordinates can, in principle, encode many distinctions in very fine numerical differences. In practice, finite precision, noise, limited data and the smoothness of learned functions constrain how reliably such distinctions can be used. Conversely, a very wide feature may carry highly redundant coordinates. Dimension is a proxy for capacity, while useful compression concerns which differences remain reliably decodable under the conditions where the model will be used.
+The important question is not “how small can the vector be?” It is “which distinctions can be discarded without changing the predictions we need to make?” A representation useful for image retrieval may be insufficient for predicting motion if it merges observations with different velocities or hidden states.
+
+This is why raw dimension is not the same as information rate. A real-valued vector with a small number of coordinates can, in principle, encode many distinctions in very fine numerical differences. In practice, finite precision, noise, limited data and the smoothness of learned functions constrain how reliably such distinctions can be used. Conversely, a very wide feature may carry highly redundant coordinates. Dimension is a proxy for capacity, while useful compression concerns which differences remain reliably decodable under the conditions where the model will be used.
 
 
 
@@ -700,7 +710,9 @@ For patch features latexmath:[h_1,\ldots,h_P], simple average pooling forms
 h_{\mathrm{global}}=\frac{1}{P}\sum_{i=1}^{P}h_i.
 ++++
 
-This compresses the grid into one vector and removes explicit patch indexing from the output. Distinct spatial arrangements can therefore produce the same pooled vector. Retaining the grid preserves a feature for each patch and its token position, although the feature values themselves are not guaranteed to encode accurate geometry. The choice is a representational trade-off: a vector is compact, while a grid makes local correspondences accessible to later components. Global pooling is appropriate when spatial arrangement is irrelevant, but can be harmful when the target depends on location or correspondence between regions. A temporal representation also has to retain motion-related information when it changes the target future.The pooling equation also gives a simple source of aliasing. Consider two feature grids whose patch vectors are identical as a multiset but appear in different spatial orders. Average pooling gives the same sum, hence the same global vector, even though the arrangements differ. If the target depends on the arrangement, the pooled representation cannot be sufficient for that target. Positional information elsewhere in the encoder can reduce such collisions, but the pooling operation itself does not preserve the index of each patch.
+This compresses the grid into one vector and removes explicit patch indexing from the output. Distinct spatial arrangements can therefore produce the same pooled vector. Retaining the grid preserves a feature for each patch and its token position, although the feature values themselves are not guaranteed to encode accurate geometry. The choice is a representational trade-off: a vector is compact, while a grid makes local correspondences accessible to later components. Global pooling is appropriate when spatial arrangement is irrelevant, but can be harmful when the target depends on location or correspondence between regions. A temporal representation also has to retain motion-related information when it changes the target future.
+
+The pooling equation also gives a simple source of aliasing. Consider two feature grids whose patch vectors are identical as a multiset but appear in different spatial orders. Average pooling gives the same sum, hence the same global vector, even though the arrangements differ. If the target depends on the arrangement, the pooled representation cannot be sufficient for that target. Positional information elsewhere in the encoder can reduce such collisions, but the pooling operation itself does not preserve the index of each patch.
 
 
 
@@ -716,31 +728,41 @@ Dimension is only a crude capacity indicator. A real-valued vector can encode di
 [#unique_section_ch3_026_a_world_model_audit_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
 == Compact state representations
 
-A low self-supervised loss establishes only that the representation satisfies its training objective. A linear probe, latexmath:[\hat y=Wz+b], tests whether selected variables can be recovered by a linear map from latexmath:[z]. A poor linear-probe score does not prove that the information is absent: it may be encoded nonlinearly. A high score shows that the tested variables are accessible to that probe, but not that the representation contains every distinction needed for future prediction.Nearest-neighbor evaluation tests a different property: whether nearby features correspond to examples that are related under the chosen metric. Reconstruction tests whether a decoder can recover a chosen target. Neither metric directly checks equality of conditional future distributions.
+A low self-supervised loss establishes only that the representation satisfies its training objective. It does not establish that the representation is useful for the quantity a downstream model must predict. The distinction is mathematical: each pretraining objective constrains a selected relation, whereas predictive sufficiency concerns the full conditional distribution of a specified target.
 
+A linear probe tests whether a selected property is accessible through a linear map:
 
+[latexmath]
+++++
+\hat y=Wz+b.
+++++
 
-Evaluation must match the claim. Feature variance and covariance can expose some collapse modes. Held-out probes test the accessibility of chosen variables. Reconstruction measures agreement with the reconstruction target. Future-latent retrieval measures identification among the sampled candidates. None of these scores alone establishes predictive sufficiency.
+A poor score does not prove the property is absent; the representation may encode it nonlinearly. A high score establishes linear accessibility under that probe and data split, not sufficiency for every possible target. Probe results should identify the feature tensor, normalization, readout family, training split and held-out evaluation set. Otherwise, a reported difference can reflect feature selection, readout capacity or data leakage rather than the representation itself.
 
-A linear probe is useful because its capacity is controlled: it asks how accessible a property is through a linear readout, not whether a large trainable head can eventually extract it. Probe comparisons can still mislead if different methods use different feature layers, dimensions, normalization, training data or evaluation splits. A probe should be fitted on the training split and assessed on held-out examples, and compared representations should use the same protocol. Even then, a linear probe is a test of linear accessibility, not an information-theoretic upper bound. Information may be present in a nonlinear form that the probe cannot decode.The evaluation target should be explicit. If labels are used only to train a probe, they are not part of the self-supervised pretraining signal, but the reported probe score is still supervised evaluation. Report the feature layer, any normalization, probe family, training protocol and held-out split. Otherwise a score may reflect different readout capacity or data leakage rather than a difference in representation quality.
+Other diagnostics measure other things. Per-coordinate variance can detect dimensions that are constant across a batch. The covariance spectrum can reveal whether most feature variation lies in only a few directions. Nearest-neighbor retrieval measures local geometry under a selected distance. Reconstruction evaluates a particular target and decoder. Contrastive retrieval evaluates ranking among a sampled candidate set. These results are not interchangeable: none alone demonstrates that the representation preserves every distinction required to predict the future.
 
-
-
-A representation latexmath:[Z] is sufficient for a target future latexmath:[Y], relative to the available observation latexmath:[X], when
+A useful formal definition is *predictive sufficiency*. Let latexmath:[X] denote the available observation or observation history, latexmath:[Z=f(X)] the representation, and latexmath:[Y] the future target. The representation is sufficient for latexmath:[Y] if
 
 [latexmath]
 ++++
 P(Y\mid X)=P(Y\mid Z).
 ++++
 
-This equality says that once latexmath:[Z] is known, the original observation provides no further information about latexmath:[Y]. If two observations map to the same latexmath:[z] but imply different future distributions, the representation has aliased a distinction relevant to that prediction.The consequence is independent of the downstream predictor's architecture. Suppose latexmath:[f(x_1)=f(x_2)=z], but latexmath:[P(Y\mid x_1)\ne P(Y\mid x_2)]. Any predictor that receives only latexmath:[z] must return the same predictive distribution for both histories. It therefore cannot match both distinct conditional distributions. No increase in predictor capacity can recover information that is absent from its input.
+Equivalently, latexmath:[Y\perp X\mid Z]: after conditioning on latexmath:[Z], the full input provides no additional information about latexmath:[Y]. This definition is relative to the target distribution. A representation can be sufficient for a coarse category while not being sufficient for a precise location, or sufficient for a one-step target while losing information required for a longer horizon. There is no target-independent scalar score that certifies sufficiency in all these settings.
 
-For example, a single frame may show an object at one position without revealing whether it was moving left or right. A pair of frames may reveal the motion, but if an encoder of the pair discards the temporal difference and represents both histories identically, the next-position distributions can still differ. The issue is not that a single image is always insufficient; it is that sufficiency depends on what information is provided to the encoder and what it retains.
- That is the failure a useful state must avoid.
+The failure caused by aliasing follows immediately. Suppose two inputs map to the same representation,
 
-Equivalently, the sufficiency condition is the conditional-independence statement latexmath:[Y\perp X\mid Z]. When latexmath:[Z] summarizes an observation history, the ideal is that the history provides no additional information about the target future once the representation is known. If the same latexmath:[z] is assigned to histories with different conditional future distributions, the representation has discarded a predictive distinction.
+[latexmath]
+++++
+f(x_1)=f(x_2)=z,
+\qquad P(Y\mid x_1)\ne P(Y\mid x_2).
+++++
 
-The important tests are distinct: inspect the transformations and target that define the pretraining problem; examine whether the features collapse; probe variables on held-out data; and evaluate prediction of the quantity for which the representation will be used.
+A predictor that receives only latexmath:[z] must produce the same output distribution for both inputs. It cannot equal both distinct conditional distributions. Increasing the capacity of the downstream predictor cannot restore information removed by the encoder.
+
+Consider two short video histories that end with an object at the same image location. In one history it has been moving left; in the other it has been moving right. If the representation discards the temporal difference and maps both histories to the same latexmath:[z], their next-frame distributions may differ even though the last frames are identical. The example does not imply that velocity must always be explicitly represented as a coordinate. It shows that distinctions that change the target distribution cannot be merged without loss relative to that target.
+
+The practical evaluation should therefore state the claim being tested. A probe supports a claim about accessibility of specified variables. A nearest-neighbor score supports a claim about local feature geometry under a specified metric. A reconstruction metric supports a claim about recovery of a chosen target. A predictive-sufficiency claim is stronger and requires evidence tied to the target distribution and observation history of interest.
 
 Figure 3.6 summarizes the encoder's contract: it should discard nuisance variation without merging observations whose target futures differ.
 
