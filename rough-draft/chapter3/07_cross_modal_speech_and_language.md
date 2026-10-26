@@ -68,3 +68,6 @@ data2vec uses a masked student to predict contextualized teacher representations
 
 
 For first-principles derivations and pinned source boundaries for language and speech SSL, see [the objective dossier](34_language_and_speech_ssl_objectives_from_first_principles.md).
+
+
+For the visual SSL objectives and their distinct target/anti-collapse mechanisms, see [Visual SSL objectives](35_visual_ssl_objectives_from_first_principles.md).

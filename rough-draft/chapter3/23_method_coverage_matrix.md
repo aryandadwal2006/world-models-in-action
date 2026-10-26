@@ -142,3 +142,8 @@ The four rows are complementary historical branches, not a strict sequence of su
 ## Language and speech SSL reference
 
 The new [language and speech objective dossier](34_language_and_speech_ssl_objectives_from_first_principles.md) derives targets and losses for BERT, GPT, ELECTRA, T5, wav2vec 2.0, HuBERT, WavLM and data2vec. It distinguishes verified code paths from paper-level descriptions where a complete upstream trainer is unavailable.
+
+
+## Visual SSL objective reference
+
+See [Visual SSL objectives](35_visual_ssl_objectives_from_first_principles.md) for derivations and source-pinned comparisons of contrastive, momentum-dictionary, non-contrastive, clustering, self-distillation and masked-reconstruction methods. The note distinguishes the loss target from the method's anti-collapse mechanism and records limits on what upstream source pointers establish.
