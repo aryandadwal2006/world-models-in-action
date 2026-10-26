@@ -191,6 +191,9 @@ The same generic skeleton—corrupt or mask context and predict a target—cover
 
 ## 14. I-JEPA, V-JEPA and action-conditioned extensions
 
+For detailed equations, loss reductions and source audits of I-JEPA, V-JEPA, V-JEPA 2/2.1 and EB-JEPA, see [JEPA prediction and action-conditioned world models](33_jepa_prediction_and_action_conditioned_world_models.md). This note distinguishes target-block latent prediction from pixel reconstruction, and passive video SSL from action-conditioned post-training.
+
+
 I-JEPA predicts a target image region's representation from a context region's representation. The target encoder and predictor define a latent prediction task; pixel-level generation is not required. This can bias the objective toward predictable high-level structure rather than reconstructing every texture detail. The method still does not prove that all target information is preserved or that its latent transition is physically sufficient.
 
 V-JEPA extends feature prediction to video, so targets can occupy space-time regions. The temporal setting allows the training signal to capture dynamics-related structure, but passive video prediction is not automatically an action-conditioned model: without action inputs/targets, it does not identify which future follows a selected control.

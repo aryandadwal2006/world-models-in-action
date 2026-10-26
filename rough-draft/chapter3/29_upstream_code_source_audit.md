@@ -218,3 +218,19 @@ The pinned default config sets DINO/iBOT weights to 1.0 and KoLeo to 0.1; center
 - Gram-anchor config: https://github.com/facebookresearch/dinov3/blob/6876159a11b4df116f30f667f8c9888617df0751/dinov3/configs/train/dinov3_vit7b16_gram_anchor.yaml
 
 The Gram implementation forms similarity matrices from target and output features and applies MSE. Configuration controls normalization, image-level versus cross-batch matrices, optional removal of negative similarities, teacher crop construction and loss-weight scheduling. The standard config disables Gram loss while the Gram-anchor config enables it; the latter also changes duration and recipe settings. DINOv3 has a dedicated license agreement.
+
+
+## 10. JEPA-family implementation paths
+
+- I-JEPA: repository pinned at facebookresearch/ijepa revision 52c1ae95d05f743e000e8f10a1f3a79b10cff048; paper https://arxiv.org/abs/2301.08243. Audit target/context block selection and target normalization from its specific config.
+- V-JEPA: paper https://arxiv.org/abs/2305.18290; code family is in facebookresearch/jepa revision 51c59d518fc63c08464af6de585f78ac0c7ed4d5.
+- V-JEPA 2 / 2.1: repository pinned at facebookresearch/vjepa2 revision 204698b45b3712590f06245fbfba32d3be539812.
+  - V-JEPA 2.1 training objective: https://github.com/facebookresearch/vjepa2/blob/204698b45b3712590f06245fbfba32d3be539812/app/vjepa_2_1/train.py
+  - Predictor and mask-position construction: https://github.com/facebookresearch/vjepa2/blob/204698b45b3712590f06245fbfba32d3be539812/app/vjepa_2_1/models/predictor.py
+  - Example config: https://github.com/facebookresearch/vjepa2/blob/204698b45b3712590f06245fbfba32d3be539812/configs/train_2_1/vitg16/pretrain-256px-16f.yaml
+  - Verified: masked-target latent prediction, dense context-target loss, distance-weighted context loss, LayerNorm of target features, exponent-1 elementwise absolute-error reduction, and target EMA after the online update. The example YAML has placeholder dataset paths and requests multi-node/high-memory hardware; no run is claimed.
+- EB-JEPA: repository pinned at facebookresearch/eb_jepa revision 966e61e9285b3a876f49b9774e9720d9a99a7925.
+  - Prediction/unroll: https://github.com/facebookresearch/eb_jepa/blob/966e61e9285b3a876f49b9774e9720d9a99a7925/eb_jepa/jepa.py
+  - Regularizers: https://github.com/facebookresearch/eb_jepa/blob/966e61e9285b3a876f49b9774e9720d9a99a7925/eb_jepa/losses.py
+  - Action-conditioned training and planning: https://github.com/facebookresearch/eb_jepa/tree/966e61e9285b3a876f49b9774e9720d9a99a7925/examples/ac_video_jepa
+  - Verified: observation encoder plus action encoder plus predictor; total training objective equals prediction cost plus a configurable regularizer; regularizer terms include variance hinge, off-diagonal covariance, temporal similarity and inverse dynamics. Code can perform parallel teacher-forced prediction or autoregressive rollout. The example environment is Two Rooms, distinct from large-scale V-JEPA video pretraining.

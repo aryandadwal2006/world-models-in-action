@@ -126,3 +126,14 @@ The four rows are complementary historical branches, not a strict sequence of su
 |---|---|---|---|---|
 | DINOv2 | Oquab et al. (2023), https://arxiv.org/abs/2304.07193 | DINO class-token distillation + iBOT patch distillation + KoLeo feature-spreading regularizer | 32 | Centering vs Sinkhorn-Knopp, head sharing, mask and crop choices are config-dependent |
 | DINOv3 | Siméoni et al. (2025), https://arxiv.org/abs/2508.10104 | DINO/iBOT targets, with optional Gram-matrix anchoring in selected recipes | 32 | Standard pinned pretraining config disables Gram loss; Gram-anchor config enables it and changes other recipe settings |
+
+
+## 11. JEPA prediction and action-conditioned variants
+
+| Method | Paper | Direct prediction target | Theory note | Boundary to preserve |
+|---|---|---|---|---|
+| I-JEPA | Assran et al. (2023), https://arxiv.org/abs/2301.08243 | Target-region image embeddings from context-region features | 33 | Latent prediction is not pixel reconstruction and does not prove state sufficiency |
+| V-JEPA | Bardes et al., https://arxiv.org/abs/2305.18290 | Space-time target features from video context | 33 | Passive clip prediction is not explicitly conditioned on actions |
+| V-JEPA 2 / 2-AC | Assran et al. (2025), https://arxiv.org/abs/2506.09985 | Latent video targets; 2-AC adds action-conditioned post-training | 33 | Keep passive pretraining separate from action-conditioned world-model post-training |
+| V-JEPA 2.1 | Mur-Labadia et al. (2026), https://arxiv.org/abs/2603.14482 | Dense targets including context/visible and masked tokens, with intermediate-layer supervision | 33 | Exact L1-like loss, context-distance weights and masks are version/config dependent |
+| EB-JEPA | https://arxiv.org/abs/2602.03604 | Predicted latent observation sequence, optionally action-conditioned | 33 | Released examples combine prediction with configurable variance/covariance, temporal and inverse-dynamics terms; not one universal recipe |
