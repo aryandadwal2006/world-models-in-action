@@ -99,7 +99,7 @@ Map the training signal rather than publication chronology
 
 Begin with unlabeled observations and branch into candidate discrimination, bootstrap prediction, batch-statistic constraints, prototype or pseudo-label assignment, and masked-content prediction. Label target construction and update paths. Use cross-links for hybrid methods such as iBOT and DINOv2. This is a method-reading map, not a strict taxonomy.
 
-**Official/source reference:** Original synthesis based on SimCLR, BYOL, SimSiam, Barlow Twins, VICReg, DINO, SwAV and MAE.. Redraw as an original schematic in the Manning figure style; do not paste a paper screenshot.
+**Official/source reference:** Original synthesis based on SimCLR, BYOL, SimSiam, Barlow Twins, VICReg, DINO, SwAV and MAE . Redraw as an original schematic in the Manning figure style; do not paste a paper screenshot.
 ====
 
 The map is not a partition into disjoint categories. DINO uses teacher-student self-distillation over prototype outputs; iBOT joins masking and teacher targets; wav2vec 2.0 combines masking, quantization and contrastive discrimination.
@@ -200,7 +200,7 @@ Let latexmath:[Z^A] and latexmath:[Z^B] be feature batches from two views. Norma
 [latexmath]
 ++++
 C_{ij}=\frac{1}{N}\sum_{b=1}^{N}\tilde z^A_{b,i}\tilde z^B_{b,j}.
-\tag{3.8}
+\tag{3.3}
 ++++
 
 If corresponding dimensions agree and distinct dimensions are uncorrelated across views, latexmath:[C] approaches the identity matrix. Barlow Twins minimizes the diagonal mismatch and penalizes off-diagonal cross-correlation:
@@ -209,7 +209,7 @@ If corresponding dimensions agree and distinct dimensions are uncorrelated acros
 ++++
 L_{\mathrm{BT}}=\sum_i(1-C_{ii})^2+
 \lambda\sum_i\sum_{j\ne i}C_{ij}^{2}.
-\tag{3.9}
+\tag{3.4}
 ++++
 
 The diagonal terms align a feature with itself across views; the off-diagonal terms discourage redundant correlations between different dimensions. This is a second-order statistical objective. An identity cross-correlation matrix does not prove that features are statistically independent under arbitrary distributions, and it does not prove that each coordinate has a useful physical interpretation.
@@ -234,7 +234,7 @@ VICReg separates invariance, variance and covariance. For two feature batches la
 [latexmath]
 ++++
 s(Z,Z')=\frac{1}{Nd}\lVert Z-Z'\rVert_F^2.
-\tag{3.10}
+\tag{3.5}
 ++++
 
 For each feature dimension latexmath:[j], let latexmath:[\sigma_j(Z)] be its standard deviation over the batch. A variance penalty puts a floor under each dimension's standard deviation:
@@ -242,7 +242,7 @@ For each feature dimension latexmath:[j], let latexmath:[\sigma_j(Z)] be its sta
 [latexmath]
 ++++
 v(Z)=\frac{1}{d}\sum_j\max(0,\gamma-\sigma_j(Z)).
-\tag{3.11}
+\tag{3.6}
 ++++
 
 The covariance term penalizes the squared off-diagonal entries of the empirical covariance matrix:
@@ -250,7 +250,7 @@ The covariance term penalizes the squared off-diagonal entries of the empirical 
 [latexmath]
 ++++
 c(Z)=\frac{1}{d}\sum_{i\ne j}\operatorname{Cov}(Z)_{ij}^{2}.
-\tag{3.12}
+\tag{3.7}
 ++++
 
 The full objective is a weighted sum of the invariance term and the corresponding variance and covariance terms for both views. The published implementation's coefficients and numerical choices matter; the equations state the structural roles.
@@ -259,7 +259,7 @@ If every example has the same value in one dimension, its batch standard deviati
 
 The methods are related but not identical. Barlow Twins uses normalized cross-correlation as the central matrix objective. VICReg uses a direct invariance term, a standard-deviation floor and a covariance penalty. Their shared lesson is that view agreement and non-collapse are separate requirements. Their moment constraints are not a guarantee of a world-model-ready state.
 
-figure 3.3 compares the target path and anti-collapse mechanism used by the major non-identical objective families.
+The following figure brief compares the target paths and anti-collapse mechanisms of the major objective families.
 
 [#ch3-figure-F08,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 [NOTE]
@@ -270,38 +270,18 @@ Different target paths create different optimization problems
 
 Use aligned rows for SimCLR candidate classification; BYOL's online predictor and EMA target; SimSiam's stop-gradient target; Barlow Twins/VICReg batch statistics; and DINO's student distribution matched to a teacher. Show gradient flow, EMA update and batch-statistics paths as different mechanisms. This compares designs, not performance.
 
-**Official/source reference:** Original schematic comparison based on the primary SimCLR, BYOL, SimSiam, Barlow Twins, VICReg and DINO papers.. Redraw as an original schematic in the Manning figure style; do not paste a paper screenshot.
+**Official/source reference:** Original schematic comparison based on the primary SimCLR, BYOL, SimSiam, Barlow Twins, VICReg and DINO papers . Redraw as an original schematic in the Manning figure style; do not paste a paper screenshot.
 ====
 
 [#unique_section2_ch3_016_brief_other_methods_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
-=== Other methods to recognize
+=== Other families in brief
 
-**DeepCluster** alternates between extracting features, clustering them offline and training the encoder to predict cluster IDs. **SwAV** forms prototype assignments online and predicts assignments across views, using a balancing step intended to prevent all examples selecting one prototype. They differ mainly in how pseudo-targets are produced and refreshed.
-
-**CLIP** aligns image and associated text embeddings with a contrastive objective. Its supervision comes from paired images and descriptions; alignment alone does not prove spatial grounding or understanding of action consequences.
-
-**BERT** predicts selected corrupted tokens from bidirectional context. **GPT-style causal language modeling** predicts the next token using only preceding tokens. They illustrate how target and context restrictions define a task and do not need standalone implementation tutorials here.
-
-
-[#unique_section2_ch3_015_clusters_and_prototypes_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
-=== Clusters and prototypes as learning targets
-
-Contrastive methods make instances compete; clustering methods instead construct pseudo-categories from the feature space. Their premise is that examples may share a prototype-level relation rather than only match as exact instances.
-
-DeepCluster (Caron et al., 2018) alternates feature extraction, k-means assignments and network training to predict the current cluster IDs. This provides pseudo-labels without human annotation, but assignments depend on current features and can be stale or unbalanced. Cluster identities are arbitrary; permuting all cluster labels leaves the partition unchanged.
-
-SwAV (Caron et al., 2020) moves assignment online. Learned prototypes assign examples to clusters, and the network predicts the assignment of one view from another view. A Sinkhorn-Knopp procedure approximately balances assignments across prototypes. Balancing discourages collapse to a single prototype, but it also encodes an assumption: useful prototype usage should be spread across the batch. A truly skewed dataset may not satisfy that assumption.
-
-DINO also predicts distributions over prototypes, but its central training description is teacher-student self-distillation. This overlap is useful: method taxonomies describe dominant mechanisms, not exclusive boxes. The essential questions are how targets are assigned, whether assignments are fixed or online, how imbalance is handled, and what downstream evidence validates the clusters.
+**DeepCluster** alternates offline clustering of current features with training on the resulting pseudo-labels. **SwAV** assigns examples to prototypes online and predicts assignments across views, using a balancing step. The contrast is how the target assignments are made and refreshed; neither needs a full derivation here.
 
 [#unique_section2_ch3_021_cross_modal_and_speech_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === Brief connections across modalities
 
-CLIP (Radford et al., 2021) aligns image and text embeddings using a symmetric contrastive objective. In a batch of paired examples, each image is trained to retrieve its corresponding text and each text its corresponding image. The positive relation comes from captions or text associated with images. Such pairs provide semantic supervision, but captions may be incomplete, generic or noisy. Retrieval alignment does not guarantee detailed spatial grounding or physical understanding.
-
-SigLIP (Zhai et al., 2023) replaces the batchwise softmax with pairwise sigmoid-style losses. This changes the normalization and scaling behavior, not the underlying need for reliable pair construction. SigLIP 2 (Tschannen et al., 2025) extends the family toward multilingual understanding, localization and dense features through a combined recipe that includes captioning-based pretraining, self-distillation, masked prediction and online data curation. Do not describe SigLIP as merely a temperature variant of CLIP.
-
-Speech methods expose other target-construction choices. wav2vec 2.0 (Baevski et al., 2020) masks latent speech frames and contrasts contextual representations against quantized targets. HuBERT (Hsu et al., 2021) predicts cluster-derived pseudo-labels for masked speech regions. data2vec predicts contextual teacher features. table 3.1 compares methods by target, loss, signal construction and limitation rather than by a single benchmark score.
+CLIP trains image and text encoders to align paired captions and images with a contrastive objective. SigLIP uses a pairwise sigmoid loss rather than CLIP's batchwise softmax. Speech methods make the same target-design idea visible: wav2vec 2.0 uses quantized latent targets in a contrastive task, HuBERT predicts cluster-derived pseudo-labels, and data2vec predicts contextual teacher features. These are short examples of the same construction choices, not independent method tutorials.
 
 [#ch3-figure-F09,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 [NOTE]
@@ -373,7 +353,7 @@ For two feature vectors, cosine similarity is their dot product after unit norma
 [latexmath]
 ++++
 s(z_i,z_j)=\frac{z_i^\top z_j}{\lVert z_i\rVert_2\lVert z_j\rVert_2}.
-\tag{3.3}
+\tag{3.8}
 ++++
 
 A temperature latexmath:[\tau>0] scales the similarity before applying softmax. A lower temperature makes the candidate distribution sharper and increases the effect of high-scoring candidates. It also changes gradient scale and optimization sensitivity.
@@ -385,7 +365,7 @@ Suppose a batch contains latexmath:[N] source images. Two stochastic views of ea
 \ell_i=-\log
 \frac{\exp(s(z_i,z_{p(i)})/\tau)}
 {\sum_{a=1}^{2N}\mathbf{1}[a\ne i]\exp(s(z_i,z_a)/\tau)}.
-\tag{3.4}
+\tag{3.9}
 ++++
 
 The total loss averages over the anchors. In the denominator are one positive and latexmath:[2N-2] negatives. The positive is included in the denominator; the anchor is not. Stating the candidate set explicitly avoids ambiguity because papers do not all use the same symbol for the number of candidates or negatives.
@@ -396,12 +376,12 @@ This objective is ordinary softmax cross-entropy. Write latexmath:[a_{ij}=s(z_i,
 ++++
 \frac{\partial \ell_i}{\partial a_{ij}}
 =q_{ij}-\mathbf{1}[j=p(i)].
-\tag{3.5}
+\tag{3.10}
 ++++
 
 The positive logit receives gradient latexmath:[q_{i,p(i)}-1], which pushes it upward under gradient descent. A negative logit receives gradient latexmath:[q_{ij}], which pushes it downward. The gradient on a negative is weighted by its current probability: a hard negative receives more repulsive gradient than an already dissimilar candidate. Since latexmath:[a_{ij}=s(z_i,z_j)/\tau], differentiation with respect to similarity introduces the factor latexmath:[1/\tau].
 
-figure 3.2 connects the positive-pair construction to the candidate distribution and its gradient.
+The following figure brief connects the positive-pair construction to the candidate distribution and its gradient.
 
 [#ch3-figure-F11,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 [NOTE]
@@ -412,7 +392,7 @@ One anchor, one positive and a candidate distribution
 
 Show an anchor, one positive and several negatives. Similarities are scaled by temperature and passed through softmax; cross-entropy rewards the positive index. Annotate the logit derivative q_j minus the positive indicator. Exclude the anchor itself but keep the positive in the denominator.
 
-**Official/source reference:** Original derivation schematic for NT-Xent/InfoNCE; see Chen et al. (2020), SimCLR.. Redraw as an original schematic in the Manning figure style; do not paste a paper screenshot.
+**Official/source reference:** Original derivation schematic for NT-Xent/InfoNCE; see Chen et al. (2020), SimCLR . Redraw as an original schematic in the Manning figure style; do not paste a paper screenshot.
 ====
 
 [#unique_section2_ch3_006_what_infoNCE_does_and_does_not_prove_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
@@ -427,7 +407,7 @@ InfoNCE is often connected to mutual information. For a specified joint distribu
 [latexmath]
 ++++
 I(X;Y)\ge \log K-\mathcal{L}_{\mathrm{NCE}},
-\tag{3.6}
+\tag{3.11}
 ++++
 
 where latexmath:[K] denotes the number of candidates under the convention used by the derivation. Candidate-sampling assumptions are essential. A loss called InfoNCE does not automatically produce this bound under every arbitrary negative-sampling scheme.
@@ -444,7 +424,7 @@ MoCo (He et al., 2020) addressed a different engineering issue: keeping a large 
 [latexmath]
 ++++
 \theta_k\leftarrow m\theta_k+(1-m)\theta_q.
-\tag{3.7}
+\tag{3.12}
 ++++
 
 Encoded keys are stored in a queue. A query can therefore compare with many keys produced by earlier minibatches. Since queued keys become stale as parameters change, the slowly moving key encoder reduces, but does not eliminate, dictionary inconsistency. MoCo v2 (Chen et al., 2020) strengthens the training recipe; MoCo v3 (Chen et al., 2021) studies a changed recipe for vision transformers. These developments should be described with their actual architecture and training context, not as arbitrary version numbers.
@@ -486,7 +466,7 @@ L=\frac{1}{|M|}\sum_{i\in M}\ell(\hat y_i,y_i).
 
 This form leaves the crucial choice open: what is the target? It might be pixel values, a discrete code, a word token, a replaced-token label or a contextualized feature. The mask tells the model where information is withheld; the target tells it what relationship must be learned.
 
-figure 3.4 compares three target spaces for masked inputs: pixels, discrete visual codes and contextualized features.
+The following figure brief compares target spaces for masked inputs: pixels, discrete visual codes and contextualized features.
 
 [#ch3-figure-F13,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 [NOTE]
@@ -497,7 +477,7 @@ One mask, several target spaces
 
 Use the same masked image in three pathways: pixel regression, discrete visual-token classification and teacher-feature prediction. Add a small language strip contrasting masked-token prediction using surrounding context with causal next-token prediction using only earlier tokens.
 
-**Official/source reference:** Original synthesis based on MAE, BEiT, iBOT, data2vec, BERT and GPT.. Redraw as an original schematic in the Manning figure style; do not paste a paper screenshot.
+**Official/source reference:** Original synthesis based on MAE, BEiT, iBOT, data2vec, BERT and GPT . Redraw as an original schematic in the Manning figure style; do not paste a paper screenshot.
 ====
 
 [#ch3-figure-F14,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
@@ -548,7 +528,7 @@ BERT-style masked language modeling predicts selected corrupted tokens from bidi
 [#unique_section2_ch3_024_bottleneck_dimension_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === Dimension is capacity, not useful information
 
-A latent bottleneck maps a high-dimensional observation or token grid into a more constrained representation. The simplest form is a vector \(h\in\mathbb{R}^{d}\). Lowering \(d\) limits the number of coordinates available, but it does not directly measure how much task-relevant information remains. A small vector may preserve the few variables needed by a task; a wide vector may devote many dimensions to lighting, textures, camera identity or other nuisance variation.
+A latent bottleneck maps a high-dimensional observation or token grid into a more constrained representation. The simplest form is a vector latexmath:[h\in\mathbb{R}^{d}]. Lowering latexmath:[d] limits the number of coordinates available, but it does not directly measure how much task-relevant information remains. A small vector may preserve the few variables needed by a task; a wide vector may devote many dimensions to lighting, textures, camera identity or other nuisance variation.
 
 The important question is not “how small can the vector be?” It is “what information can be discarded without merging states whose future predictions should differ?” This is task-relative. An object classifier may ignore location, while a visual controller may need position, orientation and contact. A representation useful for matching images may be insufficient for predicting motion.
 
@@ -560,12 +540,12 @@ Many contrastive and bootstrap methods use a projection head between an encoder 
 [latexmath]
 ++++
 h=f_\theta(x),\qquad z=g_\phi(h).
-\tag{3.15}
+\tag{3.14}
 ++++
 
-The loss is calculated on \(z\), while the representation evaluated downstream is often \(h\). A projection head gives the pretraining objective a dedicated space in which to impose its constraints. It does not follow that \(z\) and \(h\) have the same geometry or serve the same downstream purpose.
+The loss is calculated on latexmath:[z], while the representation evaluated downstream is often latexmath:[h]. A projection head gives the pretraining objective a dedicated space in which to impose its constraints. It does not follow that latexmath:[z] and latexmath:[h] have the same geometry or serve the same downstream purpose.
 
-The exact export point is method- and evaluation-specific. Some studies report features before the projector; others use intermediate or patch-level transformer features. The manuscript should state which tensor is evaluated. A pretraining loss measured on \(z\) must not be described as a direct measure of the quality of \(h\).
+The exact export point is method- and evaluation-specific. Some studies report features before the projector; others use intermediate or patch-level transformer features. The manuscript should state which tensor is evaluated. A pretraining loss measured on latexmath:[z] must not be described as a direct measure of the quality of latexmath:[h].
 
 [#ch3-figure-F16,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 [NOTE]
@@ -574,7 +554,7 @@ The exact export point is method- and evaluation-specific. Some studies report f
 
 The projection head is not automatically the downstream state.
 
-Show an encoder producing \(h\). Split the path into projection head \(g\) and pretraining vector \(z\), where the SSL loss is calculated, and a downstream feature route used for probes or a transition model. Make the distinct tensors explicit.
+Show an encoder producing latexmath:[h]. Split the path into projection head latexmath:[g] and pretraining vector latexmath:[z], where the SSL loss is calculated, and a downstream feature route used for probes or a transition model. Make the distinct tensors explicit.
 
 **Source basis:** SimCLR, BYOL, Barlow Twins and VICReg papers and official implementations. Redraw as an original book diagram.
 ====
