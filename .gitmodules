@@ -175,3 +175,7 @@
 [submodule "implementations/guided-diffusion"]
 	path = implementations/guided-diffusion
 	url = https://github.com/openai/guided-diffusion.git
+
+[submodule "implementations/stable-pretraining"]
+	path = implementations/stable-pretraining
+	url = https://github.com/galilai-group/stable-pretraining.git
