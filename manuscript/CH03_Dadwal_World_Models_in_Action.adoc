@@ -880,7 +880,7 @@ to minimize a target-feature error such as
 \|\widehat h_r-\operatorname{sg}(h_r)\|_2^2.
 ++++
 
-Here \`sg\` denotes the stop-gradient operator. Particular papers use different norms, normalization, layer targets, reductions and mask protocols; these are method-defining details.
+Here sg denotes the stop-gradient operator. Particular papers use different norms, normalization, layer targets, reductions and mask protocols; these are method-defining details.
 
 The **context encoder** sees only visible/context tokens, so it cannot copy target tokens from that path. The **target encoder** supplies target embeddings and commonly receives no loss gradients; standard I-JEPA/V-JEPA recipes update it by an exponential moving average of the online encoder. The **predictor** consumes context features and target locations to infer selected target embeddings. It is not a pixel decoder.
 
