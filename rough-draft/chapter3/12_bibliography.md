@@ -106,3 +106,5 @@ This is the working citation register; the final AsciiDoc reference section shou
 
 - Epps–Pulley characteristic-function test background is covered by Epps, T. W. and Pulley, L. B. (1983), “A test for normality based on the empirical characteristic function,” *Biometrika*.
 - Cramér–Wold theorem reference: Cramér, H. and Wold, H. (1936), “Some theorems on distribution functions.”
+
+- For the formal discussion of representations as sufficient statistics and the data-processing inequality, standard references include Cover, T. M. and Thomas, J. A. (2006), *Elements of Information Theory*, 2nd ed., Wiley.
