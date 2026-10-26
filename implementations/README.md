@@ -1,6 +1,6 @@
 # Official implementation collection
 
-This directory uses **Git submodules**, not copied source trees. Each submodule is pinned to the exact upstream commit recorded in the parent Git tree. This keeps original licenses and histories intact and prevents this book repository from silently forking or modifying upstream code.
+This top-level directory uses **Git submodules**, not copied source trees. Each submodule is pinned to the exact upstream commit recorded in the parent Git tree. This keeps original licenses and histories intact and prevents this book repository from silently forking or modifying upstream code.
 
 Initialize after cloning this branch:
 
@@ -39,6 +39,22 @@ Update one submodule deliberately, review its license and upstream changes, and 
 | ELECTRA | [google-research/electra](https://github.com/google-research/electra) | `8a46635f32083ada044d7e9ad09604742600ee7b` | Clark et al. (2020), ELECTRA: Pre-training Text Encoders as Discriminators Rather Than Generators. |
 | T5 / span corruption | [google-research/text-to-text-transfer-transformer](https://github.com/google-research/text-to-text-transfer-transformer) | `42909aa15d1fbd16c69333aa474a00ae8ed9fde4` | Raffel et al. (2020), Exploring the Limits of Transfer Learning with a Unified Text-to-Text Transformer. |
 
+## Additional official implementation pins
+
+| Method family | Official repository | Pinned commit | Paper / note |
+|---|---|---|---|
+| W-MSE / whitening | [htdt/self-supervised](https://github.com/htdt/self-supervised) | `d9662c8d07dafd194a9045375f4f6aa09f5b03e9` | W-MSE / whitening source; `implementations/w-mse/` |
+| MSN / Masked Siamese Networks | [facebookresearch/msn](https://github.com/facebookresearch/msn) | `4388dc1eadbe3042b85d3296d41b9b207656e043` | MSN / Masked Siamese Networks source; `implementations/msn/` |
+| Mean Shift for SSL | [UMBCvision/MSF](https://github.com/UMBCvision/MSF) | `130191c4f9c3dbbd6355a737cfdce5fb6a7b68f0` | Mean Shift for SSL source; `implementations/mean-shift/` |
+| VICRegL | [facebookresearch/VICRegL](https://github.com/facebookresearch/VICRegL) | `803ae4c8cd1649a820f03afb4793763e95317620` | VICRegL source; `implementations/vicregl/` |
+| DenseCL | [WXinlong/DenseCL](https://github.com/WXinlong/DenseCL) | `b64bbb6e267f729d16ca558233b0ef3028857381` | DenseCL source; `implementations/densecl/` |
+| PixPro | [zdaxie/PixPro](https://github.com/zdaxie/PixPro) | `e390d6b60bcb017ed7ea7fd7e6647d14c5da86cc` | PixPro source; `implementations/pixpro/` |
+| Leopart | [MkUuWaUjinga/leopart](https://github.com/MkUuWaUjinga/leopart) | `7835701338d477c70d581c0a10e594257dcac198` | Leopart source; `implementations/leopart/` |
+| SelfPatch | [alinlab/SelfPatch](https://github.com/alinlab/SelfPatch) | `81aef149fa984a32bdbb2cf5a98aa0e072591535` | SelfPatch source; `implementations/selfpatch/` |
+| LeJEPA / SIGReg | [galilai-group/lejepa](https://github.com/galilai-group/lejepa) | `c293d291ca87cd4fddee9d3fffe4e914c7272052` | LeJEPA / SIGReg source; `implementations/lejepa/` |
+| VISReg | [HaiyuWu/visreg](https://github.com/HaiyuWu/visreg) | `7e0a0bb3a4ee302d65678dcc9b85cb6ef718d356` | VISReg source; `implementations/visreg/` |
+| EB-JEPA | [facebookresearch/eb_jepa](https://github.com/facebookresearch/eb_jepa) | `966e61e9285b3a876f49b9774e9720d9a99a7925` | EB-JEPA source; `implementations/eb-jepa/` |
+
 ## Important scope / license notes
 
 - SimCLR's Google Research repository is archived. The repository itself explicitly says it is not an official Google product; it remains useful as an author-maintained reference implementation, not an endorsement.
@@ -51,3 +67,11 @@ Update one submodule deliberately, review its license and upstream changes, and 
 | SimMIM | [microsoft/SimMIM](https://github.com/microsoft/SimMIM) | `d3e29bcac950b83edc34ca33fe4404f38309052c` | Xie et al. (2022), SimMIM. Official repository archived in September 2026; MIT license; read-only. |
 | iBOT | [bytedance/ibot](https://github.com/bytedance/ibot) | `da316d82636a7a7356835ef224b13d5f3ace0489` | Zhou et al. (2022), iBOT: Image BERT Pre-Training with Online Tokenizer. |
 | MaskFeat | [facebookresearch/SlowFast](https://github.com/facebookresearch/SlowFast) | `287ec0076846560f44a9327e931a5a2360240533` | Wei et al. (2022), Masked Feature Prediction for Self-Supervised Visual Pre-Training; implementation is in the projects/maskfeat subdirectory. |
+
+
+## Coverage notes added for the expanded collection
+
+- Shared upstream repositories may contain multiple methods and dependencies; the method-specific source lives in the upstream subdirectory, not in a locally copied standalone implementation.
+- The V-JEPA 2 source includes the V-JEPA 2.1 release. LeJEPA/SIGReg and VISReg now have their own official-source submodules.
+- No public author/team repository was verified in this pass for ALIGN or the original NNCLR and CPC papers. These are intentionally not represented by an unofficial repository falsely labeled official.
+- Initializing the whole collection clones substantial upstream history. Use `git submodule update --init implementations/<name>` to initialize one repository at a time.

@@ -1,11 +1,13 @@
-# Research implementations and papers
+# Research papers and official implementations
 
-This is a research reference shelf for the theory-first Chapter 3 revision. Implementations remain upstream Git submodules under `extra/official-repos/`; our chapter prose and derivations are written independently. The root README on this branch describes the source tree. See the manifest for pinned revisions, paper attribution, and licensing cautions.
+Original upstream repositories are collected at the top level under [`implementations/`](../implementations/README.md) as pinned Git submodules. No method code is authored or modified inside that folder.
 
 Start here:
 
-1. [Official implementation manifest](official-repos/README.md)
-2. [Initialize all implementations](official-repos/clone-all.sh)
+1. [Official upstream implementation manifest](../implementations/README.md)
+2. [Initialize all upstream checkouts](../implementations/clone-all.sh)
 3. [Paper and derivation index](papers-and-derivations.md)
 
-The parent branch `main` is not changed by this research branch.
+From the repository root, run `git submodule update --init --recursive` to clone all pinned upstreams. Each source keeps its own license, dependencies and history. Where an official release could not be verified, the manifest notes the gap rather than substituting unofficial code under an “official” label.
+
+The chapter's compact educational code remains under `worldmodels/`, separate from the upstream source shelf.

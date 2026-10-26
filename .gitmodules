@@ -1,105 +1,149 @@
-[submodule "extra/official-repos/simclr"]
-	path = extra/official-repos/simclr
+[submodule "implementations/simclr"]
+	path = implementations/simclr
 	url = https://github.com/google-research/simclr.git
 
-[submodule "extra/official-repos/moco"]
-	path = extra/official-repos/moco
+[submodule "implementations/moco"]
+	path = implementations/moco
 	url = https://github.com/facebookresearch/moco.git
 
-[submodule "extra/official-repos/moco-v3"]
-	path = extra/official-repos/moco-v3
+[submodule "implementations/moco-v3"]
+	path = implementations/moco-v3
 	url = https://github.com/facebookresearch/moco-v3.git
 
-[submodule "extra/official-repos/deepmind-research"]
-	path = extra/official-repos/deepmind-research
+[submodule "implementations/deepmind-research"]
+	path = implementations/deepmind-research
 	url = https://github.com/google-deepmind/deepmind-research.git
 
-[submodule "extra/official-repos/simsiam"]
-	path = extra/official-repos/simsiam
+[submodule "implementations/simsiam"]
+	path = implementations/simsiam
 	url = https://github.com/facebookresearch/simsiam.git
 
-[submodule "extra/official-repos/swav"]
-	path = extra/official-repos/swav
+[submodule "implementations/swav"]
+	path = implementations/swav
 	url = https://github.com/facebookresearch/swav.git
 
-[submodule "extra/official-repos/deepcluster"]
-	path = extra/official-repos/deepcluster
+[submodule "implementations/deepcluster"]
+	path = implementations/deepcluster
 	url = https://github.com/facebookresearch/deepcluster.git
 
-[submodule "extra/official-repos/barlowtwins"]
-	path = extra/official-repos/barlowtwins
+[submodule "implementations/barlowtwins"]
+	path = implementations/barlowtwins
 	url = https://github.com/facebookresearch/barlowtwins.git
 
-[submodule "extra/official-repos/vicreg"]
-	path = extra/official-repos/vicreg
+[submodule "implementations/vicreg"]
+	path = implementations/vicreg
 	url = https://github.com/facebookresearch/vicreg.git
 
-[submodule "extra/official-repos/mae"]
-	path = extra/official-repos/mae
+[submodule "implementations/mae"]
+	path = implementations/mae
 	url = https://github.com/facebookresearch/mae.git
 
-[submodule "extra/official-repos/bert"]
-	path = extra/official-repos/bert
+[submodule "implementations/bert"]
+	path = implementations/bert
 	url = https://github.com/google-research/bert.git
 
-[submodule "extra/official-repos/gpt-2"]
-	path = extra/official-repos/gpt-2
+[submodule "implementations/gpt-2"]
+	path = implementations/gpt-2
 	url = https://github.com/openai/gpt-2.git
 
-[submodule "extra/official-repos/dino"]
-	path = extra/official-repos/dino
+[submodule "implementations/dino"]
+	path = implementations/dino
 	url = https://github.com/facebookresearch/dino.git
 
-[submodule "extra/official-repos/dinov2"]
-	path = extra/official-repos/dinov2
+[submodule "implementations/dinov2"]
+	path = implementations/dinov2
 	url = https://github.com/facebookresearch/dinov2.git
 
-[submodule "extra/official-repos/dinov3"]
-	path = extra/official-repos/dinov3
+[submodule "implementations/dinov3"]
+	path = implementations/dinov3
 	url = https://github.com/facebookresearch/dinov3.git
 
-[submodule "extra/official-repos/jepa"]
-	path = extra/official-repos/jepa
+[submodule "implementations/jepa"]
+	path = implementations/jepa
 	url = https://github.com/facebookresearch/jepa.git
 
-[submodule "extra/official-repos/vjepa2"]
-	path = extra/official-repos/vjepa2
+[submodule "implementations/vjepa2"]
+	path = implementations/vjepa2
 	url = https://github.com/facebookresearch/vjepa2.git
 
-[submodule "extra/official-repos/clip"]
-	path = extra/official-repos/clip
+[submodule "implementations/clip"]
+	path = implementations/clip
 	url = https://github.com/openai/CLIP.git
 
-[submodule "extra/official-repos/big_vision"]
-	path = extra/official-repos/big_vision
+[submodule "implementations/big_vision"]
+	path = implementations/big_vision
 	url = https://github.com/google-research/big_vision.git
 
-[submodule "extra/official-repos/fairseq"]
-	path = extra/official-repos/fairseq
+[submodule "implementations/fairseq"]
+	path = implementations/fairseq
 	url = https://github.com/facebookresearch/fairseq.git
 
-[submodule "extra/official-repos/unilm"]
-	path = extra/official-repos/unilm
+[submodule "implementations/unilm"]
+	path = implementations/unilm
 	url = https://github.com/microsoft/unilm.git
 
-[submodule "extra/official-repos/ijepa"]
-	path = extra/official-repos/ijepa
+[submodule "implementations/ijepa"]
+	path = implementations/ijepa
 	url = https://github.com/facebookresearch/ijepa.git
 
-[submodule "extra/official-repos/electra"]
-	path = extra/official-repos/electra
+[submodule "implementations/electra"]
+	path = implementations/electra
 	url = https://github.com/google-research/electra.git
 
-[submodule "extra/official-repos/t5"]
-	path = extra/official-repos/t5
+[submodule "implementations/t5"]
+	path = implementations/t5
 	url = https://github.com/google-research/text-to-text-transfer-transformer.git
 
-[submodule "extra/official-repos/simmim"]
-	path = extra/official-repos/simmim
+[submodule "implementations/simmim"]
+	path = implementations/simmim
 	url = https://github.com/microsoft/SimMIM.git
-[submodule "extra/official-repos/ibot"]
-	path = extra/official-repos/ibot
+[submodule "implementations/ibot"]
+	path = implementations/ibot
 	url = https://github.com/bytedance/ibot.git
-[submodule "extra/official-repos/slowfast"]
-	path = extra/official-repos/slowfast
+[submodule "implementations/slowfast"]
+	path = implementations/slowfast
 	url = https://github.com/facebookresearch/SlowFast.git
+
+[submodule "implementations/w-mse"]
+	path = implementations/w-mse
+	url = https://github.com/htdt/self-supervised.git
+
+[submodule "implementations/msn"]
+	path = implementations/msn
+	url = https://github.com/facebookresearch/msn.git
+
+[submodule "implementations/mean-shift"]
+	path = implementations/mean-shift
+	url = https://github.com/UMBCvision/MSF.git
+
+[submodule "implementations/vicregl"]
+	path = implementations/vicregl
+	url = https://github.com/facebookresearch/VICRegL.git
+
+[submodule "implementations/densecl"]
+	path = implementations/densecl
+	url = https://github.com/WXinlong/DenseCL.git
+
+[submodule "implementations/pixpro"]
+	path = implementations/pixpro
+	url = https://github.com/zdaxie/PixPro.git
+
+[submodule "implementations/leopart"]
+	path = implementations/leopart
+	url = https://github.com/MkUuWaUjinga/leopart.git
+
+[submodule "implementations/selfpatch"]
+	path = implementations/selfpatch
+	url = https://github.com/alinlab/SelfPatch.git
+
+[submodule "implementations/lejepa"]
+	path = implementations/lejepa
+	url = https://github.com/galilai-group/lejepa.git
+
+[submodule "implementations/visreg"]
+	path = implementations/visreg
+	url = https://github.com/HaiyuWu/visreg.git
+
+[submodule "implementations/eb-jepa"]
+	path = implementations/eb-jepa
+	url = https://github.com/facebookresearch/eb_jepa.git

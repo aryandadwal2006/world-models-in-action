@@ -6,12 +6,14 @@ Code companion for *World Models in Action*. This branch reorganizes Chapter 3 s
 
 ## Source of truth
 
-- **Core implementations:** `worldmodels/`. Models, losses, sequence sampling, data handling, and evaluation utilities live here.
-- **Experiment runners:** `ch03/`. These preserve the full data protocol, training configuration, multi-seed runs, evaluations, plotting, and metric export needed for the chapter.
-- **Verification:** `tests/`. Tests exercise the canonical modules and important data/evaluation contracts.
-- **Evidence:** `ch03/figures/`, `ch03/results/`, `checkpoints/`, and `ch03/publication_readiness_audit.md` hold generated outputs, checkpoints, and limitations.
+- **Chapter-oriented pedagogical implementations:** `worldmodels/`. These are compact, readable implementations for the book, not copies of upstream repositories.
+- **Experiment runners:** `ch03/`. These preserve data protocols, configs, multi-seed runs, evaluation, plotting and metric export.
+- **Original upstream method repositories:** `implementations/`. This directory contains Git submodules pinned to original author/team repositories or shared upstream research codebases. No replacement method code is authored or modified there.
+- **Verification:** `tests/`.
+- **Evidence:** `ch03/figures/`, `ch03/results/`, `checkpoints/` and `ch03/publication_readiness_audit.md`.
+- **Research notes:** `extra/papers-and-derivations.md`.
 
-The chapter runners call the canonical implementations. The legacy `worldmodels.losses.contrastive` and MAE exports from `worldmodels.models.encoders` remain as import-compatible facades; they do not duplicate those implementations.
+The chapter runners call canonical modules under `worldmodels/`. These upstream source folders are references, not runtime dependencies for chapter tests.
 
 ## Setup
 
@@ -24,11 +26,20 @@ python -m pip install -r requirements.txt
 python -m unittest discover -s tests -v
 ```
 
+To clone the official upstream repositories under `implementations/` at their pinned commits, run:
+
+```bash
+git submodule sync --recursive
+git submodule update --init --recursive
+```
+
+The full collection makes the checkout large; initialize one repository at a time if preferred. Every upstream keeps its own license and dependencies. Model weights and datasets are not bundled.
+
 The repository includes cached DMC train/validation datasets for the chapter experiments. Regenerating them requires the DeepMind Control Suite and MuJoCo rendering setup; downstream experiments can run from the caches. Experiment claims and reproduction instructions are recorded in `ch03/README.md` and `ch03/publication_readiness_audit.md`.
 
 ## Reading order
 
-Start with the code map in [Chapter 3 README](ch03/README.md). It maps the conceptual listings to the canonical source files and maps each chapter figure/table to its supplementary experiment runner.
+Start with the code map in [Chapter 3 README](ch03/README.md). For original method source, use the [upstream implementation manifest](implementations/README.md) and verify the method details against the primary paper before treating a repository as a faithful reproduction.
 
 ## Re-run an experiment
 
