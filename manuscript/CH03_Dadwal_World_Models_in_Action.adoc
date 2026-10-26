@@ -35,6 +35,8 @@ A world model needs a representation that preserves distinctions relevant to pre
 
 When labels are unavailable, the training signal must be constructed from the data. Methods may identify a matching view among candidates, predict a representation produced by another branch, constrain feature statistics across a batch, or predict content hidden from the encoder. These objectives differ in their targets, their assumptions and their optimization dynamics.
 
+The companion repository keeps commit-pinned links to upstream implementations in its link:https://github.com/aryandadwal2006/world-models-in-action/tree/main-extra/implementations/README.md[official implementation manifest]. Those source pointers preserve provenance; they do not imply that this book independently reproduced the papers' results, and each project has its own dependencies and license.
+
 The central question is therefore not just whether the training loss decreases. It is what the loss rewards the encoder for preserving. A feature may solve the pretraining task yet omit information needed for a later prediction. The following sections derive the principal objectives and explain exactly what their mathematical constraints do and do not establish.
 [#unique_section_ch3_001_the_objective_is_a_contract_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
 == Self-supervised learning foundations
@@ -233,7 +235,7 @@ For a cosine score latexmath:[s(u,v)=\hat u^\top\hat v], where latexmath:[\hat u
 
 This gradient changes the direction of a normalized vector to improve its relative score. In a neural network, the same representation can appear as an anchor and as a candidate in other loss terms, so its total gradient accumulates contributions from all those roles. Contrastive learning is not merely “pull positives together”: it adjusts the representation so that positives outrank the negatives in the sampled candidate set.
 
-The example in xref:ch3-figure-F05[] visualizes the anchor, candidate set, softmax distribution and resulting gradient.
+The InfoNCE schematic visualizes the anchor, candidate set, softmax distribution and resulting gradient.
 
 [#ch3-figure-F05,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .InfoNCE as candidate classification
@@ -720,7 +722,7 @@ The methods are related but not identical. Barlow Twins uses normalized cross-co
 
 A simple two-coordinate example makes the distinction concrete. If both coordinates are copies of the same varying scalar, their variances may exceed the margin, so the variance term is satisfied; however, their covariance is high and the covariance term penalizes them. If the second coordinate is constant, its covariance with the first may be zero, but its standard deviation is below the margin and the variance term penalizes it. Only a feature batch with adequate spread and sufficiently low linear redundancy can make both statistical penalties small. The remaining variation can still describe the wrong thing, so a separate task-based evaluation is necessary.
 
-The schematic in xref:ch3-figure-F18[] compares these mechanisms without implying that they were trained under a common recipe or that the diagram ranks them.
+The synthesis schematic compares these mechanisms without implying that they were trained under a common recipe or that the diagram ranks them.
 
 [#ch3-listing-vicreg,reftext={chapter}.{counter:listing},caption='{listing-caption}.{counter:listing-number} ']
 .Three VICReg terms in the official PyTorch implementation (source excerpt)
@@ -806,7 +808,7 @@ The VISReg authors report stronger correction near collapse and favorable result
 
 **DeepCluster** alternates between clustering the current feature vectors and training the encoder to predict the resulting cluster assignments. The pseudo-labels therefore change as the representation changes. **SwAV** computes prototype assignments online and predicts one view's assignment from another view's features; a balancing procedure discourages all examples from being assigned to a small number of prototypes. Both methods turn unlabeled features into pseudo-targets, but differ in how assignments are generated and refreshed.
 
-CLIP (Radford et al., 2021) aligns paired images and text with a contrastive objective; SigLIP (Zhai et al., 2023) replaces the batchwise softmax with pairwise sigmoid losses. Speech systems construct targets from audio itself: wav2vec 2.0 (Baevski et al., 2020) contrasts quantized latent targets, HuBERT (Hsu et al., 2021) predicts cluster-derived labels, and data2vec (Baevski et al., 2022) predicts contextualized teacher features. In language, BERT (Devlin et al., 2019) predicts selected masked tokens from bidirectional context, GPT-style models (Radford et al., 2019) predict the next token from preceding context, and ELECTRA (Clark et al., 2020) predicts whether tokens have been replaced. These examples differ in the target and available context; their full architectures are outside this chapter's main derivations.
+
 
 The table is an index, not a claim that these systems share one objective. In image-text training, **CLIP** uses normalized image and text embeddings, a learned logit scale and cross-entropy in both image-to-text and text-to-image directions. **SigLIP** uses pairwise sigmoid/logistic terms for matched and mismatched pairs rather than the same batchwise softmax. Natural-language descriptions are supervision from data even though they are not manually assigned class labels.
 
@@ -929,7 +931,7 @@ The distinction appears directly in the loss. With squared-error regression, a p
 
 Masking also changes what the model is allowed to observe. A model trained to reconstruct a hidden patch from nearby visible pixels can exploit local texture continuity. A model trained to predict a contextualized teacher feature must reproduce a target shaped by the teacher's wider context and representation space. Neither target is neutral: it specifies which aspects of the missing content distinguish a good prediction from a bad one.
 
-The comparison in xref:ch3-figure-F23[] holds the mask fixed and changes only the prediction target.
+The target-space schematic holds the mask fixed and changes only the prediction target.
 
 [#ch3-figure-F23,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .One visible context, several masked-prediction targets
@@ -1036,27 +1038,7 @@ The corruption level is also used differently. MAE usually samples a mask and pr
 
 The practical boundary for this chapter is narrow: MAE, BEiT and iBOT illustrate ways to learn from hidden content by selecting different targets; diffusion illustrates how a denoising objective can instead be organized into a generative model. The mathematical resemblance of predicting a corruption target does not make the resulting model or learned feature space equivalent.
 
-Masked representation learning and diffusion both use corrupted inputs, but their targets differ. A masked method predicts withheld tokens/features from visible context. In a common diffusion formulation, a clean sample latexmath:[x_0] is corrupted at sampled time latexmath:[t]:
-
-[latexmath]
-++++
-x_t=\sqrt{\bar\alpha_t}x_0+
-\sqrt{1-\bar\alpha_t}\epsilon,\qquad
-\epsilon\sim\mathcal N(0,I),
-++++
-
-where \(\bar\alpha_t\) follows the forward noise schedule. A standard noise-prediction objective is
-
-[latexmath]
-++++
-\mathcal L_{\mathrm{diff}}
-=\mathbb E_{x_0,t,\epsilon}
-\|\epsilon-\epsilon_\theta(x_t,t)\|_2^2.
-++++
-
-The denoiser receives the corrupted sample and time index and estimates injected noise; generation then uses a reverse sampling procedure. Latent diffusion changes the space where the denoiser operates. It does not automatically turn a denoiser into a representation-learning objective.
-
-An energy-based model defines scalar energy \(E_\theta(x)\) and, under a Gibbs formulation, \(p_\theta(x)=\exp[-E_\theta(x)]/Z_\theta\), where \(Z_\theta\) is the partition function. Learning and sampling from that density raise requirements absent from an ordinary candidate-ranking score. A contrastive score can act as an energy-like compatibility function without defining a normalized generative model. Noise-contrastive estimation classifies data against a specified noise distribution; InfoNCE identifies a positive among sampled candidates; contrastive divergence approximates an EBM likelihood update using finite model-sampling chains. Similar names do not make them one algorithm.
+The schematic below contrasts the masked-target contract with diffusion's noise-prediction target and reverse sampling process; the equations defining each objective appear in the preceding discussion.
 
 [#ch3-figure-F26,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Masked prediction and diffusion learn different conditional tasks
@@ -1147,7 +1129,7 @@ A useful representation retains enough information for the relevant prediction w
 
 Here, *compact* means constrained and usable by downstream prediction, not necessarily information-theoretically minimal. The bottleneck should be selected and tested against the downstream task. A low-dimensional representation that aliases important states is not a success; a larger representation is not automatically better if it mostly stores nuisance detail.
 
-Dimension is only a crude capacity indicator. A real-valued vector can encode distinctions in arbitrarily fine numeric differences unless its precision, noise, regularization or decoder is constrained. In practical neural systems, finite precision and limited data make that abstract possibility less useful, but it explains why counting coordinates alone does not measure information. What matters is whether distinctions remain reliably recoverable under the noise and distribution shifts relevant to the downstream problem.
+
 
 [#unique_section_ch3_026_a_world_model_audit_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
 == Compact state representations
@@ -1210,7 +1192,7 @@ The practical evaluation should therefore state the claim being tested. A probe 
 
 Self-supervised learning constructs a training target from data. Contrastive methods identify a positive among sampled candidates; their gradients depend on the candidate distribution, and their information-theoretic interpretation requires specific sampling assumptions. BYOL and SimSiam predict a detached feature target but differ in whether that target is updated by EMA. DINO matches teacher output distributions. Barlow Twins penalizes departures of cross-view correlation from identity, while VICReg separates view agreement, a variance floor and covariance regularization.
 
-Masked prediction changes both the hidden context and the target: MAE predicts pixels, BEiT predicts discrete codes, and iBOT/data2vec use teacher-derived targets. The choice of target determines what errors are penalized. The latent bottleneck then determines which features are retained and which distinctions may be lost. A useful representation must preserve enough information for the prediction of interest; the pretraining loss by itself cannot establish that condition.
+Masked prediction changes both the hidden context and the target: MAE predicts pixels, BEiT predicts discrete codes, and iBOT/data2vec use teacher-derived targets. The choice of target determines what errors are penalized. The latent bottleneck then determines which features are retained and which distinctions may be lost. A useful representation must preserve enough information for the prediction of interest; the pretraining loss by itself cannot establish that condition. SIGReg/LeJEPA and VISReg constrain different aspects of embedding distribution shape, but their guarantees remain tied to their stated theory and recipes.
 
 [#unique_section_ch3_028_exercises_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
 == Exercises

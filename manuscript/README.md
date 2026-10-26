@@ -20,4 +20,4 @@ The chapter includes 29 conceptual figure placeholders. Each has a detailed brie
 
 ## Code and official implementations
 
-The chapter includes two short source excerpts from pinned official SimCLR and VICReg revisions. They are not complete trainers, alternate reimplementations or evidence of reproduction. Implementation links occur beside methods, with scholarly citations in one bibliography. The main-extra branch maintains upstream submodules for full recipes, dependencies and licensing.
+The chapter includes two short source excerpts from pinned official SimCLR and VICReg revisions. They are not complete trainers, alternate reimplementations or evidence of reproduction. Implementation links occur beside methods, with scholarly citations in one bibliography. The main-extra branch maintains upstream submodules for full recipes, dependencies and licensing. Open the [commit-pinned official implementation manifest](https://github.com/aryandadwal2006/world-models-in-action/tree/main-extra/implementations/README.md) to find the upstream project and revision for each method.
