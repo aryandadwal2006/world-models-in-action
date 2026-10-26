@@ -469,3 +469,9 @@ The pinned official DINO main script, revision 7c446df5b9f45747937fb0d72314eb9f7
 ## Dossier gate
 
 The criteria for considering the research notes ready to feed the printed chapter are recorded in [the dossier readiness gate](38_dossier_readiness_and_manuscript_gate.md). This is an editorial threshold, not a claim that every method belongs in the reader-facing chapter.
+
+
+## 16. Source-verified comparison: MoCo v3 and SwAV
+
+- **MoCo v3** (paper https://arxiv.org/abs/2104.02057) is pinned in `implementations/moco-v3/`. In the official PyTorch source, the online predictor predicts normalized keys from a momentum encoder; all keys are gathered across GPUs and the matching global-batch index is trained with cross entropy. The two view directions are summed, and the loss scalar includes a (2T) multiplier. No MoCo v1/v2-style queue is used. The EMA update is invoked in the forward method before keys are computed and therefore before the current optimizer step. The README identifies the repository as a PyTorch/GPU reimplementation of the paper's TensorFlow/TPU code. Preserve that distinction when describing source fidelity.
+- **SwAV** (paper https://arxiv.org/abs/2006.09882) is pinned in `implementations/swav/`. The released implementation obtains detached prototype assignments through distributed Sinkhorn-Knopp, then predicts them from other crops via softmax cross entropy. The same crop is excluded from its own prediction terms. A queue is optional, and queue timing/settings must be recorded. The paper's reported recipe uses multi-crop; defaults alone do not reproduce a particular published table.

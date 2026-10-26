@@ -257,3 +257,46 @@ These source revisions were resolved to their upstream GitHub commits during the
 ## Updated CPC source status
 
 An author/team-maintained audio implementation is pinned on main-extra: facebookresearch/CPC_audio at revision b98a1bdf1fe9ea219816db7a6c28115d404a3510. This covers the audio-transfer implementation, not every detail of the original CPC paper. Dedicated official code for NNCLR and ALIGN remains unverified in the collection.
+
+
+## 18. MoCo v3 and SwAV: additional source-level checks
+
+### MoCo v3
+
+Pinned upstream: `facebookresearch/moco-v3` at `c349e6e24f40d3fedb22d973f92defa4cedf37a7`.
+
+- Builder: https://github.com/facebookresearch/moco-v3/blob/c349e6e24f40d3fedb22d973f92defa4cedf37a7/moco/builder.py
+- Training and defaults: https://github.com/facebookresearch/moco-v3/blob/c349e6e24f40d3fedb22d973f92defa4cedf37a7/main_moco.py
+- README: https://github.com/facebookresearch/moco-v3/blob/c349e6e24f40d3fedb22d973f92defa4cedf37a7/README.md
+- Paper: https://arxiv.org/abs/2104.02057
+
+The pinned implementation confirms:
+1. Each view produces an online predictor output (q_1,q_2) and a target-key feature (k_1,k_2) from a momentum encoder.
+2. Query and key vectors are L2-normalized; target keys are gathered across devices, and each query performs cross-entropy classification over all gathered keys.
+3. The positive index includes the rank offset in the global gathered batch.
+4. It sums the two cross-view directions: predictor(view 1) predicts the momentum-encoder key for view 2, and vice versa.
+5. There is a momentum encoder and an online predictor, but no MoCo v1/v2-style persistent negative queue in this implementation.
+6. The EMA update is called within the model's forward method before momentum-key computation; in this training loop that is before the current optimizer step. Do not copy BYOL's after-optimizer update order onto this code path.
+7. Parser defaults include global batch size 4,096, output dimension 256, MLP hidden dimension 4,096, momentum 0.99, temperature 1.0, 100 epochs, and LARS as the default optimizer. A cosine option schedules momentum toward one.
+8. The loss includes a factor (2T) multiplying cross entropy; this affects gradient scaling and should not be dropped when reconstructing the code's exact scalar loss.
+
+The upstream README says this is a PyTorch/GPU reimplementation; the original paper implementation used TensorFlow/TPUs. The code is an official author/team reference but is not literally the original software stack or proof that this project's training reproduced the paper.
+
+### SwAV
+
+Pinned upstream: `facebookresearch/swav` at `06b1b7cbaf6ba2a792300d79c7299db98b93b7f9`.
+
+- Training, assignments, queue and loss: https://github.com/facebookresearch/swav/blob/06b1b7cbaf6ba2a792300d79c7299db98b93b7f9/main_swav.py
+- Prototype/model head: https://github.com/facebookresearch/swav/blob/06b1b7cbaf6ba2a792300d79c7299db98b93b7f9/src/resnet50.py
+- Method/config examples: https://github.com/facebookresearch/swav/blob/06b1b7cbaf6ba2a792300d79c7299db98b93b7f9/README.md
+- Paper: https://arxiv.org/abs/2006.09882
+
+The source confirms:
+1. A projection head maps image features to an embedding space with a prototype linear layer. Prototype weights are L2-normalized during training.
+2. For selected assignment crops, logits are detached and passed through a distributed Sinkhorn-Knopp procedure. It exponentiates logits divided by the assignment regularization (epsilon), globally normalizes, then alternately normalizes prototype-row mass and per-sample column mass. The resulting target assignments approximately balance prototype usage over the sample set.
+3. For each assignment crop, the loss predicts that assignment from every other crop using student logits divided by the training temperature and log-softmax. It excludes the same crop from the prediction terms.
+4. The cross-view assignment loss is averaged over the other views and assignment crops.
+5. A queue is optional in the parser (default length 0). When configured, the implementation starts using it after the selected epoch, combines stored embeddings with current assignment scores, and updates its contents with recent embeddings. Queue use changes the assignment sample set; it is not a mandatory component of every SwAV run.
+6. Parser defaults include temperature 0.1, three Sinkhorn iterations, 3,000 prototypes, per-GPU batch size 64, queue length 0 and a prototype-gradient freeze period of 313 iterations. Published configurations commonly override these defaults, including enabling a queue.
+
+The README includes multiple training configurations and reported results, but those headline numbers should be attributed to their stated ImageNet/batch/multicrop/epoch settings rather than generalized to the loss alone. Code inspection does not establish that this companion project reran them.
