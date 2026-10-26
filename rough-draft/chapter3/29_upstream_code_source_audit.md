@@ -195,3 +195,26 @@ These immutable URLs locate upstream source; the book repository does not copy o
   - Verified: local representation MSE, gathered centered statistics, variance epsilon, covariance denominator and feature-dimension reduction.
 
 These checks do not imply that the methods executed in this repository or that published results were reproduced.
+
+
+## 9. DINOv2/DINOv3 immutable implementation paths
+
+### DINOv2 at revision 7764ea0f912e53c92e82eb78a2a1631e92725fc8
+
+- DINO class-token target and optional Sinkhorn-Knopp assignment: https://github.com/facebookresearch/dinov2/blob/7764ea0f912e53c92e82eb78a2a1631e92725fc8/dinov2/loss/dino_clstoken_loss.py
+- iBOT patch loss and masked-patch reduction: https://github.com/facebookresearch/dinov2/blob/7764ea0f912e53c92e82eb78a2a1631e92725fc8/dinov2/loss/ibot_patch_loss.py
+- KoLeo nearest-neighbour regularizer: https://github.com/facebookresearch/dinov2/blob/7764ea0f912e53c92e82eb78a2a1631e92725fc8/dinov2/loss/koleo_loss.py
+- Training orchestration: https://github.com/facebookresearch/dinov2/blob/7764ea0f912e53c92e82eb78a2a1631e92725fc8/dinov2/train/ssl_meta_arch.py
+- Default config: https://github.com/facebookresearch/dinov2/blob/7764ea0f912e53c92e82eb78a2a1631e92725fc8/dinov2/configs/ssl_default_config.yaml
+
+The pinned default config sets DINO/iBOT weights to 1.0 and KoLeo to 0.1; centering is selected by default while Sinkhorn-Knopp is also supported. It uses 65,536 prototypes for each head, shared head configuration, mask-sampling probability 0.5, mask-ratio range 0.1–0.5 and eight local crops. These are config defaults rather than constants of every DINOv2 experiment.
+
+### DINOv3 at revision 6876159a11b4df116f30f667f8c9888617df0751
+
+- Class-token loss: https://github.com/facebookresearch/dinov3/blob/6876159a11b4df116f30f667f8c9888617df0751/dinov3/loss/dino_clstoken_loss.py
+- Patch loss: https://github.com/facebookresearch/dinov3/blob/6876159a11b4df116f30f667f8c9888617df0751/dinov3/loss/ibot_patch_loss.py
+- Gram loss: https://github.com/facebookresearch/dinov3/blob/6876159a11b4df116f30f667f8c9888617df0751/dinov3/loss/gram_loss.py
+- Standard pretraining config: https://github.com/facebookresearch/dinov3/blob/6876159a11b4df116f30f667f8c9888617df0751/dinov3/configs/train/dinov3_vit7b16_pretrain.yaml
+- Gram-anchor config: https://github.com/facebookresearch/dinov3/blob/6876159a11b4df116f30f667f8c9888617df0751/dinov3/configs/train/dinov3_vit7b16_gram_anchor.yaml
+
+The Gram implementation forms similarity matrices from target and output features and applies MSE. Configuration controls normalization, image-level versus cross-batch matrices, optional removal of negative similarities, teacher crop construction and loss-weight scheduling. The standard config disables Gram loss while the Gram-anchor config enables it; the latter also changes duration and recipe settings. DINOv3 has a dedicated license agreement.

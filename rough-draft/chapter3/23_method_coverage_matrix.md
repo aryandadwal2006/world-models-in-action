@@ -118,3 +118,11 @@ The four rows are complementary historical branches, not a strict sequence of su
 | MAE | He et al. (2022), https://arxiv.org/abs/2111.06377 | Visible-only encoder and decoder reconstruction of masked pixels | 16, 27, 31 | Random mask/unshuffle, loss on removed patches and optional pixel normalization verified in pinned source |
 | CLIP | Radford et al. (2021), https://arxiv.org/abs/2103.00020 | Symmetric image-text batch classification with learned logit scale | 07, 27, 31 | Normalized embeddings and score matrix verified in official model code; no full public training loop at pinned revision |
 | SigLIP | Zhai et al. (2023), https://arxiv.org/abs/2303.15343 | Pairwise sigmoid loss for matched and unmatched image-text pairs | 07, 27, 31 | Pair-sign matrix, scale, bias and log-sigmoid reduction verified in Big Vision; pinned COCO/LiT config is only a minimal example |
+
+
+## 10. Modern teacher-student objective extensions
+
+| Method/release | Primary source | Core or additional mechanism | Theory note | Configuration caveat |
+|---|---|---|---|---|
+| DINOv2 | Oquab et al. (2023), https://arxiv.org/abs/2304.07193 | DINO class-token distillation + iBOT patch distillation + KoLeo feature-spreading regularizer | 32 | Centering vs Sinkhorn-Knopp, head sharing, mask and crop choices are config-dependent |
+| DINOv3 | Siméoni et al. (2025), https://arxiv.org/abs/2508.10104 | DINO/iBOT targets, with optional Gram-matrix anchoring in selected recipes | 32 | Standard pinned pretraining config disables Gram loss; Gram-anchor config enables it and changes other recipe settings |
