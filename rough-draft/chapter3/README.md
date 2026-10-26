@@ -34,10 +34,11 @@ The dossier is an original synthesis, not a replacement for reading canonical pa
 24. [JEPA prediction and action-conditioned world models](33_jepa_prediction_and_action_conditioned_world_models.md): first-principles derivations of I-JEPA, V-JEPA, V-JEPA 2/2.1 and EB-JEPA.
 25. [Language and speech SSL objectives](34_language_and_speech_ssl_objectives_from_first_principles.md): objective derivations for BERT, GPT, ELECTRA, T5, wav2vec 2.0, HuBERT, WavLM and data2vec.
 26. [Visual SSL objectives](35_visual_ssl_objectives_from_first_principles.md): first-principles comparison of SimCLR, MoCo, BYOL, SimSiam, Barlow Twins, VICReg, SwAV, DINO, MAE and SimMIM.
-27. [Upstream code-source audit](29_upstream_code_source_audit.md): exact code paths and limitations for dedicated and shared upstream implementations.
-28. [Proposed flow and page budget](10_flow_and_page_budget.md): how to compress the dossier into a coherent reader-facing sequence.
-29. [Figure storyboard](11_figure_storyboard.md): conceptual diagrams needed in the final chapter.
-30. [Bibliography](12_bibliography.md): canonical citations and source-verification notes.
+27. [Dense and local visual SSL](36_dense_local_visual_ssl_from_first_principles.md): local correspondence, patch targets, dense features, DINOv2/v3 and spatial evaluation.
+28. [Upstream code-source audit](29_upstream_code_source_audit.md): exact code paths and limitations for dedicated and shared upstream implementations.
+29. [Proposed flow and page budget](10_flow_and_page_budget.md): how to compress the dossier into a coherent reader-facing sequence.
+30. [Figure storyboard](11_figure_storyboard.md): conceptual diagrams needed in the final chapter.
+31. [Bibliography](12_bibliography.md): canonical citations and source-verification notes.
 
 The original shorter notes remain useful as focused cross-checks: [contrastive InfoNCE](02_contrastive_infoNCE.md), [negative-free bootstrapping](03_negative_free_bootstrap.md), [redundancy reduction](04_redundancy_reduction.md), [clustering and prototypes](05_clustering_and_prototypes.md), [masked prediction](06_masked_prediction.md), and [frontier boundaries](08_frontier_and_boundaries.md).
 

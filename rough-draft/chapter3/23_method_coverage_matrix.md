@@ -147,3 +147,8 @@ The new [language and speech objective dossier](34_language_and_speech_ssl_objec
 ## Visual SSL objective reference
 
 See [Visual SSL objectives](35_visual_ssl_objectives_from_first_principles.md) for derivations and source-pinned comparisons of contrastive, momentum-dictionary, non-contrastive, clustering, self-distillation and masked-reconstruction methods. The note distinguishes the loss target from the method's anti-collapse mechanism and records limits on what upstream source pointers establish.
+
+
+## Dense/local visual SSL reference
+
+See [Dense and local visual SSL](36_dense_local_visual_ssl_from_first_principles.md) for local correspondence assumptions, patch-level targets, dense-feature evaluation and source/reproduction boundaries for DenseCL, PixPro, VICRegL, iBOT, Leopart, SelfPatch and DINOv2/v3.
