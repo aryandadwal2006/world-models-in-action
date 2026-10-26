@@ -370,7 +370,16 @@ SimCLR (Chen et al., 2020) made the augmented-view recipe explicit. Two views pa
 
 SimCLR's results depended on augmentation composition, batch size, architecture, training duration and optimization. A large batch increases the number of available negatives under an in-batch objective, but changes the classification problem itself and may add more false negatives. Its contribution is a clear recipe for contrastive visual learning, not evidence that every contrastive method needs one specific batch size or projector.
 
-MoCo (He et al., 2020) uses a query encoder and a key encoder, with a queue storing keys from earlier minibatches. This gives each query a larger candidate set than the current batch alone. The key encoder follows an exponential moving average:
+MoCo (He et al., 2020) uses a query encoder and a key encoder, with a queue storing keys from earlier minibatches. The query feature \(q=f_{\theta_q}(x_q)\) is trained to identify its matching key \(k^+=f_{\theta_k}(x_k)\) among the positive and queued negative keys \(k_j\in Q\). Its candidate loss has the form
+
+[latexmath]
+++++
+\mathcal L_{\mathrm{MoCo}}
+=-\log\frac{\exp(q^\top k^+/\tau)}
+{\exp(q^\top k^+/\tau)+\sum_{k_j\in Q}\exp(q^\top k_j/\tau)}.
+++++
+
+The queue gives each query a larger candidate set than the current minibatch alone. The key encoder follows an exponential moving average:
 
 [latexmath]
 ++++
@@ -380,7 +389,7 @@ MoCo (He et al., 2020) uses a query encoder and a key encoder, with a queue stor
 
 The queue contains keys produced by earlier parameter values. They become stale as training proceeds; a slowly moving key encoder reduces abrupt drift in their representation space but cannot make historical keys identical to current ones. The update latexmath:[ \theta_k\leftarrow m\theta_k+(1-m)\theta_q ] makes the key parameters a smoothed history of the query parameters: for fixed latexmath:[m], contributions from earlier updates decay geometrically. MoCo v2 (Chen et al., 2020) changed the training recipe, while MoCo v3 (Chen et al., 2021) studied a different recipe for vision transformers.
 
-Both methods remain sensitive to the definition of positive pairs and negatives. A queue solves the size and update-consistency problem; it does not establish that every negative is semantically different.
+Both methods remain sensitive to the definition of positive pairs and negatives. The queue expands the candidate set, while the momentum encoder mitigates abrupt feature drift without eliminating staleness. Neither mechanism establishes that every negative is semantically different.
 
 
 [#ch3-figure-F09,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
@@ -592,7 +601,7 @@ Prototype indices are learned output coordinates, not automatically human-define
 
 Multi-crop training supplies a useful extra constraint. The teacher receives the larger global crops, while the student also sees smaller local crops. A local crop usually lacks some of the global context, so its output must match a target produced from a different field of view. This encourages some features to remain consistent across scales. It does not mean that every local crop contains enough evidence to infer every property of the entire scene; the target and crop protocol define what consistency is encouraged. The prototype outputs are learned coordinates, not labels assigned by a person, and their semantics must be established through evaluation.
 
-DINOv2 (Oquab et al., 2023) scaled the approach through a curated, diverse image dataset and larger vision transformers, combining image-level self-distillation with masked-patch objectives. DINOv3 (Siméoni et al., 2025) scaled the family further and introduced Gram anchoring to address degradation of dense feature maps during long training. These are training systems, not just alternate equations: data curation, architecture, optimization and feature diagnostics matter alongside the named loss. Their reported results should not be interpreted as a controlled ablation that isolates one change from the rest of the recipe.
+These releases also illustrate a general caution: reported improvements belong to a complete training system, including data, architecture, optimization and evaluation, rather than to an isolated loss substitution. The following details separate the original DINO mechanism from components added in later recipes.
 
 
 DINOv2 is a combined training recipe, not simply a replacement loss: it combines class-token DINO distillation, iBOT-style masked patch distillation and a KoLeo nearest-neighbour regularizer. The class branch matches teacher distributions across crops; the patch branch predicts teacher prototype distributions at masked student positions; KoLeo discourages local crowding in normalized backbone features. Depending on configuration, targets may use centering or Sinkhorn-Knopp balancing. Centering subtracts a running mean of teacher logits; Sinkhorn-Knopp iteratively balances assignment marginals. They are not synonyms.
@@ -615,7 +624,7 @@ BYOL, SimSiam and DINO make training dynamics or teacher targets central to avoi
 [#unique_section2_ch3_013_barlow_twins_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === Barlow Twins: cross-correlation toward identity
 
-Let latexmath:[Z^A] and latexmath:[Z^B] be feature batches from two views. Normalize each feature dimension across the batch and define cross-correlation latexmath:[C]:Let latexmath:[Z^A] and latexmath:[Z^B] be feature batches from two views. For dimension latexmath:[i], let latexmath:[\mu_i^A] and latexmath:[\sigma_i^A] be its mean and standard deviation across the batch, and likewise for view latexmath:[B]. Standardize each dimension:
+Let latexmath:[Z^A] and latexmath:[Z^B] be feature batches from two views. For dimension latexmath:[i], let latexmath:[\mu_i^A] and latexmath:[\sigma_i^A] be its mean and standard deviation across the batch, and likewise for view latexmath:[B]. Standardize each dimension:
 
 [latexmath]
 ++++
@@ -715,8 +724,6 @@ The reductions are part of the definition. In latexmath:[s(Z,Z')], the squared f
 A fully constant representation makes latexmath:[s(Z,Z')=0] and makes all off-diagonal covariances zero, but it also makes each standard deviation zero. For any positive margin latexmath:[\gamma], the variance term is therefore positive. In this sense, the variance floor makes exact constant collapse incompatible with minimizing all three terms simultaneously. This explicit penalty differs from BYOL or SimSiam, where a constant representation can make the view-agreement part of the objective small. It still does not guarantee that optimization never reaches a bad solution or that nonconstant directions encode the desired semantics.
 
 
-
-If every example has the same value in one dimension, its batch standard deviation is zero and the variance penalty is positive for any positive margin. That makes the anti-collapse constraint explicit. It does not prove that the surviving variation is semantically relevant. A feature can vary with background texture and still satisfy a variance floor.
 
 The methods are related but not identical. Barlow Twins uses normalized cross-correlation as the central matrix objective. VICReg uses a direct invariance term, a standard-deviation floor and a covariance penalty. Their shared lesson is that view agreement and non-collapse are separate requirements. Their moment constraints are not a guarantee of a world-model-ready state.
 
