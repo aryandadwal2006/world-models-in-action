@@ -65,3 +65,6 @@ data2vec uses a masked student to predict contextualized teacher representations
 - Hsu, W.-N. et al. (2021), HuBERT, arXiv:2106.07447.
 - Baevski, A. et al. (2022), data2vec, arXiv:2202.03555.
 - Raffel, C. et al. (2020), Exploring the Limits of Transfer Learning with a Unified Text-to-Text Transformer.
+
+
+For first-principles derivations and pinned source boundaries for language and speech SSL, see [the objective dossier](34_language_and_speech_ssl_objectives_from_first_principles.md).

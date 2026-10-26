@@ -137,3 +137,8 @@ The four rows are complementary historical branches, not a strict sequence of su
 | V-JEPA 2 / 2-AC | Assran et al. (2025), https://arxiv.org/abs/2506.09985 | Latent video targets; 2-AC adds action-conditioned post-training | 33 | Keep passive pretraining separate from action-conditioned world-model post-training |
 | V-JEPA 2.1 | Mur-Labadia et al. (2026), https://arxiv.org/abs/2603.14482 | Dense targets including context/visible and masked tokens, with intermediate-layer supervision | 33 | Exact L1-like loss, context-distance weights and masks are version/config dependent |
 | EB-JEPA | https://arxiv.org/abs/2602.03604 | Predicted latent observation sequence, optionally action-conditioned | 33 | Released examples combine prediction with configurable variance/covariance, temporal and inverse-dynamics terms; not one universal recipe |
+
+
+## Language and speech SSL reference
+
+The new [language and speech objective dossier](34_language_and_speech_ssl_objectives_from_first_principles.md) derives targets and losses for BERT, GPT, ELECTRA, T5, wav2vec 2.0, HuBERT, WavLM and data2vec. It distinguishes verified code paths from paper-level descriptions where a complete upstream trainer is unavailable.

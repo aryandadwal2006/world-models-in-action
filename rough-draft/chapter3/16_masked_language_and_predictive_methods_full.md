@@ -230,3 +230,6 @@ Diffusion models learn denoising or score/vector-field objectives across corrupt
 | I-JEPA | Context region | Target region's feature | Latent prediction | Predicting target representation, not pixels |
 | V-JEPA | Video context | Target space-time features | Latent prediction | Predicting masked/future video features |
 | V-JEPA 2.1 | Video context plus visible tokens | Dense latent targets at multiple depths | Dense predictive loss | Improving local and temporal feature consistency |
+
+
+For the target/loss derivations and source ledger for language and speech SSL, see [the objective dossier](34_language_and_speech_ssl_objectives_from_first_principles.md).
