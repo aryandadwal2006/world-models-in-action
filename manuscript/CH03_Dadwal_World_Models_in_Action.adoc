@@ -246,6 +246,26 @@ The assumptions matter. Nearby frames, repeated examples or multiple instances o
 
 Finally, mutual information shared by two views is not the same as sufficiency for a later prediction. A feature can be shared between views yet irrelevant to the future quantity of interest. The information-theoretic bound says something about dependence under the sampling model, not whether all distinctions required by a downstream predictor have been retained.
 
+[#unique_section2_ch3_031_energy_based_scores_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
+=== The energy-based view of contrastive scores
+
+An energy-based model assigns a scalar compatibility score, or energy, to a configuration. Lower energy means the model regards the configuration as more compatible with the observed evidence. For an anchor latexmath:[x] and candidate latexmath:[y], let latexmath:[E_\theta(x,y)] be the energy. A conditional distribution can be written
+
+[latexmath]
+++++
+p_\theta(y\mid x)=
+\frac{\exp[-E_\theta(x,y)]}
+{\sum_{y'}\exp[-E_\theta(x,y')]}.
+++++
+
+The denominator is a partition function: it normalizes the scores over all candidate values latexmath:[y']. If the candidate space is large or continuous, computing that normalizer can be difficult. An unnormalized energy function can still rank alternatives, but ranking alone is not the same as having an explicitly normalized probability model over the full space.
+
+Contrastive learning can be read as energy-based candidate classification. Set latexmath:[E_\theta(x,y)=-s_\theta(x,y)/\tau]. The softmax over the anchor's sampled candidates assigns lower energy to the positive and higher energy to alternatives. The NT-Xent gradient therefore has the same structure as ordinary cross-entropy over candidate energies: lower the positive's energy relative to the negatives, with more gradient assigned to negatives that currently receive high probability. The candidate denominator in InfoNCE is a finite, sampled normalization, not necessarily the full partition function over every possible image or latent.
+
+This connection clarifies both the power and the limit of the method. A learned energy can represent a rich compatibility relation without immediately providing a tractable normalized distribution over all images. If the goal is classification among a fixed candidate set, ranking may be enough. If the goal is generation, likelihood evaluation or drawing samples from the full distribution, additional machinery is needed. Denoising diffusion models, discussed later, use a different training construction to learn a sequence of denoising transitions; they should not be treated as merely a larger InfoNCE denominator.
+
+Energy-based learning is a general framework rather than a synonym for contrastive learning. Some energy-based methods compare observed configurations to generated or sampled alternatives; some train through likelihood or margin-based objectives. InfoNCE is one particular candidate-discrimination loss whose energy interpretation is especially transparent because its normalization and gradient are explicit. See LeCun et al. (2006) for the broader framework.
+
 [#unique_section2_ch3_007_simclr_and_moco_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === SimCLR and MoCo: two ways to construct candidates
 
@@ -295,6 +315,19 @@ This observation does not mean every method that matches two views will collapse
 It is useful to distinguish complete collapse from dimensional collapse. In complete collapse, all inputs map to the same vector and the representation contains no information about differences between examples. In dimensional collapse, the output varies, but most of its covariance is concentrated in a small number of directions. A model can therefore avoid the constant solution and still use its nominal latexmath:[d]-dimensional space inefficiently.
 
 These cases require different diagnostics. Per-coordinate variance detects a constant dimension; the spectrum of the covariance matrix shows whether variation is spread across many directions. But neither diagnostic answers whether those directions contain the information of interest. A feature can vary strongly with background texture and have high effective rank while carrying little information about the target. Anti-collapse is necessary for useful representations, not sufficient.
+
+The covariance spectrum gives a more quantitative description of dimensional collapse. Let latexmath:[\lambda_1,\ldots,\lambda_d] be the nonnegative eigenvalues of the feature covariance matrix. Normalize them into proportions
+
+[latexmath]
+++++
+p_i=\frac{\lambda_i}{\sum_j\lambda_j},
+\qquad
+r_{\mathrm{eff}}=\exp\!\left(-\sum_i p_i\log p_i\right).
+++++
+
+The quantity latexmath:[r_{\mathrm{eff}}] is an effective-rank diagnostic. If all variance lies in one direction, the distribution latexmath:[p_i] is concentrated and the effective rank is near one. If variance is spread evenly across latexmath:[d] directions, the effective rank is latexmath:[d]. This statistic differs from the count of nonzero dimensions: a representation can have a formally full-rank covariance matrix while almost all its variance lies in a few directions.
+
+Effective rank remains a geometric diagnostic, not a semantic one. A high-rank representation can encode color noise, background texture or image identity; a low-rank representation can still preserve all information required for a simple target. Variance, covariance and effective rank tell us about the distribution of features across a batch. They do not identify what the features mean or prove that a selected future variable is recoverable. That requires a separate target-specific evaluation.
 
 [#unique_section2_ch3_010_byol_and_simsiam_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === BYOL and SimSiam: bootstrap prediction
@@ -648,6 +681,35 @@ data2vec (Baevski et al., 2022) predicts contextualized teacher features from ma
 
 BERT-style masked language modeling predicts selected corrupted tokens from bidirectional context. GPT-style causal language modeling predicts the next token from preceding tokens only. ELECTRA trains a discriminator to detect replaced tokens. These are brief analogies for target/context construction, not additional implementation tutorials.
 
+[#unique_section2_ch3_032_diffusion_and_masked_prediction_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
+=== Masked prediction and diffusion solve different problems
+
+Masked prediction and diffusion both train a network to infer a target from a corrupted input, but their corruption processes and objectives differ. A masked autoencoder hides a subset of patch positions and predicts the content at those positions. The visible context remains uncorrupted, and the loss is usually restricted to the masked positions. Diffusion instead corrupts the data by adding noise at a sampled noise level. In the standard denoising diffusion formulation, a clean sample latexmath:[x_0] and Gaussian noise latexmath:[\epsilon] produce
+
+[latexmath]
+++++
+x_t=\sqrt{\bar\alpha_t}\,x_0+
+\sqrt{1-\bar\alpha_t}\,\epsilon,
+\qquad \epsilon\sim\mathcal{N}(0,I).
+++++
+
+A network conditioned on latexmath:[x_t] and the noise level latexmath:[t] can be trained to predict the added noise:
+
+[latexmath]
+++++
+L_{\mathrm{diff}}=
+\mathbb{E}_{x_0,t,\epsilon}
+\left[\lVert\epsilon-\epsilon_\theta(x_t,t)\rVert_2^2\right].
+++++
+
+This is a schematic form of the common noise-prediction objective; diffusion papers also use other parameterizations and weighting schemes. Unlike the masked-patch loss, the target is the corruption noise or an equivalent score-related quantity rather than the missing clean pixels at a fixed set of positions.
+
+The distinction is functional. A masked encoder is commonly pretrained to produce representations that can be transferred after its reconstruction decoder is removed. A diffusion model is trained as part of a reverse denoising process that can transform noise into samples from a learned data distribution. The learned denoiser may contain useful representations, but a diffusion loss by itself does not define a compact predictive state or guarantee that its internal activations are suitable for a downstream prediction task. Conversely, a masked-reconstruction encoder is not automatically a generative model just because its decoder predicts missing pixels.
+
+The corruption level is also used differently. MAE usually samples a mask and predicts its hidden positions; the network need not learn a continuous schedule of noise levels or a sequence of reverse transitions. Diffusion samples noise levels from a schedule and learns a family of denoising functions, one for each noise level. Sampling then applies a series of reverse steps, rather than reconstructing a single masked image in one decoder pass. The objective is connected to denoising score matching and, under the diffusion model construction, to a generative likelihood bound. That generative interpretation is distinct from the representation-learning claim made by a successful masked-prediction encoder.
+
+The practical boundary for this chapter is narrow: MAE, BEiT and iBOT illustrate ways to learn from hidden content by selecting different targets; diffusion illustrates how a denoising objective can instead be organized into a generative model. The mathematical resemblance of predicting a corruption target does not make the resulting model or learned feature space equivalent.
+
 [#unique_section_ch3_024_latent_bottlenecks_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
 == Latent bottlenecks
 
@@ -813,6 +875,14 @@ Masked prediction changes both the hidden context and the target: MAE predicts p
 . For a batch whose second VICReg coordinate is constant but whose first coordinate varies, determine which term penalizes the second coordinate and why the covariance penalty alone would not be enough.
 
 [#unique_section_ch3_029_references_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
+== References
+
+LeCun, Y., Chopra, S., Hadsell, R., Ranzato, M. and Huang, F. (2006). A Tutorial on Energy-Based Learning. In *Predicting Structured Data*. MIT Press. link:https://yann.lecun.org/exdb/publis/pdf/lecun-06.pdf[PDF].
+
+Ho, J., Jain, A. and Abbeel, P. (2020). Denoising Diffusion Probabilistic Models. *Advances in Neural Information Processing Systems*. link:https://arxiv.org/abs/2006.11239[arXiv:2006.11239].
+
+Song, Y. et al. (2021). Score-Based Generative Modeling through Stochastic Differential Equations. *International Conference on Learning Representations*. link:https://arxiv.org/abs/2011.13456[arXiv:2011.13456].
+
 == References
 
 Assran, M. et al. (2023). Self-Supervised Learning from Images with a Joint-Embedding Predictive Architecture. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. link:https://arxiv.org/abs/2301.08243[arXiv:2301.08243].
