@@ -106,3 +106,8 @@ The following are pinned originals or author/team-maintained repositories. They 
 | DDPM | [hojonathanho/diffusion](https://github.com/hojonathanho/diffusion) | `1e0dceb3b3495bbe19116a5e1b3596cd0706c543` | Original authors' denoising diffusion implementation. GitHub does not expose an SPDX license for this repository; review its files and permissions before redistribution. TensorFlow 1.15/Python 3.5 and TPU/GCS assumptions are historical. |
 | Score-based SDE | [yang-song/score_sde_pytorch](https://github.com/yang-song/score_sde_pytorch) | `cb1f359f4aadf0ff9a5e122fe8fffc9451fd6e44` | Author-team source; Apache-2.0. Implements score-based generative modeling through SDEs. |
 | Guided diffusion | [openai/guided-diffusion](https://github.com/openai/guided-diffusion) | `22e0df8183507e13a7813f8d38d51b072ca1e67c` | OpenAI repository; MIT. Conditional/guided generative diffusion, not a substitute for a representation-learning benchmark. |
+
+
+## Revalidated checkout integrity — 2026-10-26
+
+A fresh pass against the current parent branch checked all 45 submodule pointers. Each parent gitlink SHA exactly matches an upstream commit SHA, and each upstream commit resolves to a non-empty tree. All 45 gitlink paths have matching `.gitmodules` path/URL entries, and there are no extra module entries or untracked pointer paths. This verifies repository-reference integrity only; it does not certify runnable dependencies, paper-level reproduction, or blanket redistribution rights.
