@@ -776,8 +776,6 @@ Long expressions are wrapped to fit the book's listing width without changing th
 **Artwork placeholder: Figure 3.17.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F17_Dadwal.md.
 ****
 
-The synthesis schematic compares these mechanisms without implying that they were trained under a common recipe or that the diagram ranks them.
-
 [#ch3-figure-F18,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Core non-contrastive mechanisms at a glance
 [.figure-placeholder%unbreakable]
