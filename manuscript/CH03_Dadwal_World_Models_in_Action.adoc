@@ -387,7 +387,16 @@ The queue gives each query a larger candidate set than the current minibatch alo
 \tag{3.6}
 ++++
 
-After the loss is evaluated against the current queue, keys from the current minibatch are enqueued and the oldest keys are dequeued to keep the queue length fixed. The queue therefore contains features produced by earlier parameter values. They become stale as training proceeds; a slowly moving key encoder reduces abrupt drift in their representation space but cannot make historical keys identical to current ones. The update latexmath:[ \theta_k\leftarrow m\theta_k+(1-m)\theta_q ] makes the key parameters a smoothed history of the query parameters: for fixed latexmath:[m], contributions from earlier updates decay geometrically. MoCo v2 (Chen et al., 2020) changed the training recipe, while MoCo v3 (Chen et al., 2021) studied a different recipe for vision transformers.
+After the loss is evaluated against the current queue, keys from the current minibatch are enqueued and the oldest keys are dequeued to keep the queue length fixed. The queue therefore contains features produced by earlier parameter values. They become stale as training proceeds; a slowly moving key encoder reduces abrupt drift in their representation space but cannot make historical keys identical to current ones. The update latexmath:[ \theta_k\leftarrow m\theta_k+(1-m)\theta_q ] makes the key parameters a smoothed history of the query parameters: for fixed latexmath:[m], contributions from earlier updates decay geometrically. MoCo v2 (Chen et al., 2020) strengthened v1's augmentation, projection-head and optimization recipe while retaining the queue and momentum key encoder. The MoCo v1/v2 loss above therefore uses positive-plus-queue candidates. MoCo v3 (Chen et al., 2021) removes this persistent FIFO queue. Its reference implementation compares the online prediction for one crop against momentum-encoder targets for the other crop, gathered across workers. With \(Q_1,Q_2\) denoting normalized online predictor outputs, \(K_1,K_2\) the corresponding normalized momentum targets gathered across workers, and \(y\) the matching sample indices, its symmetric batch classification can be written
+
+[latexmath]
+++++
+\mathcal L_{\mathrm{v3}}=
+\operatorname{CE}\!\left(\frac{Q_1K_2^\top}{\tau},y\right)
++\operatorname{CE}\!\left(\frac{Q_2K_1^\top}{\tau},y\right).
+++++
+
+The momentum encoder remains stop-gradient and EMA-updated; the online path has a predictor. This is not the v1/v2 queue algorithm with a different backbone. The reference code also multiplies each cross-entropy term by a temperature-dependent constant, a loss-scale convention rather than a different candidate relation.
 
 Both methods remain sensitive to the definition of positive pairs and negatives. The queue expands the candidate set, while the momentum encoder mitigates abrupt feature drift without eliminating staleness. Neither mechanism establishes that every negative is semantically different.
 
@@ -786,7 +795,19 @@ LeJEPA's theory argues that an isotropic Gaussian embedding distribution is opti
 \varphi_{\mathcal N(0,1)}(t)=e^{-t^2/2}.
 ++++
 
-The regularizer evaluates a weighted discrepancy between empirical and standard-normal characteristic functions over integration points, then averages across sampled directions. The Cramér-Wold theorem motivates the sketching argument: all one-dimensional projections together characterize a distribution. A finite collection of projections is only an approximation, not proof of exact multivariate Gaussianity. Quadrature, weighting and normalization must follow the source.
+For random unit directions \(w_1,\ldots,w_K\), a schematic form of this discrepancy is
+
+[latexmath]
+++++
+\mathcal L_{\mathrm{SIGReg}}(Z)
+=\frac1K\sum_{k=1}^{K}\int_{\mathbb R}
+\left|
+\frac1B\sum_{b=1}^{B}e^{itw_k^\top z_b}
+-e^{-t^2/2}
+\right|^2\omega(t)\,dt,
+++++
+
+where \(\omega(t)\) is the weighting used by the prescribed Epps-Pulley-style test. The practical implementation approximates the integral with its specified quadrature points and weights. The Cramér-Wold theorem motivates the sketching argument: all one-dimensional projections together characterize a distribution. A finite collection of projections is only an approximation, not proof of exact multivariate Gaussianity. Quadrature, weighting and normalization must follow the source.
 
 **LeJEPA** combines a predictive objective with SIGReg. It constructs a target from the mean embeddings of global views of the same source instance, then predicts that target from other views. Views must remain grouped by original image; averaging across images defines a different objective. A schematic objective is
 
@@ -799,7 +820,52 @@ The regularizer evaluates a weighted discrepancy between empirical and standard-
 
 The paper's recipe is designed not to require an EMA target encoder and stop-gradient target branch in the same way as BYOL/SimSiam. That is a different design, not evidence that earlier asymmetries are unnecessary for every task. The full JEPA predictor architecture is reserved for Chapter 4.
 
-**VISReg** separates scale, shape and center. It centers each batch, pushes standard deviations toward one, normalizes centered features for the shape term using stop-gradient scale, and compares sorted projections to standard-normal quantiles with a sliced-Wasserstein objective. It also penalizes the squared batch mean. SIGReg uses a characteristic-function discrepancy; VISReg uses sorted one-dimensional quantiles. The stop-gradient inside VISReg decouples scale and shape gradients; it is not a BYOL-style teacher path.
+**VISReg** separates scale, shape and center. Let \(Z\in\mathbb R^{B\times d}\) be a batch of embeddings, with batch mean \(\mu=B^{-1}\sum_b z_b\), centered matrix \(\widehat Z=Z-\mu\), and per-coordinate standard deviations \(\sigma\). Its scale term is
+
+[latexmath]
+++++
+\mathcal L_{\mathrm{scale}}
+=\frac1d\sum_{j=1}^{d}(1-\sigma_j)^2.
+++++
+
+For shape regularization, centered features are normalized by a stop-gradient copy of the scale vector:
+
+[latexmath]
+++++
+\widetilde Z=\frac{\widehat Z}{\operatorname{sg}(\sigma)+\epsilon}.
+++++
+
+For random unit directions \(w_k\), the projected samples are sorted and compared with the standard-normal quantiles \(q_B\):
+
+[latexmath]
+++++
+\mathcal L_{\mathrm{shape}}
+=\frac1K\sum_{k=1}^{K}
+\left\|\operatorname{sort}(\widetilde Z w_k)-q_B\right\|_2^2.
+++++
+
+The center penalty is
+
+[latexmath]
+++++
+\mathcal L_{\mathrm{center}}=\|\mu\|_2^2,
+\qquad
+\mathcal L_{\mathrm{Reg}}=
+\mathcal L_{\mathrm{scale}}+
+\mathcal L_{\mathrm{shape}}+
+\mathcal L_{\mathrm{center}}.
+++++
+
+The paper's JEPA objective combines this regularizer with the predictive term:
+
+[latexmath]
+++++
+\mathcal L_{\mathrm{VISReg}}
+=(1-\lambda)\mathcal L_{\mathrm{pred}}
++\lambda\mathcal L_{\mathrm{Reg}}.
+++++
+
+The equations give the method's conceptual terms; batch reductions and normalization follow the cited version and reference code. SIGReg uses a characteristic-function discrepancy; VISReg uses sorted one-dimensional quantiles. The stop-gradient inside VISReg decouples scale and shape gradients; it is not a BYOL-style teacher path.
 
 The VISReg authors report stronger correction near collapse and favorable results on tested out-of-distribution, low-rank and long-tailed settings. These are reported findings, not guarantees for every optimizer or data distribution. Report batch size, projection count, objective weights, architecture and evaluation protocol when comparing these methods. See [LeJEPA](https://arxiv.org/abs/2511.08544) and [VISReg](https://arxiv.org/abs/2606.02572).
 

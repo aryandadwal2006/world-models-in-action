@@ -12,7 +12,7 @@ Query path, target/key path, EMA arrow and FIFO queue.
 
 ## Required content
 
-The gradient-trained query encoder outputs q. The paired view passes through a stop-gradient key encoder to k+. Compare q with k+ and queued earlier keys. Draw an EMA arrow from query parameters to key parameters and enqueue/dequeue arrows for features.
+For MoCo v1/v2, the gradient-trained query encoder outputs q. The paired view passes through a stop-gradient key encoder to k+. Compare q with k+ and queued earlier keys. Draw an EMA arrow from query parameters to key parameters and enqueue/dequeue arrows for features. Add a clearly secondary side note: MoCo v3 removes the FIFO queue and uses current-batch momentum targets gathered across workers, with an online predictor.
 
 ## Exclusions
 
