@@ -358,6 +358,10 @@ L_{\mathrm{BT}}=\sum_i(1-C_{ii})^2+
 
 If latexmath:[C_{ii}] is below one, the corresponding coordinate is not perfectly aligned across views. A nonzero latexmath:[C_{ij}], for latexmath:[i\ne j] means coordinate latexmath:[i] in one view is linearly correlated with coordinate latexmath:[j] in the other. The loss pushes the cross-correlation matrix toward identity. It controls second-order cross-view statistics; it does not establish statistical independence for arbitrary distributions, nor does it assign a meaningful physical interpretation to each coordinate.
 
+The diagonal and off-diagonal penalties have different purposes. The diagonal term encourages coordinate latexmath:[i] from view A to align with coordinate latexmath:[i] from view B. The off-diagonal term discourages coordinate latexmath:[i] in one view from correlating with coordinate latexmath:[j\ne i] in the other. Barlow Twins does not merely minimize the distance between the two feature vectors: it specifies a pattern for the entire batch cross-correlation matrix.
+
+For intuition, suppose two projected coordinates are duplicates, latexmath:[z_2=z_1]. Their off-diagonal cross-correlation is high, so Barlow Twins penalizes that redundancy. If a coordinate does not agree across views, its diagonal correlation falls below one and incurs a diagonal penalty. The objective therefore combines cross-view agreement with pressure against repeated linear information across dimensions. Because the features are standardized over the batch, the correlation matrix describes patterns across examples, not the similarity of two coordinates within a single example.
+
 
 [#unique_section2_ch3_014_vicreg_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === VICReg: make three constraints explicit
@@ -398,9 +402,22 @@ L_{\mathrm{VICReg}}=\lambda s(Z,Z')
 
 where latexmath:[\lambda,\mu,\nu] set their relative weights. The invariance term aligns paired views. The variance term penalizes a feature dimension whose standard deviation falls below latexmath:[\gamma]. The covariance term discourages linear redundancy between different dimensions. The variance hinge is squared in the original objective; that detail changes the gradient and should not be dropped when reproducing the formula.
 
+The sample covariance used for latexmath:[c(Z)] is computed after centering the feature columns. For a batch latexmath:[Z\in\mathbb{R}^{N\times d}], let latexmath:[\mu_j=N^{-1}\sum_{b=1}^{N}z_{b,j}]. Its covariance entries are
+
+[latexmath]
+++++
+\operatorname{Cov}(Z)_{ij}
+=\frac{1}{N-1}\sum_{b=1}^{N}
+(z_{b,i}-\mu_i)(z_{b,j}-\mu_j).
+++++
+
+The variance penalty and covariance penalty are deliberately different. A coordinate can have sufficient variance while duplicating another coordinate; covariance regularization penalizes that redundancy. A coordinate can have low covariance with every other coordinate yet be nearly constant; the variance penalty addresses that case. The invariance term then asks the two views to agree. These terms are complementary, not interchangeable.
+
 If every example has the same value in one dimension, its batch standard deviation is zero and the variance penalty is positive for any positive margin. That makes the anti-collapse constraint explicit. It does not prove that the surviving variation is semantically relevant. A feature can vary with background texture and still satisfy a variance floor.
 
 The methods are related but not identical. Barlow Twins uses normalized cross-correlation as the central matrix objective. VICReg uses a direct invariance term, a standard-deviation floor and a covariance penalty. Their shared lesson is that view agreement and non-collapse are separate requirements. Their moment constraints are not a guarantee of a world-model-ready state.
+
+A simple two-coordinate example makes the distinction concrete. If both coordinates are copies of the same varying scalar, their variances may exceed the margin, so the variance term is satisfied; however, their covariance is high and the covariance term penalizes them. If the second coordinate is constant, its covariance with the first may be zero, but its standard deviation is below the margin and the variance term penalizes it. Only a feature batch with adequate spread and sufficiently low linear redundancy can make both statistical penalties small. The remaining variation can still describe the wrong thing, so a separate task-based evaluation is necessary.
 
 [#ch3-figure-F08,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Different objectives impose different constraints on the representation
@@ -458,6 +475,10 @@ L=\frac{1}{|M|}\sum_{i\in M}\ell(\hat y_i,y_i).
 
 This form leaves the crucial choice open: what is the target? It might be pixel values, a discrete code, a word token, a replaced-token label or a contextualized feature. The mask tells the model where information is withheld; the target tells it what relationship must be learned.
 
+The distinction appears directly in the loss. With squared-error regression, a predictor is rewarded for numerical proximity to a target vector. With cross-entropy, it is rewarded for assigning probability to the correct discrete label or teacher distribution. These losses define different geometries of error. For a discrete token, predicting a related code is still wrong unless the correct code receives probability; for a continuous target, errors are penalized according to their magnitude in the chosen feature space.
+
+Masking also changes what the model is allowed to observe. A model trained to reconstruct a hidden patch from nearby visible pixels can exploit local texture continuity. A model trained to predict a contextualized teacher feature must reproduce a target shaped by the teacher's wider context and representation space. Neither target is neutral: it specifies which aspects of the missing content distinguish a good prediction from a bad one.
+
 [#ch3-figure-F13,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .The mask is the same; the prediction target changes
 image::CH03_T04_TargetSpaces.svg[Comparison of pixel, discrete-code and teacher-feature targets,pdfwidth=100%]
@@ -490,7 +511,23 @@ image::CH03_F12_Dadwal.svg[Masked autoencoder architecture with visible-patch en
 
 BEiT (Bao et al., 2022) predicts discrete visual-token IDs produced by a learned tokenizer. Rather than regress pixel values, the model classifies the tokenizer's code for each masked patch. The tokenizer introduces its own prior: useful structure can be learned from the code vocabulary, but tokenizer errors and biases enter the target.
 
-iBOT (Zhou et al., 2022) combines masked patch prediction with teacher-student self-distillation. It is an example where a family label is insufficient: the input is masked, target distributions come from a teacher, and prototype outputs structure those targets. Other masked-image methods deliberately change the target: SimMIM (Xie et al., 2022) uses a simple pixel-reconstruction objective; MaskFeat (Wei et al., 2022) predicts hand-designed visual features such as HOG rather than raw pixels; BEiT v2 improves the discrete-target route with semantic visual tokenization. These variations reinforce the same principle: the mask alone does not define the learning task.
+iBOT (Zhou et al., 2022) combines masked patch prediction with teacher-student self-distillation. It is an example where a family label is insufficient: the input is masked, target distributions come from a teacher, and prototype outputs structure those targets. Other masked-image methods deliberately change the target: SimMIM (Xie et al., 2022) uses a simple pixel-reconstruction objective; MaskFeat (Wei et al., 2022) predicts hand-designed visual features such as HOG rather than raw pixels; BEiT v2 improves the discrete-target route with semantic visual tokenization. These variations reinforce the same principle: the mask alone does not define the learning task.BEiT v2 improves the discrete-target route with semantic visual tokenization. The target families can be written schematically as
+
+[latexmath]
+++++
+L_{\mathrm{BEiT}}=-\log p_\theta(k_i\mid x_{\mathrm{visible}}),
+\qquad
+L_{\mathrm{iBOT}}=-\sum_k q_{t,i,k}\log p_{s,i,k},
+++++
+
+where latexmath:[k_i] is the tokenizer's discrete code for a masked patch and latexmath:[q_{t,i}] is a teacher distribution over prototype outputs for patch latexmath:[i]. BEiT assigns probability to a discrete target; iBOT matches a teacher distribution. For data2vec, a contextualized teacher vector latexmath:[y_i^t] supplies a continuous target and the student predicts that vector under a regression loss such as
+
+[latexmath]
+++++
+L_{\mathrm{data2vec},i}=\lVert \hat y_i-y_i^t\rVert_2^2.
+++++
+
+These schematic expressions show the target-space distinction; each paper has further implementation choices, including the teacher, normalization, masking protocol and the subset of positions used in its loss. They are not full reproductions of those objectives. The differences reinforce the central point: the mask alone does not define the learning task.
 
 data2vec (Baevski et al., 2022) predicts contextualized teacher features from masked input and was designed as a framework spanning speech, vision and language. A latent target may contain broader context than a local pixel target, but matching a teacher does not automatically ensure that the feature preserves all future-relevant or causal state information. In every case, the representation is shaped by the selected target.
 
@@ -546,6 +583,8 @@ A useful representation retains enough information for the relevant prediction w
 
 Here, *compact* means constrained and usable by downstream dynamics or planning, not necessarily information-theoretically minimal. The bottleneck should be selected and tested against the downstream task. A low-dimensional representation that aliases important states is not a success; a larger representation is not automatically better if it mostly stores nuisance detail.
 
+Dimension is only a crude capacity indicator. A real-valued vector can encode distinctions in arbitrarily fine numeric differences unless its precision, noise, regularization or decoder is constrained. In practical neural systems, finite precision and limited data make that abstract possibility less useful, but it explains why counting coordinates alone does not measure information. What matters is whether distinctions remain reliably recoverable under the noise and distribution shifts relevant to the downstream problem.
+
 [#unique_section_ch3_026_a_world_model_audit_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
 == Compact state representations
 
@@ -561,6 +600,8 @@ P(Y\mid X)=P(Y\mid Z).
 ++++
 
 This equality says that once latexmath:[Z] is known, the original observation provides no further information about latexmath:[Y]. If two observations map to the same latexmath:[z] but imply different future distributions, the representation has aliased a distinction relevant to that prediction. That is the failure a useful state must avoid.
+
+Equivalently, the sufficiency condition is the conditional-independence statement latexmath:[Y\perp X\mid Z]. When latexmath:[Z] summarizes an observation history, the ideal is that the history provides no additional information about the target future once the representation is known. If the same latexmath:[z] is assigned to histories with different conditional future distributions, the representation has discarded a predictive distinction.
 
 The important tests are distinct: inspect the transformations and target that define the pretraining problem; examine whether the features collapse; probe variables on held-out data; and evaluate prediction of the quantity for which the representation will be used.
 
