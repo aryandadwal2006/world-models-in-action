@@ -1,6 +1,6 @@
 # Dossier readiness and manuscript-start gate
 
-**State at 2026-10-26: research dossier not yet ready to freeze for manuscript synthesis.** The purpose of this file is to make the decision reproducible rather than treating the existence of many notes as evidence that the research phase is complete.
+**State at 2026-10-26: a reader-facing Chapter 3 draft now exists; the unbounded research dossier remains only partially audited.** This file distinguishes drafting readiness from publication readiness. The manuscript can be drafted selectively while unresolved paper/version and source checks continue; no claim is made here that every item in the dossier has completed source verification.
 
 The unbounded dossier should remain exhaustive and navigable. The reader-facing Chapter 3 should be selective. "Ready to move to manuscript" means the source-backed dossier can support a coherent outline and a first composed draft; it does not mean every method in the field has to be derived in the printed chapter.
 
@@ -17,7 +17,7 @@ The unbounded dossier should remain exhaustive and navigable. The reader-facing 
 | Upstream provenance | Gitlink, .gitmodules entry, immutable source commit and license caveat | main-extra has 45 submodule pointers; every pointer has a URL entry; 5 new CPC/DIM/diffusion pins resolved to non-empty upstream trees | Run final integrity check on all 45, review permissions/licenses for any redistribution, do not claim execution/reproduction |
 | Citation integrity | Every equation, paper/version, current claim and arXiv/source link corresponds to the claim made | Partially audited; one V-JEPA citation and one DINO warm-up default discrepancy were corrected | Complete line-by-line citation pass across the dossier and correct every stale/ambiguous author, title, year or identifier |
 | Internal consistency | Method names, equation conventions, branch names, links, note numbering and source status agree | Cross-references updated for new notes; known stale CPC implementation claim corrected | Search the full dossier for duplicate/outdated statements; verify all relative links, tables and math notation |
-| Editorial handoff | One spine, chapter boundary, page-length intent, original figure plan, one consistent notation and explicit exercise goals | Candidate flow exists in note 10 and figure plan in note 11 | Finalize outline only after source and consistency audits; do not simply paste method notes into composed chapter |
+| Editorial handoff | One spine, chapter boundary, page-length intent, original figure plan, one consistent notation and explicit exercise goals | Reader-facing manuscript was reorganized to the book TOC; note 10 now budgets 45–50 pages and note 11 lists 20 figure briefs | Complete the source audit, render the Manning draft and revise pagination/figures in the composed chapter |
 
 ## 2. Current covered terrain
 
@@ -34,30 +34,30 @@ The dossier now separates these broad targets and objective families:
 
 This is a coverage map, not a claim that all items have identical source-verification depth or belong in the printed chapter.
 
-## 3. Manuscript-start criteria
+## 3. Draft review and release criteria
 
-Start the reader-facing manuscript only when all of the following are true:
+The draft is available for review. Before the chapter is treated as publication-ready, verify the following:
 
 1. Each **core** family selected for full derivation has primary paper/version, objective, reduction/normalization, gradient/update path, degenerate case, recipe settings, evidence/limitations, and official-code status.
 2. Frontier and supplementary methods have a clearly labelled evidence level: paper-only, source-inspected, or executed in this project. These levels are never substituted for each other.
 3. Citation and internal-link audits find no known broken link, wrong paper identifier, stale implementation-availability claim or contradicting default/config statement.
 4. The outline makes a decision for each method: core derivation, comparison table, short sidebar, frontier handoff, or later-chapter boundary.
 5. The composed chapter can teach the argument in one coherent route without duplicating Chapter 2 or pre-empting Chapter 4's full JEPA treatment.
-6. The Manning template and styles are applied to a new manuscript revision, not retrofitted by flattening this unbounded notebook.
+6. The Manning template styles compile correctly in the intended PDF workflow; figure placeholders are replaced with licensed/original artwork and final page count is checked.
 
-## 4. What is not required before the manuscript starts
+## 4. What is not required before drafting finishes
 
 - Exhaustively deriving every paper in the taxonomy in the printed chapter.
 - Running all 45 upstream repositories. They are original references, not one common environment; many require old or large compute/data setups.
 - Reproducing each paper's headline benchmark in the book companion. If the chapter explains a published result, accurately attribute it and do not imply the companion reran it.
 - Forcing diffusion and flow matching into the SSL section; a clear boundary explanation is enough if the later generation chapter owns their full derivations.
 
-## 5. Immediate next actions
+## 5. Immediate next actions before publication
 
 1. Finish source/claim cleanup in method cards and old summaries, especially historical methods whose upstream implementation is now available.
 2. Audit every primary paper linked from the method coverage matrix and bibliography for title, author, date, identifier and scope.
 3. Audit relative links from README and across the 37-plus note files, plus equations/tables for notation drift.
-4. Revisit the storyboard and outline against the Manning TOC and style guide.
-5. Only then mark the dossier ready for manuscript synthesis and begin the composed Chapter 3 draft.
+4. Run a line-by-line citation and implementation-source check on claims that remain in the composed manuscript; the draft's equation tags and figure placeholders were checked structurally, but that is not a full factual citation audit.
+5. Render the AsciiDoc through the Manning book pipeline, check caption numbering and all seven TOC sections, then estimate final length after figures are drawn.
 
-No manuscript-ready status is claimed in this commit.
+The manuscript has been started. The dossier is not declared fully audited, and the chapter is not yet a final print-ready PDF.
