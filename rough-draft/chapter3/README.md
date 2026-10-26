@@ -20,7 +20,8 @@ The dossier is an original synthesis, not a replacement for reading canonical pa
 10. [Training design and evaluation](17_training_design_and_evaluation.md): augmentation, projector, batch-size effects, EMA, data balance, collapse diagnostics, transfer tests and world-model-specific evaluation.
 11. [Method atlas](18_method_atlas_and_family_relations.md): additional variants, CLIP/SigLIP equations, dense-feature families and modern lineages.
 12. [Mathematical foundations](24_mathematical_foundations.md): probability, cross-entropy/KL, covariance, rank, characteristic functions, Wasserstein distance, EMA and conditional sufficiency.
-13. [Proof notebook](09_proof_notebook.md): compact derivations and explicit limits of each proof.
+13. [Theoretical unification](26_theoretical_unification_alignment_uniformity.md): alignment/uniformity, density ratios, CCA/statistics, reconstruction and latent prediction without false equivalence claims.
+14. [Proof notebook](09_proof_notebook.md): compact derivations and explicit limits of each proof.
 14. [Theory notebook](19_theory_proofs_and_counterexamples.md): detailed InfoNCE lower-bound derivation, counterexamples, EMA, moment constraints and representation limits.
 15. [Loss-gradient derivations](21_loss_gradient_derivations.md): gradients of InfoNCE, CLIP, BYOL/SimSiam, DINO, Barlow Twins, VICReg, SwAV, masked losses, SIGReg and VISReg.
 16. [LeJEPA/SIGReg/VISReg](20_lejepa_sigreg_visreg.md): first-principles account of Gaussian embedding priors, characteristic-function tests and sliced-Wasserstein regularization.

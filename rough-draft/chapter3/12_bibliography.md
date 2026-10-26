@@ -110,3 +110,5 @@ This is the working citation register; the final AsciiDoc reference section shou
 - For the formal discussion of representations as sufficient statistics and the data-processing inequality, standard references include Cover, T. M. and Thomas, J. A. (2006), *Elements of Information Theory*, 2nd ed., Wiley.
 
 - Cover, T. M. and Thomas, J. A. (2006). *Elements of Information Theory*, 2nd ed. Wiley. Background reference for entropy, mutual information and the data-processing inequality.
+
+- Wang, T. and Isola, P. (2020). “Understanding Contrastive Representation Learning through Alignment and Uniformity on the Hypersphere.” https://arxiv.org/abs/2005.10242.
