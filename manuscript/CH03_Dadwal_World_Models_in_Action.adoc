@@ -387,7 +387,7 @@ The queue gives each query a larger candidate set than the current minibatch alo
 \tag{3.6}
 ++++
 
-After the loss is evaluated against the current queue, keys from the current minibatch are enqueued and the oldest keys are dequeued to keep the queue length fixed. The queue therefore contains features produced by earlier parameter values. They become stale as training proceeds; a slowly moving key encoder reduces abrupt drift in their representation space but cannot make historical keys identical to current ones. The update latexmath:[ \theta_k\leftarrow m\theta_k+(1-m)\theta_q ] makes the key parameters a smoothed history of the query parameters: for fixed latexmath:[m], contributions from earlier updates decay geometrically. MoCo v2 (Chen et al., 2020) strengthened v1's augmentation, projection-head and optimization recipe while retaining the queue and momentum key encoder. The MoCo v1/v2 loss above therefore uses positive-plus-queue candidates. MoCo v3 (Chen et al., 2021) removes this persistent FIFO queue. Its reference implementation compares the online prediction for one crop against momentum-encoder targets for the other crop, gathered across workers. With \(Q_1,Q_2\) denoting normalized online predictor outputs, \(K_1,K_2\) the corresponding normalized momentum targets gathered across workers, and \(y\) the matching sample indices, its symmetric batch classification can be written
+After the loss is evaluated against the current queue, keys from the current minibatch are enqueued and the oldest keys are dequeued to keep the queue length fixed. The queue therefore contains features produced by earlier parameter values. They become stale as training proceeds; a slowly moving key encoder reduces abrupt drift in their representation space but cannot make historical keys identical to current ones. The update latexmath:[ \theta_k\leftarrow m\theta_k+(1-m)\theta_q ] makes the key parameters a smoothed history of the query parameters: for fixed latexmath:[m], contributions from earlier updates decay geometrically. MoCo v2 (Chen et al., 2020) strengthened v1's augmentation, projection-head and optimization recipe while retaining the queue and momentum key encoder. The MoCo v1/v2 loss above therefore uses positive-plus-queue candidates. MoCo v3 (Chen et al., 2021) removes this persistent FIFO queue. Its reference implementation compares the online prediction for one crop against momentum-encoder targets for the other crop, gathered across workers. With latexmath:[Q_1,Q_2] denoting normalized online predictor outputs, latexmath:[K_1,K_2] the corresponding normalized momentum targets gathered across workers, and latexmath:[y] the matching sample indices, its symmetric batch classification can be written
 
 [latexmath]
 ++++
@@ -795,7 +795,7 @@ LeJEPA's theory argues that an isotropic Gaussian embedding distribution is opti
 \varphi_{\mathcal N(0,1)}(t)=e^{-t^2/2}.
 ++++
 
-For random unit directions \(w_1,\ldots,w_K\), a schematic form of this discrepancy is
+For random unit directions latexmath:[w_1,\ldots,w_K], a schematic form of this discrepancy is
 
 [latexmath]
 ++++
@@ -807,7 +807,7 @@ For random unit directions \(w_1,\ldots,w_K\), a schematic form of this discrepa
 \right|^2\omega(t)\,dt,
 ++++
 
-where \(\omega(t)\) is the weighting used by the prescribed Epps-Pulley-style test. The practical implementation approximates the integral with its specified quadrature points and weights. The Cramér-Wold theorem motivates the sketching argument: all one-dimensional projections together characterize a distribution. A finite collection of projections is only an approximation, not proof of exact multivariate Gaussianity. Quadrature, weighting and normalization must follow the source.
+where latexmath:[\omega(t)] is the weighting used by the prescribed Epps-Pulley-style test. The practical implementation approximates the integral with its specified quadrature points and weights. The Cramér-Wold theorem motivates the sketching argument: all one-dimensional projections together characterize a distribution. A finite collection of projections is only an approximation, not proof of exact multivariate Gaussianity. Quadrature, weighting and normalization must follow the source.
 
 **LeJEPA** combines a predictive objective with SIGReg. It constructs a target from the mean embeddings of global views of the same source instance, then predicts that target from other views. Views must remain grouped by original image; averaging across images defines a different objective. A schematic objective is
 
@@ -820,7 +820,7 @@ where \(\omega(t)\) is the weighting used by the prescribed Epps-Pulley-style te
 
 The paper's recipe is designed not to require an EMA target encoder and stop-gradient target branch in the same way as BYOL/SimSiam. That is a different design, not evidence that earlier asymmetries are unnecessary for every task. The full JEPA predictor architecture is reserved for Chapter 4.
 
-**VISReg** separates scale, shape and center. Let \(Z\in\mathbb R^{B\times d}\) be a batch of embeddings, with batch mean \(\mu=B^{-1}\sum_b z_b\), centered matrix \(\widehat Z=Z-\mu\), and per-coordinate standard deviations \(\sigma\). Its scale term is
+**VISReg** separates scale, shape and center. Let latexmath:[Z\in\mathbb R^{B\times d}] be a batch of embeddings, with batch mean latexmath:[\mu=B^{-1}\sum_b z_b], centered matrix latexmath:[\widehat Z=Z-\mu], and per-coordinate standard deviations latexmath:[\sigma]. Its scale term is
 
 [latexmath]
 ++++
@@ -835,7 +835,7 @@ For shape regularization, centered features are normalized by a stop-gradient co
 \widetilde Z=\frac{\widehat Z}{\operatorname{sg}(\sigma)+\epsilon}.
 ++++
 
-For random unit directions \(w_k\), the projected samples are sorted and compared with the standard-normal quantiles \(q_B\):
+For random unit directions latexmath:[w_k], the projected samples are sorted and compared with the standard-normal quantiles latexmath:[q_B]:
 
 [latexmath]
 ++++
