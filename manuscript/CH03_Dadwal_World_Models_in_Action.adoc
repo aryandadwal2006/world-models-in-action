@@ -270,7 +270,7 @@ loss = loss_a + loss_b
 ----
 This excerpt is from the official TensorFlow implementation, not a self-contained trainer. Batch gathering, label construction and masks are defined earlier in the function. The mask removes each anchor's self-comparison from its same-view candidate block. SimCLR is published under Apache License 2.0; consult the [pinned objective.py](https://github.com/google-research/simclr/blob/383d4143fd8cf7879ae10f1046a9baeb753ff438/objective.py) and its license for full code and reuse requirements.
 
-[#unique_section2_ch3_006_what_infoNCE_does_and_does_not_prove_ID,reftext={chapter}.{section}.{subsection}']
+[#unique_section2_ch3_006_what_infoNCE_does_and_does_not_prove_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === What InfoNCE does and does not prove
 
 InfoNCE is a relative objective. The anchor must assign a higher score to its designated positive than to the sampled alternatives. Maximizing the positive similarity alone would not impose this ranking constraint. With an unnormalized dot product the model can also increase scores by increasing vector norms; cosine normalization bounds the score but does not remove dependence on the candidate-sampling protocol.
