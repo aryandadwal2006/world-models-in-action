@@ -300,3 +300,30 @@ The source confirms:
 6. Parser defaults include temperature 0.1, three Sinkhorn iterations, 3,000 prototypes, per-GPU batch size 64, queue length 0 and a prototype-gradient freeze period of 313 iterations. Published configurations commonly override these defaults, including enabling a queue.
 
 The README includes multiple training configurations and reported results, but those headline numbers should be attributed to their stated ImageNet/batch/multicrop/epoch settings rather than generalized to the loss alone. Code inspection does not establish that this companion project reran them.
+
+
+## 19. DeepCluster, BEiT, SimMIM and MaskFeat source checks
+
+### DeepCluster
+
+Pinned upstream: `facebookresearch/deepcluster` revision `2d1927e8e3dd272329e879e510fbbdf1b1d02d17`. Training loop: https://github.com/facebookresearch/deepcluster/blob/2d1927e8e3dd272329e879e510fbbdf1b1d02d17/main.py. Clustering: https://github.com/facebookresearch/deepcluster/blob/2d1927e8e3dd272329e879e510fbbdf1b1d02d17/clustering.py. Paper: https://arxiv.org/abs/1807.05520.
+
+The epoch-level loop extracts dataset features, clusters them with configured K-means or PIC, maps cluster memberships to pseudo-labels, then trains a classifier head with cross-entropy. Parser defaults are 10,000 clusters and reassignment every epoch. This is offline re-clustering, not SwAV's online balanced-prototype objective. The checked-in LICENSE says CC BY-NC 4.0 although GitHub metadata has no SPDX assertion; do not describe the source as commercially unrestricted.
+
+### BEiT
+
+Official code is within `microsoft/unilm/beit/`, pinned at `31c5b904ca1bf2afb4c234a6675c683a4e5fc7cd`; the source tree's license is MIT. Paper: https://arxiv.org/abs/2106.08254. Model: https://github.com/microsoft/unilm/blob/31c5b904ca1bf2afb4c234a6675c683a4e5fc7cd/beit/modeling_pretrain.py. Training loss: https://github.com/microsoft/unilm/blob/31c5b904ca1bf2afb4c234a6675c683a4e5fc7cd/beit/engine_for_pretraining.py.
+
+The DALL-E discrete VAE tokenizer maps image patches to codebook IDs. The model replaces masked patch embeddings with a learned mask token, predicts logits only at masked positions, and uses cross-entropy against tokenizer IDs. The target is a discrete visual token, not raw RGB. The original README's base pretraining example uses ImageNet-scale data and 16 V100 GPUs, so this is not a lightweight reproduction.
+
+### SimMIM
+
+Official upstream: `microsoft/SimMIM` at `d3e29bcac950b83edc34ca33fe4404f38309052c`; MIT-licensed and archived September 2026. Paper: https://arxiv.org/abs/2111.09886. Model/loss: https://github.com/microsoft/SimMIM/blob/d3e29bcac950b83edc34ca33fe4404f38309052c/models/simmim.py.
+
+The encoder replaces masked patch embeddings with a learned token. A decoder regresses pixels; the implementation applies elementwise L1, multiplies by the upsampled mask and normalizes by masked-pixel count and channels. The pinned Swin-Base config uses 192-pixel input, mask patch size 32, mask ratio 0.6 and 100 epochs. These values belong to that config, not every SimMIM run.
+
+### MaskFeat
+
+Pinned upstream: `facebookresearch/SlowFast` at `287ec0076846560f44a9327e931a5a2360240533`; repository metadata reports Apache-2.0. Paper: https://arxiv.org/abs/2112.09133. Model: https://github.com/facebookresearch/SlowFast/blob/287ec0076846560f44a9327e931a5a2360240533/slowfast/models/masked.py. Example config: https://github.com/facebookresearch/SlowFast/blob/287ec0076846560f44a9327e931a5a2360240533/configs/masked_ssl/in1k_VIT_B_MaskFeat_PT.yaml.
+
+The cited ImageNet ViT-B config sets `PRED_HOG: True`, mask ratio 0.4, batch size 256 and 300 epochs. It predicts HOG-style local gradient descriptors at masked positions; the configured criterion is multi-MSE. This codebase also supports pixel targets and video objectives, so source descriptions must name the config rather than speak of one universal MaskFeat recipe.
