@@ -69,3 +69,23 @@ This is the working citation register; the final AsciiDoc reference section shou
 
 ## Verified 2026 frontier update
 - Mur-Labadia, L. et al. (2026). V-JEPA 2.1: Unlocking Dense Features in Video Self-Supervised Learning. https://arxiv.org/abs/2603.14482. The official repository lists a dense predictive loss over visible and masked tokens, deep self-supervision at intermediate layers, multimodal image/video tokenizers, and model/data scaling.
+
+
+## Source articles supplied for this dossier
+- Wikipedia contributors. “Self-supervised learning.” Living reference page, accessed 26 October 2026. https://en.wikipedia.org/wiki/Self-supervised_learning.
+- Rajendran, S. (2025, December 25). “A Beginner’s Guide to Self-Supervised Learning.” Towards AI. https://pub.towardsai.net/a-beginners-guide-to-self-supervised-learning-27941f2bb4a9.
+- Balestriero, R. et al. (2023). “A Cookbook of Self-Supervised Learning.” https://arxiv.org/abs/2304.12210.
+- Gui, J. et al. (2024). “A Survey on Self-Supervised Learning: Algorithms, Applications, and Future Trends.” *IEEE Transactions on Pattern Analysis and Machine Intelligence*, 46(12), 9052–9071. https://doi.org/10.1109/TPAMI.2024.3415112. Preprint: https://arxiv.org/abs/2301.05712.
+
+## Additional methods and theory
+- Poole, B., Ozair, S., van den Oord, A., Alemi, A. and Tucker, G. (2019). “On Variational Bounds of Mutual Information.” *Proceedings of ICML*, PMLR 97, 5171–5180. https://proceedings.mlr.press/v97/poole19a.html.
+- Tschannen, M., Djolonga, J., Rubenstein, P. K., Gelly, S. and Lucic, M. (2020). “On Mutual Information Maximization for Representation Learning.” *International Conference on Learning Representations*. https://arxiv.org/abs/1907.13625.
+- Dwibedi, D. et al. (2021). “With a Little Help from My Friends: Nearest-Neighbor Contrastive Learning of Visual Representations.” https://arxiv.org/abs/2104.14548.
+- Assran, M. et al. (2022). “Masked Siamese Networks for Label-Efficient Learning.” https://arxiv.org/abs/2204.07141.
+- Ermolov, A. et al. (2021). “Whitening for Self-Supervised Representation Learning.” https://arxiv.org/abs/2007.06346.
+- Wang, X. et al. (2021). “Dense Contrastive Learning for Self-Supervised Visual Pre-Training.” https://arxiv.org/abs/2011.09157.
+- Xie, Z. et al. (2021). “Propagate Yourself: Exploring Pixel-Level Consistency for Unsupervised Visual Representation Learning.” https://arxiv.org/abs/2011.10043.
+- Bardes, A. et al. (2022). “VICRegL: Self-Supervised Learning of Local Visual Features.” https://arxiv.org/abs/2210.01571.
+- Ziegler, A. and Asano, Y. M. (2022). “Self-Supervised Learning of Object Parts for Semantic Segmentation.” https://arxiv.org/abs/2112.10582.
+- Yun, S. et al. (2022). “SelfPatch: Self-Supervised Path-Level Representation Learning for Local Features.” https://arxiv.org/abs/2112.01216.
+- Mur-Labadia, L. et al. (2026). “V-JEPA 2.1: Unlocking Dense Features in Video Self-Supervised Learning.” https://arxiv.org/abs/2603.14482.

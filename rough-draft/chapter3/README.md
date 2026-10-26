@@ -17,9 +17,10 @@ The dossier is an original synthesis, not a replacement for reading canonical pa
 7. [Training design and evaluation](17_training_design_and_evaluation.md): augmentation, projector, batch-size effects, EMA, data balance, collapse diagnostics, transfer tests and world-model-specific evaluation.
 8. [Method atlas](18_method_atlas_and_family_relations.md): additional variants, CLIP/SigLIP equations, dense-feature families and modern lineages.
 9. [Proof notebook](09_proof_notebook.md): compact derivations and explicit limits of each proof.
-10. [Proposed flow and page budget](10_flow_and_page_budget.md): how to compress the dossier into a coherent reader-facing sequence.
-11. [Figure storyboard](11_figure_storyboard.md): conceptual diagrams needed in the final chapter.
-12. [Bibliography](12_bibliography.md): canonical citations and source-verification notes.
+10. [Theory notebook](19_theory_proofs_and_counterexamples.md): detailed InfoNCE lower-bound derivation, counterexamples, EMA, moment constraints and representation limits.
+11. [Proposed flow and page budget](10_flow_and_page_budget.md): how to compress the dossier into a coherent reader-facing sequence.
+12. [Figure storyboard](11_figure_storyboard.md): conceptual diagrams needed in the final chapter.
+13. [Bibliography](12_bibliography.md): canonical citations and source-verification notes.
 
 The original shorter notes remain useful for focused cross-checks: [contrastive InfoNCE](02_contrastive_infoNCE.md), [negative-free bootstrapping](03_negative_free_bootstrap.md), [redundancy reduction](04_redundancy_reduction.md), [clustering and prototypes](05_clustering_and_prototypes.md), [masked prediction](06_masked_prediction.md), [cross-modal and speech](07_cross_modal_speech_and_language.md), [frontier boundaries](08_frontier_and_boundaries.md).
 
