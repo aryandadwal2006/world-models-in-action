@@ -269,3 +269,10 @@ Chapter 3 should close this lineage with a short statement: statistical anti-col
 - Epps, T. W. and Pulley, L. B. (1983). A test for normality based on the empirical characteristic function. Biometrika.
 - Cramér, H. and Wold, H. (1936). Some theorems on distribution functions.
 - Bonneel, N. et al. (2015). Sliced and Radon Wasserstein barycenters.
+
+
+## 10. Code provenance and licensing check (2026-10-26)
+
+**LeJEPA/SIGReg.** The repository URL linked from the paper, `rbalestr-lab/lejepa`, redirects on GitHub to `galilai-group/lejepa`. The source collection pins that public destination at `c293d291ca87cd4fddee9d3fffe4e914c7272052`. The pinned repository's `LICENSE` file identifies **Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)**. Do not treat the code as unrestricted commercial-use code or redistribute it under the parent repository's license. Follow the exact upstream license and any additional model/data terms.
+
+**VISReg.** The primary paper is [VISReg](https://arxiv.org/abs/2606.02572), and the author-linked project page is https://haiyuwu.github.io/visreg/. Its GitHub README at `HaiyuWu/visreg` redirects readers to `altos-labs/visreg`, but that destination did not resolve as an accessible public repository during this audit. Accordingly, the equations and claims in this note are based on the paper; they are not presented as source-code-verified implementation details. No VISReg submodule has been added to `main-extra` until a public source revision can be independently verified.
