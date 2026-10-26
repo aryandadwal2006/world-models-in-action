@@ -1,0 +1,95 @@
+[submodule "extra/official-repos/simclr"]
+	path = extra/official-repos/simclr
+	url = https://github.com/google-research/simclr.git
+
+[submodule "extra/official-repos/moco"]
+	path = extra/official-repos/moco
+	url = https://github.com/facebookresearch/moco.git
+
+[submodule "extra/official-repos/moco-v3"]
+	path = extra/official-repos/moco-v3
+	url = https://github.com/facebookresearch/moco-v3.git
+
+[submodule "extra/official-repos/deepmind-research"]
+	path = extra/official-repos/deepmind-research
+	url = https://github.com/google-deepmind/deepmind-research.git
+
+[submodule "extra/official-repos/simsiam"]
+	path = extra/official-repos/simsiam
+	url = https://github.com/facebookresearch/simsiam.git
+
+[submodule "extra/official-repos/swav"]
+	path = extra/official-repos/swav
+	url = https://github.com/facebookresearch/swav.git
+
+[submodule "extra/official-repos/deepcluster"]
+	path = extra/official-repos/deepcluster
+	url = https://github.com/facebookresearch/deepcluster.git
+
+[submodule "extra/official-repos/barlowtwins"]
+	path = extra/official-repos/barlowtwins
+	url = https://github.com/facebookresearch/barlowtwins.git
+
+[submodule "extra/official-repos/vicreg"]
+	path = extra/official-repos/vicreg
+	url = https://github.com/facebookresearch/vicreg.git
+
+[submodule "extra/official-repos/mae"]
+	path = extra/official-repos/mae
+	url = https://github.com/facebookresearch/mae.git
+
+[submodule "extra/official-repos/bert"]
+	path = extra/official-repos/bert
+	url = https://github.com/google-research/bert.git
+
+[submodule "extra/official-repos/gpt-2"]
+	path = extra/official-repos/gpt-2
+	url = https://github.com/openai/gpt-2.git
+
+[submodule "extra/official-repos/dino"]
+	path = extra/official-repos/dino
+	url = https://github.com/facebookresearch/dino.git
+
+[submodule "extra/official-repos/dinov2"]
+	path = extra/official-repos/dinov2
+	url = https://github.com/facebookresearch/dinov2.git
+
+[submodule "extra/official-repos/dinov3"]
+	path = extra/official-repos/dinov3
+	url = https://github.com/facebookresearch/dinov3.git
+
+[submodule "extra/official-repos/jepa"]
+	path = extra/official-repos/jepa
+	url = https://github.com/facebookresearch/jepa.git
+
+[submodule "extra/official-repos/vjepa2"]
+	path = extra/official-repos/vjepa2
+	url = https://github.com/facebookresearch/vjepa2.git
+
+[submodule "extra/official-repos/clip"]
+	path = extra/official-repos/clip
+	url = https://github.com/openai/CLIP.git
+
+[submodule "extra/official-repos/big_vision"]
+	path = extra/official-repos/big_vision
+	url = https://github.com/google-research/big_vision.git
+
+[submodule "extra/official-repos/fairseq"]
+	path = extra/official-repos/fairseq
+	url = https://github.com/facebookresearch/fairseq.git
+
+[submodule "extra/official-repos/unilm"]
+	path = extra/official-repos/unilm
+	url = https://github.com/microsoft/unilm.git
+
+[submodule "extra/official-repos/ijepa"]
+	path = extra/official-repos/ijepa
+	url = https://github.com/facebookresearch/ijepa.git
+
+[submodule "extra/official-repos/electra"]
+	path = extra/official-repos/electra
+	url = https://github.com/google-research/electra.git
+
+[submodule "extra/official-repos/t5"]
+	path = extra/official-repos/t5
+	url = https://github.com/google-research/text-to-text-transfer-transformer.git
