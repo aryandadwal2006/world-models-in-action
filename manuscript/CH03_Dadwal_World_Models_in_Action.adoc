@@ -1215,17 +1215,17 @@ Assran, M. et al. (2025). V-JEPA 2: Self-Supervised Video Models Enable Understa
 
 Bachman, P., Hjelm, R. D. and Buchwalter, W. (2019). Learning Representations by Maximizing Mutual Information Across Views. link:https://arxiv.org/abs/1906.00910[arXiv:1906.00910].
 
-Baevski, A., Hsu, W.-N., Xu, Q., Babu, A., Gu, J. and Auli, M. (2022). data2vec: A General Framework for Self-Supervised Learning in Speech, Vision and Language. *International Conference on Machine Learning*. link:https://arxiv.org/abs/2202.03555[arXiv:2202.03555].
-
 Baevski, A., Zhou, Y., Mohamed, A. and Auli, M. (2020). wav2vec 2.0: A Framework for Self-Supervised Learning of Speech Representations. *Advances in Neural Information Processing Systems*. link:https://arxiv.org/abs/2006.11477[arXiv:2006.11477].
+
+Baevski, A., Hsu, W.-N., Xu, Q., Babu, A., Gu, J. and Auli, M. (2022). data2vec: A General Framework for Self-Supervised Learning in Speech, Vision and Language. *International Conference on Machine Learning*. link:https://arxiv.org/abs/2202.03555[arXiv:2202.03555].
 
 Balestriero, R. and LeCun, Y. (2025). LeJEPA: Provable and Scalable Self-Supervised Learning Without the Heuristics. link:https://arxiv.org/abs/2511.08544[arXiv:2511.08544].
 
 Bao, H., Dong, L. and Wei, F. (2022). BEiT: BERT Pre-Training of Image Transformers. *International Conference on Learning Representations*. link:https://arxiv.org/abs/2106.08254[arXiv:2106.08254].
 
-Bardes, A. et al. (2024). Revisiting Feature Prediction for Learning Visual Representations from Video. link:https://arxiv.org/abs/2404.08471[arXiv:2404.08471].
-
 Bardes, A., Ponce, J. and LeCun, Y. (2022). VICReg: Variance-Invariance-Covariance Regularization For Self-Supervised Learning. *International Conference on Learning Representations*. link:https://arxiv.org/abs/2105.04906[arXiv:2105.04906].
+
+Bardes, A. et al. (2024). Revisiting Feature Prediction for Learning Visual Representations from Video. link:https://arxiv.org/abs/2404.08471[arXiv:2404.08471].
 
 Caron, M. et al. (2018). Deep Clustering for Unsupervised Learning of Visual Features. *European Conference on Computer Vision*. link:https://arxiv.org/abs/1807.05520[arXiv:1807.05520].
 
@@ -1235,9 +1235,9 @@ Caron, M. et al. (2021). Emerging Properties in Self-Supervised Vision Transform
 
 Chen, T. et al. (2020). A Simple Framework for Contrastive Learning of Visual Representations. *International Conference on Machine Learning*. link:https://arxiv.org/abs/2002.05709[arXiv:2002.05709].
 
-Chen, X. and He, K. (2021). Exploring Simple Siamese Representation Learning. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. link:https://arxiv.org/abs/2011.10566[arXiv:2011.10566].
-
 Chen, X. et al. (2020). Improved Baselines with Momentum Contrastive Learning. link:https://arxiv.org/abs/2003.04297[arXiv:2003.04297].
+
+Chen, X. and He, K. (2021). Exploring Simple Siamese Representation Learning. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. link:https://arxiv.org/abs/2011.10566[arXiv:2011.10566].
 
 Chen, X. et al. (2021). An Empirical Study of Training Self-Supervised Vision Transformers. link:https://arxiv.org/abs/2104.02057[arXiv:2104.02057].
 
@@ -1289,9 +1289,9 @@ Wang, T. and Isola, P. (2020). Understanding Contrastive Representation Learning
 
 Wei, C. et al. (2022). Masked Feature Prediction for Self-Supervised Visual Pre-Training. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. link:https://arxiv.org/abs/2112.09133[arXiv:2112.09133].
 
-Wu, H., Balestriero, R. and Levine, M. (2026). VISReg: Variance-Invariance-Sketching Regularization for JEPA Training. link:https://arxiv.org/abs/2606.02572[arXiv:2606.02572].
-
 Wu, Z., Xiong, Y., Yu, S. X. and Lin, D. (2018). Unsupervised Feature Learning via Non-Parametric Instance Discrimination. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. link:https://openaccess.thecvf.com/content_cvpr_2018/html/Wu_Unsupervised_Feature_Learning_CVPR_2018_paper.html[CVF Open Access].
+
+Wu, H., Balestriero, R. and Levine, M. (2026). VISReg: Variance-Invariance-Sketching Regularization for JEPA Training. link:https://arxiv.org/abs/2606.02572[arXiv:2606.02572].
 
 Xie, Z. et al. (2022). SimMIM: A Simple Framework for Masked Image Modeling. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. link:https://arxiv.org/abs/2111.09886[arXiv:2111.09886].
 
