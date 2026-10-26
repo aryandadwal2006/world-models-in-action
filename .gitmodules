@@ -155,3 +155,23 @@
 [submodule "implementations/vissl"]
 	path = implementations/vissl
 	url = https://github.com/facebookresearch/vissl.git
+
+[submodule "implementations/cpc-audio"]
+	path = implementations/cpc-audio
+	url = https://github.com/facebookresearch/CPC_audio.git
+
+[submodule "implementations/dim"]
+	path = implementations/dim
+	url = https://github.com/rdevon/DIM.git
+
+[submodule "implementations/ddpm"]
+	path = implementations/ddpm
+	url = https://github.com/hojonathanho/diffusion.git
+
+[submodule "implementations/score-sde-pytorch"]
+	path = implementations/score-sde-pytorch
+	url = https://github.com/yang-song/score_sde_pytorch.git
+
+[submodule "implementations/guided-diffusion"]
+	path = implementations/guided-diffusion
+	url = https://github.com/openai/guided-diffusion.git

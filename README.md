@@ -39,7 +39,7 @@ The repository includes cached DMC train/validation datasets for the chapter exp
 
 ## Reading order
 
-Start with the code map in [Chapter 3 README](ch03/README.md). For original method source, use the [upstream implementation manifest](implementations/README.md) and verify the method details against the primary paper before treating a repository as a faithful reproduction.
+Start with the code map in [Chapter 3 README](ch03/README.md). For original method source, use the [upstream implementation manifest](implementations/README.md) and verify the method details against the primary paper before treating a repository as a faithful reproduction. The collection includes commit-pinned CPC audio, Deep InfoMax, DDPM, score-SDE and guided-diffusion references; initialize them individually or with `bash implementations/clone-all.sh`.
 
 ## Re-run an experiment
 

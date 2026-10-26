@@ -76,13 +76,13 @@ Update one submodule deliberately, review its license and upstream changes, and 
 
 - Shared upstream repositories may contain multiple methods and dependencies; the method-specific source lives in the upstream subdirectory, not in a locally copied standalone implementation.
 - The V-JEPA 2 source includes the V-JEPA 2.1 release. LeJEPA/SIGReg has an official-source submodule. VISSL is a shared historical-method library, not a dedicated upstream for each method it implements. VISReg's public pointer redirects to a destination that was not accessible as a public repository during this audit; no code submodule is included.
-- No public author/team repository was verified in this pass for ALIGN or the original NNCLR and CPC papers. CMC and AMDIM now have their authors' published code repositories pinned, and VISSL supplies additional FAIR-maintained reference implementations for historical methods. These are intentionally not represented by an unofficial repository falsely labeled official.
+- No public author/team repository was verified in this pass for ALIGN or the original NNCLR paper. CPC Audio and Deep InfoMax now have author/team source repositories pinned; the original CPC paper and the later audio-transfer implementation are distinct references. CMC and AMDIM also have published code repositories pinned, while VISSL supplies FAIR-maintained reference implementations for historical methods. These are intentionally not represented by an unofficial repository falsely labeled official.
 - Initializing the whole collection clones substantial upstream history. Use `git submodule update --init implementations/<name>` to initialize one repository at a time.
 
 
 ## Checkout integrity audit — 2026-10-26
 
-The current parent tree contains 40 implementation submodule pointers, and all 40 paths have matching entries in .gitmodules. Every pinned commit was queried against its upstream GitHub repository during this audit; each commit resolves and points to a non-empty Git tree. This checks source-reference integrity, not whether every upstream can still train without dependency changes, whether every upstream folder contains a dedicated implementation rather than a shared multi-method library, or whether any paper result has been reproduced.
+The current parent tree contains 45 implementation submodule pointers, and all 45 paths have matching entries in .gitmodules. Every pinned commit was queried against its upstream GitHub repository during this audit; each commit resolves and points to a non-empty Git tree. This checks source-reference integrity, not whether every upstream can still train without dependency changes, whether every upstream folder contains a dedicated implementation rather than a shared multi-method library, or whether any paper result has been reproduced.
 
 MoCo is the documented exception to ordinary newest-commit pinning: its current upstream head points to an empty tree after a deletion commit, so the submodule stays pinned to its last code-bearing parent. The README and LICENSE in that upstream snapshot state conflicting license terms; do not redistribute MoCo source based on this audit alone.
 
@@ -93,3 +93,16 @@ bash implementations/clone-all.sh
 \`\`\`
 
 The script synchronizes submodule URLs and initializes all pinned checkouts recursively. It does not copy source files into the parent repository, alter upstream histories, fetch weights or datasets, or modify any code inside the submodules. On the GitHub web UI, a submodule is displayed as a commit-pinned link rather than an expanded copy of the upstream tree.
+
+
+## CPC and generative-model boundary repositories
+
+The following are pinned originals or author/team-maintained repositories. They are included for source study and boundary comparisons; their presence does not reclassify every generative objective as representation learning.
+
+| Family | Upstream repository | Pinned commit | Scope and warning |
+|---|---|---|---|
+| CPC audio | [facebookresearch/CPC_audio](https://github.com/facebookresearch/CPC_audio) | `b98a1bdf1fe9ea219816db7a6c28115d404a3510` | Archived MIT-licensed audio implementation linked to the later cross-language transfer study. Not a promise that its old audio dependencies run unchanged. |
+| Deep InfoMax | [rdevon/DIM](https://github.com/rdevon/DIM) | `bac4765a8126746675f517c7bfa1b04b88044d51` | Author-maintained; BSD-3-Clause. Includes JSD, NCE, DV and local/global representation objectives. README records sensitivity to historical PyTorch versions. |
+| DDPM | [hojonathanho/diffusion](https://github.com/hojonathanho/diffusion) | `1e0dceb3b3495bbe19116a5e1b3596cd0706c543` | Original authors' denoising diffusion implementation. GitHub does not expose an SPDX license for this repository; review its files and permissions before redistribution. TensorFlow 1.15/Python 3.5 and TPU/GCS assumptions are historical. |
+| Score-based SDE | [yang-song/score_sde_pytorch](https://github.com/yang-song/score_sde_pytorch) | `cb1f359f4aadf0ff9a5e122fe8fffc9451fd6e44` | Author-team source; Apache-2.0. Implements score-based generative modeling through SDEs. |
+| Guided diffusion | [openai/guided-diffusion](https://github.com/openai/guided-diffusion) | `22e0df8183507e13a7813f8d38d51b072ca1e67c` | OpenAI repository; MIT. Conditional/guided generative diffusion, not a substitute for a representation-learning benchmark. |
