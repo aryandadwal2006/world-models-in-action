@@ -140,10 +140,6 @@
 	path = implementations/lejepa
 	url = https://github.com/galilai-group/lejepa.git
 
-[submodule "implementations/visreg"]
-	path = implementations/visreg
-	url = https://github.com/HaiyuWu/visreg.git
-
 [submodule "implementations/eb-jepa"]
 	path = implementations/eb-jepa
 	url = https://github.com/facebookresearch/eb_jepa.git
