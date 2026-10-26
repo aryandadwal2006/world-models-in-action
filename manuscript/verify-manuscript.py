@@ -69,7 +69,8 @@ for number, line in enumerate(lines, start=1):
             while previous_index >= 0 and not lines[previous_index].strip():
                 previous_index -= 1
             previous = lines[previous_index] if previous_index >= 0 else ""
-            if not previous.startswith(expected) or "caption=" not in previous:
+            # The references heading is a bibliography boundary, not a numbered content section.
+            if text != "References" and (not previous.startswith(expected) or "caption=" not in previous):
                 errors.append(f"Missing Manning-style anchor for heading at line {number}: {text}")
             if line.endswith("."):
                 errors.append(f"Heading ends in a period at line {number}: {text}")
