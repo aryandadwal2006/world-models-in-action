@@ -89,3 +89,11 @@ This is the working citation register; the final AsciiDoc reference section shou
 - Ziegler, A. and Asano, Y. M. (2022). “Self-Supervised Learning of Object Parts for Semantic Segmentation.” https://arxiv.org/abs/2112.10582.
 - Yun, S. et al. (2022). “SelfPatch: Self-Supervised Path-Level Representation Learning for Local Features.” https://arxiv.org/abs/2112.01216.
 - Mur-Labadia, L. et al. (2026). “V-JEPA 2.1: Unlocking Dense Features in Video Self-Supervised Learning.” https://arxiv.org/abs/2603.14482.
+
+- Koohpayegani, S. A., Tejankar, A. and Pirsiavash, H. (2021). “Mean Shift for Self-Supervised Learning.” *IEEE/CVF International Conference on Computer Vision*. https://arxiv.org/abs/2105.07269; code: https://github.com/UMBCvision/MSF.
+- Yun, S., Lee, H., Kim, J. and Shin, J. (2022). “Patch-Level Representation Learning for Self-Supervised Vision Transformers.” *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. https://arxiv.org/abs/2206.07990.
+- Xie, Z. et al. (2022). “SimMIM: A Simple Framework for Masked Image Modeling.” https://arxiv.org/abs/2111.09886.
+- Wei, C. et al. (2022). “Masked Feature Prediction for Self-Supervised Visual Pre-Training.” https://arxiv.org/abs/2112.09133.
+- Peng, Z. et al. (2022). “BEiT v2: Masked Image Modeling with Vector-Quantized Visual Tokenizers.” https://arxiv.org/abs/2208.06366.
+- Poole, B. et al. (2019). “On Variational Bounds of Mutual Information.” *International Conference on Machine Learning*. https://proceedings.mlr.press/v97/poole19a.html.
+- Tschannen, M. et al. (2020). “On Mutual Information Maximization for Representation Learning.” *International Conference on Learning Representations*. https://arxiv.org/abs/1907.13625.

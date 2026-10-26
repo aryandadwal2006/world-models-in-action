@@ -34,7 +34,7 @@ Reference: Dwibedi et al. (2021), *With a Little Help from My Friends: Nearest-N
 
 ## 4. MeanShift, MSN and assignments
 
-MeanShift-related SSL methods organize features through local neighborhood-density/mean-shift ideas rather than only requiring each instance to discriminate itself from every other instance. Exact objectives vary by paper; the shared name is not enough to infer one canonical formula.
+Mean Shift for Self-Supervised Learning (Koohpayegani et al., 2021) shifts each embedding toward a mean of its neighbors' embeddings instead of using an explicit negative dictionary or adopting a strong prior on the number/shape of clusters. In the paper's setup the closest neighbor can be another augmentation of the same image; with one nearest neighbor the method reduces to a BYOL-like case. Its central target is a neighborhood mean, and the number/quality of neighbors controls the relation. Primary paper: https://arxiv.org/abs/2105.07269; official code: https://github.com/UMBCvision/MSF. Exact loss and implementation details should be checked there.
 
 Masked Siamese Networks (MSN) combine a masked input with prototype-based self-labeling and a Siamese/teacher-style target. It is an important overlapping category: masking defines context, assignment defines the target and teacher/student asymmetry defines target generation. MSN also studies distribution assumptions on unbalanced datasets.
 
@@ -72,7 +72,7 @@ Global image-level objectives need not preserve good local correspondences. Dens
 - **PixPro:** uses pixel-to-propagation consistency to learn local representations. Xie et al. (2021), https://arxiv.org/abs/2011.10043.
 - **VICRegL:** combines VICReg-style statistical objectives with local feature matching. Bardes et al. (2022), https://arxiv.org/abs/2210.01571.
 - **Leopart:** clusters patch-level features. Ziegler and Asano (2022), https://arxiv.org/abs/2112.10582.
-- **SelfPatch:** uses relationships between patches within images. Yun et al. (2022), https://arxiv.org/abs/2112.01216.
+- **SelfPatch:** uses relationships between patches within images. Yun et al. (2022), https://arxiv.org/abs/2206.07990.
 
 These methods introduce priors about correspondence and locality. Patch matching is uncertain when crops, occlusion or overlapping objects change which region corresponds to which; a good global embedding does not certify local geometry.
 
