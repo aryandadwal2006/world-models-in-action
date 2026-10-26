@@ -820,52 +820,83 @@ where latexmath:[\omega(t)] is the weighting used by the prescribed Epps-Pulley-
 
 The paper's recipe is designed not to require an EMA target encoder and stop-gradient target branch in the same way as BYOL/SimSiam. That is a different design, not evidence that earlier asymmetries are unnecessary for every task. The full JEPA predictor architecture is reserved for Chapter 4.
 
-**VISReg** separates scale, shape and center. Let latexmath:[Z\in\mathbb R^{B\times d}] be a batch of embeddings, with batch mean latexmath:[\mu=B^{-1}\sum_b z_b], centered matrix latexmath:[\widehat Z=Z-\mu], and per-coordinate standard deviations latexmath:[\sigma]. Its scale term is
+**VISReg** separates scale, shape and center. Keep two distinct meanings of *center* separate: the prediction target is the mean embedding of global views of the same source image; the regularizer's center term penalizes the minibatch mean for each view.
+
+In the source-inspected [reference implementation](https://github.com/galilai-group/stable-pretraining/blob/ab836bf699a2be712dfcf980a5eb70d36391e876/stable_pretraining/methods/visreg.py), the projected embeddings have shape \(Z\in\mathbb R^{V\times B\times d}\), with \(V\) views, minibatch size \(B\) and feature dimension \(d\). For each view \(v\), the batch mean and centered embeddings are
 
 [latexmath]
 ++++
-\mathcal L_{\mathrm{scale}}
-=\frac1d\sum_{j=1}^{d}(1-\sigma_j)^2.
-++++
-
-For shape regularization, centered features are normalized by a stop-gradient copy of the scale vector:
-
-[latexmath]
-++++
-\widetilde Z=\frac{\widehat Z}{\mathrm{sg}(\sigma)+\epsilon}.
-++++
-
-For random unit directions latexmath:[w_k], the projected samples are sorted and compared with the standard-normal quantiles latexmath:[q_B]:
-
-[latexmath]
-++++
-\mathcal L_{\mathrm{shape}}
-=\frac1K\sum_{k=1}^{K}
-\left\|\operatorname{sort}(\widetilde Z w_k)-q_B\right\|_2^2.
-++++
-
-The center penalty is
-
-[latexmath]
-++++
-\mathcal L_{\mathrm{center}}=\|\mu\|_2^2,
+\mu_{v,j}=\frac1B\sum_{b=1}^{B}z_{v,b,j},
 \qquad
-\mathcal L_{\mathrm{Reg}}=
-\mathcal L_{\mathrm{scale}}+
-\mathcal L_{\mathrm{shape}}+
-\mathcal L_{\mathrm{center}}.
+\widehat z_{v,b,j}=z_{v,b,j}-\mu_{v,j}.
 ++++
 
-The paper's JEPA objective combines this regularizer with the predictive term:
+The implementation's coordinate scale is the population standard deviation with a small numerical offset:
 
 [latexmath]
 ++++
-\mathcal L_{\mathrm{VISReg}}
-=(1-\lambda)\mathcal L_{\mathrm{pred}}
-+\lambda\mathcal L_{\mathrm{Reg}}.
+\sigma_{v,j}=
+\sqrt{\frac1B\sum_{b=1}^{B}\widehat z_{v,b,j}^{\,2}}+\epsilon.
 ++++
 
-The equations give the method's conceptual terms; batch reductions and normalization follow the cited version and reference code. SIGReg uses a characteristic-function discrepancy; VISReg uses sorted one-dimensional quantiles. The stop-gradient inside VISReg decouples scale and shape gradients; it is not a BYOL-style teacher path.
+Its scale term pulls those standard deviations toward one:
+
+[latexmath]
+++++
+\mathcal L_{\mathrm{scale}}=
+\frac1{Vd}\sum_{v=1}^{V}\sum_{j=1}^{d}
+(\sigma_{v,j}-1)^2.
+++++
+
+For the shape term, the centered features are normalized by a *detached* copy of the scale vector. The stop-gradient is applied to the denominator, and no second epsilon is added after that scale has already been stabilized:
+
+[latexmath]
+++++
+\widetilde z_{v,b,j}
+=\frac{\widehat z_{v,b,j}}{\operatorname{sg}(\sigma_{v,j})}.
+++++
+
+For each randomly sampled unit direction \(w_k\), project the normalized features and sort the \(B\) values. Let \(q_b=\Phi^{-1}(b/(B+1))\) be the corresponding standard-normal quantiles for \(b=1,\ldots,B\). The reference implementation averages the squared differences over views, projection directions and batch positions:
+
+[latexmath]
+++++
+\mathcal L_{\mathrm{shape}}=
+\frac1{VKB}\sum_{v=1}^{V}\sum_{k=1}^{K}
+\left\|\operatorname{sort}(\widetilde Z_v w_k)-q_{1:B}\right\|_2^2.
+++++
+
+The batch-center penalty is
+
+[latexmath]
+++++
+\mathcal L_{\mathrm{center}}=
+\frac1{Vd}\sum_{v=1}^{V}\|\mu_v\|_2^2.
+++++
+
+The complete regularizer keeps three explicit weights:
+
+[latexmath]
+++++
+\mathcal L_{\mathrm{Reg}}=
+\lambda_{\mathrm{scale}}\mathcal L_{\mathrm{scale}}
++\lambda_{\mathrm{shape}}\mathcal L_{\mathrm{shape}}
++\lambda_{\mathrm{center}}\mathcal L_{\mathrm{center}}.
+++++
+
+The full reference recipe also has a separate *view-invariance* term. For each source image \(b\), let \(c_b\) be the mean of its global-view projections. The model matches every global and local projection \(z_{v,b}\) to that same-image center:
+
+[latexmath]
+++++
+\mathcal L_{\mathrm{inv}}=
+\frac1{VBd}\sum_{v=1}^{V}\sum_{b=1}^{B}
+\|z_{v,b}-c_b\|_2^2,
+\qquad
+c_b=\frac1{V_g}\sum_{v\in\mathcal V_g}z_{v,b}.
+++++
+
+The training loss mixes this invariance term with the regularizer,
+\(\mathcal L=(1-\lambda_{\mathrm{mix}})\mathcal L_{\mathrm{inv}}+\lambda_{\mathrm{mix}}\mathcal L_{\mathrm{Reg}}\).
+Thus the *same-image global-view center* is the target for view consistency, whereas the *per-view minibatch mean* is penalized by \(\mathcal L_{\mathrm{center}}\). They are different operations. SIGReg instead uses a characteristic-function discrepancy; VISReg compares sorted projected samples with Gaussian quantiles. The stop-gradient here decouples scale and shape gradients; it is not a BYOL-style teacher pathway.
 
 The VISReg authors report stronger correction near collapse and favorable results on tested out-of-distribution, low-rank and long-tailed settings. These are reported findings, not guarantees for every optimizer or data distribution. Report batch size, projection count, objective weights, architecture and evaluation protocol when comparing these methods. See [LeJEPA](https://arxiv.org/abs/2511.08544) and [VISReg](https://arxiv.org/abs/2606.02572).
 

@@ -12,7 +12,7 @@ Three columns: moments, characteristic-function sketches and sorted projected di
 
 ## Required content
 
-VICReg: variance floor/off-diagonal covariance. SIGReg: random projections against a standard-normal characteristic function. LeJEPA: mean global-view embedding of the same instance plus SIGReg. VISReg: centering, explicit scale, stop-gradient scale normalization and sorted projections matched to Gaussian quantiles by sliced Wasserstein.
+VICReg: variance floor/off-diagonal covariance. SIGReg: random projections against a standard-normal characteristic function. LeJEPA: mean global-view embedding of the same instance plus SIGReg. VISReg: keep the same-image mean of global views (the view-invariance target) distinct from the per-view minibatch mean (the regularizer's center penalty); show scale, detached-scale normalization, and mean-squared sorted Gaussian quantile errors.
 
 ## Exclusions
 
