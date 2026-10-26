@@ -80,6 +80,10 @@ if len(figures) != 29:
     errors.append(f"Expected 29 figures; found {len(figures)}.")
 if len(tables) != 1:
     errors.append(f"Expected one synthesis table; found {len(tables)}.")
+if sum(line == "[.figure-placeholder%unbreakable]" for line in lines) != 29:
+    errors.append("All 29 figure placeholder boxes must be kept together across pages.")
+if 'options="header,unbreakable"' not in source:
+    errors.append("The synthesis table must stay together when it fits on one page.")
 if len(listings) != 2 or sum(line.startswith("[source,") for line in lines) != 2:
     errors.append(f"Expected two short source listings; found {len(listings)} anchors.")
 if re.search(r"^image::", source, flags=re.MULTILINE):

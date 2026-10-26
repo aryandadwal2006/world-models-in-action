@@ -125,14 +125,14 @@ The family map in figure 3.1 groups objectives by the signal they construct, rat
 
 [#ch3-figure-F01,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Self-supervised objectives grouped by their training signal
-[.figure-placeholder]
+[.figure-placeholder%unbreakable]
 ****
 **Artwork placeholder: Figure 3.1.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F01_Dadwal.md.
 ****
 
 [#ch3-figure-F02,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .The representation contract
-[.figure-placeholder]
+[.figure-placeholder%unbreakable]
 ****
 **Artwork placeholder: Figure 3.2.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F02_Dadwal.md.
 ****
@@ -142,7 +142,7 @@ The map is not a partition into disjoint categories. DINO uses teacher-student s
 
 [#ch3-figure-F03,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Augmentation defines the invariances rewarded by training
-[.figure-placeholder]
+[.figure-placeholder%unbreakable]
 ****
 **Artwork placeholder: Figure 3.3.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F03_Dadwal.md.
 ****
@@ -153,7 +153,7 @@ The map is not a partition into disjoint categories. DINO uses teacher-student s
 
 [#ch3-figure-F04,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Constructing positives and negatives
-[.figure-placeholder]
+[.figure-placeholder%unbreakable]
 ****
 **Artwork placeholder: Figure 3.4.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F04_Dadwal.md.
 ****
@@ -239,7 +239,7 @@ The InfoNCE schematic visualizes the anchor, candidate set, softmax distribution
 
 [#ch3-figure-F05,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .InfoNCE as candidate classification
-[.figure-placeholder]
+[.figure-placeholder%unbreakable]
 ****
 **Artwork placeholder: Figure 3.5.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F05_Dadwal.md.
 ****
@@ -247,7 +247,7 @@ The InfoNCE schematic visualizes the anchor, candidate set, softmax distribution
 
 [#ch3-figure-F06,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .How the InfoNCE gradient acts on candidate scores
-[.figure-placeholder]
+[.figure-placeholder%unbreakable]
 ****
 **Artwork placeholder: Figure 3.6.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F06_Dadwal.md.
 ****
@@ -331,7 +331,7 @@ Uniformity is not semantic correctness: features can spread out while encoding b
 
 [#ch3-figure-F07,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Alignment and uniformity are distinct geometric requirements
-[.figure-placeholder]
+[.figure-placeholder%unbreakable]
 ****
 **Artwork placeholder: Figure 3.7.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F07_Dadwal.md.
 ****
@@ -358,7 +358,7 @@ Energy-based learning is a general framework rather than a synonym for contrasti
 
 [#ch3-figure-F08,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .A contrastive score, an energy model and a diffusion process
-[.figure-placeholder]
+[.figure-placeholder%unbreakable]
 ****
 **Artwork placeholder: Figure 3.8.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F08_Dadwal.md.
 ****
@@ -403,14 +403,14 @@ Both methods remain sensitive to the definition of positive pairs and negatives.
 
 [#ch3-figure-F09,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .SimCLR's two-view encoder and projection head
-[.figure-placeholder]
+[.figure-placeholder%unbreakable]
 ****
 **Artwork placeholder: Figure 3.9.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F09_Dadwal.md.
 ****
 
 [#ch3-figure-F10,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Momentum contrast: query encoder, key encoder and queue
-[.figure-placeholder]
+[.figure-placeholder%unbreakable]
 ****
 **Artwork placeholder: Figure 3.10.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F10_Dadwal.md.
 ****
@@ -432,7 +432,7 @@ These methods all construct a discrimination problem, but their positive relatio
 
 [#ch3-figure-F11,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Historical contrastive objectives change the positive relation
-[.figure-placeholder]
+[.figure-placeholder%unbreakable]
 ****
 **Artwork placeholder: Figure 3.11.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F11_Dadwal.md.
 ****
@@ -446,7 +446,7 @@ A CPC future-latent retrieval score only shows that the correct future code can 
 
 [#ch3-figure-F12,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .CPC: causal context predicts future latent candidates
-[.figure-placeholder]
+[.figure-placeholder%unbreakable]
 ****
 **Artwork placeholder: Figure 3.12.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F12_Dadwal.md.
 ****
@@ -489,7 +489,7 @@ Effective rank remains a geometric diagnostic, not a semantic one. A high-rank r
 
 [#ch3-figure-F13,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Why agreement alone permits collapse
-[.figure-placeholder]
+[.figure-placeholder%unbreakable]
 ****
 **Artwork placeholder: Figure 3.13.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F13_Dadwal.md.
 ****
@@ -503,11 +503,11 @@ Let latexmath:[z_1=g_\phi(f_\theta(x_1))], latexmath:[p_1=q_\psi(z_1)], and late
 
 [latexmath]
 ++++
-D(p_1,\operatorname{sg}(\bar z_2))
+D(p_1,\mathrm{sg}(\bar z_2))
 =2-2\frac{p_1^\top\bar z_2}{\lVert p_1\rVert_2\lVert\bar z_2\rVert_2},
 ++++
 
-where latexmath:[\operatorname{sg}] denotes stop-gradient. A second term swaps the views. The online predictor is trained to match the target feature, while the target feature is treated as fixed for that gradient calculation.
+where latexmath:[\mathrm{sg}] denotes stop-gradient. A second term swaps the views. The online predictor is trained to match the target feature, while the target feature is treated as fixed for that gradient calculation.
 
 The target parameters change according to
 
@@ -526,8 +526,8 @@ For clarity, the two-view objective can be written
 [latexmath]
 ++++
 L_{\mathrm{BYOL}}=
-D(p_1,\operatorname{sg}(\bar z_2))
-+D(p_2,\operatorname{sg}(\bar z_1)).
+D(p_1,\mathrm{sg}(\bar z_2))
++D(p_2,\mathrm{sg}(\bar z_1)).
 ++++
 
 During a gradient step, the first term updates the online encoder, projector and predictor through latexmath:[p_1]; it does not update the target parameters through latexmath:[\bar z_2]. The second term reverses the roles of the views. After the gradient update, the EMA rule updates the target parameters. Thus two distinct operations occur: gradient descent optimizes the online network against a fixed target value for that step, and parameter averaging moves the target afterward.
@@ -541,8 +541,8 @@ SimSiam (Chen and He, 2021) uses the same encoder and projector for both views a
 [latexmath]
 ++++
 L_{\mathrm{SimSiam}}=
-D_{\mathrm{SimSiam}}(p_1,\operatorname{sg}(z_2))
-+D_{\mathrm{SimSiam}}(p_2,\operatorname{sg}(z_1)),
+D_{\mathrm{SimSiam}}(p_1,\mathrm{sg}(z_2))
++D_{\mathrm{SimSiam}}(p_2,\mathrm{sg}(z_1)),
 ++++
 
 where latexmath:[D_{\mathrm{SimSiam}}] is negative cosine similarity. The stop-gradient leaves a target's forward value unchanged but removes the gradient path through that target in the corresponding term. Because the loss is symmetric, each shared branch acts as predictor in one term and target in the other. BYOL instead maintains a separate target network whose parameters follow the EMA update.
@@ -557,7 +557,7 @@ D_{\mathrm{SimSiam}}(p,z)
 =-\frac{p^\top z}{\lVert p\rVert_2\lVert z\rVert_2}.
 ++++
 
-Minimizing this negative cosine similarity maximizes directional agreement without requiring the two vectors to have the same norm. In latexmath:[D(p_1,\operatorname{sg}(z_2))], the numerical value of latexmath:[z_2] still affects the loss, but its gradient path is removed. The shared encoder can nevertheless receive gradients through latexmath:[z_2] when that representation appears as the predictor-side output in the opposite term. Stop-gradient is applied to a particular *role* of the representation in each term, not as a permanent property of the tensor.
+Minimizing this negative cosine similarity maximizes directional agreement without requiring the two vectors to have the same norm. In latexmath:[D(p_1,\mathrm{sg}(z_2))], the numerical value of latexmath:[z_2] still affects the loss, but its gradient path is removed. The shared encoder can nevertheless receive gradients through latexmath:[z_2] when that representation appears as the predictor-side output in the opposite term. Stop-gradient is applied to a particular *role* of the representation in each term, not as a permanent property of the tensor.
 
 This distinction matters when interpreting a computational graph. “The target branch has no gradient” is accurate for a single detached target path; it would be inaccurate to say that the shared encoder receives no gradient from the second view across the full symmetric loss. The symmetry of the loss and the asymmetry of each gradient path coexist.
 
@@ -569,7 +569,7 @@ The predictor makes the two sides of the training relation structurally asymmetr
 
 [#ch3-figure-F14,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .BYOL and SimSiam: similar predictors, different target updates
-[.figure-placeholder]
+[.figure-placeholder%unbreakable]
 ****
 **Artwork placeholder: Figure 3.14.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F14_Dadwal.md.
 ****
@@ -619,7 +619,7 @@ DINOv3 retains related distillation machinery and adds large-scale data, archite
 
 [#ch3-figure-F15,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .DINO teacher-student cross-view distillation
-[.figure-placeholder]
+[.figure-placeholder%unbreakable]
 ****
 **Artwork placeholder: Figure 3.15.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F15_Dadwal.md.
 ****
@@ -673,7 +673,7 @@ The coefficient latexmath:[\lambda] controls the penalty for off-diagonal correl
 
 [#ch3-figure-F16,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Barlow Twins: the cross-correlation matrix
-[.figure-placeholder]
+[.figure-placeholder%unbreakable]
 ****
 **Artwork placeholder: Figure 3.16.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F16_Dadwal.md.
 ****
@@ -766,14 +766,14 @@ The official implementation uses view agreement, a standard-deviation hinge with
 
 [#ch3-figure-F17,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .VICReg separates agreement, variance and covariance
-[.figure-placeholder]
+[.figure-placeholder%unbreakable]
 ****
 **Artwork placeholder: Figure 3.17.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F17_Dadwal.md.
 ****
 
 [#ch3-figure-F18,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Core non-contrastive mechanisms at a glance
-[.figure-placeholder]
+[.figure-placeholder%unbreakable]
 ****
 **Artwork placeholder: Figure 3.18.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F18_Dadwal.md.
 ****
@@ -832,7 +832,7 @@ For shape regularization, centered features are normalized by a stop-gradient co
 
 [latexmath]
 ++++
-\widetilde Z=\frac{\widehat Z}{\operatorname{sg}(\sigma)+\epsilon}.
+\widetilde Z=\frac{\widehat Z}{\mathrm{sg}(\sigma)+\epsilon}.
 ++++
 
 For random unit directions latexmath:[w_k], the projected samples are sorted and compared with the standard-normal quantiles latexmath:[q_B]:
@@ -871,7 +871,7 @@ The VISReg authors report stronger correction near collapse and favorable result
 
 [#ch3-figure-F19,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .VICReg, SIGReg/LeJEPA and VISReg constrain different aspects of feature distributions
-[.figure-placeholder]
+[.figure-placeholder%unbreakable]
 ****
 **Artwork placeholder: Figure 3.19.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F19_Dadwal.md.
 ****
@@ -891,7 +891,7 @@ Table 3.1 compares the signal each method constructs and the limitation that rem
 
 [#ch3-table-T01,reftext={chapter}.{counter:table},caption='{table-caption}.{counter:table-number} ']
 .Self-supervised objectives compared by the signal they construct
-[width="100%",cols="21%,43%,36%",options="header"]
+[width="100%",cols="21%,43%,36%",options="header,unbreakable"]
 |===
 |Method family |What the objective enforces |What it does not guarantee
 |SimCLR / MoCo |Identify a positive among sampled candidates |Negatives may be semantically related; features depend on candidate construction
@@ -906,14 +906,14 @@ Table 3.1 compares the signal each method constructs and the limitation that rem
 
 [#ch3-figure-F20,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .DeepCluster and SwAV: pseudo-labels and prototypes
-[.figure-placeholder]
+[.figure-placeholder%unbreakable]
 ****
 **Artwork placeholder: Figure 3.20.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F20_Dadwal.md.
 ****
 
 [#ch3-figure-F21,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Different modalities create different self-supervised targets
-[.figure-placeholder]
+[.figure-placeholder%unbreakable]
 ****
 **Artwork placeholder: Figure 3.21.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F21_Dadwal.md.
 ****
@@ -950,7 +950,7 @@ to minimize a target-feature error such as
 ++++
 \mathcal L_{\mathrm{pred}}
 =\frac{1}{|Y|d}\sum_{r\in Y}
-\|\widehat h_r-\operatorname{sg}(h_r)\|_2^2.
+\|\widehat h_r-\mathrm{sg}(h_r)\|_2^2.
 ++++
 
 Here sg denotes the stop-gradient operator. Particular papers use different norms, normalization, layer targets, reductions and mask protocols; these are method-defining details.
@@ -969,7 +969,7 @@ Chapter 4 develops JEPA architecture and predictive representations in detail. H
 
 [#ch3-figure-F22,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .The JEPA context-target prediction architecture
-[.figure-placeholder]
+[.figure-placeholder%unbreakable]
 ****
 **Artwork placeholder: Figure 3.22.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F22_Dadwal.md.
 ****
@@ -1008,7 +1008,7 @@ The target-space schematic holds the mask fixed and changes only the prediction 
 
 [#ch3-figure-F23,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .One visible context, several masked-prediction targets
-[.figure-placeholder]
+[.figure-placeholder%unbreakable]
 ****
 **Artwork placeholder: Figure 3.23.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F23_Dadwal.md.
 ****
@@ -1038,7 +1038,7 @@ The architecture in xref:ch3-figure-F24[] shows why the MAE encoder sees only vi
 
 [#ch3-figure-F24,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .MAE's visible-only encoder and masked-patch decoder
-[.figure-placeholder]
+[.figure-placeholder%unbreakable]
 ****
 **Artwork placeholder: Figure 3.24.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F24_Dadwal.md.
 ****
@@ -1077,7 +1077,7 @@ BERT-style masked language modeling predicts selected corrupted tokens from bidi
 
 [#ch3-figure-F25,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Discrete tokens and teacher features are different masked targets
-[.figure-placeholder]
+[.figure-placeholder%unbreakable]
 ****
 **Artwork placeholder: Figure 3.25.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F25_Dadwal.md.
 ****
@@ -1115,7 +1115,7 @@ The schematic below contrasts the masked-target contract with diffusion's noise-
 
 [#ch3-figure-F26,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Masked prediction and diffusion learn different conditional tasks
-[.figure-placeholder]
+[.figure-placeholder%unbreakable]
 ****
 **Artwork placeholder: Figure 3.26.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F26_Dadwal.md.
 ****
@@ -1125,7 +1125,7 @@ The schematic below contrasts the masked-target contract with diffusion's noise-
 
 [#ch3-figure-F27,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .The projection head, global vector and local feature grid
-[.figure-placeholder]
+[.figure-placeholder%unbreakable]
 ****
 **Artwork placeholder: Figure 3.27.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F27_Dadwal.md.
 ****
@@ -1209,7 +1209,7 @@ Here, *compact* means constrained and usable by downstream prediction, not neces
 
 [#ch3-figure-F28,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Aliasing is a failure of predictive sufficiency
-[.figure-placeholder]
+[.figure-placeholder%unbreakable]
 ****
 **Artwork placeholder: Figure 3.28.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F28_Dadwal.md.
 ****
@@ -1255,7 +1255,7 @@ The practical evaluation should therefore state the claim being tested. A probe 
 
 [#ch3-figure-F29,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .An encoder can provide a vector, spatial tokens or temporal context
-[.figure-placeholder]
+[.figure-placeholder%unbreakable]
 ****
 **Artwork placeholder: Figure 3.29.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F29_Dadwal.md.
 ****
