@@ -742,8 +742,6 @@ The methods are related but not identical. Barlow Twins uses normalized cross-co
 
 A simple two-coordinate example makes the distinction concrete. If both coordinates are copies of the same varying scalar, their variances may exceed the margin, so the variance term is satisfied; however, their covariance is high and the covariance term penalizes them. If the second coordinate is constant, its covariance with the first may be zero, but its standard deviation is below the margin and the variance term penalizes it. Only a feature batch with adequate spread and sufficiently low linear redundancy can make both statistical penalties small. The remaining variation can still describe the wrong thing, so a separate task-based evaluation is necessary.
 
-The synthesis schematic compares these mechanisms without implying that they were trained under a common recipe or that the diagram ranks them.
-
 [#ch3-listing-vicreg,reftext={chapter}.{counter:listing},caption='{listing-caption}.{counter:listing-number} ']
 .Three VICReg terms in the official PyTorch implementation (source excerpt)
 [source,python]
@@ -777,6 +775,8 @@ Long expressions are wrapped to fit the book's listing width without changing th
 ****
 **Artwork placeholder: Figure 3.17.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F17_Dadwal.md.
 ****
+
+The synthesis schematic compares these mechanisms without implying that they were trained under a common recipe or that the diagram ranks them.
 
 [#ch3-figure-F18,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Core non-contrastive mechanisms at a glance
