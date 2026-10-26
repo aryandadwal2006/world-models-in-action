@@ -51,7 +51,7 @@ Update one submodule deliberately, review its license and upstream changes, and 
 | PixPro | [zdaxie/PixPro](https://github.com/zdaxie/PixPro) | `e390d6b60bcb017ed7ea7fd7e6647d14c5da86cc` | PixPro source; `implementations/pixpro/` |
 | Leopart | [MkUuWaUjinga/leopart](https://github.com/MkUuWaUjinga/leopart) | `7835701338d477c70d581c0a10e594257dcac198` | Leopart source; `implementations/leopart/` |
 | SelfPatch | [alinlab/SelfPatch](https://github.com/alinlab/SelfPatch) | `81aef149fa984a32bdbb2cf5a98aa0e072591535` | SelfPatch source; `implementations/selfpatch/` |
-| LeJEPA / SIGReg | [galilai-group/lejepa](https://github.com/galilai-group/lejepa) | `c293d291ca87cd4fddee9d3fffe4e914c7272052` | LeJEPA / SIGReg source; `implementations/lejepa/` |
+| LeJEPA / SIGReg | [galilai-group/lejepa](https://github.com/galilai-group/lejepa) | `c293d291ca87cd4fddee9d3fffe4e914c7272052` | Paper-linked repository redirects here; pinned `LICENSE` is CC BY-NC 4.0. Review non-commercial and attribution terms before use or redistribution. |
 
 | EB-JEPA | [facebookresearch/eb_jepa](https://github.com/facebookresearch/eb_jepa) | `966e61e9285b3a876f49b9774e9720d9a99a7925` | EB-JEPA source; `implementations/eb-jepa/` |
 | CMC | [HobbitLong/CMC](https://github.com/HobbitLong/CMC) | `7b227be0b10ef4e526c72af07664f5079ed9ee09` | Author-published implementation of Contrastive Multiview Coding; `implementations/cmc/`. The same repository also contains MoCo/InsDis code, but its README labels those implementations unofficial. |
@@ -75,7 +75,7 @@ Update one submodule deliberately, review its license and upstream changes, and 
 ## Coverage notes added for the expanded collection
 
 - Shared upstream repositories may contain multiple methods and dependencies; the method-specific source lives in the upstream subdirectory, not in a locally copied standalone implementation.
-- The V-JEPA 2 source includes the V-JEPA 2.1 release. LeJEPA/SIGReg has an official-source submodule. VISSL is a shared historical-method library, not a dedicated upstream for each method it implements. VISReg's public pointer redirects to a destination that was not accessible as a public repository during this audit; no code submodule is included.
+- The V-JEPA 2 source includes the V-JEPA 2.1 release. The LeJEPA paper-linked repository redirects to `galilai-group/lejepa`; the pinned source license is CC BY-NC 4.0, not a blanket permissive license. VISSL is a shared historical-method library, not a dedicated upstream for each method it implements. VISReg's author-linked GitHub pointer leads to `altos-labs/visreg`, which was not accessible as a public repository during this audit; no code submodule is included, and paper-level claims should not be described as code-verified.
 - No public author/team repository was verified in this pass for ALIGN or the original NNCLR paper. CPC Audio and Deep InfoMax now have author/team source repositories pinned; the original CPC paper and the later audio-transfer implementation are distinct references. CMC and AMDIM also have published code repositories pinned, while VISSL supplies FAIR-maintained reference implementations for historical methods. These are intentionally not represented by an unofficial repository falsely labeled official.
 - Initializing the whole collection clones substantial upstream history. Use `git submodule update --init implementations/<name>` to initialize one repository at a time.
 
