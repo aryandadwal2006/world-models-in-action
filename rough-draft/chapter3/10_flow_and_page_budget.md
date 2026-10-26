@@ -1,57 +1,85 @@
-# Proposed reader-facing flow and page budget
+# Chapter 3 reader-facing flow and page budget
 
 ## Editorial decision
 
-Do not make the current chapter a sequence of empirical probes with small method descriptions attached. Keep the implementation and the evidence as support, not the spine. The spine is conceptual: each family solves a difficulty exposed by the preceding objective.
+The chapter is a foundations chapter for the world-model book, not a general survey of all self-supervised learning. Preserve the book TOC and make each section prepare the next:
 
-## Proposed narrative sequence
+1. Self-supervised objectives construct different training targets.
+2. Contrastive learning is derived in enough detail to understand its mechanics.
+3. Masked prediction changes the target and the information available as context.
+4. A latent bottleneck determines which representation reaches the later model.
+5. A compact state must preserve distinctions needed for prediction.
+6. A small encoder implementation makes the objectives executable without pretending to reproduce paper-scale results.
 
-### Opening: why representation learning is a choice (3 pages)
-Begin with two images of the same physical scene where one is cropped, one is color-shifted, or time changes the state. Ask which changes should be ignored and which must be retained. Establish the state-representation contract without repeating all of Chapter 2. Explain that objective design is a formal choice about what input relation becomes easy.
+## Revised page target
 
-### Section 3.1: build a map of objective families (3 pages)
-Present a single taxonomy figure. Distinguish views, candidate discrimination, teacher prediction, feature statistics, prototypes and masked targets. Use historical pretext tasks only to explain target construction, not as an encyclopedia.
+**Target: 45–50 finished book pages.** This estimate assumes that the 20 planned architecture/working diagrams are eventually drawn and placed. The current manuscript contains descriptions, not images; it should not be treated as a final paginated PDF yet.
 
-### Section 3.2: derive contrastive learning (7–8 pages)
-Define positive/negative samples; derive softmax cross-entropy and InfoNCE; derive the gradient; discuss temperature, false negatives, batch size, augmentation and the conditional MI-bound interpretation with assumptions and ceiling. SimCLR is the main instantiation; MoCo is the architectural response to dictionary size; CPC is a short lineage note. One tiny numerical experiment supports the derivation.
+| TOC section | Target pages | Scope |
+|---|---:|---|
+| 3.1 Self-supervised learning foundations | 14 | Objective contract; intuitive BYOL, SimSiam, Barlow Twins, VICReg and DINO family explanations; only short mentions of DeepCluster, SwAV, CLIP, BERT/GPT and speech SSL |
+| 3.2 Contrastive learning | 8 | InfoNCE/NT-Xent derivation, gradient, temperature, false negatives, candidate count, SimCLR, MoCo, short CPC bridge |
+| 3.3 Masked prediction | 5 | General mask/context/target contract; MAE as main method; BEiT, iBOT and data2vec as target-space alternatives; BERT/GPT only as brief analogies |
+| 3.4 Latent bottlenecks | 4 | Projection head vs encoder output; global vector vs patch grid; compression and information loss |
+| 3.5 Compact state representations | 5 | State-relevant invariances, aliasing, probes, temporal consistency, action conditioning and evidence limits |
+| 3.6 Building a simple latent encoder | 4 | Two implementations only: verify InfoNCE mechanics, then build/run the compact MAE-style masked predictor; official source repositories for canonical recipes |
+| Summary, exercises and references | 5 | Derivation and reasoning exercises, concise synthesis, cited papers and repository pointers |
+| **Total target** | **45** | Allow adjustment within the 45–50-page range after figure layout and Manning-template pagination |
 
-### Section 3.3: learn without explicit negatives (5 pages)
-Move to BYOL and SimSiam; show target branch / predictor / stop-gradient; explain collapse as fixed point versus observed training dynamics. Then DINO shows student-teacher distributions and prototype outputs. DINOv2/v3 are a scale/data/frontier note, not extra algorithms to derive line by line.
+Do not pad the chapter with result plots or extra methods to meet the target. The designed diagrams, method explanations, equations, tables, sidebars, listings and exercises should earn the space.
 
-### Section 3.4: constrain statistics directly (4 pages)
-Derive Barlow's cross-correlation target and VICReg's invariance/variance/covariance decomposition. One compact equation comparison table. Second tiny demonstration compares constant embeddings under invariance-only, Barlow-style and VICReg-style constraints.
+## Selection decisions
 
-### Section 3.5: prototypes and pseudo-labels (2–3 pages)
-DeepCluster explains offline clustering; SwAV explains online cross-view assignment and balancing. DINO is referenced as overlapping family, not taught twice.
+### Explain intuitively in the foundations section
 
-### Section 3.6: mask the input, choose the target (5 pages)
-Start with a general masked prediction equation. Contrast BERT/GPT context restriction briefly; MAE pixel targets; BEiT discrete tokens; iBOT teacher patch targets; ELECTRA and data2vec as short sidebars. A target-space figure should carry most of the comparison.
+- **BYOL:** online encoder/projector/predictor, detached target, EMA target update and why the update path matters.
+- **SimSiam:** shared encoder, predictor and stop-gradient; explain why its update path differs from BYOL.
+- **Barlow Twins:** diagonal cross-view alignment and off-diagonal redundancy reduction in the batch cross-correlation matrix.
+- **VICReg:** invariance, variance floor and covariance penalty; distinguish constant-feature prevention from semantic usefulness.
+- **DINO:** teacher/student probability distributions, prototypes, centering, sharpening and multi-crop prediction.
+- **DINOv2/DINOv3:** explain the broader training systems and the emphasis on patch/dense features, without claiming their reported differences isolate one loss change.
 
-### Section 3.7: one framework, multiple modalities (2–3 pages)
-CLIP/SigLIP and speech SSL examples. No independent deep dives: table compares source of positive pairs, target representation, loss family and limitation.
+These are intuition-and-mechanism treatments, not five extra implementations or independent empirical surveys.
 
-### Section 3.8: frontier and boundary (2 pages)
-DINOv3 for dense features and scaling; compact JEPA note as the handoff to the next conceptual stage; distinguish passive pretraining from action-conditioned systems. One paragraph excludes diffusion/flow matching as generative objectives treated elsewhere in the book.
+### Mention briefly
 
-### Section 3.9: objective selection as an audit (2 pages)
-A table maps objective family to required data structure, main technical burden, likely failure and what evidence is needed. Include a world-model-specific checklist: velocity/occlusion, actions, state sufficiency, dynamic consistency, feature transfer.
+- **DeepCluster:** offline clustering creates pseudo-labels, then the encoder predicts them.
+- **SwAV:** online balanced prototype assignments are predicted across views.
+- **CLIP/SigLIP:** image-text pairing, with one short note on softmax versus sigmoid loss.
+- **BERT/GPT:** masked-token versus causal next-token targets, solely as a concise illustration of context choice.
+- **Speech SSL:** wav2vec 2.0, HuBERT and data2vec as examples of quantized, cluster-derived and teacher-feature targets.
+- **CPC:** a short historical bridge to temporal discrimination, with an explicit warning that future-latent retrieval is not action-conditioned rollout.
+- **JEPA family:** hand off the detailed derivation and named variants to Chapter 4.
+- **VAE/GAN/autoregressive generation/diffusion:** leave substantive treatment to Chapters 8–9.
 
-### Summary / exercises / references (3–4 pages)
-Exercises require derivations and reasoning more than multi-hour experiments. Give solutions or selected derivations in the appendix. References cover seminal and frontier papers while directing readers to official implementations.
+## Two implementation exercises
 
-## Target length
+1. **InfoNCE verification.** Use the loop-based reference and vectorized objective to compare loss and gradients. State candidate convention and sampling assumptions. Do not turn a nominal InfoNCE quantity into an unconditional mutual-information claim.
+2. **Compact MAE-style masked predictor.** Use the local educational runner/module to illustrate patchification, random masking, visible-only encoding, mask-token restoration, decoder prediction and masked-only loss. Compare the architecture to the official MAE repository. Explicitly label the local model as reduced-scale and non-reproduction.
 
-A first composed theoretical draft should aim for roughly 32–38 pages, then be trimmed only after the argument works. Do not use experiments to inflate the chapter. If it naturally remains longer because a derivation needs space, prioritize explanatory completeness over a hard page count. The unbounded dossier is the place for method-by-method depth; the reader-facing chapter should preserve a coherent flow rather than every detail.
+Use the official upstream submodules as the source of truth for paper architecture, update rules, training recipe, and version-specific settings. A source inspection or pinned repository is not evidence that the original paper's results were reproduced. Existing collapse/BYOL/SimSiam/Barlow/VICReg experiments can support a short mathematical note or editorial verification, not extra training tutorials or a method-ranking figure.
+
+## Figure policy
+
+Exactly 20 figure briefs are placed in the composed AsciiDoc manuscript. They are **descriptions only** at this stage. No image is generated, no external figure is pasted, and no experiment/data-analysis chart is planned as a chapter figure. The figure briefs cite the primary paper/repository to consult and specify an original teaching schematic that should be drawn later.
+
+- Figures 1–9: learning-signal map and core mechanism diagrams in Section 3.1.
+- Figures 10–12: SimCLR, InfoNCE gradient and MoCo in Section 3.2.
+- Figures 13–15: masked target spaces, MAE architecture and target variants in Section 3.3.
+- Figures 16–17: projection vs exported feature and global vector vs patch grid in Section 3.4.
+- Figures 18–19: state aliasing and the world-model evidence audit in Section 3.5.
+- Figure 20: implementation/evaluation path in Section 3.6.
+
+All final diagrams should work in grayscale and use line style/shape/labels rather than color alone. Avoid gradients, 3D, screenshots and architecture-name collages. A figure must explain a mechanism, not decorate a section.
 
 ## Editorial guardrails
 
-- Open each method section with the question it answers.
-- Put the full objective before naming it a solution.
-- Define target, context and update rule at first use.
-- Separate claims by original authors, observations from released implementations, and our conceptual synthesis.
-- Each figure must teach a mechanism; do not use architecture name collages.
-- Do not reuse the current empirical plots as visual filler.
-- Keep one consistent notation across all methods.
-- Keep CPC to a short historical bridge.
-- No universal rankings across heterogeneous papers.
-- Every frontier claim receives a paper citation and an as-of date.
+- Keep the TOC's seven substantive sections and avoid renaming or front-loading Chapter 4's JEPA material.
+- Every method explanation starts with the target and update rule, then gives intuition and limitation.
+- Separate the paper's claim, what the released source code does, what the local experiment verifies, and editorial synthesis.
+- Keep one notation for \(x\), \(h\), \(z\), target encoder, batch and loss reductions.
+- Check equation tags after any section reordering.
+- In particular, distinguish the original VICReg per-example squared-vector-norm reduction from an educational elementwise MSE reduction; coefficients are not interchangeable without rescaling.
+- State the output tensor used by downstream probes; pretraining loss on a projection \(z\) is not automatically an evaluation of encoder feature \(h\).
+- Do not claim state sufficiency, action grounding, long-horizon rollout or planning utility from a self-supervised loss or a linear probe alone.
+- Complete the primary-paper/source citation and AsciiDoc-to-PDF pagination audit before release.
