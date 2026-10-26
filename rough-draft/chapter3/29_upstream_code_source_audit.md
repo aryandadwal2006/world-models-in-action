@@ -160,3 +160,38 @@ The following pinned source paths were added after the earlier local/speech/mult
 - Method configurations: [npid](https://github.com/facebookresearch/vissl/tree/09270ed25a6c2cf71263d955b64cbe076d34ac45/configs/config/pretrain/npid), [pirl](https://github.com/facebookresearch/vissl/tree/09270ed25a6c2cf71263d955b64cbe076d34ac45/configs/config/pretrain/pirl), [jigsaw](https://github.com/facebookresearch/vissl/tree/09270ed25a6c2cf71263d955b64cbe076d34ac45/configs/config/pretrain/jigsaw), [simclr](https://github.com/facebookresearch/vissl/tree/09270ed25a6c2cf71263d955b64cbe076d34ac45/configs/config/pretrain/simclr) and [swav](https://github.com/facebookresearch/vissl/tree/09270ed25a6c2cf71263d955b64cbe076d34ac45/configs/config/pretrain/swav).
 - Representative loss implementations: [nce_loss.py](https://github.com/facebookresearch/vissl/blob/09270ed25a6c2cf71263d955b64cbe076d34ac45/vissl/losses/nce_loss.py), [simclr_info_nce_loss.py](https://github.com/facebookresearch/vissl/blob/09270ed25a6c2cf71263d955b64cbe076d34ac45/vissl/losses/simclr_info_nce_loss.py), [swav_loss.py](https://github.com/facebookresearch/vissl/blob/09270ed25a6c2cf71263d955b64cbe076d34ac45/vissl/losses/swav_loss.py) and [barlow_twins_loss.py](https://github.com/facebookresearch/vissl/blob/09270ed25a6c2cf71263d955b64cbe076d34ac45/vissl/losses/barlow_twins_loss.py).
 - Scope: VISSL is a shared research library, not a dedicated repository for every method it contains. Match the config, code path and paper version before claiming a reproduction.
+
+
+## 8. Additional exact source paths checked
+
+These immutable URLs locate upstream source; the book repository does not copy or rewrite those implementations.
+
+- **SimCLR**, revision 383d4143fd8cf7879ae10f1046a9baeb753ff438:
+  - Objective: https://github.com/google-research/simclr/blob/383d4143fd8cf7879ae10f1046a9baeb753ff438/objective.py
+  - Pretraining call site: https://github.com/google-research/simclr/blob/383d4143fd8cf7879ae10f1046a9baeb753ff438/model.py
+  - Verified: two-view split, optional normalization, self-logit mask, cross-view positives, two directional losses and replica gathering.
+
+- **MoCo**, revision 132aea9da9bb995a411c915c0420be3db62052f3:
+  - Builder: https://github.com/facebookresearch/moco/blob/132aea9da9bb995a411c915c0420be3db62052f3/moco/builder.py
+  - Trainer: https://github.com/facebookresearch/moco/blob/132aea9da9bb995a411c915c0420be3db62052f3/main_moco.py
+  - Upstream successor 8976944da9c6b94cbd9158d7ebe50912aef807ef deletes the source tree. The gitlink is pinned to the last code-bearing parent. README and LICENSE conflict on license terms.
+
+- **BYOL**, revision f5de0ede8430809180254ee957abf36ed62579ef:
+  - Loss/update loop: https://github.com/google-deepmind/deepmind-research/blob/f5de0ede8430809180254ee957abf36ed62579ef/byol/byol_experiment.py
+  - Schedules: https://github.com/google-deepmind/deepmind-research/blob/f5de0ede8430809180254ee957abf36ed62579ef/byol/utils/schedules.py
+  - Verified: symmetric target-stop-gradient regression, online update before parameter EMA, and separate mutable target state.
+
+- **SimSiam**, revision a7bc1772896d0dad0806c51f0bb6f3b16d290468:
+  - Builder: https://github.com/facebookresearch/simsiam/blob/a7bc1772896d0dad0806c51f0bb6f3b16d290468/simsiam/builder.py
+  - Trainer: https://github.com/facebookresearch/simsiam/blob/a7bc1772896d0dad0806c51f0bb6f3b16d290468/main_simsiam.py
+  - Verified: projector/predictor BatchNorm structure, detached targets and two-way negative cosine objective.
+
+- **Barlow Twins**, revision 8e8d284ca0bc02f88b92328e53f9b901e86b4a3c:
+  - Loss: https://github.com/facebookresearch/barlowtwins/blob/8e8d284ca0bc02f88b92328e53f9b901e86b4a3c/main.py
+  - Verified: affine-free standardization, cross-device correlation reduction and sum reductions.
+
+- **VICReg**, revision 4e12602fd495af83efd1631fbe82523e6db092e0:
+  - Loss: https://github.com/facebookresearch/vicreg/blob/4e12602fd495af83efd1631fbe82523e6db092e0/main_vicreg.py
+  - Verified: local representation MSE, gathered centered statistics, variance epsilon, covariance denominator and feature-dimension reduction.
+
+These checks do not imply that the methods executed in this repository or that published results were reproduced.

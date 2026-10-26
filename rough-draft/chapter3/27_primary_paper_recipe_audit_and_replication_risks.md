@@ -317,13 +317,13 @@ Do not use one probe to stand in for the whole representation. A linear probe te
 
 | Family | Conceptual objective recorded | Exact-source checks still required |
 |---|---|---|
-| SimCLR | Yes | source/code batch convention, normalization, exact reductions, recipe config |
-| MoCo v1/v2/v3 | Yes | queue and key update order; v2/v3 architecture/optimizer differences |
-| BYOL | Yes | target buffer behavior, EMA schedule/order, exact normalizations |
-| SimSiam | Yes | batch-normalization placement and original implementation details |
+| SimCLR | Core objective verified at pinned official objective.py | Two-view packing, optional L2 normalization, same-view self-mask, cross-view positives, two-direction loss sum and cross-replica gathering verified; exact run config/temperature and experimental recipe remain separate checks |
+| MoCo v1/v2/v3 | Core MoCo v1/v2 model verified at last code-bearing upstream revision | Query/key paths, queue logits, key EMA ordering, batch shuffle/unshuffle, temperature scaling and queue update order verified; upstream README and LICENSE conflict, so redistribution status needs legal review; v3 remains to be audited separately |
+| BYOL | Core stop-gradient regression and target-parameter EMA verified | Two cross-view regression directions; target parameter EMA follows the online optimizer update; mutable target state is separate from parameter EMA; exact experiment schedule and normalization settings still need a run-level record |
+| SimSiam | Core predictor, stop-gradient and loss verified | Official builder shows predictor MLP and detached target outputs; training script averages two negative-cosine directions; BatchNorm placements verified for this pinned implementation |
 | DINO/iBOT | Partial/schematic | view-pairing rules, centers, schedules, separate class/patch losses |
-| Barlow Twins | Yes | standardization and correlation computation, coefficient/reduction |
-| VICReg | Partial/schematic | exact covariance, epsilon, feature-count and loss reductions |
+| Barlow Twins | Core correlation loss and reductions verified | Non-affine BatchNorm, cross-device cross-correlation aggregation, diagonal squared error plus lambda-weighted off-diagonal squared sum verified; defaults recorded below |
+| VICReg | Core loss and reductions verified at pinned official main_vicreg.py | Local paired-view MSE plus globally gathered centered statistics; variance uses sqrt(var + 1e-4); covariance uses batch_size minus one and off-diagonal squared sums divided by feature dimension; defaults recorded below |
 | MAE | Yes | target normalization option, masking distribution and loss scaling |
 | CLIP | Yes | learned scale behavior, distributed negatives, exact symmetric CE reduction |
 | SigLIP | Schematic | exact bias/scale, sample weights, loss normalization and batch scheme |
@@ -346,3 +346,93 @@ Do not use one probe to stand in for the whole representation. A linear probe te
 - V-JEPA 2.1: Mur-Labadia et al. (2026), https://arxiv.org/abs/2603.14482.
 
 The surrounding dossier retains source hierarchy, theoretical derivations, and supplementary-method coverage. This file is an implementation audit ledger and should remain separate from the reader-facing prose until the equations and chosen implementation conventions have been checked against the primary sources.
+
+
+## 11. Pinned-code findings verified against original implementations
+
+These findings are source inspections, not executed reproductions. Code settles implementation questions such as gradient boundaries, normalization, reduction denominators and update order; it does not prove that a published experiment has been reproduced.
+
+### SimCLR
+
+Pinned repository: google-research/simclr, revision 383d4143fd8cf7879ae10f1046a9baeb753ff438.
+
+- Objective: https://github.com/google-research/simclr/blob/383d4143fd8cf7879ae10f1046a9baeb753ff438/objective.py
+- Call site: https://github.com/google-research/simclr/blob/383d4143fd8cf7879ae10f1046a9baeb753ff438/model.py
+- Projection and schedule utilities: https://github.com/google-research/simclr/blob/383d4143fd8cf7879ae10f1046a9baeb753ff438/model_util.py
+
+The objective receives 2B feature vectors, optionally L2-normalizes each row and splits them into two views. It calculates within-view and cross-view similarity matrices. Self-comparisons in each within-view matrix are masked with a very large negative value. The positive is located in the cross-view candidate block; one softmax-cross-entropy loss is computed for each direction and the two scalar losses are added. With TPU context, representations are gathered across replicas and positive labels are offset by replica index; otherwise candidates are local. The objective function's default temperature does not identify an actual paper run because the model call site passes a configured flag.
+
+### MoCo v1/v2
+
+Pinned repository: facebookresearch/moco, revision 132aea9da9bb995a411c915c0420be3db62052f3.
+
+- Model, queue and forward pass: https://github.com/facebookresearch/moco/blob/132aea9da9bb995a411c915c0420be3db62052f3/moco/builder.py
+- Trainer and options: https://github.com/facebookresearch/moco/blob/132aea9da9bb995a411c915c0420be3db62052f3/main_moco.py
+
+The builder initializes key parameters from query parameters and disables key gradients. It maintains a normalized feature queue and circular pointer. The pinned builder defaults to feature dimension 128, queue size 65,536, momentum 0.999 and temperature 0.07. During forward, it computes the query; under no-gradient execution it momentum-updates the key encoder, batch-shuffles the key images for BatchNorm, encodes and normalizes keys, and undoes the shuffle. Positive logits are query-key dot products; negatives are query-versus-detached-queue products. The concatenated logits are divided by temperature, and new keys are enqueued after current logits are calculated. This order determines which negatives are available for a batch.
+
+**Provenance and license warning:** upstream commit 8976944da9c6b94cbd9158d7ebe50912aef807ef deleted the repository tree. The pinned revision is its last code-bearing parent. At that snapshot the README states CC-BY-NC 4.0 while LICENSE states MIT; do not infer redistribution rights from one file alone. MoCo v3 is a separate paper/code line and is not verified by this v1/v2 audit.
+
+### BYOL
+
+Pinned repository: google-deepmind/deepmind-research, revision f5de0ede8430809180254ee957abf36ed62579ef, subdirectory byol/.
+
+- Loss and update loop: https://github.com/google-deepmind/deepmind-research/blob/f5de0ede8430809180254ee957abf36ed62579ef/byol/byol_experiment.py
+- Schedules: https://github.com/google-deepmind/deepmind-research/blob/f5de0ede8430809180254ee957abf36ed62579ef/byol/utils/schedules.py
+
+The loss has two directions: online prediction of view 1 regresses to the stopped-gradient target projection of view 2, and vice versa. Gradients are taken with respect to online parameters; those parameters are updated before the target parameter decay is applied:
+
+\[
+\xi_{t+1}=\tau_t\xi_t+(1-\tau_t)\theta_{t+1},
+\qquad \tau_t=1-(1-\tau_0)d_t.
+\]
+
+Here \(d_t\) is the schedule's decay value, so a single base momentum does not specify a full run. The target model's mutable state is carried and returned separately from its parameter tree; the EMA expression is an operation on parameters, not every state item. The implementation also trains an evaluation classifier using a stopped-gradient backbone embedding, so that classifier loss does not propagate into the representation backbone.
+
+### SimSiam
+
+Pinned repository: facebookresearch/simsiam, revision a7bc1772896d0dad0806c51f0bb6f3b16d290468.
+
+- Projector, predictor and detached outputs: https://github.com/facebookresearch/simsiam/blob/a7bc1772896d0dad0806c51f0bb6f3b16d290468/simsiam/builder.py
+- Training objective and defaults: https://github.com/facebookresearch/simsiam/blob/a7bc1772896d0dad0806c51f0bb6f3b16d290468/main_simsiam.py
+
+The projector uses linear layers with BatchNorm/ReLU in hidden stages and affine-free BatchNorm at its output. The two-layer predictor has a BatchNorm/ReLU hidden stage. Forward returns predictor outputs and detached target projections. The training script computes the symmetric negative-cosine objective
+
+\[
+L=-\frac12\left[\cos(p_1,\operatorname{sg}(z_2))+
+\cos(p_2,\operatorname{sg}(z_1))\right].
+\]
+
+Each cosine term is averaged over the batch in code. This explicit stop-gradient is not a momentum target network. The defaults include a 2,048-dimensional projection and a 512-dimensional predictor hidden layer; command-line overrides govern individual runs.
+
+### Barlow Twins
+
+Pinned repository: facebookresearch/barlowtwins, revision 8e8d284ca0bc02f88b92328e53f9b901e86b4a3c.
+
+- Standardization, correlation and loss: https://github.com/facebookresearch/barlowtwins/blob/8e8d284ca0bc02f88b92328e53f9b901e86b4a3c/main.py
+
+Projected outputs are standardized by BatchNorm with affine parameters disabled. The cross-correlation is the standardized-view matrix product; each device divides its local contribution by the configured global batch size before an all-reduce sums device contributions. The loss is a sum of diagonal squared deviations from one plus lambda times the sum of squared off-diagonal entries:
+
+\[
+L=\sum_i(C_{ii}-1)^2+\lambda\sum_{i\ne j}C_{ij}^2.
+\]
+
+The pinned entry point defaults include batch size 2,048, 1,000 epochs, projector widths 8,192-8,192-8,192 and lambda 0.0051. These defaults must not replace recorded command-line overrides.
+
+### VICReg
+
+Pinned repository: facebookresearch/vicreg, revision 4e12602fd495af83efd1631fbe82523e6db092e0.
+
+- Loss and reductions: https://github.com/facebookresearch/vicreg/blob/4e12602fd495af83efd1631fbe82523e6db092e0/main_vicreg.py
+
+The paired-view representation MSE is computed before cross-device gathering. Variance/covariance statistics use globally gathered, separately centered views. Standard deviation uses the framework's sample-variance default with 0.0001 added inside the square root. Each view's variance penalty is the feature-wise mean of max(0, 1 minus standard deviation), and the two view penalties are averaged. Covariance is \(Z^\top Z/(B-1)\); its penalty sums squared off-diagonal entries and divides by the feature dimension, with the two view penalties added. The total objective is
+
+\[
+L=\alpha L_{\mathrm{repr}}+\beta L_{\mathrm{std}}+\gamma L_{\mathrm{cov}}.
+\]
+
+The pinned defaults are coefficients (25, 25, 1), global batch 2,048 and projector widths 8,192-8,192-8,192. This code's representation MSE is local before gathering, whereas its dispersion and covariance terms use gathered batch statistics.
+
+### Next verification pass
+
+Core loss and update conventions for these methods are now source-checked. Continue with DINO/iBOT and MAE/CLIP/SigLIP, marking exact recipe values separately from defaults and distinguishing source inspection from an executed reproduction.
