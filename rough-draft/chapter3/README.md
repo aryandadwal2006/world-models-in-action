@@ -22,13 +22,14 @@ The dossier is an original synthesis, not a replacement for reading canonical pa
 12. [Mathematical foundations](24_mathematical_foundations.md): probability, cross-entropy/KL, covariance, rank, characteristic functions, Wasserstein distance, EMA and conditional sufficiency.
 13. [Theoretical unification](26_theoretical_unification_alignment_uniformity.md): alignment/uniformity, density ratios, CCA/statistics, reconstruction and latent prediction without false equivalence claims.
 14. [Proof notebook](09_proof_notebook.md): compact derivations and explicit limits of each proof.
-14. [Theory notebook](19_theory_proofs_and_counterexamples.md): detailed InfoNCE lower-bound derivation, counterexamples, EMA, moment constraints and representation limits.
-15. [Loss-gradient derivations](21_loss_gradient_derivations.md): gradients of InfoNCE, CLIP, BYOL/SimSiam, DINO, Barlow Twins, VICReg, SwAV, masked losses, SIGReg and VISReg.
-16. [LeJEPA/SIGReg/VISReg](20_lejepa_sigreg_visreg.md): first-principles account of Gaussian embedding priors, characteristic-function tests and sliced-Wasserstein regularization.
-17. [Method coverage matrix](23_method_coverage_matrix.md): primary-paper map across major families, coverage status and implementation checks.
-18. [Proposed flow and page budget](10_flow_and_page_budget.md): how to compress the dossier into a coherent reader-facing sequence.
-19. [Figure storyboard](11_figure_storyboard.md): conceptual diagrams needed in the final chapter.
-20. [Bibliography](12_bibliography.md): canonical citations and source-verification notes.
+15. [Theory notebook](19_theory_proofs_and_counterexamples.md): detailed InfoNCE lower-bound derivation, counterexamples, EMA, moment constraints and representation limits.
+16. [Loss-gradient derivations](21_loss_gradient_derivations.md): gradients of InfoNCE, CLIP, BYOL/SimSiam, DINO, Barlow Twins, VICReg, SwAV, masked losses, SIGReg and VISReg.
+17. [LeJEPA/SIGReg/VISReg](20_lejepa_sigreg_visreg.md): first-principles account of Gaussian embedding priors, characteristic-function tests and sliced-Wasserstein regularization.
+18. [Method coverage matrix](23_method_coverage_matrix.md): primary-paper map across major families, coverage status and implementation checks.
+19. [Primary-paper recipe audit](27_primary_paper_recipe_audit_and_replication_risks.md): method-specific objectives and replication pitfalls, with clear separation between standard equations and implementation details still to verify.
+20. [Proposed flow and page budget](10_flow_and_page_budget.md): how to compress the dossier into a coherent reader-facing sequence.
+21. [Figure storyboard](11_figure_storyboard.md): conceptual diagrams needed in the final chapter.
+22. [Bibliography](12_bibliography.md): canonical citations and source-verification notes.
 
 The original shorter notes remain useful as focused cross-checks: [contrastive InfoNCE](02_contrastive_infoNCE.md), [negative-free bootstrapping](03_negative_free_bootstrap.md), [redundancy reduction](04_redundancy_reduction.md), [clustering and prototypes](05_clustering_and_prototypes.md), [masked prediction](06_masked_prediction.md), and [frontier boundaries](08_frontier_and_boundaries.md).
 
