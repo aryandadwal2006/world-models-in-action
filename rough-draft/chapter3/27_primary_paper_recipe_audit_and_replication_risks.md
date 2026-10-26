@@ -1,6 +1,6 @@
 # Primary-paper recipe audit: objectives, update paths and replication risks
 
-**Status: working audit, not a claim of exact reproduction.** This file is a method-by-method implementation checklist for turning the conceptual dossier into reliable teaching examples. It distinguishes (a) defining objective, (b) architecture and update mechanism, (c) recipe choices that affect results, and \\(d\\) claims that require verification against paper appendices or official code. A schematic equation below is not sufficient to reproduce an author's full benchmark.
+**Status: working audit, not a claim of exact reproduction.** This file is a method-by-method implementation checklist for turning the conceptual dossier into reliable teaching examples. It distinguishes \\(a\\) defining objective, \\(b\\) architecture and update mechanism, \\(c\\) recipe choices that affect results, and \\(d\\) claims that require verification against paper appendices or official code. A schematic equation below is not sufficient to reproduce an author's full benchmark.
 
 The main design principle is to never report only a loss name. An SSL algorithm is a coupled specification: data distribution, view construction, target generation, representation heads, gradient paths, update rules, optimizer/schedule and evaluation protocol.
 
@@ -8,9 +8,9 @@ The main design principle is to never report only a loss name. An SSL algorithm 
 
 ### 1.1 SimCLR: a candidate-classification problem
 
-Take a batch of \\(B\\) source examples and independently sample two views per example. This gives \\(2B\\) encoder outputs. Let (h_i=f_	heta\(v_i\)) be a backbone representation and (z_i=g_	heta\(h_i\)) be its projection-head output. The usual training similarity is cosine similarity of \(L_2\)-normalized \(z_i\), not necessarily the backbone vector \(h_i\) later used for transfer.
+Take a batch of \\(B\\) source examples and independently sample two views per example. This gives \\(2B\\) encoder outputs. Let \\(h_i=f_	heta\(v_i\)\\) be a backbone representation and \\(z_i=g_	heta\(h_i\)\\) be its projection-head output. The usual training similarity is cosine similarity of \\\(L_2\\\)-normalized \\\(z_i\\\), not necessarily the backbone vector \\\(h_i\\\) later used for transfer.
 
-For a paired positive (j) corresponding to anchor (i), the directional NT-Xent loss is
+For a paired positive \\(j\\) corresponding to anchor \\(i\\), the directional NT-Xent loss is
 
 \[
 \ell_{i,j}=-\log\frac{\exp(\operatorname{sim}\(z_i,z_j\)/\tau)}
@@ -23,7 +23,7 @@ The denominator contains every other view in the minibatch, including the positi
 
 **Silent replication mismatches**
 - Use \\(B\\) to describe the number of source examples but \\(2B\\) for the number of views. Papers and code sometimes use “batch size” differently.
-- State whether similarity is computed on \\(z\\) or (h). The original SimCLR design found the nonlinear projection head important; transferring the loss to a backbone feature is a different experimental choice.
+- State whether similarity is computed on \\(z\\) or \\(h\\). The original SimCLR design found the nonlinear projection head important; transferring the loss to a backbone feature is a different experimental choice.
 - Record augmentation order, crop distributions, color distortion, blur, normalization, temperature, optimizer, learning-rate scaling, total updates and effective global batch size.
 - In distributed training, confirm whether negatives span all devices. Per-device negatives and globally gathered negatives create different candidate distributions.
 - Report the feature used for transfer separately from the feature used in the loss.
@@ -33,9 +33,14 @@ The denominator contains every other view in the minibatch, including the positi
 
 These values document the paper's ablation/reference configuration, not a universally optimal recipe, and should not be copied blindly to a small-compute project or another domain. They demonstrate the level of specificity needed when saying “we used SimCLR.” Source: Chen et al., *A Simple Framework for Contrastive Learning of Visual Representations*, Algorithm 1 and the “Training with Large Batch Size” / “Evaluation Protocol” discussions, https://arxiv.org/abs/2002.05709.
 
+
+**A useful historical reference configuration from the SimCLR paper.** In the paper's reported default setup for its controlled studies, the base encoder is ResNet-50 and the projection head is a two-layer MLP mapping to 128 dimensions. The stated default pretraining run uses batch size 4096 for 100 epochs, LARS, learning rate 4.8 \\(\(0.3\times 4096/256\)\\), weight decay \\\(10^{-6}\\\), a 10-epoch linear warm-up, and cosine decay without restarts. The stated augmentation recipe combines random resized crop (with random horizontal flip), color distortion and Gaussian blur; the appendix provides exact parameters. The paper also aggregates batch-normalization statistics across devices, noting that local per-device statistics can leak information because positive pairs occur on the same device.
+
+These values document the paper's ablation/reference configuration, not a universally optimal recipe, and should not be copied blindly to a small-compute project or another domain. They demonstrate the level of specificity needed when saying “we used SimCLR.” Source: Chen et al., *A Simple Framework for Contrastive Learning of Visual Representations*, Algorithm 1 and the “Training with Large Batch Size” / “Evaluation Protocol” discussions, https://arxiv.org/abs/2002.05709.
+
 ### 1.2 MoCo: the same broad classification objective with a moving dictionary
 
-A query encoder produces (q=f_q\\(x\\)). A key encoder produces a positive key \(k^+\) from the paired view, and a queue holds negative keys \(k_1,ldots,k_K\). A schematic query loss is
+A query encoder produces \\(q=f_q(x)\\). A key encoder produces a positive key \\\(k^+\\\) from the paired view, and a queue holds negative keys \\\(k_1,ldots,k_K\\\). A schematic query loss is
 
 \[
 \ell_q=-\log\frac{\exp\(q^\top k^+/\tau\)}
@@ -68,7 +73,7 @@ Only the first is directly established by writing down the finite-batch loss.
 
 ### 2.1 BYOL: the target is produced by a slowly moving encoder
 
-The online branch has an encoder \(f_\theta\), projector \(g_\theta\), and predictor \(q_\theta\). The target branch has encoder/projector parameters \(\xi\), updated by EMA and kept out of the gradient path. For two views \(v_1,v_2\), one directional term is schematically
+The online branch has an encoder \\\(f_\theta\\\), projector \\\(g_\theta\\\), and predictor \\\(q_\theta\\\). The target branch has encoder/projector parameters \\\(\xi\\\), updated by EMA and kept out of the gradient path. For two views \\\(v_1,v_2\\\), one directional term is schematically
 
 \[
 \mathcal L_{1\to2}=2-2\left\langle
@@ -78,7 +83,7 @@ The online branch has an encoder \(f_\theta\), projector \(g_\theta\), and predi
 \right)\right\rangle.
 \]
 
-The actual BYOL loss averages symmetric view directions and uses the paper's normalization convention. Here \(\operatorname{sg}\) means stop-gradient. The target parameters are updated as
+The actual BYOL loss averages symmetric view directions and uses the paper's normalization convention. Here \\\(\operatorname{sg}\\\) means stop-gradient. The target parameters are updated as
 
 \[
 \xi\leftarrow m\xi+\(1-m\)\theta,
@@ -115,7 +120,7 @@ The SimSiam paper's empirical recipe, particularly normalization layers, matters
 
 ### 3.1 DINO's target is a probability distribution
 
-Let student and teacher produce logits \(u_s,u_t\) over \\(K\\) output dimensions. A student distribution is formed by a temperature-softmax; the teacher uses its own temperature and a center term. Schematically,
+Let student and teacher produce logits \\\(u_s,u_t\\\) over \\(K\\) output dimensions. A student distribution is formed by a temperature-softmax; the teacher uses its own temperature and a center term. Schematically,
 
 \[
 p_s=\operatorname{softmax}\(u_s/\tau_s\),\qquad
@@ -147,7 +152,7 @@ Writing “iBOT is DINO with masking” is a useful memory aid, but insufficient
 
 ### 4.1 Barlow Twins
 
-Let \(Z^A,Z^B\in\mathbb R^{B\times d}\) contain projection outputs for two views. Normalize each coordinate across the batch according to the reference method, then compute a cross-correlation matrix
+Let \\\(Z^A,Z^B\in\mathbb R^{B\times d}\\\) contain projection outputs for two views. Normalize each coordinate across the batch according to the reference method, then compute a cross-correlation matrix
 
 \[
 C_{ij}=\frac1B\sum_{b=1}^{B} Z^A_{b,i}Z^B_{b,j}.
@@ -167,7 +172,7 @@ A diagonal cross-correlation condition is a second-order constraint, not a proof
 
 ### 4.2 VICReg
 
-VICReg uses embeddings \(Z^A,Z^B\) and combines three losses:
+VICReg uses embeddings \\\(Z^A,Z^B\\\) and combines three losses:
 
 \[
 \mathcal L=\lambda_{\mathrm{inv}}s\(Z^A,Z^B\)
@@ -175,7 +180,7 @@ VICReg uses embeddings \(Z^A,Z^B\) and combines three losses:
 +\lambda_{\mathrm{cov}}[c\(Z^A\)+c\(Z^B\)].
 \]
 
-A common invariance term is batch-averaged squared error. For a batch covariance matrix (C), a variance-floor term penalizes dimensions whose standard deviation falls below a threshold \(\gamma\\), while a covariance term penalizes squared off-diagonal entries. One common form is
+A common invariance term is batch-averaged squared error. For a batch covariance matrix \\(C\\), a variance-floor term penalizes dimensions whose standard deviation falls below a threshold \\\(\gamma\\), while a covariance term penalizes squared off-diagonal entries. One common form is
 
 \[
 v(Z)=\frac1d\sum_j\max\(0,\gamma-\sqrt{C_{jj}+\epsilon}\),
@@ -209,7 +214,7 @@ For an image split into patches, the visible patch tokens are passed through the
 \|\hat x_i-x_i\|_2^2,
 \]
 
-where \(\mathcal M\) indexes masked patches. Details such as per-patch target normalization are configuration choices to verify in the paper/code. The high mask ratio and encoder/decoder asymmetry are key design choices, not cosmetic implementation details.
+where \\\(\mathcal M\\\) indexes masked patches. Details such as per-patch target normalization are configuration choices to verify in the paper/code. The high mask ratio and encoder/decoder asymmetry are key design choices, not cosmetic implementation details.
 
 An MAE reconstruction loss answers a conditional prediction question about pixels under the patch/mask distribution. It is different from BEiT's discrete token prediction, MaskFeat's descriptor prediction, iBOT's teacher targets, or a JEPA's target-feature prediction. All may mask parts of an input while defining fundamentally different target variables.
 
@@ -229,13 +234,13 @@ The target distribution can reward pixel details that are predictable from conte
 
 ### 6.1 CLIP: two retrieval directions over a batch
 
-Let normalized image embeddings \(u_i\) and text embeddings \(v_j\) form logits
+Let normalized image embeddings \\\(u_i\\\) and text embeddings \\\(v_j\\\) form logits
 
 \[
 S_{ij}=\exp\(\alpha\)u_i^\top v_j,
 \]
 
-where \(\alpha\) is a learned logit-scale parameter. For a batch of paired examples, the diagonal entries are matches. The standard loss averages image-to-text and text-to-image cross-entropies:
+where \\\(\alpha\\\) is a learned logit-scale parameter. For a batch of paired examples, the diagonal entries are matches. The standard loss averages image-to-text and text-to-image cross-entropies:
 
 \[
 \mathcal L_{\mathrm{CLIP}}=\tfrac12
@@ -247,7 +252,7 @@ The equation is schematic about implementation details but preserves the central
 
 ### 6.2 SigLIP: pairwise logistic discrimination
 
-SigLIP changes the loss family from a batch-softmax normalization to pairwise sigmoid/logistic classification. A schematic form with \(y_{ij}\in\{-1,+1\}\) is
+SigLIP changes the loss family from a batch-softmax normalization to pairwise sigmoid/logistic classification. A schematic form with \\\(y_{ij}\in\{-1,+1\}\\\) is
 
 \[
 \mathcal L_{\mathrm{sig}}=
@@ -255,7 +260,7 @@ SigLIP changes the loss family from a batch-softmax normalization to pairwise si
 \left(y_{ij}\(s\,u_i^\top v_j+b\)\right),
 \]
 
-where diagonal pairs are positive, off-diagonal pairs are negative, and \(w_{ij}\) represents the implementation's reduction/weighting convention. The learned bias and scaling, negative-pair construction and loss normalization must be verified against the paper or official code before claiming exact equivalence.
+where diagonal pairs are positive, off-diagonal pairs are negative, and \\\(w_{ij}\\\) represents the implementation's reduction/weighting convention. The learned bias and scaling, negative-pair construction and loss normalization must be verified against the paper or official code before claiming exact equivalence.
 
 The conceptual contrast is precise: CLIP's softmax couples all candidates in a row (and its transpose in the reverse direction), whereas pairwise sigmoid treats labels for image-text pairs through logistic terms and does not require the same global softmax denominator. It does not mean that negative sampling, batch composition or loss scaling cease to matter.
 
