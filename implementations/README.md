@@ -82,7 +82,7 @@ Update one submodule deliberately, review its license and upstream changes, and 
 
 ## Checkout integrity audit — 2026-10-26
 
-The current parent tree contains 45 implementation submodule pointers, and all 45 paths have matching entries in .gitmodules. Every pinned commit was queried against its upstream GitHub repository during this audit; each commit resolves and points to a non-empty Git tree. This checks source-reference integrity, not whether every upstream can still train without dependency changes, whether every upstream folder contains a dedicated implementation rather than a shared multi-method library, or whether any paper result has been reproduced.
+The current parent tree contains 46 implementation submodule pointers, and all 46 paths have matching entries in .gitmodules. Every pinned commit was queried against its upstream GitHub repository during this audit; each commit resolves and points to a non-empty Git tree. This checks source-reference integrity, not whether every upstream can still train without dependency changes, whether every upstream folder contains a dedicated implementation rather than a shared multi-method library, or whether any paper result has been reproduced.
 
 MoCo is the documented exception to ordinary newest-commit pinning: its current upstream head points to an empty tree after a deletion commit, so the submodule stays pinned to its last code-bearing parent. The README and LICENSE in that upstream snapshot state conflicting license terms; do not redistribute MoCo source based on this audit alone.
 
@@ -110,4 +110,11 @@ The following are pinned originals or author/team-maintained repositories. They 
 
 ## Revalidated checkout integrity — 2026-10-26
 
-A fresh pass against the current parent branch checked all 45 submodule pointers. Each parent gitlink SHA exactly matches an upstream commit SHA, and each upstream commit resolves to a non-empty tree. All 45 gitlink paths have matching `.gitmodules` path/URL entries, and there are no extra module entries or untracked pointer paths. This verifies repository-reference integrity only; it does not certify runnable dependencies, paper-level reproduction, or blanket redistribution rights.
+A fresh pass against the current parent branch checked all 45 submodule pointers before the stable-pretraining reference was added. A follow-up check must cover the new 46th pointer. Each parent gitlink SHA exactly matches an upstream commit SHA, and each upstream commit resolves to a non-empty tree. All 45 gitlink paths have matching `.gitmodules` path/URL entries, and there are no extra module entries or untracked pointer paths. This verifies repository-reference integrity only; it does not certify runnable dependencies, paper-level reproduction, or blanket redistribution rights.
+
+
+## Shared reference library: stable-pretraining
+
+| Repository | Pinned commit | Why it is included | Scope warning |
+|---|---|---|---|
+| [galilai-group/stable-pretraining](https://github.com/galilai-group/stable-pretraining) | `ab836bf699a2be712dfcf980a5eb70d36391e876` | MIT-licensed shared pretraining library. Its `stable_pretraining/methods/visreg.py` and `benchmarks/imagenet10/visreg-vit-small.py` provide a source-inspected reference implementation of VISReg. It also contains other SSL methods. | This is a shared research library, not the dedicated VISReg repository linked from the paper and not evidence of a faithful reproduction of its full ImageNet results. Use it as a secondary code reference; keep paper claims separate from code inspection. |
