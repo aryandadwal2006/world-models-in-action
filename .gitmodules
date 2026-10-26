@@ -93,3 +93,13 @@
 [submodule "extra/official-repos/t5"]
 	path = extra/official-repos/t5
 	url = https://github.com/google-research/text-to-text-transfer-transformer.git
+
+[submodule "extra/official-repos/simmim"]
+	path = extra/official-repos/simmim
+	url = https://github.com/microsoft/SimMIM.git
+[submodule "extra/official-repos/ibot"]
+	path = extra/official-repos/ibot
+	url = https://github.com/bytedance/ibot.git
+[submodule "extra/official-repos/slowfast"]
+	path = extra/official-repos/slowfast
+	url = https://github.com/facebookresearch/SlowFast.git

@@ -37,3 +37,7 @@ This index distinguishes the original method paper, the implementation URL, and 
 - Contrastive objective lineage: N-pair loss, triplet loss, supervised contrastive learning, metric learning. Explain enough to prevent anachronistically treating NT-Xent as the first contrastive objective.
 - Classical self-supervision: context prediction, colorization, rotation prediction, jigsaw puzzles. Treat as historically useful pretext-task examples rather than main modern architectures.
 - Predictive coding and latent prediction are related but not interchangeable. An objective's name does not establish a learned state is Markovian, physically sufficient, causal, or useful for planning.
+
+| SimMIM | Xie et al. 2022, https://arxiv.org/abs/2111.09886 | Raw-pixel regression with a simple prediction head; masking ratio and patch size provide the learning signal | A useful counterexample to the assumption that masked-image modeling requires a discrete tokenizer or heavy decoder |
+| MaskFeat | Wei et al. 2022, https://arxiv.org/abs/2112.09133 | Predict HOG or other handcrafted feature targets from masked visual regions | A target can be a feature descriptor rather than raw pixels or another neural encoder |
+| iBOT | Zhou et al. 2022, https://arxiv.org/abs/2111.07832 | Online tokenizer/self-distillation for masked patch-level targets | A clean example where masking, prototypes and teacher-student learning overlap |

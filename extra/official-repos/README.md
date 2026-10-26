@@ -47,3 +47,7 @@ Update one submodule deliberately, review its license and upstream changes, and 
 - The UniLM repository includes BEiT-related work, rather than being a guaranteed standalone BEiT-only checkout.
 - DINOv3 is under a specific Meta license. Read its current LICENSE before redistributing weights or treating them as open-source under an OSI license.
 - These are source repositories, not bundled pretrained weights or datasets. Do not check in multi-gigabyte weights, proprietary corpora, ImageNet, or audio/video datasets.
+
+| SimMIM | [microsoft/SimMIM](https://github.com/microsoft/SimMIM) | `d3e29bcac950b83edc34ca33fe4404f38309052c` | Xie et al. (2022), SimMIM. Official repository archived in September 2026; MIT license; read-only. |
+| iBOT | [bytedance/ibot](https://github.com/bytedance/ibot) | `da316d82636a7a7356835ef224b13d5f3ace0489` | Zhou et al. (2022), iBOT: Image BERT Pre-Training with Online Tokenizer. |
+| MaskFeat | [facebookresearch/SlowFast](https://github.com/facebookresearch/SlowFast) | `287ec0076846560f44a9327e931a5a2360240533` | Wei et al. (2022), Masked Feature Prediction for Self-Supervised Visual Pre-Training; implementation is in the projects/maskfeat subdirectory. |
