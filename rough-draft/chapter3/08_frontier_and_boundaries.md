@@ -24,6 +24,10 @@ The answer to the third question is what turns a representation-learning story i
 
 Diffusion and flow matching learn to generate data through denoising or vector-field objectives. They can be trained on unlabeled observations and can be components of generative world models. Nevertheless, their central objective, sampling procedure and role in the book differ from the representation-learning objectives surveyed here. Keep their deeper derivation in the book's generation chapter. In Chapter 3, use them as an explicit boundary case: training on data without manual labels is not enough to classify algorithms as contrastive or feature-based SSL.
 
+## 4. Action-conditioned descendants belong beyond this chapter's SSL taxonomy
+
+Two 2026 papers provide a concrete downstream handoff. [JEPA-WAM](https://arxiv.org/abs/2608.09381) couples a dense joint current–future latent transition target to continuous action generation through a shared predictor. [V-JEPA Policy](https://arxiv.org/abs/2609.37250) combines a frozen V-JEPA 2.1 encoder with an instruction-conditioned future-latent predictor and a flow-matching action expert. These are world-action-model/policy systems built using predictive representations; they are not new unsupervised representation-loss families to derive in Chapter 3. Their significance for the book is conceptual: predictive features alone do not specify action conditioning, action-generation objectives, or planning evaluation. Keep them as a brief handoff to later world-model/control chapters, and attribute benchmark claims to each paper's own protocol.
+
 ## 4. Keep the scope broad, but the chapter selective
 
 The dossier can be expansive because it records the landscape. The reader-facing chapter should use a curated chain:
