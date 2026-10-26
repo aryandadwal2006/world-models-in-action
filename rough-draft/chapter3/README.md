@@ -24,6 +24,9 @@ The dossier is an original synthesis, not a replacement for reading canonical pa
 14. [Figure storyboard](11_figure_storyboard.md): conceptual diagrams needed in the final chapter.
 15. [Bibliography](12_bibliography.md): canonical citations and source-verification notes.
 
+15. [Method coverage matrix](23_method_coverage_matrix.md): primary-paper map across major families, coverage status and implementation checks.
+16. [Identifiability, invariance and sufficient state](22_identifiability_invariance_and_sufficient_state.md): why a self-supervised proxy loss does not by itself certify a world-model state.
+
 The original shorter notes remain useful for focused cross-checks: [contrastive InfoNCE](02_contrastive_infoNCE.md), [negative-free bootstrapping](03_negative_free_bootstrap.md), [redundancy reduction](04_redundancy_reduction.md), [clustering and prototypes](05_clustering_and_prototypes.md), [masked prediction](06_masked_prediction.md), [cross-modal and speech](07_cross_modal_speech_and_language.md), [frontier boundaries](08_frontier_and_boundaries.md).
 
 ## Narrative thesis
