@@ -78,3 +78,18 @@ Update one submodule deliberately, review its license and upstream changes, and 
 - The V-JEPA 2 source includes the V-JEPA 2.1 release. LeJEPA/SIGReg has an official-source submodule. VISSL is a shared historical-method library, not a dedicated upstream for each method it implements. VISReg's public pointer redirects to a destination that was not accessible as a public repository during this audit; no code submodule is included.
 - No public author/team repository was verified in this pass for ALIGN or the original NNCLR and CPC papers. CMC and AMDIM now have their authors' published code repositories pinned, and VISSL supplies additional FAIR-maintained reference implementations for historical methods. These are intentionally not represented by an unofficial repository falsely labeled official.
 - Initializing the whole collection clones substantial upstream history. Use `git submodule update --init implementations/<name>` to initialize one repository at a time.
+
+
+## Checkout integrity audit — 2026-10-26
+
+The current parent tree contains 40 implementation submodule pointers, and all 40 paths have matching entries in .gitmodules. Every pinned commit was queried against its upstream GitHub repository during this audit; each commit resolves and points to a non-empty Git tree. This checks source-reference integrity, not whether every upstream can still train without dependency changes, whether every upstream folder contains a dedicated implementation rather than a shared multi-method library, or whether any paper result has been reproduced.
+
+MoCo is the documented exception to ordinary newest-commit pinning: its current upstream head points to an empty tree after a deletion commit, so the submodule stays pinned to its last code-bearing parent. The README and LICENSE in that upstream snapshot state conflicting license terms; do not redistribute MoCo source based on this audit alone.
+
+To materialize the source checkouts into local implementation folders after cloning the parent repository, run the supplied script from the repository root:
+
+\`\`\`bash
+bash implementations/clone-all.sh
+\`\`\`
+
+The script synchronizes submodule URLs and initializes all pinned checkouts recursively. It does not copy source files into the parent repository, alter upstream histories, fetch weights or datasets, or modify any code inside the submodules. On the GitHub web UI, a submodule is displayed as a commit-pinned link rather than an expanded copy of the upstream tree.
