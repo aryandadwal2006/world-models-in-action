@@ -103,3 +103,6 @@ This is the working citation register; the final AsciiDoc reference section shou
 - Epps, T. W. and Pulley, L. B. (1983). “A test for normality based on the empirical characteristic function.” *Biometrika*.
 - Cramér, H. and Wold, H. (1936). “Some theorems on distribution functions.”
 - Bonneel, N. et al. (2015). “Sliced and Radon Wasserstein barycenters.”
+
+- Epps–Pulley characteristic-function test background is covered by Epps, T. W. and Pulley, L. B. (1983), “A test for normality based on the empirical characteristic function,” *Biometrika*.
+- Cramér–Wold theorem reference: Cramér, H. and Wold, H. (1936), “Some theorems on distribution functions.”
