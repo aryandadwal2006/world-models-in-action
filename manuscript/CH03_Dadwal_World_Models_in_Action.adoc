@@ -270,7 +270,7 @@ loss_b = tf.losses.softmax_cross_entropy(
     labels, tf.concat([logits_ba, logits_bb], 1), weights=weights)
 loss = loss_a + loss_b
 ----
-This excerpt is from the official TensorFlow implementation, not a self-contained trainer. Batch gathering, label construction and masks are defined earlier in the function. The mask removes each anchor's self-comparison from its same-view candidate block. SimCLR is published under Apache License 2.0; consult the [pinned objective.py](https://github.com/google-research/simclr/blob/383d4143fd8cf7879ae10f1046a9baeb753ff438/objective.py) and its license for full code and reuse requirements.
+This excerpt is from the official TensorFlow implementation, not a self-contained trainer. Batch gathering, label construction and masks are defined earlier in the function. The mask removes each anchor's self-comparison from its same-view candidate block. SimCLR is published under Apache License 2.0; consult the link:https://github.com/google-research/simclr/blob/383d4143fd8cf7879ae10f1046a9baeb753ff438/objective.py[pinned objective.py] and its license for full code and reuse requirements.
 
 [#unique_section2_ch3_006_what_infoNCE_does_and_does_not_prove_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === What InfoNCE does and does not prove
@@ -428,7 +428,7 @@ SimCLR and MoCo are central modern examples, but their shared candidate-classifi
 
 **AMDIM** uses local and global representations at multiple feature scales. It contrasts a local feature with a global feature from the same image while mismatched images supply negatives. This introduces spatially indexed dependencies that global instance discrimination may not enforce.
 
-These methods all construct a discrimination problem, but their positive relations and sampling distributions differ. An information-bound interpretation must follow the sampler, not the generic label “contrastive.” See the original papers on [NPID](https://openaccess.thecvf.com/content_cvpr_2018/html/Wu_Unsupervised_Feature_Learning_CVPR_2018_paper.html), [PIRL](https://openaccess.thecvf.com/content_CVPR_2020/html/Misra_Self-Supervised_Learning_of_Pretext-Invariant_Representations_CVPR_2020_paper.html), [CMC](https://arxiv.org/abs/1906.05849) and [AMDIM](https://arxiv.org/abs/1906.00910).
+These methods all construct a discrimination problem, but their positive relations and sampling distributions differ. An information-bound interpretation must follow the sampler, not the generic label “contrastive.” See the original papers on link:https://openaccess.thecvf.com/content_cvpr_2018/html/Wu_Unsupervised_Feature_Learning_CVPR_2018_paper.html[NPID], link:https://openaccess.thecvf.com/content_CVPR_2020/html/Misra_Self-Supervised_Learning_of_Pretext-Invariant_Representations_CVPR_2020_paper.html[PIRL], link:https://arxiv.org/abs/1906.05849[CMC] and link:https://arxiv.org/abs/1906.00910[AMDIM].
 
 [#ch3-figure-F11,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Historical contrastive objectives change the positive relation
@@ -615,7 +615,7 @@ These releases also illustrate a general caution: reported improvements belong t
 
 DINOv2 is a combined training recipe, not simply a replacement loss: it combines class-token DINO distillation, iBOT-style masked patch distillation and a KoLeo nearest-neighbour regularizer. The class branch matches teacher distributions across crops; the patch branch predicts teacher prototype distributions at masked student positions; KoLeo discourages local crowding in normalized backbone features. Depending on configuration, targets may use centering or Sinkhorn-Knopp balancing. Centering subtracts a running mean of teacher logits; Sinkhorn-Knopp iteratively balances assignment marginals. They are not synonyms.
 
-DINOv3 retains related distillation machinery and adds large-scale data, architecture and training choices. Gram anchoring, when enabled, matches teacher and student pairwise patch-similarity matrices rather than requiring coordinate-by-coordinate equality of feature vectors. It is a relational constraint, not proof of physical-state sufficiency, and it is configuration-dependent. See [DINOv2](https://arxiv.org/abs/2304.07193), [DINOv3](https://arxiv.org/abs/2508.10104) and their source configurations.
+DINOv3 retains related distillation machinery and adds large-scale data, architecture and training choices. Gram anchoring, when enabled, matches teacher and student pairwise patch-similarity matrices rather than requiring coordinate-by-coordinate equality of feature vectors. It is a relational constraint, not proof of physical-state sufficiency, and it is configuration-dependent. See link:https://arxiv.org/abs/2304.07193[DINOv2], link:https://arxiv.org/abs/2508.10104[DINOv3] and their source configurations.
 
 [#ch3-figure-F15,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .DINO teacher-student cross-view distillation
@@ -762,7 +762,7 @@ loss = (self.args.sim_coeff * repr_loss
         + self.args.std_coeff * std_loss
         + self.args.cov_coeff * cov_loss)
 ----
-The official implementation uses view agreement, a standard-deviation hinge with target one, and squared off-diagonal covariance. The helper and surrounding architecture appear in the [pinned main_vicreg.py](https://github.com/facebookresearch/vicreg/blob/4e12602fd495af83efd1631fbe82523e6db092e0/main_vicreg.py). The upstream repository uses the MIT License; exact reductions and weights should be matched when reproducing a result.
+The official implementation uses view agreement, a standard-deviation hinge with target one, and squared off-diagonal covariance. The helper and surrounding architecture appear in the link:https://github.com/facebookresearch/vicreg/blob/4e12602fd495af83efd1631fbe82523e6db092e0/main_vicreg.py[pinned main_vicreg.py]. The upstream repository uses the MIT License; exact reductions and weights should be matched when reproducing a result.
 
 [#ch3-figure-F17,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .VICReg separates agreement, variance and covariance
@@ -822,7 +822,7 @@ The paper's recipe is designed not to require an EMA target encoder and stop-gra
 
 **VISReg** separates scale, shape and center. Keep two distinct meanings of *center* separate: the prediction target is the mean embedding of global views of the same source image; the regularizer's center term penalizes the minibatch mean for each view.
 
-In the source-inspected [reference implementation](https://github.com/galilai-group/stable-pretraining/blob/ab836bf699a2be712dfcf980a5eb70d36391e876/stable_pretraining/methods/visreg.py), the projected embeddings have shape \(Z\in\mathbb R^{V\times B\times d}\), with \(V\) views, minibatch size \(B\) and feature dimension \(d\). For each view \(v\), the batch mean and centered embeddings are
+In the source-inspected link:https://github.com/galilai-group/stable-pretraining/blob/ab836bf699a2be712dfcf980a5eb70d36391e876/stable_pretraining/methods/visreg.py[reference implementation], the projected embeddings have shape latexmath:[Z\in\mathbb R^{V\times B\times d}], with latexmath:[V] views, minibatch size latexmath:[B] and feature dimension latexmath:[d]. For each view latexmath:[v], the batch mean and centered embeddings are
 
 [latexmath]
 ++++
@@ -856,7 +856,7 @@ For the shape term, the centered features are normalized by a *detached* copy of
 =\frac{\widehat z_{v,b,j}}{\mathrm{sg}(\sigma_{v,j})}.
 ++++
 
-For each randomly sampled unit direction \(w_k\), project the normalized features and sort the \(B\) values. Let \(q_b=\Phi^{-1}(b/(B+1))\) be the corresponding standard-normal quantiles for \(b=1,\ldots,B\). The reference implementation averages the squared differences over views, projection directions and batch positions:
+For each randomly sampled unit direction latexmath:[w_k], project the normalized features and sort the latexmath:[B] values. Let latexmath:[q_b=\Phi^{-1}(b/(B+1))] be the corresponding standard-normal quantiles for latexmath:[b=1,\ldots,B]. The reference implementation averages the squared differences over views, projection directions and batch positions:
 
 [latexmath]
 ++++
@@ -883,7 +883,7 @@ The complete regularizer keeps three explicit weights:
 +\lambda_{\mathrm{center}}\mathcal L_{\mathrm{center}}.
 ++++
 
-The full reference recipe also has a separate *view-invariance* term. For each source image \(b\), let \(c_b\) be the mean of its global-view projections. The model matches every global and local projection \(z_{v,b}\) to that same-image center:
+The full reference recipe also has a separate *view-invariance* term. For each source image latexmath:[b], let latexmath:[c_b] be the mean of its global-view projections. The model matches every global and local projection latexmath:[z_{v,b}] to that same-image center:
 
 [latexmath]
 ++++
@@ -895,10 +895,10 @@ c_b=\frac1{V_g}\sum_{v\in\mathcal V_g}z_{v,b}.
 ++++
 
 The training loss mixes this invariance term with the regularizer,
-\(\mathcal L=(1-\lambda_{\mathrm{mix}})\mathcal L_{\mathrm{inv}}+\lambda_{\mathrm{mix}}\mathcal L_{\mathrm{Reg}}\).
-Thus the *same-image global-view center* is the target for view consistency, whereas the *per-view minibatch mean* is penalized by \(\mathcal L_{\mathrm{center}}\). They are different operations. SIGReg instead uses a characteristic-function discrepancy; VISReg compares sorted projected samples with Gaussian quantiles. The stop-gradient here decouples scale and shape gradients; it is not a BYOL-style teacher pathway.
+latexmath:[\mathcal L=(1-\lambda_{\mathrm{mix}})\mathcal L_{\mathrm{inv}}+\lambda_{\mathrm{mix}}\mathcal L_{\mathrm{Reg}}].
+Thus the *same-image global-view center* is the target for view consistency, whereas the *per-view minibatch mean* is penalized by latexmath:[\mathcal L_{\mathrm{center}}]. They are different operations. SIGReg instead uses a characteristic-function discrepancy; VISReg compares sorted projected samples with Gaussian quantiles. The stop-gradient here decouples scale and shape gradients; it is not a BYOL-style teacher pathway.
 
-The VISReg authors report stronger correction near collapse and favorable results on tested out-of-distribution, low-rank and long-tailed settings. These are reported findings, not guarantees for every optimizer or data distribution. Report batch size, projection count, objective weights, architecture and evaluation protocol when comparing these methods. See [LeJEPA](https://arxiv.org/abs/2511.08544) and [VISReg](https://arxiv.org/abs/2606.02572).
+The VISReg authors report stronger correction near collapse and favorable results on tested out-of-distribution, low-rank and long-tailed settings. These are reported findings, not guarantees for every optimizer or data distribution. Report batch size, projection count, objective weights, architecture and evaluation protocol when comparing these methods. See link:https://arxiv.org/abs/2511.08544[LeJEPA] and link:https://arxiv.org/abs/2606.02572[VISReg].
 
 [#ch3-figure-F19,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .VICReg, SIGReg/LeJEPA and VISReg constrain different aspects of feature distributions

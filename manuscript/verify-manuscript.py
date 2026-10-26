@@ -90,6 +90,10 @@ if len(listings) != 2 or sum(line.startswith("[source,") for line in lines) != 2
     errors.append(f"Expected two short source listings; found {len(listings)} anchors.")
 if re.search(r"^image::", source, flags=re.MULTILINE):
     errors.append("Image directives remain in prompt-only manuscript.")
+if re.search(r"\[[^\]]+\]\(https?://", source):
+    errors.append("Markdown-style links remain; use native AsciiDoc link macros.")
+if r"\(" in source or r"\)" in source:
+    errors.append("Markdown-style inline math delimiters remain; use latexmath macros.")
 if len(re.findall(r"^== References$", source, flags=re.MULTILINE)) != 1:
     errors.append("Expected one consolidated References heading.")
 briefs = sorted(image_dir.glob("CH03_F[0-9][0-9]_Dadwal.md"))
