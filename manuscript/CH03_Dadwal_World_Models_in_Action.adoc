@@ -92,6 +92,8 @@ A useful view changes nuisance factors while leaving the intended shared content
 
 Historically, visual self-supervision used hand-designed pretext tasks such as predicting image rotation (Gidaris et al., 2018), restoring the spatial order of jigsaw patches (Noroozi and Favaro, 2016), predicting spatial context (Doersch et al., 2015), and colorizing grayscale images (Zhang et al., 2016). These tasks assign synthetic targets to unlabeled data and make the target-design assumption easy to see. They remain useful conceptual examples, but the architecture survey below focuses on the broader contrastive, bootstrap, statistical, clustering and masked-prediction families that followed.
 
+These earlier tasks are often called pretext tasks: labels are created automatically from the input, and the encoder is trained to solve the constructed task. Their weakness is not that they fail to learn features. It is that the pretext label may be predictable from shortcuts or may require only a subset of the information needed elsewhere. An encoder can predict rotation using scene-layout cues without learning a representation that preserves every detail of the scene. This motivates objectives whose targets arise from relationships between views, statistics of feature batches, or missing content rather than one fixed synthetic label.
+
 [sidebar]
 .The principle behind representation learning
 ****
@@ -208,6 +210,17 @@ The density-ratio interpretation explains why this loss is useful. If a pair lat
 
 In practice, nearby frames, repeated examples, or multiple instances of one category can violate the ideal negative-sampling picture. A learned score may solve the constructed classification problem without capturing the semantic relation we have in mind. Most importantly, mutual information between two views is not the same as sufficiency for a later prediction: a variable can be shared between views yet be irrelevant to the future quantity that matters.
 
+The density-ratio view also gives a route to the information-theoretic bound. Imagine that one index latexmath:[i] is selected uniformly from latexmath:[K] candidates; candidate latexmath:[y_i] is sampled from latexmath:[p(y\mid x)], and the remaining candidates are sampled independently from latexmath:[p(y)]. Bayes' rule gives
+
+[latexmath]
+++++
+P(i\mid x,y_1,\ldots,y_K)
+=\frac{r(x,y_i)}{\sum_{j=1}^{K}r(x,y_j)},
+\qquad r(x,y)=\frac{p(y\mid x)}{p(y)}.
+++++
+
+Thus an optimal classifier ranks candidates by the density ratio. A learned score approximates this rule through its logits. The cross-entropy achieved by a restricted model cannot be lower than the optimal classification cross-entropy; under the specified sampling construction, this yields the InfoNCE lower bound on mutual information written above. If negatives are drawn from a different distribution, or examples are dependent in ways that violate the construction, the same interpretation does not automatically follow. The derivation explains the assumptions behind the bound; it does not convert an arbitrary contrastive loss into a certified measure of semantic information.
+
 [#unique_section2_ch3_007_simclr_and_moco_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === SimCLR and MoCo: two ways to construct candidates
 
@@ -233,7 +246,7 @@ Both methods remain sensitive to the definition of positive pairs and negatives.
 
 Contrastive Predictive Coding (CPC; van den Oord et al., 2018) encodes a sequence and uses a context vector from the past to score future latent representations. An InfoNCE-style objective teaches the context to identify the observed future latent among candidate latents. CPC is a useful historical bridge between contrastive discrimination and predictive representations, but it is not the centerpiece of a contemporary visual SSL survey.
 
-A CPC future-latent retrieval score is not the same as an action-conditioned dynamics model. If the predictor has no action input, it does not specify which action caused the future. Successful retrieval does not establish recursive physical rollout accuracy, Markov sufficiency or planning value. Those are separate claims requiring separate tests.
+A CPC future-latent retrieval score only shows that the correct future code can be identified among the sampled candidates under the chosen objective. It does not by itself establish accurate multi-step rollout, a sufficient predictive state, or that errors remain controlled when predictions are fed back into the model.
 
 [#unique_section_ch3_005_noncontrastive_objectives_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
 == Non-contrastive objectives
@@ -299,6 +312,8 @@ where latexmath:[D_{\mathrm{SimSiam}}] is negative cosine similarity. The stop-g
 
 The predictor and stop-gradient change the optimization dynamics; they do not remove the constant-output solution from the mathematical objective. The original SimSiam study found that stop-gradient was essential to its proposed configuration. That is a method-specific result, not a theorem that any Siamese network with a detached branch must learn non-collapsed features.
 
+The predictor makes the two sides of the training relation structurally asymmetric. The online path must learn a transformation latexmath:[q] whose output matches the other branch's representation, while the target path's value is held fixed for that loss term. If the target also received gradients from the same term, the two sides could reduce the discrepancy by moving together immediately. Stop-gradient prevents that direct route for the target side, but it does not by itself force informative features. The predictor, normalization, shared parameters and optimization dynamics together determine whether training moves away from collapse in the original recipes.
+
 
 
 [#unique_section2_ch3_011_dino_and_self_distillation_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
@@ -327,7 +342,7 @@ Prototype indices are learned output coordinates, not automatically human-define
 
 Multi-crop training supplies a useful extra constraint. The teacher receives the larger global crops, while the student also sees smaller local crops. A local crop usually lacks some of the global context, so its output must match a target produced from a different field of view. This encourages some features to remain consistent across scales. It does not mean that every local crop contains enough evidence to infer every property of the entire scene; the target and crop protocol define what consistency is encouraged. The prototype outputs are learned coordinates, not labels assigned by a person, and their semantics must be established through evaluation.
 
-DINOv2 (Oquab et al., 2023) combines self-distillation with masked-patch prediction and a large-scale training recipe. DINOv3 (Siméoni et al., 2025) scales the family further and introduces Gram anchoring to reduce the degradation of dense feature maps during long training. These versions illustrate that data curation, architecture, optimization and feature diagnostics matter alongside the named loss. They are related training systems, not controlled comparisons that isolate one change.
+DINOv2 (Oquab et al., 2023) scaled the approach through a curated, diverse image dataset and larger vision transformers, combining image-level self-distillation with masked-patch objectives. DINOv3 (Siméoni et al., 2025) scaled the family further and introduced Gram anchoring to address degradation of dense feature maps during long training. These are training systems, not just alternate equations: data curation, architecture, optimization and feature diagnostics matter alongside the named loss. Their reported results should not be interpreted as a controlled ablation that isolates one change from the rest of the recipe.
 
 
 [#unique_section2_ch3_012_redundancy_reduction_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
@@ -427,7 +442,7 @@ image::CH03_T03_MethodMechanisms.svg[Comparison of contrastive, bootstrap, teach
 [#unique_section2_ch3_016_brief_other_methods_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === Other methods in brief
 
-**DeepCluster** alternates offline clustering of current features with training on the resulting pseudo-labels. **SwAV** forms prototype assignments online and predicts assignments across views, using a balancing step. These methods differ mainly in how their pseudo-targets are generated and refreshed.
+**DeepCluster** alternates between clustering the current feature vectors and training the encoder to predict the resulting cluster assignments. The pseudo-labels therefore change as the representation changes. **SwAV** computes prototype assignments online and predicts one view's assignment from another view's features; a balancing procedure discourages all examples from being assigned to a small number of prototypes. Both methods turn unlabeled features into pseudo-targets, but differ in how assignments are generated and refreshed.
 
 **CLIP** aligns paired images and text with contrastive learning. **BERT** predicts masked tokens from bidirectional context; **GPT-style causal modeling** predicts the next token from preceding tokens. These examples show that self-supervised targets can use natural pairings or sequence structure, not just augmented images. Their details are outside this chapter's main derivations.
 
@@ -565,7 +580,7 @@ h=f_\theta(x),\qquad z=g_\phi(h).
 
 The loss is calculated on latexmath:[z], while the representation evaluated downstream is often latexmath:[h]. A projection head gives the pretraining objective a dedicated space in which to impose its constraints. It does not follow that latexmath:[z] and latexmath:[h] have the same geometry or serve the same downstream purpose.
 
-The exported tensor must be identified explicitly. Some evaluations use the feature latexmath:[h] before the projector; others use intermediate or patch-level transformer features. A low pretraining loss measured on latexmath:[z] is not itself evidence that the feature latexmath:[h] has the same geometry or usefulness.
+The exported tensor must be identified explicitly. Some evaluations use the feature latexmath:[h] before the projector; others use intermediate or patch-level transformer features. A low pretraining loss measured on latexmath:[z] is not itself evidence that the feature latexmath:[h] has the same geometry or usefulness. The projector can change the geometry substantially because it is a learned, generally nonlinear map. The pretraining loss directly constrains latexmath:[z], not every pairwise relation in latexmath:[h]. Claims about representation quality should state the tensor and evaluation protocol rather than infer quality from training loss alone.
 
 
 [#unique_section2_ch3_026_global_local_ID,reftext={chapter}.{section}.{subsection},caption='{chapter}.{section}.{subsection}']
@@ -591,6 +606,8 @@ Dimension is only a crude capacity indicator. A real-valued vector can encode di
 A low self-supervised loss establishes only that the representation satisfies its training objective. A linear probe, latexmath:[\hat y=Wz+b], tests whether selected variables can be recovered by a linear map from latexmath:[z]. A poor linear-probe score does not prove that the information is absent: it may be encoded nonlinearly. A high score shows that the tested variables are accessible to that probe, but not that the representation contains every distinction needed for future prediction.
 
 Evaluation must match the claim. Feature variance and covariance can expose some collapse modes. Held-out probes test the accessibility of chosen variables. Reconstruction measures agreement with the reconstruction target. Future-latent retrieval measures identification among the sampled candidates. None of these scores alone establishes predictive sufficiency.
+
+A linear probe is useful because its capacity is controlled: it asks how accessible a property is through a linear readout, not whether a large trainable head can eventually extract it. Probe comparisons can still mislead if different methods use different feature layers, dimensions, normalization, training data or evaluation splits. A probe should be fitted on the training split and assessed on held-out examples, and compared representations should use the same protocol. Even then, a linear probe is a test of linear accessibility, not an information-theoretic upper bound. Information may be present in a nonlinear form that the probe cannot decode.
 
 A representation latexmath:[Z] is sufficient for a target future latexmath:[Y], relative to the available observation latexmath:[X], when
 
