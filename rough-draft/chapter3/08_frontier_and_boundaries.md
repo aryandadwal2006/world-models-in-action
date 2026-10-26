@@ -55,3 +55,8 @@ This structure is more explanatory than presenting 15 paper summaries in publica
 - Bardes et al. (2024), V-JEPA, https://arxiv.org/abs/2404.08471.
 - Assran et al. (2025), V-JEPA 2, https://arxiv.org/abs/2506.09985.
 - Mur-Labadia, L. et al. (2026), V-JEPA 2.1: Unlocking Dense Features in Video Self-Supervised Learning, https://arxiv.org/abs/2603.14482; official implementation https://github.com/facebookresearch/vjepa2.
+
+
+## Distributional regularization after VICReg
+
+A 2025–2026 line of work makes the shape of the embedding distribution an explicit training target. LeJEPA combines a joint-embedding prediction loss with SIGReg, which compares random one-dimensional projections to a standard Gaussian using an empirical characteristic-function test. Its authors claim Gaussian embedding distributions minimize downstream predictive risk under their JEPA theoretical setup; this is not a universal theorem about every downstream task. VISReg keeps a variance/scale term, replaces covariance regularization with sliced-Wasserstein matching of projected samples to Gaussian quantiles, and adds a centering term. Its authors report stronger gradients near collapse and favorable OOD results in the settings they test. The complete derivations, assumptions and limitations are in [20_lejepa_sigreg_visreg.md](20_lejepa_sigreg_visreg.md). The book should locate the full explanation in Chapter 4, where the JEPA prediction objective is introduced, and use only a brief frontier handoff in Chapter 3.

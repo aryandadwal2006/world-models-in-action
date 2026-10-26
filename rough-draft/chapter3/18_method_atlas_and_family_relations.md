@@ -143,3 +143,10 @@ Speech makes the target construction especially clear: waveform samples become a
 - **Frontier example:** a current paper pointing toward an active direction, not necessarily the dominant production method.
 - **Historical bridge:** explains a transition but does not need equal space in a current overview.
 - **Separate chapter:** belongs elsewhere because full coverage would duplicate or displace that chapter's subject.
+
+
+## 13. Distributional regularization: SIGReg, LeJEPA and VISReg
+
+This family extends the second-order-statistics story in VICReg. Covariance penalties control pairwise linear correlation but cannot determine a distribution's higher-order shape. LeJEPA's SIGReg targets an isotropic Gaussian through characteristic-function tests on random one-dimensional projections. VISReg targets projected shape by sorted-sample/quantile matching through sliced Wasserstein distance and explicitly separates scale and centering. Both require a paper-level caveat: finite projections approximate rather than prove exact high-dimensional distribution equality, and a shaped non-collapsed representation may still omit task-relevant state information.
+
+For full equations, derivation and method limitations, see [20_lejepa_sigreg_visreg.md](20_lejepa_sigreg_visreg.md). The reader-facing Chapter 3 should not duplicate Chapter 4's JEPA derivation.

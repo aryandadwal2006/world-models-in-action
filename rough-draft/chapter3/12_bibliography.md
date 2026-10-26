@@ -97,3 +97,9 @@ This is the working citation register; the final AsciiDoc reference section shou
 - Peng, Z. et al. (2022). “BEiT v2: Masked Image Modeling with Vector-Quantized Visual Tokenizers.” https://arxiv.org/abs/2208.06366.
 - Poole, B. et al. (2019). “On Variational Bounds of Mutual Information.” *International Conference on Machine Learning*. https://proceedings.mlr.press/v97/poole19a.html.
 - Tschannen, M. et al. (2020). “On Mutual Information Maximization for Representation Learning.” *International Conference on Learning Representations*. https://arxiv.org/abs/1907.13625.
+
+- Balestriero, R. and LeCun, Y. (2025, version 3 dated 14 November 2025). “LeJEPA: Provable and Scalable Self-Supervised Learning Without the Heuristics.” https://arxiv.org/abs/2511.08544.
+- Wu, H., Balestriero, R. and Levine, M. (2026). “VISReg: Variance-Invariance-Sketching Regularization for JEPA training.” https://arxiv.org/abs/2606.02572. Project page: https://haiyuwu.github.io/visreg/.
+- Epps, T. W. and Pulley, L. B. (1983). “A test for normality based on the empirical characteristic function.” *Biometrika*.
+- Cramér, H. and Wold, H. (1936). “Some theorems on distribution functions.”
+- Bonneel, N. et al. (2015). “Sliced and Radon Wasserstein barycenters.”

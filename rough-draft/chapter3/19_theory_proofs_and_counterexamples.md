@@ -280,5 +280,5 @@ Each requires additional assumptions or direct evidence.
 ## Source for the finite-candidate InfoNCE derivation
 
 - Poole, B. et al. (2019), *On Variational Bounds of Mutual Information*, https://proceedings.mlr.press/v97/poole19a.html.
-- Dive into Deep Learning, “Mutual Information and Representation Learning,” section 28.3.3.4, https://d2l.smola.ai/chapter_information-theory/mdl-mutual-information.html. This is a pedagogical derivation using a normalized variational distribution over a bag of candidates. Prefer Poole et al. as the primary research citation; this tutorial is a supplementary walk-through.
+- Dive into Deep Learning, “Mutual Information and Representation Learning,” section 28.3.3.4, https://d2l.smola.org/chapter_mdl-information-theory/mdl-mutual-information.html. This is a pedagogical derivation using a normalized variational distribution over a bag of candidates. Prefer Poole et al. as the primary research citation; this tutorial is a supplementary walk-through.
 - Tschannen, M. et al. (2020), *On Mutual Information Maximization for Representation Learning*, https://arxiv.org/abs/1907.13625. Use it to preserve the caveat that empirical representation quality cannot be attributed to mutual information alone.
