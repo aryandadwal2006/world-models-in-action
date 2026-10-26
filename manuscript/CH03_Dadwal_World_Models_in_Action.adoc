@@ -894,9 +894,10 @@ The full reference recipe also has a separate *view-invariance* term. For each s
 c_b=\frac1{V_g}\sum_{v\in\mathcal V_g}z_{v,b}.
 ++++
 
+[.visreg-interpretation%unbreakable]
 The training loss mixes this invariance term with the regularizer,
 latexmath:[\mathcal L=(1-\lambda_{\mathrm{mix}})\mathcal L_{\mathrm{inv}}+\lambda_{\mathrm{mix}}\mathcal L_{\mathrm{Reg}}].
-Thus the *same-image global-view center* is the target for view consistency, whereas the *per-view minibatch mean* is penalized by latexmath:[\mathcal L_{\mathrm{center}}]. They are different operations. SIGReg instead uses a characteristic-function discrepancy; VISReg compares sorted projected samples with Gaussian quantiles. The stop-gradient here decouples scale and shape gradients; it is not a BYOL-style teacher pathway.
+The *same-image global-view center* is the target for view consistency, whereas the *per-view minibatch mean* is penalized by latexmath:[\mathcal L_{\mathrm{center}}]. They are different operations. SIGReg instead uses a characteristic-function discrepancy; VISReg compares sorted projected samples with Gaussian quantiles. The stop-gradient here decouples scale and shape gradients; it is not a BYOL-style teacher pathway.
 
 The VISReg authors report stronger correction near collapse and favorable results on tested out-of-distribution, low-rank and long-tailed settings. These are reported findings, not guarantees for every optimizer or data distribution. Report batch size, projection count, objective weights, architecture and evaluation protocol when comparing these methods. See link:https://arxiv.org/abs/2511.08544[LeJEPA] and link:https://arxiv.org/abs/2606.02572[VISReg].
 
@@ -917,8 +918,6 @@ The VISReg authors report stronger correction near collapse and favorable result
 The table is an index, not a claim that these systems share one objective. In image-text training, **CLIP** (Radford et al., 2021) uses normalized image and text embeddings, a learned logit scale and cross-entropy in both image-to-text and text-to-image directions. **SigLIP** (Zhai et al., 2023) uses pairwise sigmoid/logistic terms for matched and mismatched pairs rather than the same batchwise softmax. Natural-language descriptions are supervision from data even though they are not manually assigned class labels.
 
 For speech, **wav2vec 2.0** (Baevski et al., 2020) masks latent speech frames and contrasts context features against quantized targets; **HuBERT** (Hsu et al., 2021) predicts cluster-derived targets at masked positions; **data2vec** (Baevski et al., 2022) predicts contextualized teacher features. For language, **BERT** (Devlin et al., 2019) predicts selected corrupted tokens from bidirectional context, GPT-style causal language models (Radford et al., 2019) predict the next token from a prefix, and **ELECTRA** (Clark et al., 2020) discriminates observed tokens from generator-replaced tokens. Context and target distributions differ. Generative modeling returns in later chapters: diffusion and energy-based methods have different target and probability/sampling contracts, so they should not be folded into the same family merely because the target is data-derived.
-
-Table 3.1 compares the signal each method constructs and the limitation that remains.
 
 [#ch3-table-T01,reftext={chapter}.{counter:table},caption='{table-caption}.{counter:table-number} ']
 .Self-supervised objectives compared by the signal they construct
@@ -1313,96 +1312,143 @@ Masked prediction changes both the hidden context and the target: MAE predicts p
 [#unique_section_ch3_029_references_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
 == References
 
+[.bibliography-entry%unbreakable]
 Assran, M. et al. (2023). Self-Supervised Learning from Images with a Joint-Embedding Predictive Architecture. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. link:https://arxiv.org/abs/2301.08243[arXiv:2301.08243].
 
+[.bibliography-entry%unbreakable]
 Assran, M. et al. (2025). V-JEPA 2: Self-Supervised Video Models Enable Understanding, Prediction and Planning. link:https://arxiv.org/abs/2506.09985[arXiv:2506.09985].
 
+[.bibliography-entry%unbreakable]
 Bachman, P., Hjelm, R. D. and Buchwalter, W. (2019). Learning Representations by Maximizing Mutual Information Across Views. link:https://arxiv.org/abs/1906.00910[arXiv:1906.00910].
 
+[.bibliography-entry%unbreakable]
 Baevski, A., Zhou, Y., Mohamed, A. and Auli, M. (2020). wav2vec 2.0: A Framework for Self-Supervised Learning of Speech Representations. *Advances in Neural Information Processing Systems*. link:https://arxiv.org/abs/2006.11477[arXiv:2006.11477].
 
+[.bibliography-entry%unbreakable]
 Baevski, A., Hsu, W.-N., Xu, Q., Babu, A., Gu, J. and Auli, M. (2022). data2vec: A General Framework for Self-Supervised Learning in Speech, Vision and Language. *International Conference on Machine Learning*. link:https://arxiv.org/abs/2202.03555[arXiv:2202.03555].
 
+[.bibliography-entry%unbreakable]
 Balestriero, R. and LeCun, Y. (2025). LeJEPA: Provable and Scalable Self-Supervised Learning Without the Heuristics. link:https://arxiv.org/abs/2511.08544[arXiv:2511.08544].
 
+[.bibliography-entry%unbreakable]
 Bao, H., Dong, L. and Wei, F. (2022). BEiT: BERT Pre-Training of Image Transformers. *International Conference on Learning Representations*. link:https://arxiv.org/abs/2106.08254[arXiv:2106.08254].
 
+[.bibliography-entry%unbreakable]
 Bardes, A., Ponce, J. and LeCun, Y. (2022). VICReg: Variance-Invariance-Covariance Regularization For Self-Supervised Learning. *International Conference on Learning Representations*. link:https://arxiv.org/abs/2105.04906[arXiv:2105.04906].
 
+[.bibliography-entry%unbreakable]
 Bardes, A. et al. (2024). Revisiting Feature Prediction for Learning Visual Representations from Video. link:https://arxiv.org/abs/2404.08471[arXiv:2404.08471].
 
+[.bibliography-entry%unbreakable]
 Caron, M. et al. (2018). Deep Clustering for Unsupervised Learning of Visual Features. *European Conference on Computer Vision*. link:https://arxiv.org/abs/1807.05520[arXiv:1807.05520].
 
+[.bibliography-entry%unbreakable]
 Caron, M. et al. (2020). Unsupervised Learning of Visual Features by Contrasting Cluster Assignments. *Advances in Neural Information Processing Systems*. link:https://arxiv.org/abs/2006.09882[arXiv:2006.09882].
 
+[.bibliography-entry%unbreakable]
 Caron, M. et al. (2021). Emerging Properties in Self-Supervised Vision Transformers. *IEEE/CVF International Conference on Computer Vision*. link:https://arxiv.org/abs/2104.14294[arXiv:2104.14294].
 
+[.bibliography-entry%unbreakable]
 Chen, T. et al. (2020). A Simple Framework for Contrastive Learning of Visual Representations. *International Conference on Machine Learning*. link:https://arxiv.org/abs/2002.05709[arXiv:2002.05709].
 
+[.bibliography-entry%unbreakable]
 Chen, X. et al. (2020). Improved Baselines with Momentum Contrastive Learning. link:https://arxiv.org/abs/2003.04297[arXiv:2003.04297].
 
+[.bibliography-entry%unbreakable]
 Chen, X. and He, K. (2021). Exploring Simple Siamese Representation Learning. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. link:https://arxiv.org/abs/2011.10566[arXiv:2011.10566].
 
+[.bibliography-entry%unbreakable]
 Chen, X. et al. (2021). An Empirical Study of Training Self-Supervised Vision Transformers. link:https://arxiv.org/abs/2104.02057[arXiv:2104.02057].
 
+[.bibliography-entry%unbreakable]
 Clark, K. et al. (2020). ELECTRA: Pre-training Text Encoders as Discriminators Rather Than Generators. *International Conference on Learning Representations*. link:https://arxiv.org/abs/2003.10555[arXiv:2003.10555].
 
+[.bibliography-entry%unbreakable]
 Devlin, J. et al. (2019). BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding. *North American Chapter of the Association for Computational Linguistics*. link:https://arxiv.org/abs/1810.04805[arXiv:1810.04805].
 
+[.bibliography-entry%unbreakable]
 Doersch, C., Gupta, A. and Efros, A. A. (2015). Unsupervised Visual Representation Learning by Context Prediction. *IEEE International Conference on Computer Vision*. link:https://arxiv.org/abs/1505.05192[arXiv:1505.05192].
 
+[.bibliography-entry%unbreakable]
 Gidaris, S., Singh, P. and Komodakis, N. (2018). Unsupervised Representation Learning by Predicting Image Rotations. *International Conference on Learning Representations*. link:https://arxiv.org/abs/1803.07728[arXiv:1803.07728].
 
+[.bibliography-entry%unbreakable]
 Grill, J.-B. et al. (2020). Bootstrap Your Own Latent: A New Approach to Self-Supervised Learning. *Advances in Neural Information Processing Systems*. link:https://arxiv.org/abs/2006.07733[arXiv:2006.07733].
 
+[.bibliography-entry%unbreakable]
 Gutmann, M. and Hyvärinen, A. (2010). Noise-Contrastive Estimation: A New Estimation Principle for Unnormalized Statistical Models. *Proceedings of the Thirteenth International Conference on Artificial Intelligence and Statistics*. link:https://proceedings.mlr.press/v9/gutmann10a.html[PMLR].
 
+[.bibliography-entry%unbreakable]
 He, K. et al. (2020). Momentum Contrast for Unsupervised Visual Representation Learning. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. link:https://arxiv.org/abs/1911.05722[arXiv:1911.05722].
 
+[.bibliography-entry%unbreakable]
 He, K. et al. (2022). Masked Autoencoders Are Scalable Vision Learners. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. link:https://arxiv.org/abs/2111.06377[arXiv:2111.06377].
 
+[.bibliography-entry%unbreakable]
 Ho, J., Jain, A. and Abbeel, P. (2020). Denoising Diffusion Probabilistic Models. *Advances in Neural Information Processing Systems*. link:https://arxiv.org/abs/2006.11239[arXiv:2006.11239].
 
+[.bibliography-entry%unbreakable]
 Hsu, W.-N. et al. (2021). HuBERT: Self-Supervised Speech Representation Learning by Masked Prediction of Hidden Units. link:https://arxiv.org/abs/2106.07447[arXiv:2106.07447].
 
+[.bibliography-entry%unbreakable]
 LeCun, Y., Chopra, S., Hadsell, R., Ranzato, M. and Huang, F. (2006). A Tutorial on Energy-Based Learning. In *Predicting Structured Data*. MIT Press. link:https://yann.lecun.org/exdb/publis/pdf/lecun-06.pdf[PDF].
 
+[.bibliography-entry%unbreakable]
 Misra, I. and van der Maaten, L. (2020). Self-Supervised Learning of Pretext-Invariant Representations. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. link:https://openaccess.thecvf.com/content_CVPR_2020/html/Misra_Self-Supervised_Learning_of_Pretext-Invariant_Representations_CVPR_2020_paper.html[CVF Open Access].
 
+[.bibliography-entry%unbreakable]
 Mur-Labadia, L. et al. (2026). V-JEPA 2.1: Unlocking Dense Features in Video Self-Supervised Learning. link:https://arxiv.org/abs/2603.14482[arXiv:2603.14482].
 
+[.bibliography-entry%unbreakable]
 Noroozi, M. and Favaro, P. (2016). Unsupervised Learning of Visual Representations by Solving Jigsaw Puzzles. *European Conference on Computer Vision*. link:https://arxiv.org/abs/1603.09246[arXiv:1603.09246].
 
+[.bibliography-entry%unbreakable]
 Oquab, M. et al. (2023). DINOv2: Learning Robust Visual Features without Supervision. link:https://arxiv.org/abs/2304.07193[arXiv:2304.07193].
 
+[.bibliography-entry%unbreakable]
 Peng, Z. et al. (2022). BEiT v2: Masked Image Modeling with Vector-Quantized Visual Tokenizers. link:https://arxiv.org/abs/2208.06366[arXiv:2208.06366].
 
+[.bibliography-entry%unbreakable]
 Radford, A. et al. (2019). Language Models are Unsupervised Multitask Learners. OpenAI technical report.
 
+[.bibliography-entry%unbreakable]
 Radford, A. et al. (2021). Learning Transferable Visual Models From Natural Language Supervision. *International Conference on Machine Learning*. link:https://arxiv.org/abs/2103.00020[arXiv:2103.00020].
 
+[.bibliography-entry%unbreakable]
 Siméoni, O. et al. (2025). DINOv3. link:https://arxiv.org/abs/2508.10104[arXiv:2508.10104].
 
+[.bibliography-entry%unbreakable]
 Song, Y. et al. (2021). Score-Based Generative Modeling through Stochastic Differential Equations. *International Conference on Learning Representations*. link:https://arxiv.org/abs/2011.13456[arXiv:2011.13456].
 
+[.bibliography-entry%unbreakable]
 Tian, Y., Krishnan, D. and Isola, P. (2020). Contrastive Multiview Coding. *European Conference on Computer Vision*. link:https://arxiv.org/abs/1906.05849[arXiv:1906.05849].
 
+[.bibliography-entry%unbreakable]
 van den Oord, A., Li, Y. and Vinyals, O. (2018). Representation Learning with Contrastive Predictive Coding. link:https://arxiv.org/abs/1807.03748[arXiv:1807.03748].
 
+[.bibliography-entry%unbreakable]
 Wang, T. and Isola, P. (2020). Understanding Contrastive Representation Learning through Alignment and Uniformity on the Hypersphere. *International Conference on Machine Learning*. link:https://arxiv.org/abs/2005.10242[arXiv:2005.10242].
 
+[.bibliography-entry%unbreakable]
 Wei, C. et al. (2022). Masked Feature Prediction for Self-Supervised Visual Pre-Training. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. link:https://arxiv.org/abs/2112.09133[arXiv:2112.09133].
 
+[.bibliography-entry%unbreakable]
 Wu, Z., Xiong, Y., Yu, S. X. and Lin, D. (2018). Unsupervised Feature Learning via Non-Parametric Instance Discrimination. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. link:https://openaccess.thecvf.com/content_cvpr_2018/html/Wu_Unsupervised_Feature_Learning_CVPR_2018_paper.html[CVF Open Access].
 
+[.bibliography-entry%unbreakable]
 Wu, H., Balestriero, R. and Levine, M. (2026). VISReg: Variance-Invariance-Sketching Regularization for JEPA Training. link:https://arxiv.org/abs/2606.02572[arXiv:2606.02572].
 
+[.bibliography-entry%unbreakable]
 Xie, Z. et al. (2022). SimMIM: A Simple Framework for Masked Image Modeling. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. link:https://arxiv.org/abs/2111.09886[arXiv:2111.09886].
 
+[.bibliography-entry%unbreakable]
 Zbontar, J. et al. (2021). Barlow Twins: Self-Supervised Learning via Redundancy Reduction. *International Conference on Machine Learning*. link:https://arxiv.org/abs/2103.03230[arXiv:2103.03230].
 
+[.bibliography-entry%unbreakable]
 Zhai, X. et al. (2023). Sigmoid Loss for Language Image Pre-Training. *IEEE/CVF International Conference on Computer Vision*. link:https://arxiv.org/abs/2303.15343[arXiv:2303.15343].
 
+[.bibliography-entry%unbreakable]
 Zhang, R., Isola, P. and Efros, A. A. (2016). Colorful Image Colorization. *European Conference on Computer Vision*. link:https://arxiv.org/abs/1603.08511[arXiv:1603.08511].
 
+[.bibliography-entry%unbreakable]
 Zhou, J. et al. (2022). iBOT: Image BERT Pre-Training with Online Tokenizer. link:https://arxiv.org/abs/2111.07832[arXiv:2111.07832].
