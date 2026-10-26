@@ -64,7 +64,11 @@ for number, line in enumerate(lines, start=1):
         if level in (2, 3, 4):
             headings.append((number, level, text))
             expected = {2: "[#unique_section_ch3_", 3: "[#unique_section2_ch3_", 4: "[#unique_section3_ch3_"}[level]
-            previous = lines[number - 2] if number > 1 else ""
+            # Allow blank lines between an AsciiDoc anchor and its heading.
+            previous_index = number - 2
+            while previous_index >= 0 and not lines[previous_index].strip():
+                previous_index -= 1
+            previous = lines[previous_index] if previous_index >= 0 else ""
             if not previous.startswith(expected) or "caption=" not in previous:
                 errors.append(f"Missing Manning-style anchor for heading at line {number}: {text}")
             if line.endswith("."):
