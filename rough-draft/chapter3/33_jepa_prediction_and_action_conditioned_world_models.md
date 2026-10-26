@@ -110,7 +110,7 @@ If an encoder/predictor sees video but no control input, it learns relationships
 
 A representation may encode motion cues and still fail to predict outcomes after an intervention. Therefore distinguish passive latent prediction, action-conditioned transition prediction, and planning with those transitions.
 
-**Primary sources:** [V-JEPA paper, Revisiting Feature Prediction for Learning Visual Representations from Video](https://arxiv.org/abs/2305.18290); [pinned official JEPA repository](https://github.com/facebookresearch/jepa/tree/51c59d518fc63c08464af6de585f78ac0c7ed4d5).
+**Primary sources:** [V-JEPA paper, Revisiting Feature Prediction for Learning Visual Representations from Video](https://arxiv.org/abs/2404.08471); [pinned official JEPA repository](https://github.com/facebookresearch/jepa/tree/51c59d518fc63c08464af6de585f78ac0c7ed4d5).
 
 ## 4. V-JEPA 2: representation pretraining and action-conditioned post-training
 
@@ -279,7 +279,7 @@ A pixel reconstruction score, linear probe, latent loss or successful rollout fr
 
 ### V-JEPA and V-JEPA 2
 
-- Original V-JEPA paper: https://arxiv.org/abs/2305.18290
+- Original V-JEPA paper: https://arxiv.org/abs/2404.08471
 - V-JEPA 2 paper: https://arxiv.org/abs/2506.09985
 - Official repository pinned at facebookresearch/vjepa2 revision 204698b45b3712590f06245fbfba32d3be539812.
 - The repository separates app/vjepa/, app/vjepa_2_1/ and action-conditioned V-JEPA 2-AC paths. Do not cite one source path as if all versions shared identical configs or loss details.
