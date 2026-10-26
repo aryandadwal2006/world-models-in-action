@@ -77,6 +77,19 @@ Random crops are useful when the cropped-out region is irrelevant to the intende
 
 An ideal invariance would identify observations that the downstream task truly treats as equivalent. A practical augmentation only approximates that relation. We should not assume that two views are interchangeable for every task just because they came from the same image.
 
+The distinction can be written directly into the objective. Let latexmath:[T_1,T_2] be random transformations sampled from a chosen distribution and let latexmath:[d] measure disagreement between two features. A consistency objective has the form
+
+[latexmath]
+++++
+L_{\mathrm{cons}}(\theta)=
+\mathbb{E}_{x,T_1,T_2}
+\left[d\!\left(f_\theta(T_1x),f_\theta(T_2x)\right)\right].
+++++
+
+The expectation averages over the views the augmentation pipeline actually creates, not every transformation that might occur in the world. If a transformation removes information, the encoder is rewarded for making the two resulting views agree despite that missing information. Information that varies unpredictably across views cannot reliably help reduce this loss. This is how augmentation defines an implicit preference over what the representation keeps.
+
+A useful view changes nuisance factors while leaving the intended shared content recoverable. A crop may preserve object identity but alter visible context; a color transformation may preserve shape but alter appearance. That assumption belongs to the data and task, not to the loss function itself.
+
 Historically, visual self-supervision used hand-designed pretext tasks such as predicting image rotation (Gidaris et al., 2018), restoring the spatial order of jigsaw patches (Noroozi and Favaro, 2016), predicting spatial context (Doersch et al., 2015), and colorizing grayscale images (Zhang et al., 2016). These tasks assign synthetic targets to unlabeled data and make the target-design assumption easy to see. They remain useful conceptual examples, but the architecture survey below focuses on the broader contrastive, bootstrap, statistical, clustering and masked-prediction families that followed.
 
 [sidebar]
@@ -103,6 +116,18 @@ The map is not a partition into disjoint categories. DINO uses teacher-student s
 
 A contrastive method begins with an anchor, a related positive example and distractors called negatives. The encoder maps each example to a feature vector. A similarity function scores the anchor against each candidate. Training rewards the positive for receiving a higher score than the negatives.
 
+In the common two-view construction, each source example latexmath:[x_n] is transformed independently twice:
+
+[latexmath]
+++++
+\tilde x_n^{(1)}=T_n^{(1)}(x_n),\qquad
+\tilde x_n^{(2)}=T_n^{(2)}(x_n).
+++++
+
+The two views of the same source form a positive pair. Views from other source examples form the negative candidates for that anchor. No class label is required; source identity supplies the pair label. The label therefore means “same source under two transformations,” not necessarily “same semantic class” or “same underlying state.”
+
+If two different source examples are semantically equivalent, treating one as another's negative creates a false negative relative to a semantic objective. This is not an error in cross-entropy. It is a mismatch between the labels implied by pair construction and the relation we ultimately want the representation to encode.
+
 For two feature vectors, cosine similarity is their dot product after unit normalization:
 
 [latexmath]
@@ -111,7 +136,7 @@ s(z_i,z_j)=\frac{z_i^\top z_j}{\lVert z_i\rVert_2\lVert z_j\rVert_2}.
 \tag{3.3}
 ++++
 
-A temperature latexmath:[\tau>0] scales the similarity before applying softmax. A lower temperature makes the candidate distribution sharper and increases the effect of high-scoring candidates. It also changes gradient scale and optimization sensitivity.
+A temperature latexmath:[\tau>0] scales every similarity before softmax. If two candidates have similar scores, a lower temperature magnifies their difference in the logits and makes the probability distribution more concentrated. It does not simply make every gradient larger: when the positive already has probability close to one, its cross-entropy gradient is close to zero. Temperature changes both the probability assigned to each candidate and the factor relating a logit gradient to the underlying similarity gradient.
 
 Suppose a batch contains latexmath:[N] source images. Two stochastic views of each image give latexmath:[2N] encoded vectors. For anchor latexmath:[i], let latexmath:[p(i)] be the index of its other view. Excluding the anchor itself, every remaining view is a candidate. The NT-Xent loss for that anchor is
 
@@ -123,7 +148,14 @@ Suppose a batch contains latexmath:[N] source images. Two stochastic views of ea
 \tag{3.4}
 ++++
 
-The total loss averages over the anchors. In the denominator are one positive and latexmath:[2N-2] negatives. The positive is included in the denominator; the anchor is not. Stating the candidate set explicitly avoids ambiguity because papers do not all use the same symbol for the number of candidates or negatives.
+The batch loss averages this quantity over all latexmath:[2N] anchors:
+
+[latexmath]
+++++
+L_{\mathrm{NT\text{-}Xent}}=\frac{1}{2N}\sum_{i=1}^{2N}\ell_i.
+++++
+
+In the denominator of each term are one positive and latexmath:[2N-2] negatives. The positive is included in the denominator; the anchor is not. Stating the candidate set explicitly avoids ambiguity because papers do not all use the same symbol for the number of candidates or negatives.
 
 This objective is ordinary softmax cross-entropy. Write latexmath:[a_{ij}=s(z_i,z_j)/\tau], and let latexmath:[q_{ij}] be the softmax probability assigned to candidate latexmath:[j]. Differentiating with respect to each candidate logit gives
 
@@ -137,6 +169,19 @@ This objective is ordinary softmax cross-entropy. Write latexmath:[a_{ij}=s(z_i,
 The positive logit receives gradient latexmath:[q_{i,p(i)}-1], which pushes it upward under gradient descent. A negative logit receives gradient latexmath:[q_{ij}], which pushes it downward. The gradient on a negative is weighted by its current probability: a hard negative receives more repulsive gradient than an already dissimilar candidate. Since latexmath:[a_{ij}=s(z_i,z_j)/\tau], differentiation with respect to the unscaled similarity introduces the factor latexmath:[1/\tau].
 
 For example, suppose one anchor has cosine similarities latexmath:[0.80], latexmath:[0.10] and latexmath:[-0.30] to its positive and two negatives, with latexmath:[\tau=0.5]. The logits are latexmath:[1.6], latexmath:[0.2] and latexmath:[-0.6]. Softmax assigns the positive probability about latexmath:[0.737], so the loss for this anchor is latexmath:[-\log(0.737)\approx0.306]. If all three candidates received equal probability, the loss would be latexmath:[-\log(1/3)\approx1.099]. The loss measures whether the correct candidate is easy to identify relative to the candidates that happened to be sampled.
+
+The logit derivative explains the direction of the update. If the positive has probability latexmath:[q_+], its derivative is latexmath:[q_+-1], which is nonpositive. Gradient descent therefore raises the positive logit unless it is already assigned probability one. A negative with probability latexmath:[q_j] has positive derivative latexmath:[q_j], so its logit is lowered. The gradient focuses on candidates that the model currently finds plausible; easy negatives contribute little because their probabilities are already small.
+
+For a cosine score latexmath:[s(u,v)=\hat u^\top\hat v], where latexmath:[\hat u=u/\lVert u\rVert_2] and latexmath:[\hat v=v/\lVert v\rVert_2], the derivative with respect to the first vector is
+
+[latexmath]
+++++
+\frac{\partial s(u,v)}{\partial u}
+=\frac{1}{\lVert u\rVert_2}
+\left(\hat v-s(u,v)\hat u\right).
+++++
+
+This gradient changes the direction of a normalized vector to improve its relative score. In a neural network, the same representation can appear as an anchor and as a candidate in other loss terms, so its total gradient accumulates contributions from all those roles. Contrastive learning is not merely “pull positives together”: it adjusts the representation so that positives outrank the negatives in the sampled candidate set.
 
 [#ch3-figure-F11,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .InfoNCE turns a similarity comparison into candidate classification
@@ -157,12 +202,18 @@ InfoNCE is also connected to mutual information. Let positive pairs come from a 
 I(X;Y)\ge \log K-\mathcal{L}_{\mathrm{NCE}}.
 ++++
 
-The candidate count convention matters: here latexmath:[K] includes the positive. The bound is limited by latexmath:[\log K], so a finite candidate set cannot certify arbitrarily large mutual information. More importantly, real training pipelines may violate the independent-negative assumption, for example when observations are related or repeated. The bound is not a general guarantee of feature quality, and mutual information between two views is not the same as sufficiency for a later prediction.
+The candidate count convention matters: here latexmath:[K] includes the positive. The bound is limited by latexmath:[\log K], so a finite candidate set cannot certify arbitrarily large mutual information.
+
+The density-ratio interpretation explains why this loss is useful. If a pair latexmath:[(x,y)] is more likely under the joint distribution than under independent sampling, the ratio latexmath:[p(y\mid x)/p(y)] is large. An ideal contrastive score should assign that pair a larger logit. In this sense, the critic learns to distinguish dependence between the paired views from what would be expected if the two sides were independent. The finite candidate problem is an approximation to this density-ratio comparison, and its behavior depends on how the candidate set is sampled.
+
+In practice, nearby frames, repeated examples, or multiple instances of one category can violate the ideal negative-sampling picture. A learned score may solve the constructed classification problem without capturing the semantic relation we have in mind. Most importantly, mutual information between two views is not the same as sufficiency for a later prediction: a variable can be shared between views yet be irrelevant to the future quantity that matters.
 
 [#unique_section2_ch3_007_simclr_and_moco_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === SimCLR and MoCo: two ways to construct candidates
 
-SimCLR (Chen et al., 2020) made the augmented-view recipe explicit. Two views pass through an encoder latexmath:[f] and a nonlinear projection head latexmath:[g]. The contrastive objective is applied to the projected vectors, while the encoder representation is typically what downstream tasks use. That distinction matters: the loss space and the feature space are not necessarily the same. SimCLR's results also depended on augmentation composition, batch size, architecture, training duration and optimization. Its contribution is a clear and strong recipe, not a proof that every contrastive method needs one specific batch size or projection head.
+SimCLR (Chen et al., 2020) made the augmented-view recipe explicit. Two views pass through an encoder latexmath:[f] and a nonlinear projection head latexmath:[g], and the objective is applied to latexmath:[z=g(f(x))]. The representation before the head, latexmath:[h=f(x)], is commonly retained for downstream tasks. The projector allows the loss to shape a space specialized for the pretraining comparison, rather than requiring every property of that space to be optimal for later evaluation. This is a design choice supported by the SimCLR experiments, not a theorem that a projection head always improves every representation.
+
+SimCLR's results depended on augmentation composition, batch size, architecture, training duration and optimization. A large batch increases the number of available negatives under an in-batch objective, but changes the classification problem itself and may add more false negatives. Its contribution is a clear recipe for contrastive visual learning, not evidence that every contrastive method needs one specific batch size or projector.
 
 MoCo (He et al., 2020) uses a query encoder and a key encoder, with a queue storing keys from earlier minibatches. This gives each query a larger candidate set than the current batch alone. The key encoder follows an exponential moving average:
 
@@ -172,7 +223,7 @@ MoCo (He et al., 2020) uses a query encoder and a key encoder, with a queue stor
 \tag{3.6}
 ++++
 
-The queue contains keys produced by earlier parameter values. They become stale as training proceeds; a slowly moving key encoder reduces abrupt drift in their representation space but cannot make historical keys identical to current ones. MoCo v2 (Chen et al., 2020) changed the training recipe, while MoCo v3 (Chen et al., 2021) studied a different recipe for vision transformers.
+The queue contains keys produced by earlier parameter values. They become stale as training proceeds; a slowly moving key encoder reduces abrupt drift in their representation space but cannot make historical keys identical to current ones. The update latexmath:[ \theta_k\leftarrow m\theta_k+(1-m)\theta_q ] makes the key parameters a smoothed history of the query parameters: for fixed latexmath:[m], contributions from earlier updates decay geometrically. MoCo v2 (Chen et al., 2020) changed the training recipe, while MoCo v3 (Chen et al., 2021) studied a different recipe for vision transformers.
 
 Both methods remain sensitive to the definition of positive pairs and negatives. A queue solves the size and update-consistency problem; it does not establish that every negative is semantically different.
 
