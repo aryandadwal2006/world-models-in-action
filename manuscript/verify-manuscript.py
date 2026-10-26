@@ -18,7 +18,7 @@ required = (
     "DINOv3", "Barlow Twins", "VICReg", "SIGReg", "LeJEPA", "VISReg",
     "DeepCluster", "SwAV", "MAE", "BEiT", "iBOT", "data2vec", "BERT", "CLIP",
     "SigLIP", "wav2vec 2.0", "energy-based", "diffusion", "References",
-    "lambda_\\mathrm{scale}", "lambda_\\mathrm{shape}", "lambda_\\mathrm{center}",
+    "\\lambda_{\\mathrm{scale}}", "\\lambda_{\\mathrm{shape}}", "\\lambda_{\\mathrm{center}}",
     "same-image global-view center", "per-view minibatch mean",
 )
 for item in required:

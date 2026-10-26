@@ -592,7 +592,7 @@ Here latexmath:[c] is a running center of teacher outputs, latexmath:[T_t] contr
 H(q_t,p_s)=-\sum_{k=1}^{K}q_{t,k}\log p_{s,k}.
 ++++
 
-Training sums this loss over selected teacher-student view pairs. Centering subtracts a running output mean before the teacher softmax; sharpening uses a low teacher temperature to lower target entropy. They serve different roles: centering reduces persistent preference for a subset of output coordinates, while sharpening produces a more decisive target distribution.
+Training sums this loss over selected teacher-student crop pairs.
 
 Cross-entropy decomposes into the entropy of the target plus a divergence:
 
@@ -608,7 +608,7 @@ Centering and sharpening address different undesirable target distributions. Wit
 
 Prototype indices are learned output coordinates, not automatically human-defined categories. DINO is best understood as self-distillation with a prototype distribution, rather than as an ordinary clustering algorithm.
 
-Multi-crop training supplies a useful extra constraint. The teacher receives the larger global crops, while the student also sees smaller local crops. A local crop usually lacks some of the global context, so its output must match a target produced from a different field of view. This encourages some features to remain consistent across scales. It does not mean that every local crop contains enough evidence to infer every property of the entire scene; the target and crop protocol define what consistency is encouraged. The prototype outputs are learned coordinates, not labels assigned by a person, and their semantics must be established through evaluation.
+Multi-crop training supplies a useful extra constraint. The teacher receives the larger global crops, while the student also sees smaller local crops. A local crop usually lacks some of the global context, so its output must match a target produced from a different field of view. This encourages features to remain consistent across scales, but a local crop may not contain enough evidence to infer every property of the full scene. The crop protocol determines which consistency the objective rewards.
 
 These releases also illustrate a general caution: reported improvements belong to a complete training system, including data, architecture, optimization and evaluation, rather than to an isolated loss substitution. The following details separate the original DINO mechanism from components added in later recipes.
 
@@ -853,7 +853,7 @@ For the shape term, the centered features are normalized by a *detached* copy of
 [latexmath]
 ++++
 \widetilde z_{v,b,j}
-=\frac{\widehat z_{v,b,j}}{\operatorname{sg}(\sigma_{v,j})}.
+=\frac{\widehat z_{v,b,j}}{\mathrm{sg}(\sigma_{v,j})}.
 ++++
 
 For each randomly sampled unit direction \(w_k\), project the normalized features and sort the \(B\) values. Let \(q_b=\Phi^{-1}(b/(B+1))\) be the corresponding standard-normal quantiles for \(b=1,\ldots,B\). The reference implementation averages the squared differences over views, projection directions and batch positions:
