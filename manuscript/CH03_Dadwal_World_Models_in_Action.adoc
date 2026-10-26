@@ -104,6 +104,8 @@ The map below groups methods by their dominant training signal while allowing ov
 
 The family map in figure 3.1 groups objectives by the signal they construct, rather than by publication date.
 
+The family map in figure 3.1 groups objectives by the signal they construct, rather than by publication date.
+
 [#ch3-figure-F01,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Self-supervised learning families, grouped by their training signal
 image::CH03_T01_SSL_Landscape.svg[Self-supervised learning families grouped by their training signal,pdfwidth=100%]
@@ -186,6 +188,8 @@ For a cosine score latexmath:[s(u,v)=\hat u^\top\hat v], where latexmath:[\hat u
 ++++
 
 This gradient changes the direction of a normalized vector to improve its relative score. In a neural network, the same representation can appear as an anchor and as a candidate in other loss terms, so its total gradient accumulates contributions from all those roles. Contrastive learning is not merely “pull positives together”: it adjusts the representation so that positives outrank the negatives in the sampled candidate set.
+
+Figure 3.2 visualizes the anchor, candidate set, softmax distribution and the resulting gradient.
 
 Figure 3.2 visualizes the anchor, candidate set, softmax distribution and the resulting gradient.
 
@@ -374,7 +378,7 @@ L_{\mathrm{BT}}=\sum_i(1-C_{ii})^2+
 \tag{3.8}
 ++++
 
-If latexmath:[C_{ii}] is below one, the corresponding coordinate is not perfectly aligned across views. A nonzero latexmath:[C_{ij}], for latexmath:[i\ne j] means coordinate latexmath:[i] in one view is linearly correlated with coordinate latexmath:[j] in the other. The loss pushes the cross-correlation matrix toward identity. It controls second-order cross-view statistics; it does not establish statistical independence for arbitrary distributions, nor does it assign a meaningful physical interpretation to each coordinate.
+If latexmath:[C_{ii}] is below one, the corresponding coordinate is not perfectly aligned across views. A nonzero latexmath:[C_{ij}] for latexmath:[i\ne j] means coordinate latexmath:[i] in one view is linearly correlated with coordinate latexmath:[j] in the other. The loss pushes the cross-correlation matrix toward identity. It controls second-order cross-view statistics; it does not establish statistical independence for arbitrary distributions, nor does it assign a meaningful physical interpretation to each coordinate.
 
 The diagonal and off-diagonal penalties have different purposes. The diagonal term encourages coordinate latexmath:[i] from view A to align with coordinate latexmath:[i] from view B. The off-diagonal term discourages coordinate latexmath:[i] in one view from correlating with coordinate latexmath:[j\ne i] in the other. Barlow Twins does not merely minimize the distance between the two feature vectors: it specifies a pattern for the entire batch cross-correlation matrix.
 
@@ -439,6 +443,8 @@ A simple two-coordinate example makes the distinction concrete. If both coordina
 
 Figure 3.3 compares these mechanisms without implying that they have been trained under a common recipe or that the diagram ranks them.
 
+Figure 3.3 compares these mechanisms without implying that they have been trained under a common recipe or that the diagram ranks them.
+
 [#ch3-figure-F08,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Different objectives impose different constraints on the representation
 image::CH03_T03_MethodMechanisms.svg[Comparison of contrastive, bootstrap, teacher and batch-statistic objectives,pdfwidth=100%]
@@ -450,6 +456,8 @@ image::CH03_T03_MethodMechanisms.svg[Comparison of contrastive, bootstrap, teach
 **DeepCluster** alternates between clustering the current feature vectors and training the encoder to predict the resulting cluster assignments. The pseudo-labels therefore change as the representation changes. **SwAV** computes prototype assignments online and predicts one view's assignment from another view's features; a balancing procedure discourages all examples from being assigned to a small number of prototypes. Both methods turn unlabeled features into pseudo-targets, but differ in how assignments are generated and refreshed.
 
 CLIP (Radford et al., 2021) aligns paired images and text with a contrastive objective; SigLIP (Zhai et al., 2023) replaces the batchwise softmax with pairwise sigmoid losses. Speech systems construct targets from audio itself: wav2vec 2.0 contrasts quantized latent targets, HuBERT predicts cluster-derived labels, and data2vec predicts contextualized teacher features. In language, BERT predicts selected masked tokens from bidirectional context, GPT-style models predict the next token from preceding context, and ELECTRA predicts whether tokens have been replaced. These methods differ in the target and available context; their full architectures are outside this chapter's main derivations.
+
+Table 3.1 compares the signal each method constructs and the limitation that remains.
 
 [#ch3-table-T01,reftext={chapter}.{counter:table},caption='{table-caption}.{counter:table-number} ']
 .Self-supervised objectives compared by the signal they construct
@@ -508,6 +516,8 @@ Masking also changes what the model is allowed to observe. A model trained to re
 
 Figure 3.4 holds the mask fixed and changes only the prediction target.
 
+Figure 3.4 holds the mask fixed and changes only the prediction target.
+
 [#ch3-figure-F13,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .The mask is the same; the prediction target changes
 image::CH03_T04_TargetSpaces.svg[Comparison of pixel, discrete-code and teacher-feature targets,pdfwidth=100%]
@@ -530,8 +540,12 @@ L_{\mathrm{MAE}}=
 
 The normalization is over masked patches, so visible patches do not contribute to the loss. Under squared error, the conditional mean is the best prediction in expected squared-error terms. If several patch contents are plausible from the visible context, the conditional mean can blur those alternatives. Pixel reconstruction can nevertheless learn useful features; its limitation is that pixel accuracy does not guarantee that the retained encoder feature preserves every variable needed for a later prediction. The encoder, rather than the reconstruction decoder, is usually the component transferred to a downstream task.
 
+The original MAE recipe uses a high masking ratio, 75% of image patches. The encoder therefore processes a sparse visible subset, reducing token-processing cost. The mask ratio also controls the difficulty of the prediction problem: with few masked patches, more of the image is directly available as context; with too many, the visible content may not determine the missing patches well. The 75% setting is characteristic of the original recipe, not a universal optimum for every image resolution, patch size, decoder or target.
+
 The original MAE recipe uses a high masking ratio (75% of image patches), which makes the encoder operate on a sparse visible subset and lowers its token-processing cost. The ratio also controls task difficulty: with too few masked patches, much of the objective can be solved from local continuity; with too many, the remaining visible context may be insufficient for some targets. The useful ratio depends on image resolution, patch size, decoder capacity and target, so 75% is a defining setting of the original recipe rather than a universal optimum for every masked-prediction task.
 
+
+Figure 3.5 shows why the MAE encoder sees only visible patches while its decoder reconstructs the masked positions.
 
 Figure 3.5 shows why the MAE encoder sees only visible patches while its decoder reconstructs the masked positions.
 
@@ -544,7 +558,7 @@ image::CH03_F12_Dadwal.svg[Masked autoencoder architecture with visible-patch en
 
 BEiT (Bao et al., 2022) predicts discrete visual-token IDs produced by a learned tokenizer. Rather than regress pixel values, the model classifies the tokenizer's code for each masked patch. The tokenizer introduces its own prior: useful structure can be learned from the code vocabulary, but tokenizer errors and biases enter the target.
 
-iBOT (Zhou et al., 2022) combines masked patch prediction with teacher-student self-distillation. It is an example where a family label is insufficient: the input is masked, target distributions come from a teacher, and prototype outputs structure those targets. Other masked-image methods deliberately change the target: SimMIM (Xie et al., 2022) uses a simple pixel-reconstruction objective; MaskFeat (Wei et al., 2022) predicts hand-designed visual features such as HOG rather than raw pixels; BEiT v2 improves the discrete-target route with semantic visual tokenization. These variations reinforce the same principle: the mask alone does not define the learning task. The target families can be written schematically as
+iBOT (Zhou et al., 2022) combines masked patch prediction with teacher-student self-distillation. SimMIM (Xie et al., 2022) uses pixel reconstruction; MaskFeat (Wei et al., 2022) predicts visual features such as HOG; BEiT v2 improves the discrete-token route with a semantic visual tokenizer. These methods change the target while keeping the general idea of withholding input content. The target families can be written schematically as
 
 [latexmath]
 ++++
@@ -615,6 +629,15 @@ h_{\mathrm{global}}=\frac{1}{P}\sum_{i=1}^{P}h_i.
 
 This compresses the grid into one vector and removes explicit patch indexing from the output. Distinct spatial arrangements can therefore produce the same pooled vector. Retaining the grid preserves a feature for each patch and its token position, although the feature values themselves are not guaranteed to encode accurate geometry. The choice is a representational trade-off: a vector is compact, while a grid makes local correspondences accessible to later components.
 
+For patch features latexmath:[h_1,\ldots,h_P], simple average pooling forms
+
+[latexmath]
+++++
+h_{\mathrm{global}}=\frac{1}{P}\sum_{i=1}^{P}h_i.
+++++
+
+This compresses the grid into one vector and removes explicit patch indexing from the output. Distinct spatial arrangements can therefore produce the same pooled vector. Retaining the grid preserves a feature for each patch and its token position, although the feature values themselves are not guaranteed to encode accurate geometry. The choice is a representational trade-off: a vector is compact, while a grid makes local correspondences accessible to later components.
+
 Global pooling can intentionally discard spatial layout. That may be appropriate for image-level classification or retrieval but harmful when predictions depend on location or correspondence between regions. A patch grid retains more spatial structure at the cost of memory and downstream computation. A temporal state can incorporate history, but the representation must retain motion-related information when it changes the future distribution.
 
 
@@ -648,6 +671,8 @@ This equality says that once latexmath:[Z] is known, the original observation pr
 Equivalently, the sufficiency condition is the conditional-independence statement latexmath:[Y\perp X\mid Z]. When latexmath:[Z] summarizes an observation history, the ideal is that the history provides no additional information about the target future once the representation is known. If the same latexmath:[z] is assigned to histories with different conditional future distributions, the representation has discarded a predictive distinction.
 
 The important tests are distinct: inspect the transformations and target that define the pretraining problem; examine whether the features collapse; probe variables on held-out data; and evaluate prediction of the quantity for which the representation will be used.
+
+Figure 3.6 summarizes the encoder's contract: it should discard nuisance variation without merging observations whose target futures differ.
 
 Figure 3.6 summarizes the encoder's contract: it should discard nuisance variation without merging observations whose target futures differ.
 
