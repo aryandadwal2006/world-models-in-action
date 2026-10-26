@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the theory-first Chapter 3 AsciiDoc and its authored figure assets."""
+"""Validate Chapter 3 AsciiDoc structure and authored figure assets."""
 from pathlib import Path
 import re
 import sys
@@ -14,9 +14,10 @@ errors = []
 required = (
     "= World Models in Action\n", ":chapter: 3", ":sectnums:", ":sectnumlevels: 3",
     ":imagesdir: ../images/", ":stem: latexmath", "[.book-title]", "This chapter covers",
-    ".The principle behind representation learning", "static visual encoder", "full world model",
+    ".The principle behind representation learning", "predictive sufficiency",
     "InfoNCE", "BYOL", "SimSiam", "DINOv3", "Barlow Twins", "VICReg", "DeepCluster",
-    "SwAV", "MAE", "BERT", "CLIP", "wav2vec 2.0", "References",
+    "SwAV", "MAE", "BERT", "CLIP", "wav2vec 2.0", "Official implementation references",
+    "References",
 )
 for item in required:
     if item not in source:
@@ -82,15 +83,20 @@ for aid in anchor_ids:
 for kind, prefix in (("figure", "ch3-figure-"), ("table", "ch3-table-")):
     anchors = [(i, line) for i, line in enumerate(lines) if line.startswith(f"[#{prefix}")]
     for number, (idx, _line) in enumerate(anchors, start=1):
-        if f"{kind} 3.{number}" not in "\n".join(lines[:idx]):
+        before_anchor = "\n".join(lines[:idx]).lower()
+        if f"{kind} 3.{number}" not in before_anchor:
             errors.append(f"{kind} 3.{number} is not mentioned before its anchor.")
 
 figure_count = sum(line.startswith("[#ch3-figure-") for line in lines)
 table_count = sum(line.startswith("[#ch3-table-") for line in lines)
-if figure_count != 4:
-    errors.append(f"Expected 4 theory figures, found {figure_count}.")
+if figure_count != 6:
+    errors.append(f"Expected 6 theory figures, found {figure_count}.")
 if table_count != 1:
     errors.append(f"Expected one objective comparison table, found {table_count}.")
+
+source_listing_count = sum(line.startswith("[source") for line in lines)
+if source_listing_count > 6:
+    errors.append(f"Expected at most 6 code listings, found {source_listing_count}.")
 
 for match in re.finditer(r"^image::([^\[]+)\[", source, flags=re.MULTILINE):
     target = (image_dir / match.group(1)).resolve()
@@ -106,4 +112,4 @@ if errors:
         print(f" - {error}")
     sys.exit(1)
 
-print(f"Chapter 3 validation passed: {len(headings)} section headings, {figure_count} figures, {table_count} table, all local images present.")
+print(f"Chapter 3 validation passed: {len(headings)} section headings, {figure_count} figures, {table_count} table, {source_listing_count} code listings, all local images present.")
