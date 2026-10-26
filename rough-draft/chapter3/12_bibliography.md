@@ -44,6 +44,8 @@ This is the working citation register; the final AsciiDoc reference section shou
 - Baevski, A. et al. (2020). wav2vec 2.0: A Framework for Self-Supervised Learning of Speech Representations. https://arxiv.org/abs/2006.11477.
 - Hsu, W.-N. et al. (2021). HuBERT: Self-Supervised Speech Representation Learning by Masked Prediction of Hidden Units. https://arxiv.org/abs/2106.07447.
 
+- Chen, S. et al. (2022). WavLM: Large-Scale Self-Supervised Pre-Training for Full Stack Speech Processing. IEEE Journal of Selected Topics in Signal Processing, 16(6), 1505–1518. https://arxiv.org/abs/2110.13900. Official code: https://github.com/microsoft/unilm/tree/master/wavlm.
+
 ## Joint-embedding predictive architectures
 - Assran, M. et al. (2023). Self-Supervised Learning from Images with a Joint-Embedding Predictive Architecture. https://arxiv.org/abs/2301.08243.
 - Bardes, A. et al. (2024). Revisiting Feature Prediction for Learning Visual Representations from Video. https://arxiv.org/abs/2404.08471.
