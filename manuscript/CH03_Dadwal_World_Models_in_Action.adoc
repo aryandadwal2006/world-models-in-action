@@ -7,7 +7,7 @@
 :table-caption: Table {chapter}
 :sectnumoffset: 2
 :leveloffset: 1
-:imagesdir: ../images/
+:imagesdir: ../images/ch03/
 :table-number:
 :figure-number:
 :listing-number:
@@ -27,9 +27,9 @@ World Models in Action
 This chapter covers
 
 * How self-supervised objectives define useful invariances
-* Contrastive learning, bootstrapping, clustering and redundancy reduction
-* Masked prediction across visual, language and speech representations
-* How to inspect a learned representation without overclaiming
+* Contrastive learning, bootstrap learning, redundancy reduction and self-distillation
+* Masked prediction, target spaces and latent bottlenecks
+* How to assess whether a representation retains the state needed for prediction
 
 A world model needs an internal state that preserves distinctions relevant to predicting what happens next. Raw observations are often too high-dimensional and entangled to serve directly as a convenient state. An encoder transforms them into a representation, but the transformation cannot be judged by compression alone. It must retain the distinctions that a dynamics model or planner will need.
 
@@ -37,10 +37,16 @@ When labels are unavailable, the encoder still needs a learning signal. Self-sup
 
 The central idea is that an objective is not a neutral way to optimize an encoder. It specifies a relationship the model must satisfy. The way that relationship is constructed determines which variations are ignored, which distinctions are amplified, and which information may be lost. No objective guarantees that its representation is a sufficient physical state. That claim requires separate evidence.
 
-The methods in this chapter are arranged by the problem each family addresses, not by publication year. We derive one contrastive objective fully, compare strategies for avoiding collapsed features, and examine how masked prediction changes when the target is a pixel, a token or another model's representation. The examples explain learning mechanisms; they are not a benchmark ranking of methods trained with different data, architectures and computational budgets.
+The chapter follows the book's TOC: self-supervised foundations, contrastive learning, masked prediction, latent bottlenecks, compact state representations and a simple encoder. BYOL, SimSiam, Barlow Twins, VICReg and the DINO family receive intuitive, mechanism-level explanations. DeepCluster, SwAV, CLIP, BERT and GPT are brief reference points, not separate tutorials. The examples explain learning mechanisms; they are not a ranking of methods trained with different data, architectures and budgets.
 
 [#unique_section_ch3_001_the_objective_is_a_contract_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
-== The objective is a contract
+== Self-supervised learning foundations
+
+[sidebar]
+.The central distinction
+****
+Self-supervised learning constructs a relationship from data and optimizes an encoder to satisfy it. That relationship may be useful without being sufficient for a world model. Separate the training target, the learned representation and evidence about downstream state quality.
+****
 
 [#unique_section2_ch3_002_representation_not_compression_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === A representation is not just a compressed observation
@@ -82,16 +88,280 @@ Historically, visual self-supervision used hand-designed pretext tasks such as p
 Every self-supervised method constructs a target relationship from the data. The relationship may be agreement between views, a ranking among candidates, a teacher's output distribution, statistics of a feature batch, a cluster assignment or a missing patch. Ask what information makes that relationship easy to satisfy, then ask whether that information is what the downstream model needs.
 ****
 
-figure 3.1 maps the major objective families by their dominant training signal; the map deliberately allows overlap between methods.
+The map below groups methods by their dominant training signal while allowing overlap between families.
 
 [#ch3-figure-F01,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.The major families of self-supervised learning
-image::CH03_T01_SSL_Landscape.svg[The major families of self-supervised learning,pdfwidth=100%]
+[NOTE]
+====
+**Figure brief — artwork pending; do not insert an image yet.**
+
+Map the training signal rather than publication chronology
+
+Begin with unlabeled observations and branch into candidate discrimination, bootstrap prediction, batch-statistic constraints, prototype or pseudo-label assignment, and masked-content prediction. Label target construction and update paths. Use cross-links for hybrid methods such as iBOT and DINOv2. This is a method-reading map, not a strict taxonomy.
+
+**Official/source reference:** Original synthesis based on SimCLR, BYOL, SimSiam, Barlow Twins, VICReg, DINO, SwAV and MAE.. Redraw as an original schematic in the Manning figure style; do not paste a paper screenshot.
+====
 
 The map is not a partition into disjoint categories. DINO uses teacher-student self-distillation over prototype outputs; iBOT joins masking and teacher targets; wav2vec 2.0 combines masking, quantization and contrastive discrimination.
 
+[#unique_section2_ch3_009_negative_free_learning_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
+=== Learning without explicit negatives
+
+Contrastive learning supplies an explicit competitor set. Another family removes that dictionary and trains one branch to predict a target produced by another branch. This avoids explicit negative pairs, but it changes rather than eliminates the collapse question.
+
+[#ch3-figure-F02,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
+[NOTE]
+====
+**Figure brief — artwork pending; do not insert an image yet.**
+
+BYOL's online predictor and EMA target pathway
+
+Show two augmented views. The online branch contains encoder, projector and predictor and receives gradients. The target branch contains encoder and projector, is detached from the loss, and receives a separate EMA update from online parameters. Distinguish forward-pass arrows from the parameter-update arrow and show view swapping.
+
+**Official/source reference:** Grill et al. (2020), Bootstrap Your Own Latent, and google-deepmind/deepmind-research/byol. Redraw as an original schematic in the Manning figure style; do not paste a paper screenshot.
+====
+
+[#ch3-figure-F03,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
+[NOTE]
+====
+**Figure brief — artwork pending; do not insert an image yet.**
+
+SimSiam's stop-gradient differs from BYOL's EMA update
+
+Show shared encoder weights on both view paths, a predictor on the online path and a stop-gradient symbol after the target representation. Show gradients only through the online side for that loss term. Do not draw a target encoder or EMA arrow.
+
+**Official/source reference:** Chen and He (2021), Exploring Simple Siamese Representation Learning, and facebookresearch/simsiam. Redraw as an original schematic in the Manning figure style; do not paste a paper screenshot.
+====
+
+[#unique_section2_ch3_010_byol_and_simsiam_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
+=== BYOL and SimSiam: bootstrap prediction
+
+BYOL (Grill et al., 2020) uses an online encoder and projection head, an extra predictor on the online branch, and a target encoder with a target projection head. The target branch is stop-gradient, and its parameters are an exponential moving average of the online parameters. A normalized regression loss asks the online prediction to match the target representation of another view. Training can also swap the roles of the two views.
+
+SimSiam (Chen and He, 2021) keeps the predictor and stop-gradient asymmetry but removes the moving-average target update. Both branches share encoder parameters; the detached target branch does not receive gradient through that loss term. The important operation is not just two encoders that agree. It is which pathway receives gradients and how the predictor and normalizations affect parameter updates.
+
+A constant representation can make a simple view-agreement loss zero. Thus neither predictor asymmetry nor EMA should be presented as a standalone mathematical theorem that collapse is impossible in all settings. A collapsed solution may exist yet be unstable under a particular training dynamics; an empirical model may avoid collapse for a particular recipe without a universal proof. Distinguish the existence of a collapsed solution, its stability, and the outcome of a particular run.
+
+[#ch3-figure-F04,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
+[NOTE]
+====
+**Figure brief — artwork pending; do not insert an image yet.**
+
+DINO matches the teacher's distribution over prototypes
+
+Draw global and local crops, student and teacher branches, output distributions over prototype coordinates, centering and sharpening on teacher outputs, stop-gradient and the EMA parameter update. Keep target probabilities distinct from BYOL's target feature vector.
+
+**Official/source reference:** Caron et al. (2021), Emerging Properties in Self-Supervised Vision Transformers, and facebookresearch/dino. Redraw as an original schematic in the Manning figure style; do not paste a paper screenshot.
+====
+
+[#ch3-figure-F05,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
+[NOTE]
+====
+**Figure brief — artwork pending; do not insert an image yet.**
+
+DINO, DINOv2 and DINOv3 are distinct training systems
+
+Use three columns. DINO: multi-crop teacher-student distillation. DINOv2: add iBOT-style masked-patch prediction and other training/data components. DINOv3: scaling and Gram anchoring intended to preserve dense features. State that this is an evolutionary overview, not a controlled ablation.
+
+**Official/source reference:** Caron et al. (2021), Oquab et al. (2023), Siméoni et al. (2025), and the official DINO family repositories. Redraw as an original schematic in the Manning figure style; do not paste a paper screenshot.
+====
+
+[#unique_section2_ch3_011_dino_and_self_distillation_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
+=== DINO: match a teacher's distribution
+
+DINO (Caron et al., 2021) replaces direct feature regression with distribution matching. A student and a teacher map different views to probability distributions over learned prototype outputs. The student is trained by cross-entropy to match a teacher distribution that has been centered and sharpened. The teacher parameters follow an EMA of the student parameters.
+
+Centering and sharpening have different roles: centering modifies output statistics to resist concentration on a small set of prototypes; sharpening lowers the entropy of the teacher's target distribution. Prototype indices are learned output coordinates, not automatically human-defined categories. DINO is best understood as self-distillation with a prototype distribution, rather than as an ordinary clustering algorithm.
+
+DINOv2 (Oquab et al., 2023) and DINOv3 (Siméoni et al., 2025) demonstrate that representation quality depends on more than the named loss. Data curation, model and data scale, architecture, resolution, schedule and training diagnostics are all part of the system. DINOv3, introduced in 2025, emphasizes scalable dense features and introduces Gram anchoring to address degradation of feature maps during extended training. That development is a reminder that global image representations and high-quality local features are different objectives to monitor.
+
+[#unique_section2_ch3_012_redundancy_reduction_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
+=== Redundancy reduction and explicit variance constraints
+
+BYOL, SimSiam and DINO make training dynamics or teacher targets central to avoiding trivial solutions. Barlow Twins (Zbontar et al., 2021) and VICReg (Bardes et al., 2022) express another idea: require paired views to agree, but constrain the statistics of features across a batch.
+
+[#ch3-figure-F06,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
+[NOTE]
+====
+**Figure brief — artwork pending; do not insert an image yet.**
+
+Barlow Twins makes the identity cross-correlation matrix the target
+
+Draw two-view encoders/projectors, batch-standardized features and a square cross-correlation matrix. Label diagonal agreement penalties and off-diagonal redundancy penalties. The ideal matrix has ones on the diagonal and zeros elsewhere. Use a mathematical schematic, not an empirical correlation plot.
+
+**Official/source reference:** Zbontar et al. (2021), Barlow Twins, and facebookresearch/barlowtwins. Redraw as an original schematic in the Manning figure style; do not paste a paper screenshot.
+====
+
+[#unique_section2_ch3_013_barlow_twins_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
+=== Barlow Twins: cross-correlation toward identity
+
+Let latexmath:[Z^A] and latexmath:[Z^B] be feature batches from two views. Normalize each feature dimension across the batch and define cross-correlation latexmath:[C]:
+
+[latexmath]
+++++
+C_{ij}=\frac{1}{N}\sum_{b=1}^{N}\tilde z^A_{b,i}\tilde z^B_{b,j}.
+\tag{3.8}
+++++
+
+If corresponding dimensions agree and distinct dimensions are uncorrelated across views, latexmath:[C] approaches the identity matrix. Barlow Twins minimizes the diagonal mismatch and penalizes off-diagonal cross-correlation:
+
+[latexmath]
+++++
+L_{\mathrm{BT}}=\sum_i(1-C_{ii})^2+
+\lambda\sum_i\sum_{j\ne i}C_{ij}^{2}.
+\tag{3.9}
+++++
+
+The diagonal terms align a feature with itself across views; the off-diagonal terms discourage redundant correlations between different dimensions. This is a second-order statistical objective. An identity cross-correlation matrix does not prove that features are statistically independent under arbitrary distributions, and it does not prove that each coordinate has a useful physical interpretation.
+
+[#ch3-figure-F07,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
+[NOTE]
+====
+**Figure brief — artwork pending; do not insert an image yet.**
+
+VICReg separates invariance, variance and covariance
+
+Show paired-view feature distance, per-feature variance floor and covariance penalty as three branches that combine into a weighted sum. Add a constant-vector example: invariance can be satisfied, but variance penalty is positive. Label covariance as suppressing linear redundancy, not all dependence.
+
+**Official/source reference:** Bardes, Ponce and LeCun (2022), VICReg, and facebookresearch/vicreg. Redraw as an original schematic in the Manning figure style; do not paste a paper screenshot.
+====
+
+[#unique_section2_ch3_014_vicreg_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
+=== VICReg: make three constraints explicit
+
+VICReg separates invariance, variance and covariance. For two feature batches latexmath:[Z] and latexmath:[Z'], the invariance term is a mean-squared difference:
+
+[latexmath]
+++++
+s(Z,Z')=\frac{1}{Nd}\lVert Z-Z'\rVert_F^2.
+\tag{3.10}
+++++
+
+For each feature dimension latexmath:[j], let latexmath:[\sigma_j(Z)] be its standard deviation over the batch. A variance penalty puts a floor under each dimension's standard deviation:
+
+[latexmath]
+++++
+v(Z)=\frac{1}{d}\sum_j\max(0,\gamma-\sigma_j(Z)).
+\tag{3.11}
+++++
+
+The covariance term penalizes the squared off-diagonal entries of the empirical covariance matrix:
+
+[latexmath]
+++++
+c(Z)=\frac{1}{d}\sum_{i\ne j}\operatorname{Cov}(Z)_{ij}^{2}.
+\tag{3.12}
+++++
+
+The full objective is a weighted sum of the invariance term and the corresponding variance and covariance terms for both views. The published implementation's coefficients and numerical choices matter; the equations state the structural roles.
+
+If every example has the same value in one dimension, its batch standard deviation is zero and the variance penalty is positive for any positive margin. That makes the anti-collapse constraint explicit. It does not prove that the surviving variation is semantically relevant. A feature can vary with background texture and still satisfy a variance floor.
+
+The methods are related but not identical. Barlow Twins uses normalized cross-correlation as the central matrix objective. VICReg uses a direct invariance term, a standard-deviation floor and a covariance penalty. Their shared lesson is that view agreement and non-collapse are separate requirements. Their moment constraints are not a guarantee of a world-model-ready state.
+
+figure 3.3 compares the target path and anti-collapse mechanism used by the major non-identical objective families.
+
+[#ch3-figure-F08,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
+[NOTE]
+====
+**Figure brief — artwork pending; do not insert an image yet.**
+
+Different target paths create different optimization problems
+
+Use aligned rows for SimCLR candidate classification; BYOL's online predictor and EMA target; SimSiam's stop-gradient target; Barlow Twins/VICReg batch statistics; and DINO's student distribution matched to a teacher. Show gradient flow, EMA update and batch-statistics paths as different mechanisms. This compares designs, not performance.
+
+**Official/source reference:** Original schematic comparison based on the primary SimCLR, BYOL, SimSiam, Barlow Twins, VICReg and DINO papers.. Redraw as an original schematic in the Manning figure style; do not paste a paper screenshot.
+====
+
+[#unique_section2_ch3_016_brief_other_methods_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
+=== Other methods to recognize
+
+**DeepCluster** alternates between extracting features, clustering them offline and training the encoder to predict cluster IDs. **SwAV** forms prototype assignments online and predicts assignments across views, using a balancing step intended to prevent all examples selecting one prototype. They differ mainly in how pseudo-targets are produced and refreshed.
+
+**CLIP** aligns image and associated text embeddings with a contrastive objective. Its supervision comes from paired images and descriptions; alignment alone does not prove spatial grounding or understanding of action consequences.
+
+**BERT** predicts selected corrupted tokens from bidirectional context. **GPT-style causal language modeling** predicts the next token using only preceding tokens. They illustrate how target and context restrictions define a task and do not need standalone implementation tutorials here.
+
+
+[#unique_section2_ch3_015_clusters_and_prototypes_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
+=== Clusters and prototypes as learning targets
+
+Contrastive methods make instances compete; clustering methods instead construct pseudo-categories from the feature space. Their premise is that examples may share a prototype-level relation rather than only match as exact instances.
+
+DeepCluster (Caron et al., 2018) alternates feature extraction, k-means assignments and network training to predict the current cluster IDs. This provides pseudo-labels without human annotation, but assignments depend on current features and can be stale or unbalanced. Cluster identities are arbitrary; permuting all cluster labels leaves the partition unchanged.
+
+SwAV (Caron et al., 2020) moves assignment online. Learned prototypes assign examples to clusters, and the network predicts the assignment of one view from another view. A Sinkhorn-Knopp procedure approximately balances assignments across prototypes. Balancing discourages collapse to a single prototype, but it also encodes an assumption: useful prototype usage should be spread across the batch. A truly skewed dataset may not satisfy that assumption.
+
+DINO also predicts distributions over prototypes, but its central training description is teacher-student self-distillation. This overlap is useful: method taxonomies describe dominant mechanisms, not exclusive boxes. The essential questions are how targets are assigned, whether assignments are fixed or online, how imbalance is handled, and what downstream evidence validates the clusters.
+
+[#unique_section2_ch3_021_cross_modal_and_speech_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
+=== Brief connections across modalities
+
+CLIP (Radford et al., 2021) aligns image and text embeddings using a symmetric contrastive objective. In a batch of paired examples, each image is trained to retrieve its corresponding text and each text its corresponding image. The positive relation comes from captions or text associated with images. Such pairs provide semantic supervision, but captions may be incomplete, generic or noisy. Retrieval alignment does not guarantee detailed spatial grounding or physical understanding.
+
+SigLIP (Zhai et al., 2023) replaces the batchwise softmax with pairwise sigmoid-style losses. This changes the normalization and scaling behavior, not the underlying need for reliable pair construction. SigLIP 2 (Tschannen et al., 2025) extends the family toward multilingual understanding, localization and dense features through a combined recipe that includes captioning-based pretraining, self-distillation, masked prediction and online data curation. Do not describe SigLIP as merely a temperature variant of CLIP.
+
+Speech methods expose other target-construction choices. wav2vec 2.0 (Baevski et al., 2020) masks latent speech frames and contrasts contextual representations against quantized targets. HuBERT (Hsu et al., 2021) predicts cluster-derived pseudo-labels for masked speech regions. data2vec predicts contextual teacher features. table 3.1 compares methods by target, loss, signal construction and limitation rather than by a single benchmark score.
+
+[#ch3-figure-F09,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
+[NOTE]
+====
+**Figure brief — artwork pending; do not insert an image yet.**
+
+CLIP's dual encoder turns paired image-text data into retrieval
+
+Show image and text encoders, normalized embeddings, a batchwise similarity matrix, and matched pairs as positives in both directions. Annotate that naturally paired text may be incomplete or noisy. Avoid generation interfaces and accuracy plots.
+
+**Official/source reference:** Radford et al. (2021), Learning Transferable Visual Models From Natural Language Supervision, and openai/CLIP. Redraw as an original schematic in the Manning figure style; do not paste a paper screenshot.
+====
+
+[#ch3-table-T01,reftext={chapter}.{counter:table},caption='{table-caption}.{counter:table-number} ']
+.Self-supervised objectives compared by the signal they construct
+[width="100%",cols="17%,21%,21%,22%,19%",options="header"]
+|===
+|Method |Target |Loss family |What creates the signal |Important limitation
+|SimCLR |Matching view among candidates |Contrastive cross-entropy |Two augmented views and in-batch negatives |False negatives and augmentation assumptions
+|MoCo |Matching key among candidates |Contrastive cross-entropy |Momentum key encoder and queue |Queued keys can be stale
+|BYOL / SimSiam |Other branch's feature |Normalized feature regression |Predictor, target/stop-gradient asymmetry |Collapse is not excluded by agreement alone
+|DINO |Teacher distribution over prototypes |Distillation cross-entropy |EMA teacher, centering and sharpening |Feature structure is empirical, not guaranteed
+|Barlow Twins |Cross-view identity correlation |Squared correlation error |Batch cross-correlation |Second-order decorrelation is not semantic sufficiency
+|VICReg |Matching features plus moment constraints |MSE + variance + covariance |Explicit statistics of each view batch |Variation can encode nuisance information
+|DeepCluster / SwAV |Pseudo-cluster assignment |Cluster classification / assignment prediction |K-means or balanced online prototypes |Cluster balance and quality are assumptions
+|MAE |Masked pixel values |Reconstruction regression |Visible patches plus masked positions |Pixel reconstruction does not imply state sufficiency
+|BEiT / iBOT |Discrete codes or teacher patch targets |Token or distillation cross-entropy |Tokenizer / teacher outputs |Target bias is inherited
+|BERT / GPT |Masked token / next token |Token cross-entropy |Corrupted text or observed sequence order |Different context restrictions; not visual state objectives
+|CLIP / SigLIP |Paired image-text relation |Contrastive softmax / sigmoid |Natural language-image pairings |Alignment does not establish grounding
+|wav2vec 2.0 / HuBERT |Quantized or cluster-derived speech units |Contrastive / masked classification |Audio itself and learned pseudo-targets |Units depend on quantizer or clustering
+|data2vec |Contextual teacher representation |Latent regression |EMA teacher on less-corrupted input |Teacher targets may omit task-critical information
+|===
+
+[#unique_section2_ch3_022_frontier_and_scope_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
+=== Hand-off to predictive representations
+
+DINOv3 illustrates the recent effort to scale self-distilled visual features while preserving dense spatial information. The method's reported Gram anchoring addresses degradation of dense features during long training schedules. This is not just DINO with more parameters: data curation, architecture, optimization and feature diagnostics contribute to the system.
+
+Joint-embedding predictive architectures are another important direction. I-JEPA (Assran et al., 2023) predicts representations of target image regions from a context representation. V-JEPA (Bardes et al., 2024) moves the target into video, and V-JEPA 2 (Assran et al., 2025) explores video representation learning for visual understanding and anticipation. V-JEPA 2-AC adds action-conditioned post-training for robotic control. These are distinct stages. Passive video pretraining alone does not specify how the world changes under an action.
+
+As of October 2026, V-JEPA 2.1 represents another step toward dense predictive features, but its context/target construction belongs in Chapter 4.
+
+The JEPA family is the next conceptual step: predict target representations in embedding space rather than reconstruct every missing pixel. Chapter 4 owns the detailed treatment of I-JEPA, V-JEPA, V-JEPA 2, LeJEPA, context/target design and action-conditioned prediction. Chapter 3 only needs to establish why target choice matters.
+
+Diffusion and flow-matching objectives learn generative processes; their substantive treatment belongs in Chapters 8 and 9, not in this representation-encoder survey.
+
 [#unique_section_ch3_004_contrastive_learning_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
 == Contrastive learning
+
+[#ch3-figure-F10,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
+[NOTE]
+====
+**Figure brief — artwork pending; do not insert an image yet.**
+
+SimCLR's augmentation, encoder and projection-head pipeline
+
+Redraw the official SimCLR method pipeline: one image creates two independent augmentation compositions; both views pass through shared encoder and projection-head weights; projected vectors enter the batch contrastive objective. Distinguish the pretraining projection from the encoder feature commonly exported downstream.
+
+**Official/source reference:** Chen et al. (2020), A Simple Framework for Contrastive Learning of Visual Representations, and google-research/simclr. Redraw as an original schematic in the Manning figure style; do not paste a paper screenshot.
+====
 
 [#unique_section2_ch3_005_from_pairs_to_candidate_classification_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === From pairs to candidate classification
@@ -133,9 +403,17 @@ The positive logit receives gradient latexmath:[q_{i,p(i)}-1], which pushes it u
 
 figure 3.2 connects the positive-pair construction to the candidate distribution and its gradient.
 
-[#ch3-figure-F02,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.One anchor, one positive and a candidate distribution
-image::CH03_T02_InfoNCE.svg[One anchor positive and a candidate distribution,pdfwidth=95%]
+[#ch3-figure-F11,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
+[NOTE]
+====
+**Figure brief — artwork pending; do not insert an image yet.**
+
+One anchor, one positive and a candidate distribution
+
+Show an anchor, one positive and several negatives. Similarities are scaled by temperature and passed through softmax; cross-entropy rewards the positive index. Annotate the logit derivative q_j minus the positive indicator. Exclude the anchor itself but keep the positive in the denominator.
+
+**Official/source reference:** Original derivation schematic for NT-Xent/InfoNCE; see Chen et al. (2020), SimCLR.. Redraw as an original schematic in the Manning figure style; do not paste a paper screenshot.
+====
 
 [#unique_section2_ch3_006_what_infoNCE_does_and_does_not_prove_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === What InfoNCE does and does not prove
@@ -173,112 +451,24 @@ Encoded keys are stored in a queue. A query can therefore compare with many keys
 
 Both methods remain sensitive to the definition of positive pairs and negatives. A queue solves the size and update-consistency problem; it does not establish that every negative is semantically different.
 
+[#ch3-figure-F12,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
+[NOTE]
+====
+**Figure brief — artwork pending; do not insert an image yet.**
+
+MoCo uses a moving key encoder and a queue of candidates
+
+Show query encoder, momentum key encoder, matched positive key and first-in-first-out queue. Mark the EMA update as a parameter path distinct from forward computation. Annotate that queued keys are historical and may become stale; do not imply all MoCo versions use the same queue design.
+
+**Official/source reference:** He et al. (2020), Momentum Contrast for Unsupervised Visual Representation Learning, and official MoCo repositories. Redraw as an original schematic in the Manning figure style; do not paste a paper screenshot.
+====
+
 [#unique_section2_ch3_008_cpc_as_a_historical_bridge_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === CPC as a historical bridge
 
 Contrastive Predictive Coding (CPC; van den Oord et al., 2018) encodes a sequence and uses a context vector from the past to score future latent representations. An InfoNCE-style objective teaches the context to identify the observed future latent among candidate latents. CPC is a useful historical bridge between contrastive discrimination and predictive representations, but it is not the centerpiece of a contemporary visual SSL survey.
 
 A CPC future-latent retrieval score is not the same as an action-conditioned dynamics model. If the predictor has no action input, it does not specify which action caused the future. Successful retrieval does not establish recursive physical rollout accuracy, Markov sufficiency or planning value. Those are separate claims requiring separate tests.
-
-[#unique_section_ch3_009_negative_free_learning_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
-== Learning without explicit negatives
-
-Contrastive learning supplies an explicit competitor set. Another family removes that dictionary and trains one branch to predict a target produced by another branch. This avoids explicit negative pairs, but it changes rather than eliminates the collapse question.
-
-[#unique_section2_ch3_010_byol_and_simsiam_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
-=== BYOL and SimSiam: bootstrap prediction
-
-BYOL (Grill et al., 2020) uses an online encoder and projection head, an extra predictor on the online branch, and a target encoder with a target projection head. The target branch is stop-gradient, and its parameters are an exponential moving average of the online parameters. A normalized regression loss asks the online prediction to match the target representation of another view. Training can also swap the roles of the two views.
-
-SimSiam (Chen and He, 2021) keeps the predictor and stop-gradient asymmetry but removes the moving-average target update. Both branches share encoder parameters; the detached target branch does not receive gradient through that loss term. The important operation is not just two encoders that agree. It is which pathway receives gradients and how the predictor and normalizations affect parameter updates.
-
-A constant representation can make a simple view-agreement loss zero. Thus neither predictor asymmetry nor EMA should be presented as a standalone mathematical theorem that collapse is impossible in all settings. A collapsed solution may exist yet be unstable under a particular training dynamics; an empirical model may avoid collapse for a particular recipe without a universal proof. Distinguish the existence of a collapsed solution, its stability, and the outcome of a particular run.
-
-[#unique_section2_ch3_011_dino_and_self_distillation_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
-=== DINO: match a teacher's distribution
-
-DINO (Caron et al., 2021) replaces direct feature regression with distribution matching. A student and a teacher map different views to probability distributions over learned prototype outputs. The student is trained by cross-entropy to match a teacher distribution that has been centered and sharpened. The teacher parameters follow an EMA of the student parameters.
-
-Centering and sharpening have different roles: centering modifies output statistics to resist concentration on a small set of prototypes; sharpening lowers the entropy of the teacher's target distribution. Prototype indices are learned output coordinates, not automatically human-defined categories. DINO is best understood as self-distillation with a prototype distribution, rather than as an ordinary clustering algorithm.
-
-DINOv2 (Oquab et al., 2023) and DINOv3 (Siméoni et al., 2025) demonstrate that representation quality depends on more than the named loss. Data curation, model and data scale, architecture, resolution, schedule and training diagnostics are all part of the system. DINOv3, introduced in 2025, emphasizes scalable dense features and introduces Gram anchoring to address degradation of feature maps during extended training. That development is a reminder that global image representations and high-quality local features are different objectives to monitor.
-
-[#unique_section_ch3_012_redundancy_reduction_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
-== Redundancy reduction and explicit variance constraints
-
-BYOL, SimSiam and DINO make training dynamics or teacher targets central to avoiding trivial solutions. Barlow Twins (Zbontar et al., 2021) and VICReg (Bardes et al., 2022) express another idea: require paired views to agree, but constrain the statistics of features across a batch.
-
-[#unique_section2_ch3_013_barlow_twins_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
-=== Barlow Twins: cross-correlation toward identity
-
-Let latexmath:[Z^A] and latexmath:[Z^B] be feature batches from two views. Normalize each feature dimension across the batch and define cross-correlation latexmath:[C]:
-
-[latexmath]
-++++
-C_{ij}=\frac{1}{N}\sum_{b=1}^{N}\tilde z^A_{b,i}\tilde z^B_{b,j}.
-\tag{3.8}
-++++
-
-If corresponding dimensions agree and distinct dimensions are uncorrelated across views, latexmath:[C] approaches the identity matrix. Barlow Twins minimizes the diagonal mismatch and penalizes off-diagonal cross-correlation:
-
-[latexmath]
-++++
-L_{\mathrm{BT}}=\sum_i(1-C_{ii})^2+
-\lambda\sum_i\sum_{j\ne i}C_{ij}^{2}.
-\tag{3.9}
-++++
-
-The diagonal terms align a feature with itself across views; the off-diagonal terms discourage redundant correlations between different dimensions. This is a second-order statistical objective. An identity cross-correlation matrix does not prove that features are statistically independent under arbitrary distributions, and it does not prove that each coordinate has a useful physical interpretation.
-
-[#unique_section2_ch3_014_vicreg_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
-=== VICReg: make three constraints explicit
-
-VICReg separates invariance, variance and covariance. For two feature batches latexmath:[Z] and latexmath:[Z'], the invariance term is a mean-squared difference:
-
-[latexmath]
-++++
-s(Z,Z')=\frac{1}{Nd}\lVert Z-Z'\rVert_F^2.
-\tag{3.10}
-++++
-
-For each feature dimension latexmath:[j], let latexmath:[\sigma_j(Z)] be its standard deviation over the batch. A variance penalty puts a floor under each dimension's standard deviation:
-
-[latexmath]
-++++
-v(Z)=\frac{1}{d}\sum_j\max(0,\gamma-\sigma_j(Z)).
-\tag{3.11}
-++++
-
-The covariance term penalizes the squared off-diagonal entries of the empirical covariance matrix:
-
-[latexmath]
-++++
-c(Z)=\frac{1}{d}\sum_{i\ne j}\operatorname{Cov}(Z)_{ij}^{2}.
-\tag{3.12}
-++++
-
-The full objective is a weighted sum of the invariance term and the corresponding variance and covariance terms for both views. The published implementation's coefficients and numerical choices matter; the equations state the structural roles.
-
-If every example has the same value in one dimension, its batch standard deviation is zero and the variance penalty is positive for any positive margin. That makes the anti-collapse constraint explicit. It does not prove that the surviving variation is semantically relevant. A feature can vary with background texture and still satisfy a variance floor.
-
-The methods are related but not identical. Barlow Twins uses normalized cross-correlation as the central matrix objective. VICReg uses a direct invariance term, a standard-deviation floor and a covariance penalty. Their shared lesson is that view agreement and non-collapse are separate requirements. Their moment constraints are not a guarantee of a world-model-ready state.
-
-figure 3.3 compares the target path and anti-collapse mechanism used by the major non-identical objective families.
-
-[#ch3-figure-F03,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.Different methods make different target paths and constraints explicit
-image::CH03_T03_MethodMechanisms.svg[Different methods make target paths and constraints explicit,pdfwidth=100%]
-
-[#unique_section_ch3_015_clusters_and_prototypes_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
-== Clusters and prototypes as learning targets
-
-Contrastive methods make instances compete; clustering methods instead construct pseudo-categories from the feature space. Their premise is that examples may share a prototype-level relation rather than only match as exact instances.
-
-DeepCluster (Caron et al., 2018) alternates feature extraction, k-means assignments and network training to predict the current cluster IDs. This provides pseudo-labels without human annotation, but assignments depend on current features and can be stale or unbalanced. Cluster identities are arbitrary; permuting all cluster labels leaves the partition unchanged.
-
-SwAV (Caron et al., 2020) moves assignment online. Learned prototypes assign examples to clusters, and the network predicts the assignment of one view from another view. A Sinkhorn-Knopp procedure approximately balances assignments across prototypes. Balancing discourages collapse to a single prototype, but it also encodes an assumption: useful prototype usage should be spread across the batch. A truly skewed dataset may not satisfy that assumption.
-
-DINO also predicts distributions over prototypes, but its central training description is teacher-student self-distillation. This overlap is useful: method taxonomies describe dominant mechanisms, not exclusive boxes. The essential questions are how targets are assigned, whether assignments are fixed or online, how imbalance is handled, and what downstream evidence validates the clusters.
 
 [#unique_section_ch3_016_masked_prediction_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
 == Masked prediction: choose what the model must recover
@@ -298,9 +488,29 @@ This form leaves the crucial choice open: what is the target? It might be pixel 
 
 figure 3.4 compares three target spaces for masked inputs: pixels, discrete visual codes and contextualized features.
 
-[#ch3-figure-F04,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.The target space changes the prediction problem
-image::CH03_T04_TargetSpaces.svg[The target space changes the prediction problem,pdfwidth=100%]
+[#ch3-figure-F13,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
+[NOTE]
+====
+**Figure brief — artwork pending; do not insert an image yet.**
+
+One mask, several target spaces
+
+Use the same masked image in three pathways: pixel regression, discrete visual-token classification and teacher-feature prediction. Add a small language strip contrasting masked-token prediction using surrounding context with causal next-token prediction using only earlier tokens.
+
+**Official/source reference:** Original synthesis based on MAE, BEiT, iBOT, data2vec, BERT and GPT.. Redraw as an original schematic in the Manning figure style; do not paste a paper screenshot.
+====
+
+[#ch3-figure-F14,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
+[NOTE]
+====
+**Figure brief — artwork pending; do not insert an image yet.**
+
+MAE's asymmetric encoder-decoder architecture
+
+Redraw the official MAE overview: patchify and mask, encode only visible patches, insert mask tokens and restore original order, decode and calculate loss only on masked positions. Show a relatively large encoder and smaller decoder, then an arrow to the retained encoder features.
+
+**Official/source reference:** He et al. (2022), Masked Autoencoders Are Scalable Vision Learners, and facebookresearch/mae. Redraw as an original schematic in the Manning figure style; do not paste a paper screenshot.
+====
 
 [#unique_section2_ch3_018_mae_pixels_and_asymmetry_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === MAE: predict masked pixels
@@ -308,6 +518,18 @@ image::CH03_T04_TargetSpaces.svg[The target space changes the prediction problem
 A masked autoencoder (MAE; He et al., 2022) hides a large fraction of image patches and sends only visible patches through the encoder. A smaller decoder receives the encoded visible patches plus mask tokens and predicts patch pixels; the loss is applied to masked patches. This asymmetric design reduces encoder computation because masked patches do not pass through the expensive encoder.
 
 Under squared error, the conditional mean minimizes expected prediction risk. When several patch completions are plausible from visible context, that mean can average them. The limitation is not that pixel reconstruction is always poor; it is that reconstructing pixels does not guarantee the encoder preserves the state variables a downstream model needs. The encoder may be retained for transfer while the reconstruction decoder is discarded.
+
+[#ch3-figure-F15,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
+[NOTE]
+====
+**Figure brief — artwork pending; do not insert an image yet.**
+
+Pixel, token and teacher-feature targets are not interchangeable
+
+Compare MAE RGB reconstruction, BEiT discrete token IDs, iBOT teacher distributions for masked patches and data2vec contextual teacher features. Label the source of each target and corresponding regression or classification loss. Keep mechanisms visually distinct.
+
+**Official/source reference:** He et al. (2022), Bao et al. (2022), Zhou et al. (2022), Baevski et al. (2022), and their official repositories. Redraw as an original schematic in the Manning figure style; do not paste a paper screenshot.
+====
 
 [#unique_section2_ch3_019_beit_ibot_and_data2vec_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === BEiT, iBOT and data2vec: change the target
@@ -318,80 +540,73 @@ iBOT (Zhou et al., 2022) combines masked patch prediction with teacher-student s
 
 data2vec (Baevski et al., 2022) predicts contextualized teacher features from masked input and was designed as a framework spanning speech, vision and language. A latent target may contain broader context than a local pixel target, but matching a teacher does not automatically ensure that the feature preserves all future-relevant or causal state information. In every case, the representation is shaped by the selected target.
 
-[#unique_section2_ch3_020_bert_gpt_and_electra_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
-=== BERT, GPT and ELECTRA: self-supervision in language
+BERT-style masked language modeling predicts selected corrupted tokens from bidirectional context. GPT-style causal language modeling predicts the next token from preceding tokens only. ELECTRA trains a discriminator to detect replaced tokens. These are brief analogies for target/context construction, not additional implementation tutorials.
 
-BERT (Devlin et al., 2019) uses masked language modeling: a subset of tokens is hidden or corrupted, and the model predicts the original token identities using bidirectional context. GPT (Radford et al., 2019) uses causal next-token prediction. The chain rule factorizes sequence likelihood as
+[#unique_section_ch3_024_latent_bottlenecks_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
+== Latent bottlenecks
+
+[#unique_section2_ch3_024_bottleneck_dimension_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
+=== Dimension is capacity, not useful information
+
+A latent bottleneck maps a high-dimensional observation or token grid into a more constrained representation. The simplest form is a vector \(h\in\mathbb{R}^{d}\). Lowering \(d\) limits the number of coordinates available, but it does not directly measure how much task-relevant information remains. A small vector may preserve the few variables needed by a task; a wide vector may devote many dimensions to lighting, textures, camera identity or other nuisance variation.
+
+The important question is not “how small can the vector be?” It is “what information can be discarded without merging states whose future predictions should differ?” This is task-relative. An object classifier may ignore location, while a visual controller may need position, orientation and contact. A representation useful for matching images may be insufficient for predicting motion.
+
+[#unique_section2_ch3_025_projection_head_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
+=== The projection head and the feature that survives
+
+Many contrastive and bootstrap methods use a projection head between an encoder and the objective:
 
 [latexmath]
 ++++
-p(x_1,\ldots,x_T)=\prod_{t=1}^{T}p(x_t\mid x_{<t}).
-\tag{3.14}
+h=f_\theta(x),\qquad z=g_\phi(h).
+\tag{3.15}
 ++++
 
-Its context contains preceding tokens only. Both are self-supervised pretraining, but GPT is not a masked-language-model objective. This distinction illustrates the general principle that target and context are separate design choices.
+The loss is calculated on \(z\), while the representation evaluated downstream is often \(h\). A projection head gives the pretraining objective a dedicated space in which to impose its constraints. It does not follow that \(z\) and \(h\) have the same geometry or serve the same downstream purpose.
 
-ELECTRA (Clark et al., 2020) corrupts selected tokens and trains a discriminator to identify whether each input token was replaced. Its learning signal can apply at many positions, rather than only asking the model to reconstruct selected token IDs. These language methods are included to make the target-design principle general; the main visual architecture progression remains the focus here.
+The exact export point is method- and evaluation-specific. Some studies report features before the projector; others use intermediate or patch-level transformer features. The manuscript should state which tensor is evaluated. A pretraining loss measured on \(z\) must not be described as a direct measure of the quality of \(h\).
 
-[#unique_section_ch3_021_cross_modal_and_speech_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
-== The same questions across modalities
+[#ch3-figure-F16,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
+[NOTE]
+====
+**Figure brief — artwork pending; do not insert an image yet.**
 
-CLIP (Radford et al., 2021) aligns image and text embeddings using a symmetric contrastive objective. In a batch of paired examples, each image is trained to retrieve its corresponding text and each text its corresponding image. The positive relation comes from captions or text associated with images. Such pairs provide semantic supervision, but captions may be incomplete, generic or noisy. Retrieval alignment does not guarantee detailed spatial grounding or physical understanding.
+The projection head is not automatically the downstream state.
 
-SigLIP (Zhai et al., 2023) replaces the batchwise softmax with pairwise sigmoid-style losses. This changes the normalization and scaling behavior, not the underlying need for reliable pair construction. SigLIP 2 (Tschannen et al., 2025) extends the family toward multilingual understanding, localization and dense features through a combined recipe that includes captioning-based pretraining, self-distillation, masked prediction and online data curation. Do not describe SigLIP as merely a temperature variant of CLIP.
+Show an encoder producing \(h\). Split the path into projection head \(g\) and pretraining vector \(z\), where the SSL loss is calculated, and a downstream feature route used for probes or a transition model. Make the distinct tensors explicit.
 
-Speech methods expose other target-construction choices. wav2vec 2.0 (Baevski et al., 2020) masks latent speech frames and contrasts contextual representations against quantized targets. HuBERT (Hsu et al., 2021) predicts cluster-derived pseudo-labels for masked speech regions. data2vec predicts contextual teacher features. table 3.1 compares methods by target, loss, signal construction and limitation rather than by a single benchmark score.
+**Source basis:** SimCLR, BYOL, Barlow Twins and VICReg papers and official implementations. Redraw as an original book diagram.
+====
 
-[#ch3-table-T01,reftext={chapter}.{counter:table},caption='{table-caption}.{counter:table-number} ']
-.Self-supervised objectives compared by the signal they construct
-[width="100%",cols="17%,21%,21%,22%,19%",options="header"]
-|===
-|Method |Target |Loss family |What creates the signal |Important limitation
-|SimCLR |Matching view among candidates |Contrastive cross-entropy |Two augmented views and in-batch negatives |False negatives and augmentation assumptions
-|MoCo |Matching key among candidates |Contrastive cross-entropy |Momentum key encoder and queue |Queued keys can be stale
-|BYOL / SimSiam |Other branch's feature |Normalized feature regression |Predictor, target/stop-gradient asymmetry |Collapse is not excluded by agreement alone
-|DINO |Teacher distribution over prototypes |Distillation cross-entropy |EMA teacher, centering and sharpening |Feature structure is empirical, not guaranteed
-|Barlow Twins |Cross-view identity correlation |Squared correlation error |Batch cross-correlation |Second-order decorrelation is not semantic sufficiency
-|VICReg |Matching features plus moment constraints |MSE + variance + covariance |Explicit statistics of each view batch |Variation can encode nuisance information
-|DeepCluster / SwAV |Pseudo-cluster assignment |Cluster classification / assignment prediction |K-means or balanced online prototypes |Cluster balance and quality are assumptions
-|MAE |Masked pixel values |Reconstruction regression |Visible patches plus masked positions |Pixel reconstruction does not imply state sufficiency
-|BEiT / iBOT |Discrete codes or teacher patch targets |Token or distillation cross-entropy |Tokenizer / teacher outputs |Target bias is inherited
-|BERT / GPT |Masked token / next token |Token cross-entropy |Corrupted text or observed sequence order |Different context restrictions; not visual state objectives
-|CLIP / SigLIP |Paired image-text relation |Contrastive softmax / sigmoid |Natural language-image pairings |Alignment does not establish grounding
-|wav2vec 2.0 / HuBERT |Quantized or cluster-derived speech units |Contrastive / masked classification |Audio itself and learned pseudo-targets |Units depend on quantizer or clustering
-|data2vec |Contextual teacher representation |Latent regression |EMA teacher on less-corrupted input |Teacher targets may omit task-critical information
-|===
+[#unique_section2_ch3_026_global_local_ID,reftext={chapter}.{section}.{subsection},caption='{chapter}.{section}.{subsection}']
+=== A global vector or a grid of local features?
 
-[#unique_section_ch3_022_frontier_and_scope_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
-== The current frontier and the boundary of this chapter
+A global vector is compact and convenient for classification, retrieval and simple interfaces. A grid of patch features preserves approximate locations and correspondences. A temporal sequence preserves history only if its aggregation does not erase the changes needed by prediction. These forms are related but not interchangeable.
 
-DINOv3 illustrates the recent effort to scale self-distilled visual features while preserving dense spatial information. The method's reported Gram anchoring addresses degradation of dense features during long training schedules. This is not just DINO with more parameters: data curation, architecture, optimization and feature diagnostics contribute to the system.
+Global pooling can intentionally discard spatial layout. That may be appropriate for recognizing an object regardless of position but harmful for tracking, localization or action selection. A patch grid retains more spatial structure at the cost of memory and downstream compute. A temporal state can incorporate history but must preserve velocity, contact or other dynamics-relevant quantities when they matter.
 
-Joint-embedding predictive architectures are another important direction. I-JEPA (Assran et al., 2023) predicts representations of target image regions from a context representation. V-JEPA (Bardes et al., 2024) moves the target into video, and V-JEPA 2 (Assran et al., 2025) explores video representation learning for visual understanding and anticipation. V-JEPA 2-AC adds action-conditioned post-training for robotic control. These are distinct stages. Passive video pretraining alone does not specify how the world changes under an action.
+[#ch3-figure-F17,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
+[NOTE]
+====
+**Figure brief — artwork pending; do not insert an image yet.**
 
-As of October 2026, the official V-JEPA repository also lists V-JEPA 2.1 (Mur-Labadia et al., 2026), which adds a dense predictive loss over visible and masked tokens, self-supervision at multiple encoder depths and multimodal tokenizers. This is a refinement of latent prediction aimed at stronger spatially detailed features.
+Pooling and patch features preserve different structure.
 
-The JEPA family marks a boundary between learning an encoder from views or missing content and explicitly predicting target representations across space and time. Its architectural details warrant a dedicated treatment. Here the main lesson is that representation objectives are becoming increasingly predictive and target-space-aware, while action-conditioned dynamics remains a separate question.
+Draw a grid of patch features with two exports: a pooled global vector and the retained feature grid. Label their possible affordances: compact image-level descriptor versus spatial correspondence or localization. Do not imply patch features automatically encode physics or that global vectors are inherently useless for control.
 
-Diffusion and flow-matching objectives also train on unlabeled data, but their main purpose is to learn a generative process and sample new observations. They should not be collapsed into the contrastive, bootstrap, clustering and masked-feature families simply because training data lack human class labels. Their derivation belongs with generative modeling.
+**Source basis:** Original conceptual schematic; DINOv2/DINOv3 papers provide examples of pretrained patch features.
+====
 
-[#unique_section_ch3_023_two_small_demonstrations_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
-== Two small demonstrations
+[#unique_section2_ch3_027_compression_sufficiency_ID,reftext={chapter}.{section}.{subsection},caption='{chapter}.{section}.{subsection}']
+=== Compression and predictive sufficiency
 
-The code companion contains two focused demonstrations. They support the derivations rather than serving as the chapter's main argument.
+A useful representation retains enough information for the relevant prediction while suppressing nuisance variation. There is no universally optimal latent dimension for all tasks. In some settings a small state may be sufficient; in others, spatial features, a history window, proprioception or multiple latent components may be necessary.
 
-[#unique_section2_ch3_024_infoNCE_demo_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
-=== Demonstration 1: compute an InfoNCE batch
-
-Use the small contrastive-loss implementation in ch03/03_ntxent_from_scratch.py. Trace one anchor through the following steps: identify its positive index; compute similarity logits; divide by temperature; exclude the anchor from the candidate denominator; apply cross-entropy; and inspect the gradient for positive and negative logits. Start with a tiny set of fixed vectors before adding an encoder. The test is successful when the implementation matches the equation and candidate count, not when a benchmark score is reached.
-
-[#unique_section2_ch3_025_collapse_demo_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
-=== Demonstration 2: invariance is not enough
-
-Use the small collapse illustration in ch03/06_collapse_demo.py to compare view invariance with explicit variance/covariance terms. Begin with constant vectors, for which agreement loss is zero. Then calculate why the VICReg variance term is nonzero when a dimension's standard deviation is below its margin. Treat this as an algebraic diagnostic of the stated objectives, not as a reproduction of the training scale or performance claims of BYOL, SimSiam or VICReg.
+Here, *compact* means constrained and usable by downstream dynamics or planning, not necessarily information-theoretically minimal. The bottleneck should be selected and tested against the downstream task. A low-dimensional representation that aliases important states is not a success; a larger representation is not automatically better if it mostly stores nuisance detail.
 
 [#unique_section_ch3_026_a_world_model_audit_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
-== Auditing a representation for a world model
+== Compact state representations
 
 A low self-supervised loss answers whether the representation satisfies its training objective. It does not answer whether the representation is a useful state. A linear probe can reveal whether selected variables are linearly decodable, but cannot certify that all future-relevant information is present. A reconstruction score can show whether target pixels are predicted, but cannot certify causal state. A future-latent retrieval score tests candidate identification under the chosen sampling protocol, not necessarily physical rollout or action-conditioned prediction.
 
@@ -412,6 +627,90 @@ A static visual encoder maps a frame, or a fixed stack of frames, to a latent ve
 
 The correct conclusion is narrower than a model-card claim: a method learns the information that makes its constructed target relationship easier to satisfy, subject to architecture and optimization. Whether that information is useful for a particular agent is a downstream question.
 
+
+[#ch3-figure-F18,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
+[NOTE]
+====
+**Figure brief — artwork pending; do not insert an image yet.**
+
+Identical-looking frames can alias different physical states
+
+Draw two histories with identical current images but opposite prior motion. Show a single-frame encoder mapping both to the same latent even though their futures differ, and show how history or an extra state signal can separate them. This is a conceptual example, not a measured result.
+
+**Official/source reference:** Original world-model-specific teaching schematic. Redraw as an original schematic in the Manning figure style; do not paste a paper screenshot.
+====
+
+[#ch3-figure-F19,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
+[NOTE]
+====
+**Figure brief — artwork pending; do not insert an image yet.**
+
+A state audit separates pretraining checks from system evidence
+
+Show the training objective followed by separate checks: feature spread and collapse, held-out probes, temporal consistency, dynamics prediction and action-conditioned evaluation. Distinguish what an encoder probe establishes from what requires a transition model or agent-level evidence.
+
+**Official/source reference:** Original synthesis following the state/evaluation framework introduced in Chapter 2. Redraw as an original schematic in the Manning figure style; do not paste a paper screenshot.
+====
+[#unique_section_ch3_023_building_a_simple_latent_encoder_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
+== Building a simple latent encoder
+
+The code companion contains two focused demonstrations. They support the derivations rather than serving as the chapter's main argument. The local models prioritize clarity and inexpensive verification; they are not intended to reproduce large-scale paper results.
+
+[#ch3-figure-F20,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
+[NOTE]
+====
+**Figure brief — artwork pending; do not insert an image yet.**
+
+From objective mechanics to a compact encoder audit
+
+Show unlabeled data entering view or mask construction, an encoder and optional projection or prediction head. After training, branch into feature-spread checks, frozen probes, temporal consistency and action-conditioned evaluation. Mark local scripts as mechanics demonstrations and official repositories as recipe references. Do not include accuracy curves or analysis plots.
+
+**Official/source reference:** Original implementation-workflow schematic for the code companion. Redraw as an original schematic in the Manning figure style; do not paste a paper screenshot.
+====
+
+[#unique_section2_ch3_024_infoNCE_demo_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
+=== Experiment 1: verify InfoNCE values and gradients
+
+Use the small contrastive-loss implementation in ch03/03_ntxent_from_scratch.py. Trace one anchor through the following steps: identify its positive index; compute similarity logits; divide by temperature; exclude the anchor from the candidate denominator; apply cross-entropy; and inspect the gradient for positive and negative logits. Start with a tiny set of fixed vectors before adding an encoder. The test is successful when the implementation matches the equation and candidate count, not when a benchmark score is reached.
+
+[#unique_section2_ch3_025_collapse_demo_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
+=== Experiment 2: inspect collapse and feature statistics
+
+Use the small collapse illustration in ch03/06_collapse_demo.py to compare view invariance with explicit variance/covariance terms. Begin with constant vectors, for which agreement loss is zero. Then calculate why the VICReg variance term is nonzero when a dimension's standard deviation is below its margin. Treat this as an algebraic diagnostic of the stated objectives, not as a reproduction of the training scale or performance claims of BYOL, SimSiam or VICReg.
+
+
+=== Distinguish mechanics tests from paper reproductions
+
+There are three different evidence levels in the code companion.
+
+. **Source-inspected implementation.** The code is read to identify the actual forward path, loss reduction, target update and recipe. This supports statements about that exact pinned source.
+. **Mechanics demonstration.** A small runnable script checks a formula, gradient or failure case in an educational model. It supports a claim about that code path under the tested setup.
+. **Paper reproduction.** A run follows the original data, architecture, optimizer, training schedule, compute and evaluation protocol closely enough to compare results to the paper.
+
+The small DMC experiments are useful demonstrations but are not reproductions of ImageNet-scale SimCLR, BYOL, SimSiam, Barlow Twins or VICReg. The MAE-style educational model has a compact transformer and small images; it is not the official MAE architecture. Use official repositories to inspect paper-specific training recipes and local implementations only where their pedagogical simplification is stated.
+
+=== Official repositories to inspect
+
+The method-source collection pins author-maintained repositories to explicit upstream commits. Inspect the version corresponding to the method being described rather than transferring defaults across versions:
+
+* link:https://github.com/google-research/simclr[SimCLR]
+* link:https://github.com/facebookresearch/moco[MoCo]
+* link:https://github.com/google-deepmind/deepmind-research/tree/master/byol[BYOL]
+* link:https://github.com/facebookresearch/simsiam[SimSiam]
+* link:https://github.com/facebookresearch/barlowtwins[Barlow Twins]
+* link:https://github.com/facebookresearch/vicreg[VICReg]
+* link:https://github.com/facebookresearch/dino[DINO]
+* link:https://github.com/facebookresearch/dinov2[DINOv2]
+* link:https://github.com/facebookresearch/dinov3[DINOv3]
+* link:https://github.com/facebookresearch/mae[MAE]
+* link:https://github.com/facebookresearch/deepcluster[DeepCluster] and link:https://github.com/facebookresearch/swav[SwAV]
+* link:https://github.com/openai/CLIP[CLIP]
+
+A pinned repository is not evidence that the official recipe has been run. Before claiming a reproduction, record the exact commit, dataset, architecture, compute, duration, evaluation protocol and deviations. Inspect each repository's license before redistributing code or weights.
+
+=== The encoder interface for later chapters
+
+A static encoder maps one observation to a feature or patch grid. An optional temporal wrapper combines observations or carries memory across frames. A full world model additionally predicts future states or observations, uses action information where needed, and supports planning or evaluation over imagined futures. Keep those components distinct in both manuscript and code.
 [#unique_section_ch3_027_summary_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
 == Summary
 
@@ -433,6 +732,7 @@ For world modeling, representation learning is only one part of the system. A go
 . Give an example of a false negative in contrastive learning. Why is the example a data-design problem rather than a mistake in the cross-entropy derivative?
 . A model obtains a high linear-probe score on object labels. State two claims this supports and three claims it does not support about a representation used by a world model.
 . Explain why passive future-latent retrieval is not evidence that a learned model can predict the consequence of a chosen action.
+
 
 [#unique_section_ch3_029_references_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
 == References
