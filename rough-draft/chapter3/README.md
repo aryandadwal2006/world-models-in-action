@@ -1,57 +1,47 @@
 # Chapter 3 theory dossier
 
-## Purpose
+## Purpose and source policy
 
-This is the unbounded research draft behind the reader-facing Chapter 3, *Representation learning before generation*. It is deliberately much more detailed than the finished chapter should be. Each method note should answer five questions: what problem was visible in the preceding method; what exact training signal is introduced; why the loss has that form; what assumptions or failure modes follow; and what later methods changed.
+This is the unbounded research draft behind the reader-facing Chapter 3, *Representation learning before generation*. It is intentionally much more detailed than the finished chapter and records conceptual lineage, equations, derivations, collapse arguments, method-specific decisions, frontier updates and checks needed for a source-grounded final chapter.
 
-The dossier is an original synthesis of the cited papers, not a replacement for reading them. Paper PDFs remain at their canonical publisher/arXiv URLs. We do not reproduce complete copyrighted papers inside this repository. Each note reconstructs equations and derivations in new prose, distinguishes paper claims from our deductions, and records implementation details to verify against the original method section.
+The dossier is an original synthesis, not a replacement for reading canonical papers. It does not reproduce complete copyrighted papers. It provides canonical links, source-by-source reading notes, original derivations, implementation pointers and a record of what each source does and does not support. Exact method claims must be checked against the cited primary paper and official implementation before final typesetting.
+
+## Recommended reading order
+
+1. [Source study notes](13_source_study_notes.md): the three user-supplied sources, the SSL review and the Cookbook, with source hierarchy and limitations.
+2. [Landscape and scope](00_landscape_and_scope.md): broad method families and chapter boundaries.
+3. [First principles](01_first_principles.md): the representation contract, invariance, target construction, collapse and evaluation.
+4. [Contrastive family: full derivations](14_contrastive_family_full_derivations.md): candidate classification, NT-Xent, InfoNCE, MoCo, CPC and neighboring methods.
+5. [Bootstrap, statistics and prototypes](15_bootstrap_statistics_and_prototypes_full.md): BYOL, SimSiam, DINO, Barlow Twins, VICReg, W-MSE, DeepCluster and SwAV.
+6. [Masked, language and predictive methods](16_masked_language_and_predictive_methods_full.md): MAE, SimMIM, BEiT, MaskFeat, iBOT, BERT, GPT, ELECTRA, speech and JEPAs.
+7. [Training design and evaluation](17_training_design_and_evaluation.md): augmentation, projector, batch-size effects, EMA, data balance, collapse diagnostics, transfer tests and world-model-specific evaluation.
+8. [Method atlas](18_method_atlas_and_family_relations.md): additional variants, CLIP/SigLIP equations, dense-feature families and modern lineages.
+9. [Proof notebook](09_proof_notebook.md): compact derivations and explicit limits of each proof.
+10. [Proposed flow and page budget](10_flow_and_page_budget.md): how to compress the dossier into a coherent reader-facing sequence.
+11. [Figure storyboard](11_figure_storyboard.md): conceptual diagrams needed in the final chapter.
+12. [Bibliography](12_bibliography.md): canonical citations and source-verification notes.
+
+The original shorter notes remain useful for focused cross-checks: [contrastive InfoNCE](02_contrastive_infoNCE.md), [negative-free bootstrapping](03_negative_free_bootstrap.md), [redundancy reduction](04_redundancy_reduction.md), [clustering and prototypes](05_clustering_and_prototypes.md), [masked prediction](06_masked_prediction.md), [cross-modal and speech](07_cross_modal_speech_and_language.md), [frontier boundaries](08_frontier_and_boundaries.md).
 
 ## Narrative thesis
 
-A self-supervised objective defines a relationship in data and rewards an encoder for making that relationship easy to predict. The relationship may be agreement between transformed views, discrimination among candidates, agreement with a slowly moving teacher, decorrelation of dimensions, assignment to prototypes, or prediction of missing content. These are not cosmetic variations of one objective. They impose different constraints, use different sources of asymmetry, and fail in different ways.
+A self-supervised objective constructs a relationship in data and rewards an encoder for making that relationship easy to predict. The relationship may be agreement between transformed views, candidate discrimination, teacher prediction, feature-statistic constraints, prototype assignment, masked-target prediction or latent prediction across space and time. These are not cosmetic variations of one loss: they impose different constraints, use different sources of asymmetry and fail in different ways.
 
-The chapter should progress by the question each method family answers:
+Categories overlap. DINO combines teacher-student distribution matching and prototype outputs; iBOT combines masking and teacher targets; wav2vec 2.0 combines masking, quantization and contrastive discrimination; V-JEPA predicts latent target-region features. The dossier classifies methods along multiple axes rather than forcing them into exclusive categories.
 
-1. **What should count as the same example?** Data transformations create positive pairs, but invariance is a design decision.
-2. **How can agreement be made nontrivial?** Contrastive objectives compare a positive pair against a set of candidates; InfoNCE is the one loss derived fully in the chapter.
-3. **Can a model learn without explicit negatives?** BYOL, SimSiam, and DINO replace instance discrimination with prediction or distribution matching, but must manage collapse.
-4. **Can collapse be constrained directly?** Barlow Twins and VICReg use second-order statistics and variance floors rather than a negative dictionary.
-5. **Can latent space be organized with prototypes?** DeepCluster and SwAV turn features into pseudo-categories, with different update schedules.
-6. **What if the target is missing content rather than another view?** BERT, MAE, BEiT, iBOT, ELECTRA, and data2vec make the target-space choice explicit.
-7. **What changes across modalities?** CLIP/SigLIP align image and text; wav2vec 2.0 and HuBERT build speech targets from quantization or clustering.
-8. **What is current and what belongs elsewhere?** DINOv3 demonstrates scaled dense visual self-distillation; the JEPA line is introduced as the next architectural step, with its full treatment reserved for Chapter 4.
+## Scope principle
 
-## Scope rules for the actual chapter
+The dossier must be exhaustive; the printed chapter must be selective. Every detailed method note should answer:
+- what problem remained after the preceding family;
+- what exact architecture and target were introduced;
+- why the loss has its mathematical form;
+- what its gradients or update rules do;
+- which assumptions are encoded in the data and target;
+- which degenerate solutions remain possible;
+- what the original paper's evidence supports;
+- what later methods changed;
+- what evidence matters for a representation used by a world model.
 
-- Deep derivation: InfoNCE/NT-Xent, gradient, negative sampling, and the conditional mutual-information-bound caveat.
-- Conceptual but mathematically precise treatments: MoCo, BYOL, SimSiam, DINO, Barlow Twins, VICReg, DeepCluster, SwAV, MAE, BEiT/iBOT, CLIP/SigLIP.
-- Compact cross-domain vignettes: BERT versus GPT, ELECTRA, wav2vec 2.0, HuBERT, data2vec.
-- Historical note, not a major section: rotation/jigsaw/colorization and CPC. CPC is important to the lineage but does not merit a centerpiece in a contemporary overview.
-- Frontier note, not duplicate teaching: I-JEPA, V-JEPA, V-JEPA 2 and DINOv3. Chapter 4 owns JEPA architecture and action-conditioned prediction; the current chapter should only make the handoff intelligible.
-- No universal leaderboard. Methods differ in architecture, data, augmentations, compute, target type, training horizon, evaluation and licensing. Comparisons across papers are not controlled head-to-head experiments.
-- Only two lightweight demonstrations: derive and inspect a tiny InfoNCE batch; then compare what happens to a constant embedding under invariance-only, Barlow Twins and VICReg-style terms. These are explanatory checks, not claims about ImageNet-scale performance.
+The chapter itself should derive InfoNCE/NT-Xent and its gradient in full; explain SimCLR, MoCo, BYOL, SimSiam, DINO, Barlow Twins, VICReg, DeepCluster, SwAV, MAE and major target-space choices; give compact cross-domain examples from BERT/GPT/ELECTRA, CLIP/SigLIP and speech SSL; keep rotation, jigsaw, context/colorization and CPC as lineage; and hand off full JEPA mechanics to Chapter 4.
 
-## Method inventory
-
-| Family | Core methods | Learning target | Central tension |
-|---|---|---|---|
-| Hand-designed pretext tasks | rotation, jigsaw, context/colorization | transformation label or withheld image content | The task may reward shortcuts instead of useful invariance |
-| Contrastive instance discrimination | CPC, SimCLR, MoCo v1–v3, CLIP | identify a matched view/candidate | Negative-set quality, false negatives, batch/queue design |
-| Bootstrap / teacher-student | BYOL, SimSiam, DINO, DINOv2, DINOv3 | another branch's features or distribution | Collapse control without explicit negatives |
-| Redundancy reduction | Barlow Twins, VICReg | cross-view invariance plus feature-statistic constraints | Statistical constraints are batch estimates, not semantic guarantees |
-| Prototype/clustering | DeepCluster, SwAV; DINO prototypes overlap | cluster labels or assignments | Assignment imbalance, cluster quality, alternating optimization |
-| Masked input prediction | BERT, MAE, BEiT, iBOT, ELECTRA, data2vec | missing token, pixel, code or contextual target | Target granularity shapes what must be represented |
-| Cross-modal alignment | CLIP, ALIGN, SigLIP | paired text-image embeddings | Pair quality, batch negatives, alignment versus fine-grained grounding |
-| Speech SSL | wav2vec 2.0, HuBERT, data2vec | quantized speech units, cluster pseudo-labels, contextual features | Latent sequence resolution and how units are constructed |
-| Joint-embedding prediction | I-JEPA, V-JEPA, V-JEPA 2 | target-region or future latent | Predictive feature quality is not automatically state sufficiency or action-conditioned dynamics |
-
-## Review checklist for every note
-
-- State the paper version and modality.
-- Define encoder(s), predictor/projector, teacher/target update, and stop-gradient locations.
-- Write the exact scalar loss and reduction axes.
-- Separate a stationary collapsed solution from a stable training outcome.
-- Explain what information the objective is encouraged to retain and what it leaves unconstrained.
-- State the paper's own ablations separately from follow-up interpretations.
-- Link the official implementation and check its current license.
-- Note whether a method is historical, widely used, or currently frontier; do not infer adoption from a paper's benchmark result alone.
+Only two small explanatory demonstrations belong in the reader-facing chapter. The long-form derivations and literature map stay here and have no page limit.
