@@ -234,3 +234,10 @@ The Gram implementation forms similarity matrices from target and output feature
   - Regularizers: https://github.com/facebookresearch/eb_jepa/blob/966e61e9285b3a876f49b9774e9720d9a99a7925/eb_jepa/losses.py
   - Action-conditioned training and planning: https://github.com/facebookresearch/eb_jepa/tree/966e61e9285b3a876f49b9774e9720d9a99a7925/examples/ac_video_jepa
   - Verified: observation encoder plus action encoder plus predictor; total training objective equals prediction cost plus a configurable regularizer; regularizer terms include variance hinge, off-diagonal covariance, temporal similarity and inverse dynamics. Code can perform parallel teacher-forced prediction or autoregressive rollout. The example environment is Two Rooms, distinct from large-scale V-JEPA video pretraining.
+
+
+### DINO teacher-temperature warm-up parser note
+
+Pinned file: https://github.com/facebookresearch/dino/blob/7c446df5b9f45747937fb0d72314eb9f7b66930a/main_dino.py
+
+The argument warmup_teacher_temp_epochs is initialized to 0 in the parser, although its help string says “Default: 30”. The parser value is the executable default. The help-text mismatch is documented here because it materially affects a faithful recipe reconstruction; inspect the command/config for the reported run.
