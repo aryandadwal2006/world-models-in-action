@@ -1,29 +1,23 @@
 # Chapter 3 manuscript and PDF build
 
-This folder contains the composed Chapter 3 AsciiDoc manuscript and the author-side PDF workflow. The chapter is theory-led: it derives the central objectives, explains their assumptions and limitations, and points to official implementations when source-level detail is needed. It does not include custom training runs or homegrown reproductions of the research methods.
+This folder contains the composed AsciiDoc chapter and author-side PDF workflow. It derives objectives from target construction, loss, gradient/update mechanism, assumptions and limitations. It contains no custom training runs and does not imply official source links equal independent reproduction.
 
-## Build a PDF
+## Build and validate
 
-From this folder, use Linux or WSL2 with Ruby 3.1+, the native libraries required by asciidoctor-mathematical, and Poppler installed:
+Use Linux or WSL2 with Ruby 3.1+, the native dependencies required by asciidoctor-mathematical, and Poppler:
 
-    gem install bundler
-    ./build-pdf.sh
+```bash
+gem install bundler
+python3 verify-manuscript.py
+./build-pdf.sh
+```
 
-The build produces CH03_Dadwal_World_Models_in_Action.pdf. It is an author-side preview, not Manning's final production typesetting. The GitHub Actions workflow builds and uploads the preview from manuscript-theory.
+The build produces CH03_Dadwal_World_Models_in_Action.pdf. It is an author-side preview, not Manning's final typesetting.
 
-## Figures
+## Figure placeholders
 
-The manuscript uses six original SVG teaching diagrams, all stored in the repository's images folder:
+The chapter includes 29 conceptual figure placeholders. Each has a detailed brief in the images directory. The directory intentionally contains no rendered artwork; the Markdown briefs are the production source until the author generates and approves each figure.
 
-- CH03_T01_SSL_Landscape.svg — objective-family map.
-- CH03_T02_InfoNCE.svg — candidate classification and gradient.
-- CH03_T03_MethodMechanisms.svg — contrastive, bootstrap, teacher and statistical objectives.
-- CH03_T04_TargetSpaces.svg — alternative masked-prediction targets.
-- CH03_F12_Dadwal.svg — MAE's visible-patch encoder and masked-patch decoder.
-- CH03_F02_Dadwal.svg — representation contract and predictive aliasing.
+## Code and official implementations
 
-The verifier checks Manning-style anchors, figure/table counts, referenced local assets and heading structure. The diagrams are original explanatory schematics, not pasted paper images.
-
-## Code and canonical implementations
-
-The chapter contains no custom code listings. It links to official repositories for SimCLR, MoCo, BYOL, SimSiam, DINO/DINOv2/DINOv3, Barlow Twins, VICReg, MAE, DeepCluster, SwAV and CLIP. Those repositories are source references for the original methods, not evidence that this book independently implemented or reproduced them. Readers can follow the derivations without setting up a training environment.
+The chapter includes two short source excerpts from pinned official SimCLR and VICReg revisions. They are not complete trainers, alternate reimplementations or evidence of reproduction. Implementation links occur beside methods, with scholarly citations in one bibliography. The main-extra branch maintains upstream submodules for full recipes, dependencies and licensing.

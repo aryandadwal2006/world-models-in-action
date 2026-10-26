@@ -1,17 +1,31 @@
-# Figure 3.17: The learned encoder in the agent loop
+# Figure 3.17: VICReg separates agreement, variance and covariance
 
-**Status:**new original. No publication image is included for this slot; this Markdown file is the production placeholder.
+**Status:** Detailed production brief only. No artwork is included in this branch.
 
-**Expected publication filename:** `CH03_F17_Dadwal.png` (the SVG source is optional only if the final art is best kept as vector).
+## Purpose
 
-**Production brief**
+Show why its three terms address different failure modes.
 
-Show the Chapter 1 observation→encoder→state→dynamics→reward/value/planner loop. Identify the static visual encoder, input xt (or short frame stack), output latent zt, and optional recurrent wrapper hidden state ht separately from physical state. Dynamics and reward/value remain later components/placeholders. Do not imply Chapter 3 already predicts action-conditioned transitions or plans.
+## Composition
 
-**Caption:** Figure 3.17 The learned encoder in the agent loop
+Three mechanism panels ending in the weighted-sum objective.
 
-**Acceptance checks**
+## Required content
 
-- Use the actual committed data/output where specified; never redraw empirical values by eye or synthesize observations.
-- White background; fine dark line art; grayscale-safe distinctions; sentence-case labels; legible at book-column width.
-- Verify all labels, reported metric definitions, the caption and any source credit against the manuscript and repository artifact before replacing the placeholder.
+Invariance: paired projected rows agree. Variance: dimensions below margin gamma receive a hinge penalty. Covariance: off-diagonal within-view covariance is penalized. Include the three-term formula and distinguish the statistics.
+
+## Exclusions
+
+No claim variance enforces semantics or covariance proves independence.
+
+## Acceptance checks
+
+Each panel states the constraint and its limitation.
+
+## Caption
+
+Figure 3.17. VICReg separates agreement, variance and covariance.
+
+## Production note
+
+Create original explanatory artwork, not a reproduction of a paper figure or screenshot of code. Use white background, restrained monochrome line work, explicit labels/arrows, grayscale-safe patterns and legibility at print width. Keep visual claims consistent with the manuscript and cited sources; do not introduce invented empirical data.

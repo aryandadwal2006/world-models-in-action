@@ -1,15 +1,31 @@
-# Figure 3.2: The encoder contract
+# Figure 3.2: The representation contract
 
-**Status:** original editable vector diagram included as `CH03_F02_Dadwal.svg`.
+**Status:** Detailed production brief only. No artwork is included in this branch.
 
-**Production content**
+## Purpose
 
-The figure presents three linked stages: a rendered observation containing both state-relevant and nuisance information, a visual encoder that compresses the observation, and a latent vector with the twin goals of preserving relevant information and discarding unnecessary detail. A lower panel explains aliasing: visually similar observations associated with different velocities can map to the same representation. This is an illustrative possible failure, not a claim that a single frame can never contain velocity-correlated clues.
+Show the requirement to discard nuisance variation without merging histories whose relevant futures differ.
 
-**Caption:** Figure 3.2 The encoder contract
+## Composition
 
-**Acceptance checks**
+Observation, encoder and latent stages, with a lower aliasing counterexample.
 
-- Check that all text remains legible at book-column width.
-- Preserve grayscale-safe distinctions and avoid implying a one-to-one mapping between latent coordinates and physical variables.
-- Keep the aliasing panel explicitly illustrative rather than a universal impossibility claim.
+## Required content
+
+Show nuisance variants mapping to one representation while predictively distinct histories remain separate. In the failure path, two histories with different hidden velocity/contact states map to the same z. Label this as a possible failure, not a universal statement about single frames.
+
+## Exclusions
+
+No latent coordinate is presumed to equal a physical variable; no claim a single frame can never contain velocity cues.
+
+## Acceptance checks
+
+Label nuisance change, predictive distinction and aliasing.
+
+## Caption
+
+Figure 3.2. The representation contract.
+
+## Production note
+
+Create original explanatory artwork, not a reproduction of a paper figure or screenshot of code. Use white background, restrained monochrome line work, explicit labels/arrows, grayscale-safe patterns and legibility at print width. Keep visual claims consistent with the manuscript and cited sources; do not introduce invented empirical data.

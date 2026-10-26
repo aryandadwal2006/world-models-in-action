@@ -1,17 +1,31 @@
-# Figure 3.4: Pretext tasks on one cart-pole frame
+# Figure 3.4: Constructing positives and negatives
 
-**Status:**redraw; adapted concept. No publication image is included for this slot; this Markdown file is the production placeholder.
+**Status:** Detailed production brief only. No artwork is included in this branch.
 
-**Expected publication filename:** `CH03_F04_Dadwal.png` (the SVG source is optional only if the final art is best kept as vector).
+## Purpose
 
-**Production brief**
+Clarify the data-level statistical experiment beneath contrastive loss.
 
-Four equal panels using the same actual 64x64 DMC render: source frame; rotation prediction with 0/90/180/270 degree views and four-class target; one 3x3 tile shuffle with “predict the permutation”; grayscale input and original-color target for colorization. Nearest-neighbor upscale only. Credit the conceptual task overview to Gui et al. (2024).
+## Composition
 
-**Caption:** Figure 3.4 Pretext tasks on one cart-pole frame
+Source samples to augmented views to one anchor's candidate set.
 
-**Acceptance checks**
+## Required content
 
-- Use the actual committed data/output where specified; never redraw empirical values by eye or synthesize observations.
-- White background; fine dark line art; grayscale-safe distinctions; sentence-case labels; legible at book-column width.
-- Verify all labels, reported metric definitions, the caption and any source credit against the manuscript and repository artifact before replacing the placeholder.
+Show one view as anchor, its paired view as positive, and views from other samples as negatives. Use solid versus dashed arrows and mark the sampler as part of the method. Note that video batches can contain false negatives because different frames may be related.
+
+## Exclusions
+
+Do not label every negative semantically unrelated.
+
+## Acceptance checks
+
+Keep anchor, positive, negatives and source examples distinct.
+
+## Caption
+
+Figure 3.4. Constructing positives and negatives.
+
+## Production note
+
+Create original explanatory artwork, not a reproduction of a paper figure or screenshot of code. Use white background, restrained monochrome line work, explicit labels/arrows, grayscale-safe patterns and legibility at print width. Keep visual claims consistent with the manuscript and cited sources; do not introduce invented empirical data.

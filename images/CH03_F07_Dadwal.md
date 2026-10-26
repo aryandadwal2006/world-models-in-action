@@ -1,11 +1,31 @@
-# Figure 3.7: NT-Xent training loss on Cartpole
+# Figure 3.7: Alignment and uniformity are distinct geometric requirements
 
-**Status:** Recorded empirical figure. The PNG is a committed experiment output, not a synthetic illustration.
+**Status:** Detailed production brief only. No artwork is included in this branch.
 
-**Asset:** `CH03_F07_Dadwal.png`
+## Purpose
 
-**Source and interpretation**
+Show why matching positive pairs and spreading unrelated embeddings are different constraints.
 
-Source: `ch03/figures/fig03_06_contrastive_loss.png`. The three-seed mean falls from about 3.779 in epoch 1 to 3.106 in epoch 15 (seed SD about 0.005 at epoch 15). Retain the mean and one-SD band. This does not show convergence; the loss is still falling at the end of the chosen budget.
+## Composition
 
-**Caption:** Figure 3.7 NT-Xent training loss on Cartpole
+Two conceptual normalized-embedding panels with equations beneath.
+
+## Required content
+
+Left: positive pairs with arrows pulling them together. Right: crowded embeddings versus a spread-out set on a unit-sphere sketch. Include the alignment and uniformity formulas from the text and label normalized-feature and sampling assumptions.
+
+## Exclusions
+
+Do not claim every objective exactly decomposes into alignment and uniformity.
+
+## Acceptance checks
+
+Label the drawing conceptual rather than fitted data.
+
+## Caption
+
+Figure 3.7. Alignment and uniformity are distinct geometric requirements.
+
+## Production note
+
+Create original explanatory artwork, not a reproduction of a paper figure or screenshot of code. Use white background, restrained monochrome line work, explicit labels/arrows, grayscale-safe patterns and legibility at print width. Keep visual claims consistent with the manuscript and cited sources; do not introduce invented empirical data.

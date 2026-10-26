@@ -1,17 +1,31 @@
-# Figure 3.15: CPC identifies a future latent
+# Figure 3.15: DINO teacher-student cross-view distillation
 
-**Status:**new original. No publication image is included for this slot; this Markdown file is the production placeholder.
+**Status:** Detailed production brief only. No artwork is included in this branch.
 
-**Expected publication filename:** `CH03_F15_Dadwal.png` (the SVG source is optional only if the final art is best kept as vector).
+## Purpose
 
-**Production brief**
+Show original DINO and distinguish later family recipes.
 
-Draw frames x1...xt through a shared encoder producing z1...zt. Only past/current latents enter a unidirectional GRU, which emits context ct. Branch from ct to horizon-specific W1, W2, W3 compatibility heads. Each head scores candidate future latents by exp(z_(t+k)^T W_k c_t). Separate future targets visually from causal context; include negative candidates and identification loss. Do not show action input, a state decoder, or planner. Pair visual style with Chapter 4 JEPA figure.
+## Composition
 
-**Caption:** Figure 3.15 CPC identifies a future latent
+Teacher and student columns with crop inputs and prototype distributions.
 
-**Acceptance checks**
+## Required content
 
-- Use the actual committed data/output where specified; never redraw empirical values by eye or synthesize observations.
-- White background; fine dark line art; grayscale-safe distinctions; sentence-case labels; legible at book-column width.
-- Verify all labels, reported metric definitions, the caption and any source credit against the manuscript and repository artifact before replacing the placeholder.
+Student processes multiple crops; teacher global crops. Both output prototype logits. Center and sharpen teacher logits before softmax; stop gradients through teacher probabilities; update teacher parameters by EMA. Note DINOv2's masked-patch distillation/KoLeo additions and DINOv3's configuration-dependent Gram anchoring.
+
+## Exclusions
+
+No negative samples; centering is not Sinkhorn; Gram anchoring is not universal to DINOv3.
+
+## Acceptance checks
+
+Original DINO is visually separable from later extensions.
+
+## Caption
+
+Figure 3.15. DINO teacher-student cross-view distillation.
+
+## Production note
+
+Create original explanatory artwork, not a reproduction of a paper figure or screenshot of code. Use white background, restrained monochrome line work, explicit labels/arrows, grayscale-safe patterns and legibility at print width. Keep visual claims consistent with the manuscript and cited sources; do not introduce invented empirical data.

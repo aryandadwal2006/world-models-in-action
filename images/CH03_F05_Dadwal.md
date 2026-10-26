@@ -1,17 +1,31 @@
-# Figure 3.5: Positive and negative views in a batch
+# Figure 3.5: InfoNCE as candidate classification
 
-**Status:**recompose existing source. No publication image is included for this slot; this Markdown file is the production placeholder.
+**Status:** Detailed production brief only. No artwork is included in this branch.
 
-**Expected publication filename:** `CH03_F05_Dadwal.png` (the SVG source is optional only if the final art is best kept as vector).
+## Purpose
 
-**Production brief**
+Connect similarity, temperature scaling, softmax and cross-entropy.
 
-Three-column schematic. Left: distinct source frames x1, x2, x3. Middle: each goes through “shift and intensity jitter” to produce two independent views, numbered 1 through 6. Right: view 1 is anchor; solid double-arrow to view 2 as positive; dashed arrows to views 3-6 grouped as negatives. The existing source image CH03_F05_Dadwal_Source.png may supply real views, but final must make batch-level links explicit.
+## Composition
 
-**Caption:** Figure 3.5 Positive and negative views in a batch
+Embeddings to scaled similarities to probabilities to positive-index loss.
 
-**Acceptance checks**
+## Required content
 
-- Use the actual committed data/output where specified; never redraw empirical values by eye or synthesize observations.
-- White background; fine dark line art; grayscale-safe distinctions; sentence-case labels; legible at book-column width.
-- Verify all labels, reported metric definitions, the caption and any source credit against the manuscript and repository artifact before replacing the placeholder.
+Use an illustrative example: similarities 0.80, 0.10, -0.30; temperature 0.5; logits 1.6, 0.2, -0.6; probabilities about 0.737, 0.182, 0.082; loss -log(p_positive). Clearly label the values illustrative, not empirical.
+
+## Exclusions
+
+Do not omit temperature or denominator; do not present the values as experiment data.
+
+## Acceptance checks
+
+Probabilities sum to one within rounding; distinguish logits from probabilities.
+
+## Caption
+
+Figure 3.5. InfoNCE as candidate classification.
+
+## Production note
+
+Create original explanatory artwork, not a reproduction of a paper figure or screenshot of code. Use white background, restrained monochrome line work, explicit labels/arrows, grayscale-safe patterns and legibility at print width. Keep visual claims consistent with the manuscript and cited sources; do not introduce invented empirical data.

@@ -1,17 +1,31 @@
-# Figure 3.6: NT-Xent as a classification problem
+# Figure 3.6: How the InfoNCE gradient acts on candidate scores
 
-**Status:**new original. No publication image is included for this slot; this Markdown file is the production placeholder.
+**Status:** Detailed production brief only. No artwork is included in this branch.
 
-**Expected publication filename:** `CH03_F06_Dadwal.png` (the SVG source is optional only if the final art is best kept as vector).
+## Purpose
 
-**Production brief**
+Make derivative signs intuitive after the loss is derived.
 
-Four stages: anchor representation z1; positive and two negative candidates with cosine similarities 0.80, 0.10, -0.30; division by tau=0.5 gives logits 1.6, 0.2, -0.6; softmax probabilities 0.737, 0.182, 0.082. Show bars in grayscale and the single-anchor loss -ln(0.737) ≈ 0.306. Bottom line: three-class classification, identify the anchor’s positive.
+## Composition
 
-**Caption:** Figure 3.6 NT-Xent as a classification problem
+One positive and several negatives with derivative strips.
 
-**Acceptance checks**
+## Required content
 
-- Use the actual committed data/output where specified; never redraw empirical values by eye or synthesize observations.
-- White background; fine dark line art; grayscale-safe distinctions; sentence-case labels; legible at book-column width.
-- Verify all labels, reported metric definitions, the caption and any source credit against the manuscript and repository artifact before replacing the placeholder.
+Show dL/da_k=p_k-1[k=y]. The positive derivative is p_y-1; negative derivatives are p_k. A hard negative with larger p_k receives a larger score derivative than an easy negative. Include the 1/tau factor when a_k=s_k/tau.
+
+## Exclusions
+
+Do not confuse score derivatives with parameter update directions.
+
+## Acceptance checks
+
+Label the derivative as with respect to logits and define the indicator.
+
+## Caption
+
+Figure 3.6. How the InfoNCE gradient acts on candidate scores.
+
+## Production note
+
+Create original explanatory artwork, not a reproduction of a paper figure or screenshot of code. Use white background, restrained monochrome line work, explicit labels/arrows, grayscale-safe patterns and legibility at print width. Keep visual claims consistent with the manuscript and cited sources; do not introduce invented empirical data.

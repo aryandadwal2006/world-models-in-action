@@ -1,17 +1,31 @@
-# Figure 3.8: Validation representation projection
+# Figure 3.8: A contrastive score, an energy model and a diffusion process
 
-**Status:**replot required. No publication image is included for this slot; this Markdown file is the production placeholder.
+**Status:** Detailed production brief only. No artwork is included in this branch.
 
-**Expected publication filename:** `CH03_F08_Dadwal.png` (the SVG source is optional only if the final art is best kept as vector).
+## Purpose
 
-**Production brief**
+Prevent contrastive, energy-based and diffusion objectives from being conflated.
 
-Regenerate from ch03/04_train_contrastive.py and canonical run artifacts. Wrap the pole angle into (-pi, pi]; select validation samples evenly across episodes; use distinct marker shapes for four angle bins (upright, two sideways bins, hanging) and grayscale for cart position. Current source plot CH03_F08_Dadwal_Source.png is not publication-ready because it uses unwrapped thresholds and does not follow the planned sampling. Keep PCA qualitative; do not claim linear recoverability from this plot.
+## Composition
 
-**Caption:** Figure 3.8 Validation representation projection
+Three panels with distinct targets and input-output contracts.
 
-**Acceptance checks**
+## Required content
 
-- Use the actual committed data/output where specified; never redraw empirical values by eye or synthesize observations.
-- White background; fine dark line art; grayscale-safe distinctions; sentence-case labels; legible at book-column width.
-- Verify all labels, reported metric definitions, the caption and any source credit against the manuscript and repository artifact before replacing the placeholder.
+Panel A: score plus softmax over sampled candidates. Panel B: scalar energy, Gibbs density, partition-function/sampling issue. Panel C: noised x_t and denoiser predicting injected noise. Show overlap without equivalence.
+
+## Exclusions
+
+A contrastive score does not automatically define a normalized density; diffusion is not InfoNCE with more negatives.
+
+## Acceptance checks
+
+Each panel labels its target and normalization or sampling requirement.
+
+## Caption
+
+Figure 3.8. A contrastive score, an energy model and a diffusion process.
+
+## Production note
+
+Create original explanatory artwork, not a reproduction of a paper figure or screenshot of code. Use white background, restrained monochrome line work, explicit labels/arrows, grayscale-safe patterns and legibility at print width. Keep visual claims consistent with the manuscript and cited sources; do not introduce invented empirical data.

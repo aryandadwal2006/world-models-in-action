@@ -1,17 +1,31 @@
-# Figure 3.13: Joint embedding versus pixel reconstruction
+# Figure 3.13: Why agreement alone permits collapse
 
-**Status:**new original redraw; adapted concept. No publication image is included for this slot; this Markdown file is the production placeholder.
+**Status:** Detailed production brief only. No artwork is included in this branch.
 
-**Expected publication filename:** `CH03_F13_Dadwal.png` (the SVG source is optional only if the final art is best kept as vector).
+## Purpose
 
-**Production brief**
+Give a direct mathematical counterexample to treating view agreement as sufficient.
 
-Side-by-side comparison. Left: two augmented views pass through a shared encoder and the objective acts on matching embeddings. Right: a single image is patchified, 75% of patches are masked, visible tokens enter an encoder, and a decoder predicts hidden pixel patches. Explicitly label the target in each panel. Monochrome; conceptual layout adapted from Gui et al. (2024), redraw shapes and arrows.
+## Composition
 
-**Caption:** Figure 3.13 Joint embedding versus pixel reconstruction
+Constant map beside a nonconstant map.
 
-**Acceptance checks**
+## Required content
 
-- Use the actual committed data/output where specified; never redraw empirical values by eye or synthesize observations.
-- White background; fine dark line art; grayscale-safe distinctions; sentence-case labels; legible at book-column width.
-- Verify all labels, reported metric definitions, the caption and any source credit against the manuscript and repository artifact before replacing the placeholder.
+Several distinct inputs all map to z=c, so E||z-z+||^2=0 while distinctions disappear. In the other panel, views agree but different sources remain separated. Label it a loss-level counterexample, not an empirical run.
+
+## Exclusions
+
+Do not imply every non-contrastive run collapses.
+
+## Acceptance checks
+
+Equation and mapping jointly show the point.
+
+## Caption
+
+Figure 3.13. Why agreement alone permits collapse.
+
+## Production note
+
+Create original explanatory artwork, not a reproduction of a paper figure or screenshot of code. Use white background, restrained monochrome line work, explicit labels/arrows, grayscale-safe patterns and legibility at print width. Keep visual claims consistent with the manuscript and cited sources; do not introduce invented empirical data.

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate Chapter 3 AsciiDoc structure and authored figure assets."""
+"""Validate Chapter 3 structure and the prompt-only figure register."""
 from pathlib import Path
 import re
 import sys
@@ -14,18 +14,16 @@ errors = []
 required = (
     "= World Models in Action\n", ":chapter: 3", ":sectnums:", ":sectnumlevels: 3",
     ":imagesdir: ../images/", ":stem: latexmath", "[.book-title]", "This chapter covers",
-    ".The principle behind representation learning", "predictive sufficiency",
-    "InfoNCE", "BYOL", "SimSiam", "DINOv3", "Barlow Twins", "VICReg", "DeepCluster",
-    "SwAV", "MAE", "BERT", "CLIP", "wav2vec 2.0", "Official implementation references",
-    "References",
+    "predictive sufficiency", "InfoNCE", "SimCLR", "MoCo", "CPC", "BYOL", "SimSiam",
+    "DINOv3", "Barlow Twins", "VICReg", "SIGReg", "LeJEPA", "VISReg",
+    "DeepCluster", "SwAV", "MAE", "BEiT", "iBOT", "data2vec", "BERT", "CLIP",
+    "SigLIP", "wav2vec 2.0", "energy-based", "diffusion", "References",
 )
 for item in required:
     if item not in source:
-        errors.append(f"Missing required structure or topic: {item}")
-
+        errors.append(f"Missing required topic or structure: {item}")
 if not source.startswith("= World Models in Action\n"):
-    errors.append("Document title must be the first source line.")
-
+    errors.append("Document title must be the first line.")
 try:
     opener = lines.index("This chapter covers")
     bullets = []
@@ -36,14 +34,13 @@ try:
             break
     if not 3 <= len(bullets) <= 5:
         errors.append(f"Expected 3–5 opener bullets; found {len(bullets)}.")
-    if sum(len(s) for s in bullets) > 360 or any(len(s) > 90 for s in bullets):
-        errors.append("Chapter opener exceeds the concise bullet limits.")
+    if sum(len(x) for x in bullets) > 360 or any(len(x) > 90 for x in bullets):
+        errors.append("Chapter opener exceeds concise bullet limits.")
 except ValueError:
-    errors.append("Missing 'This chapter covers' opener.")
-
-for forbidden in ("figure to be produced", "artwork pending", "@@figure_", "production slot"):
-    if forbidden in source.lower():
-        errors.append(f"Production placeholder remains: {forbidden}")
+    errors.append("Missing chapter opener.")
+for forbidden in ("figure to be produced", "artwork pending", "@@figure_", "production slot", "== Official implementation references"):
+    if forbidden.casefold() in source.casefold():
+        errors.append(f"Obsolete marker/section remains: {forbidden}")
 
 delimiters = {"++++", "----", "****", "____", "===="}
 inside = None
@@ -58,63 +55,49 @@ for number, line in enumerate(lines, start=1):
         continue
     level = len(line) - len(line.lstrip("="))
     if level and len(line) > level and line[level].isspace():
-        text = line[level:].strip()
+        title = line[level:].strip()
         if level >= 5:
-            errors.append(f"Heading exceeds level 4 at line {number}: {line}")
+            errors.append(f"Heading exceeds level 4 at line {number}.")
         if level in (2, 3, 4):
-            headings.append((number, level, text))
+            headings.append((number, level, title))
             expected = {2: "[#unique_section_ch3_", 3: "[#unique_section2_ch3_", 4: "[#unique_section3_ch3_"}[level]
-            # Allow blank lines between an AsciiDoc anchor and its heading.
-            previous_index = number - 2
-            while previous_index >= 0 and not lines[previous_index].strip():
-                previous_index -= 1
-            previous = lines[previous_index] if previous_index >= 0 else ""
-            # The references heading is a bibliography boundary, not a numbered content section.
-            if text != "References" and (not previous.startswith(expected) or "caption=" not in previous):
-                errors.append(f"Missing Manning-style anchor for heading at line {number}: {text}")
+            j = number - 2
+            while j >= 0 and not lines[j].strip():
+                j -= 1
+            previous = lines[j] if j >= 0 else ""
+            if title != "References" and (not previous.startswith(expected) or "caption=" not in previous):
+                errors.append(f"Missing Manning-style anchor at line {number}: {title}")
             if line.endswith("."):
-                errors.append(f"Heading ends in a period at line {number}: {text}")
+                errors.append(f"Heading ends in a period at line {number}.")
 
-anchor_ids = []
-for line in lines:
-    if line.startswith("[#") and "," in line:
-        anchor_ids.append(line[2:line.index(",")])
-seen = set()
-for aid in anchor_ids:
-    if aid in seen:
-        errors.append(f"Duplicate anchor ID: {aid}")
-    seen.add(aid)
-
-for kind, prefix in (("figure", "ch3-figure-"), ("table", "ch3-table-")):
-    anchors = [(i, line) for i, line in enumerate(lines) if line.startswith(f"[#{prefix}")]
-    for number, (idx, _line) in enumerate(anchors, start=1):
-        before_anchor = "\n".join(lines[:idx]).lower()
-        if f"{kind} 3.{number}" not in before_anchor:
-            errors.append(f"{kind} 3.{number} is not mentioned before its anchor.")
-
-figure_count = sum(line.startswith("[#ch3-figure-") for line in lines)
-table_count = sum(line.startswith("[#ch3-table-") for line in lines)
-if figure_count != 6:
-    errors.append(f"Expected 6 theory figures, found {figure_count}.")
-if table_count != 1:
-    errors.append(f"Expected one objective comparison table, found {table_count}.")
-
-source_listing_count = sum(line.startswith("[source") for line in lines)
-if source_listing_count > 6:
-    errors.append(f"Expected at most 6 code listings, found {source_listing_count}.")
-
-for match in re.finditer(r"^image::([^\[]+)\[", source, flags=re.MULTILINE):
-    target = (image_dir / match.group(1)).resolve()
-    if not target.is_file():
-        errors.append(f"Missing referenced image asset: {match.group(1)}")
-
-if "The runners select CUDA automatically" in source or "five trained seeds" in source:
-    errors.append("Old experiments-first manuscript text remains.")
-
+anchor_ids = [line[2:line.index(",")] for line in lines if line.startswith("[#") and "," in line]
+if len(anchor_ids) != len(set(anchor_ids)):
+    errors.append("Duplicate anchor IDs detected.")
+figures = [line for line in lines if line.startswith("[#ch3-figure-")]
+tables = [line for line in lines if line.startswith("[#ch3-table-")]
+listings = [line for line in lines if line.startswith("[#ch3-listing-")]
+if len(figures) != 29:
+    errors.append(f"Expected 29 figures; found {len(figures)}.")
+if len(tables) != 1:
+    errors.append(f"Expected one synthesis table; found {len(tables)}.")
+if len(listings) != 2 or sum(line.startswith("[source,") for line in lines) != 2:
+    errors.append(f"Expected two short source listings; found {len(listings)} anchors.")
+if re.search(r"^image::", source, flags=re.MULTILINE):
+    errors.append("Image directives remain in prompt-only manuscript.")
+if len(re.findall(r"^== References$", source, flags=re.MULTILINE)) != 1:
+    errors.append("Expected one consolidated References heading.")
+briefs = sorted(image_dir.glob("CH03_F[0-9][0-9]_Dadwal.md"))
+if len(briefs) != 29:
+    errors.append(f"Expected 29 prompts; found {len(briefs)}.")
+for number in range(1, 30):
+    if not (image_dir / f"CH03_F{number:02d}_Dadwal.md").is_file():
+        errors.append(f"Missing brief for Figure 3.{number}.")
+for path in image_dir.iterdir():
+    if path.is_file() and path.suffix.lower() != ".md":
+        errors.append(f"Rendered artwork found in prompt-only directory: {path.name}")
 if errors:
     print("Chapter 3 validation FAILED:")
     for error in errors:
-        print(f" - {error}")
+        print(" - " + error)
     sys.exit(1)
-
-print(f"Chapter 3 validation passed: {len(headings)} section headings, {figure_count} figures, {table_count} table, {source_listing_count} code listings, all local images present.")
+print(f"Chapter 3 validation passed: {len(headings)} headings, {len(figures)} figure placeholders/prompts, 1 table, 2 source listings, no rendered artwork.")

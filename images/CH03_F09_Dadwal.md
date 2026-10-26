@@ -1,17 +1,31 @@
-# Figure 3.9: Collapse with and without negatives
+# Figure 3.9: SimCLR's two-view encoder and projection head
 
-**Status:**compose existing outputs; regenerate curve with log y axis. No publication image is included for this slot; this Markdown file is the production placeholder.
+**Status:** Detailed production brief only. No artwork is included in this branch.
 
-**Expected publication filename:** `CH03_F09_Dadwal.png` (the SVG source is optional only if the final art is best kept as vector).
+## Purpose
 
-**Production brief**
+Show which output is optimized and which representation is normally retained downstream.
 
-Make a two-panel composite from CH03_F09_Dadwal_PanelA.png and CH03_F09_Dadwal_PanelB.png. Panel A: epoch 0-15 encoder feature spread with mean and one-SD band across the three seeds; solid NT-Xent, dashed attraction-only; log y axis from about 1e-5 to 10. Panel B: objective-space concept / latent arrangement. Caption and prose must not claim a well-trained useful representation was destroyed: initial spread was already tiny; the evidence is that attraction-only objective does not require diversity.
+## Composition
 
-**Caption:** Figure 3.9 Collapse with and without negatives
+Two symmetric branches with shared parameters.
 
-**Acceptance checks**
+## Required content
 
-- Use the actual committed data/output where specified; never redraw empirical values by eye or synthesize observations.
-- White background; fine dark line art; grayscale-safe distinctions; sentence-case labels; legible at book-column width.
-- Verify all labels, reported metric definitions, the caption and any source credit against the manuscript and repository artifact before replacing the placeholder.
+One image forks into two augmentations; both pass through the same encoder f and projector g. Apply NT-Xent to z=g(f(view)); label h=f(view) as the backbone representation commonly retained downstream. Show shared weights and positive-pair candidate arrows.
+
+## Exclusions
+
+Do not draw independently parameterized encoders or apply the loss to h when describing the original recipe.
+
+## Acceptance checks
+
+Distinguish h from z and show the positive pair.
+
+## Caption
+
+Figure 3.9. SimCLR's two-view encoder and projection head.
+
+## Production note
+
+Create original explanatory artwork, not a reproduction of a paper figure or screenshot of code. Use white background, restrained monochrome line work, explicit labels/arrows, grayscale-safe patterns and legibility at print width. Keep visual claims consistent with the manuscript and cited sources; do not introduce invented empirical data.

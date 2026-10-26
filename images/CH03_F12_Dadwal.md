@@ -1,17 +1,31 @@
-# Figure 3.12: Masked autoencoder and reconstructions
+# Figure 3.12: CPC: causal context predicts future latent candidates
 
-**Status:**composite: redraw plus committed model output. No publication image is included for this slot; this Markdown file is the production placeholder.
+**Status:** Detailed production brief only. No artwork is included in this branch.
 
-**Expected publication filename:** `CH03_F12_Dadwal.png` (the SVG source is optional only if the final art is best kept as vector).
+## Purpose
 
-**Production brief**
+Show temporal prediction without implying recursive dynamics or action-conditioned planning.
 
-Compose a new architecture schematic with the real reconstruction panel from CH03_F12_Dadwal_Source.png. Show 64x64 source frame -> patchify -> hide 75% of patches -> encode visible tokens -> insert mask tokens / restore order -> decoder predicts masked patches. The loss applies only to masked patches. Make the encoder representation path and pixel reconstruction path visibly distinct. Architecture concept is adapted from Gui et al. (2024) and He et al. (2022); rendered observations are our own DMC renders.
+## Composition
 
-**Caption:** Figure 3.12 Masked autoencoder and reconstructions
+Past observations to encoder to causal context to horizon-specific score heads.
 
-**Acceptance checks**
+## Required content
 
-- Use the actual committed data/output where specified; never redraw empirical values by eye or synthesize observations.
-- White background; fine dark line art; grayscale-safe distinctions; sentence-case labels; legible at book-column width.
-- Verify all labels, reported metric definitions, the caption and any source credit against the manuscript and repository artifact before replacing the placeholder.
+Show z_1...z_t flowing to a unidirectional context c_t. Each horizon k scores positive z_(t+k) with z_(t+k)^T W_k c_t against sampled candidate latents. Keep future targets outside context and show no action input or planner.
+
+## Exclusions
+
+No recursive latent rollout or physical-state decoder.
+
+## Acceptance checks
+
+Past/current versus future must be unmistakable.
+
+## Caption
+
+Figure 3.12. CPC: causal context predicts future latent candidates.
+
+## Production note
+
+Create original explanatory artwork, not a reproduction of a paper figure or screenshot of code. Use white background, restrained monochrome line work, explicit labels/arrows, grayscale-safe patterns and legibility at print width. Keep visual claims consistent with the manuscript and cited sources; do not introduce invented empirical data.

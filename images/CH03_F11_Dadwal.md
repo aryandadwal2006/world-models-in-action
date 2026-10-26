@@ -1,17 +1,31 @@
-# Figure 3.11: VICReg terms and training curves
+# Figure 3.11: Historical contrastive objectives change the positive relation
 
-**Status:**composite: new concept plus recorded plot. No publication image is included for this slot; this Markdown file is the production placeholder.
+**Status:** Detailed production brief only. No artwork is included in this branch.
 
-**Expected publication filename:** `CH03_F11_Dadwal.png` (the SVG source is optional only if the final art is best kept as vector).
+## Purpose
 
-**Production brief**
+Distinguish early branches by the relationship they preserve.
 
-Create a two-panel composite. Panel A original schematic with batches Z^A and Z^B and three forces: invariance arrows between paired rows; variance hinge showing each coordinate standard deviation above floor gamma; covariance matrix with off-diagonal cells hatched/suppressed. Panel B preserve recorded curves from CH03_F11_Dadwal_Source.png. Do not fabricate epoch-level values; the canonical JSON does not store the full history, so use the committed plot for the curves.
+## Composition
 
-**Caption:** Figure 3.11 VICReg terms and training curves
+Four mechanism cards.
 
-**Acceptance checks**
+## Required content
 
-- Use the actual committed data/output where specified; never redraw empirical values by eye or synthesize observations.
-- White background; fine dark line art; grayscale-safe distinctions; sentence-case labels; legible at book-column width.
-- Verify all labels, reported metric definitions, the caption and any source credit against the manuscript and repository artifact before replacing the placeholder.
+NPID: instance identity with memory bank. PIRL: invariance across a pretext transformation. CMC: views/modalities of the same source. AMDIM: local/global features at several scales. For each, state the positive relation and extra mechanism. Show separate branches, not identical losses.
+
+## Exclusions
+
+Do not imply identical samplers or universal information-bound assumptions.
+
+## Acceptance checks
+
+Names and citations match the bibliography.
+
+## Caption
+
+Figure 3.11. Historical contrastive objectives change the positive relation.
+
+## Production note
+
+Create original explanatory artwork, not a reproduction of a paper figure or screenshot of code. Use white background, restrained monochrome line work, explicit labels/arrows, grayscale-safe patterns and legibility at print width. Keep visual claims consistent with the manuscript and cited sources; do not introduce invented empirical data.
