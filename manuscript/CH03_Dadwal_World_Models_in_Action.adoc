@@ -254,6 +254,10 @@ If the encoder maps every input to the same constant vector latexmath:[c], then 
 
 This observation does not mean every method that matches two views will collapse. It means agreement alone cannot rule collapse out. The architecture, stop-gradient placement, target updates, normalizations and optimization dynamics affect which solutions training reaches. The methods below differ in precisely those mechanisms; none should be described as having a universal guarantee based only on its loss formula.
 
+It is useful to distinguish complete collapse from dimensional collapse. In complete collapse, all inputs map to the same vector and the representation contains no information about differences between examples. In dimensional collapse, the output varies, but most of its covariance is concentrated in a small number of directions. A model can therefore avoid the constant solution and still use its nominal latexmath:[d]-dimensional space inefficiently.
+
+These cases require different diagnostics. Per-coordinate variance detects a constant dimension; the spectrum of the covariance matrix shows whether variation is spread across many directions. But neither diagnostic answers whether those directions contain the information of interest. A feature can vary strongly with background texture and have high effective rank while carrying little information about the target. Anti-collapse is necessary for useful representations, not sufficient.
+
 [#unique_section2_ch3_010_byol_and_simsiam_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === BYOL and SimSiam: bootstrap prediction
 
@@ -279,17 +283,19 @@ The target parameters change according to
 
 with latexmath:[m] close to one. The target is therefore a smoothed history of the online network, not an independently optimized network. This is the defining difference from ordinary shared-weight Siamese regression.
 
+With fixed momentum latexmath:[m], repeated EMA updates give old parameters geometrically decreasing influence. The target is consequently neither fixed nor an exact copy of the current online network: it is a moving reference that changes more slowly than the optimized branch. This temporal asymmetry is an essential part of BYOL's method, not merely a way to save computation.
+
 
 SimSiam (Chen and He, 2021) uses the same encoder and projector for both views and a predictor on each branch, but no EMA target network. With latexmath:[z_i=g(f(x_i))] and latexmath:[p_i=q(z_i)], its symmetric loss has the form
 
 [latexmath]
 ++++
 L_{\mathrm{SimSiam}}=
-D(p_1,\operatorname{sg}(z_2))
-+D(p_2,\operatorname{sg}(z_1)),
+D_{\mathrm{SimSiam}}(p_1,\operatorname{sg}(z_2))
++D_{\mathrm{SimSiam}}(p_2,\operatorname{sg}(z_1)),
 ++++
 
-where latexmath:[D] is negative cosine similarity. The stop-gradient leaves a target's forward value unchanged but removes the gradient path through that target in the corresponding term. Because the loss is symmetric, each shared branch acts as predictor in one term and target in the other. BYOL instead maintains a separate target network whose parameters follow the EMA update.
+where latexmath:[D_{\mathrm{SimSiam}}] is negative cosine similarity. The stop-gradient leaves a target's forward value unchanged but removes the gradient path through that target in the corresponding term. Because the loss is symmetric, each shared branch acts as predictor in one term and target in the other. BYOL instead maintains a separate target network whose parameters follow the EMA update.
 
 The predictor and stop-gradient change the optimization dynamics; they do not remove the constant-output solution from the mathematical objective. The original SimSiam study found that stop-gradient was essential to its proposed configuration. That is a method-specific result, not a theorem that any Siamese network with a detached branch must learn non-collapsed features.
 
@@ -308,7 +314,16 @@ q_t(x)=\operatorname{softmax}\!\left(\frac{a_t(x)-c}{T_t}\right).
 
 Here latexmath:[c] is a running center of teacher outputs, latexmath:[T_t] controls teacher-target sharpness, and the teacher parameters follow an EMA of the student parameters. The cross-entropy between latexmath:[q_t] and latexmath:[p_s] is minimized across selected, different views. Centering discourages the teacher's outputs from concentrating persistently on a small subset of prototypes; a low teacher temperature sharpens the target distribution. These operations work together with the multi-crop training recipe.
 
-Centering and sharpening have different roles: centering modifies output statistics to resist concentration on a small set of prototypes; sharpening lowers the entropy of the teacher's target distribution. Prototype indices are learned output coordinates, not automatically human-defined categories. DINO is best understood as self-distillation with a prototype distribution, rather than as an ordinary clustering algorithm.
+For a target distribution latexmath:[q_t], the student's cross-entropy is
+
+[latexmath]
+++++
+H(q_t,p_s)=-\sum_{k=1}^{K}q_{t,k}\log p_{s,k}.
+++++
+
+Training sums this loss over selected teacher-student view pairs. Centering subtracts a running output mean before the teacher softmax; sharpening uses a low teacher temperature to lower target entropy. They serve different roles: centering reduces persistent preference for a subset of output coordinates, while sharpening produces a more decisive target distribution.
+
+Prototype indices are learned output coordinates, not automatically human-defined categories. DINO is best understood as self-distillation with a prototype distribution, rather than as an ordinary clustering algorithm.
 
 Multi-crop training supplies a useful extra constraint. The teacher receives the larger global crops, while the student also sees smaller local crops. A local crop usually lacks some of the global context, so its output must match a target produced from a different field of view. This encourages some features to remain consistent across scales. It does not mean that every local crop contains enough evidence to infer every property of the entire scene; the target and crop protocol define what consistency is encouraged. The prototype outputs are learned coordinates, not labels assigned by a person, and their semantics must be established through evaluation.
 
