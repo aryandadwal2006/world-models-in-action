@@ -256,13 +256,17 @@ The InfoNCE schematic visualizes the anchor, candidate set, softmax distribution
 .Official SimCLR contrastive logits and symmetric loss (source excerpt)
 [source,python]
 ----
-# From google-research/simclr/objective.py; setup is defined above this excerpt.
-logits_aa = tf.matmul(hidden1, hidden1_large, transpose_b=True) / temperature
+# Source: google-research/simclr/objective.py
+logits_aa = tf.matmul(
+    hidden1, hidden1_large, transpose_b=True) / temperature
 logits_aa = logits_aa - masks * LARGE_NUM
-logits_bb = tf.matmul(hidden2, hidden2_large, transpose_b=True) / temperature
+logits_bb = tf.matmul(
+    hidden2, hidden2_large, transpose_b=True) / temperature
 logits_bb = logits_bb - masks * LARGE_NUM
-logits_ab = tf.matmul(hidden1, hidden2_large, transpose_b=True) / temperature
-logits_ba = tf.matmul(hidden2, hidden1_large, transpose_b=True) / temperature
+logits_ab = tf.matmul(
+    hidden1, hidden2_large, transpose_b=True) / temperature
+logits_ba = tf.matmul(
+    hidden2, hidden1_large, transpose_b=True) / temperature
 
 loss_a = tf.losses.softmax_cross_entropy(
     labels, tf.concat([logits_ab, logits_aa], 1), weights=weights)
@@ -270,7 +274,7 @@ loss_b = tf.losses.softmax_cross_entropy(
     labels, tf.concat([logits_ba, logits_bb], 1), weights=weights)
 loss = loss_a + loss_b
 ----
-This excerpt is from the official TensorFlow implementation, not a self-contained trainer. Batch gathering, label construction and masks are defined earlier in the function. The mask removes each anchor's self-comparison from its same-view candidate block. SimCLR is published under Apache License 2.0; consult the link:https://github.com/google-research/simclr/blob/383d4143fd8cf7879ae10f1046a9baeb753ff438/objective.py[pinned objective.py] and its license for full code and reuse requirements.
+This excerpt is from the official TensorFlow implementation, not a self-contained trainer. Long matrix-multiplication lines are wrapped to fit the book's listing width; the operations are unchanged. Batch gathering, label construction and masks are defined earlier in the function. The mask removes each anchor's self-comparison from its same-view candidate block. SimCLR is published under Apache License 2.0; consult the link:https://github.com/google-research/simclr/blob/383d4143fd8cf7879ae10f1046a9baeb753ff438/objective.py[pinned objective.py] and its license for full code and reuse requirements.
 
 [#unique_section2_ch3_006_what_infoNCE_does_and_does_not_prove_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === What InfoNCE does and does not prove
@@ -744,14 +748,17 @@ The synthesis schematic compares these mechanisms without implying that they wer
 .Three VICReg terms in the official PyTorch implementation (source excerpt)
 [source,python]
 ----
-# From facebookresearch/vicreg/main_vicreg.py; both views are projected above.
+# Source: facebookresearch/vicreg/main_vicreg.py
 repr_loss = F.mse_loss(x, y)
 
 x = x - x.mean(dim=0)
 y = y - y.mean(dim=0)
 std_x = torch.sqrt(x.var(dim=0) + 0.0001)
 std_y = torch.sqrt(y.var(dim=0) + 0.0001)
-std_loss = torch.mean(F.relu(1 - std_x)) / 2 + torch.mean(F.relu(1 - std_y)) / 2
+std_loss = (
+    torch.mean(F.relu(1 - std_x)) / 2
+    + torch.mean(F.relu(1 - std_y)) / 2
+)
 
 cov_x = (x.T @ x) / (self.args.batch_size - 1)
 cov_y = (y.T @ y) / (self.args.batch_size - 1)
@@ -762,7 +769,7 @@ loss = (self.args.sim_coeff * repr_loss
         + self.args.std_coeff * std_loss
         + self.args.cov_coeff * cov_loss)
 ----
-The official implementation uses view agreement, a standard-deviation hinge with target one, and squared off-diagonal covariance. The helper and surrounding architecture appear in the link:https://github.com/facebookresearch/vicreg/blob/4e12602fd495af83efd1631fbe82523e6db092e0/main_vicreg.py[pinned main_vicreg.py]. The upstream repository uses the MIT License; exact reductions and weights should be matched when reproducing a result.
+Long expressions are wrapped to fit the book's listing width without changing the calculation. The official implementation uses view agreement, a standard-deviation hinge with target one, and squared off-diagonal covariance. The helper and surrounding architecture appear in the link:https://github.com/facebookresearch/vicreg/blob/4e12602fd495af83efd1631fbe82523e6db092e0/main_vicreg.py[pinned main_vicreg.py]. The upstream repository uses the MIT License; exact reductions and weights should be matched when reproducing a result.
 
 [#ch3-figure-F17,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .VICReg separates agreement, variance and covariance
@@ -894,9 +901,9 @@ The full reference recipe also has a separate *view-invariance* term. For each s
 c_b=\frac1{V_g}\sum_{v\in\mathcal V_g}z_{v,b}.
 ++++
 
-[.visreg-interpretation%unbreakable]
 The training loss mixes this invariance term with the regularizer,
 latexmath:[\mathcal L=(1-\lambda_{\mathrm{mix}})\mathcal L_{\mathrm{inv}}+\lambda_{\mathrm{mix}}\mathcal L_{\mathrm{Reg}}].
+
 The *same-image global-view center* is the target for view consistency, whereas the *per-view minibatch mean* is penalized by latexmath:[\mathcal L_{\mathrm{center}}]. They are different operations. SIGReg instead uses a characteristic-function discrepancy; VISReg compares sorted projected samples with Gaussian quantiles. The stop-gradient here decouples scale and shape gradients; it is not a BYOL-style teacher pathway.
 
 The VISReg authors report stronger correction near collapse and favorable results on tested out-of-distribution, low-rank and long-tailed settings. These are reported findings, not guarantees for every optimizer or data distribution. Report batch size, projection count, objective weights, architecture and evaluation protocol when comparing these methods. See link:https://arxiv.org/abs/2511.08544[LeJEPA] and link:https://arxiv.org/abs/2606.02572[VISReg].
@@ -1312,143 +1319,143 @@ Masked prediction changes both the hidden context and the target: MAE predicts p
 [#unique_section_ch3_029_references_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
 == References
 
-[.bibliography-entry%unbreakable]
+[.bibliography-entry]
 Assran, M. et al. (2023). Self-Supervised Learning from Images with a Joint-Embedding Predictive Architecture. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. link:https://arxiv.org/abs/2301.08243[arXiv:2301.08243].
 
-[.bibliography-entry%unbreakable]
+[.bibliography-entry]
 Assran, M. et al. (2025). V-JEPA 2: Self-Supervised Video Models Enable Understanding, Prediction and Planning. link:https://arxiv.org/abs/2506.09985[arXiv:2506.09985].
 
-[.bibliography-entry%unbreakable]
+[.bibliography-entry]
 Bachman, P., Hjelm, R. D. and Buchwalter, W. (2019). Learning Representations by Maximizing Mutual Information Across Views. link:https://arxiv.org/abs/1906.00910[arXiv:1906.00910].
 
-[.bibliography-entry%unbreakable]
+[.bibliography-entry]
 Baevski, A., Zhou, Y., Mohamed, A. and Auli, M. (2020). wav2vec 2.0: A Framework for Self-Supervised Learning of Speech Representations. *Advances in Neural Information Processing Systems*. link:https://arxiv.org/abs/2006.11477[arXiv:2006.11477].
 
-[.bibliography-entry%unbreakable]
+[.bibliography-entry]
 Baevski, A., Hsu, W.-N., Xu, Q., Babu, A., Gu, J. and Auli, M. (2022). data2vec: A General Framework for Self-Supervised Learning in Speech, Vision and Language. *International Conference on Machine Learning*. link:https://arxiv.org/abs/2202.03555[arXiv:2202.03555].
 
-[.bibliography-entry%unbreakable]
+[.bibliography-entry]
 Balestriero, R. and LeCun, Y. (2025). LeJEPA: Provable and Scalable Self-Supervised Learning Without the Heuristics. link:https://arxiv.org/abs/2511.08544[arXiv:2511.08544].
 
-[.bibliography-entry%unbreakable]
+[.bibliography-entry]
 Bao, H., Dong, L. and Wei, F. (2022). BEiT: BERT Pre-Training of Image Transformers. *International Conference on Learning Representations*. link:https://arxiv.org/abs/2106.08254[arXiv:2106.08254].
 
-[.bibliography-entry%unbreakable]
+[.bibliography-entry]
 Bardes, A., Ponce, J. and LeCun, Y. (2022). VICReg: Variance-Invariance-Covariance Regularization For Self-Supervised Learning. *International Conference on Learning Representations*. link:https://arxiv.org/abs/2105.04906[arXiv:2105.04906].
 
-[.bibliography-entry%unbreakable]
+[.bibliography-entry]
 Bardes, A. et al. (2024). Revisiting Feature Prediction for Learning Visual Representations from Video. link:https://arxiv.org/abs/2404.08471[arXiv:2404.08471].
 
-[.bibliography-entry%unbreakable]
+[.bibliography-entry]
 Caron, M. et al. (2018). Deep Clustering for Unsupervised Learning of Visual Features. *European Conference on Computer Vision*. link:https://arxiv.org/abs/1807.05520[arXiv:1807.05520].
 
-[.bibliography-entry%unbreakable]
+[.bibliography-entry]
 Caron, M. et al. (2020). Unsupervised Learning of Visual Features by Contrasting Cluster Assignments. *Advances in Neural Information Processing Systems*. link:https://arxiv.org/abs/2006.09882[arXiv:2006.09882].
 
-[.bibliography-entry%unbreakable]
+[.bibliography-entry]
 Caron, M. et al. (2021). Emerging Properties in Self-Supervised Vision Transformers. *IEEE/CVF International Conference on Computer Vision*. link:https://arxiv.org/abs/2104.14294[arXiv:2104.14294].
 
-[.bibliography-entry%unbreakable]
+[.bibliography-entry]
 Chen, T. et al. (2020). A Simple Framework for Contrastive Learning of Visual Representations. *International Conference on Machine Learning*. link:https://arxiv.org/abs/2002.05709[arXiv:2002.05709].
 
-[.bibliography-entry%unbreakable]
+[.bibliography-entry]
 Chen, X. et al. (2020). Improved Baselines with Momentum Contrastive Learning. link:https://arxiv.org/abs/2003.04297[arXiv:2003.04297].
 
-[.bibliography-entry%unbreakable]
+[.bibliography-entry]
 Chen, X. and He, K. (2021). Exploring Simple Siamese Representation Learning. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. link:https://arxiv.org/abs/2011.10566[arXiv:2011.10566].
 
-[.bibliography-entry%unbreakable]
+[.bibliography-entry]
 Chen, X. et al. (2021). An Empirical Study of Training Self-Supervised Vision Transformers. link:https://arxiv.org/abs/2104.02057[arXiv:2104.02057].
 
-[.bibliography-entry%unbreakable]
+[.bibliography-entry]
 Clark, K. et al. (2020). ELECTRA: Pre-training Text Encoders as Discriminators Rather Than Generators. *International Conference on Learning Representations*. link:https://arxiv.org/abs/2003.10555[arXiv:2003.10555].
 
-[.bibliography-entry%unbreakable]
+[.bibliography-entry]
 Devlin, J. et al. (2019). BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding. *North American Chapter of the Association for Computational Linguistics*. link:https://arxiv.org/abs/1810.04805[arXiv:1810.04805].
 
-[.bibliography-entry%unbreakable]
+[.bibliography-entry]
 Doersch, C., Gupta, A. and Efros, A. A. (2015). Unsupervised Visual Representation Learning by Context Prediction. *IEEE International Conference on Computer Vision*. link:https://arxiv.org/abs/1505.05192[arXiv:1505.05192].
 
-[.bibliography-entry%unbreakable]
+[.bibliography-entry]
 Gidaris, S., Singh, P. and Komodakis, N. (2018). Unsupervised Representation Learning by Predicting Image Rotations. *International Conference on Learning Representations*. link:https://arxiv.org/abs/1803.07728[arXiv:1803.07728].
 
-[.bibliography-entry%unbreakable]
+[.bibliography-entry]
 Grill, J.-B. et al. (2020). Bootstrap Your Own Latent: A New Approach to Self-Supervised Learning. *Advances in Neural Information Processing Systems*. link:https://arxiv.org/abs/2006.07733[arXiv:2006.07733].
 
-[.bibliography-entry%unbreakable]
+[.bibliography-entry]
 Gutmann, M. and Hyvärinen, A. (2010). Noise-Contrastive Estimation: A New Estimation Principle for Unnormalized Statistical Models. *Proceedings of the Thirteenth International Conference on Artificial Intelligence and Statistics*. link:https://proceedings.mlr.press/v9/gutmann10a.html[PMLR].
 
-[.bibliography-entry%unbreakable]
+[.bibliography-entry]
 He, K. et al. (2020). Momentum Contrast for Unsupervised Visual Representation Learning. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. link:https://arxiv.org/abs/1911.05722[arXiv:1911.05722].
 
-[.bibliography-entry%unbreakable]
+[.bibliography-entry]
 He, K. et al. (2022). Masked Autoencoders Are Scalable Vision Learners. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. link:https://arxiv.org/abs/2111.06377[arXiv:2111.06377].
 
-[.bibliography-entry%unbreakable]
+[.bibliography-entry]
 Ho, J., Jain, A. and Abbeel, P. (2020). Denoising Diffusion Probabilistic Models. *Advances in Neural Information Processing Systems*. link:https://arxiv.org/abs/2006.11239[arXiv:2006.11239].
 
-[.bibliography-entry%unbreakable]
+[.bibliography-entry]
 Hsu, W.-N. et al. (2021). HuBERT: Self-Supervised Speech Representation Learning by Masked Prediction of Hidden Units. link:https://arxiv.org/abs/2106.07447[arXiv:2106.07447].
 
-[.bibliography-entry%unbreakable]
+[.bibliography-entry]
 LeCun, Y., Chopra, S., Hadsell, R., Ranzato, M. and Huang, F. (2006). A Tutorial on Energy-Based Learning. In *Predicting Structured Data*. MIT Press. link:https://yann.lecun.org/exdb/publis/pdf/lecun-06.pdf[PDF].
 
-[.bibliography-entry%unbreakable]
+[.bibliography-entry]
 Misra, I. and van der Maaten, L. (2020). Self-Supervised Learning of Pretext-Invariant Representations. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. link:https://openaccess.thecvf.com/content_CVPR_2020/html/Misra_Self-Supervised_Learning_of_Pretext-Invariant_Representations_CVPR_2020_paper.html[CVF Open Access].
 
-[.bibliography-entry%unbreakable]
+[.bibliography-entry]
 Mur-Labadia, L. et al. (2026). V-JEPA 2.1: Unlocking Dense Features in Video Self-Supervised Learning. link:https://arxiv.org/abs/2603.14482[arXiv:2603.14482].
 
-[.bibliography-entry%unbreakable]
+[.bibliography-entry]
 Noroozi, M. and Favaro, P. (2016). Unsupervised Learning of Visual Representations by Solving Jigsaw Puzzles. *European Conference on Computer Vision*. link:https://arxiv.org/abs/1603.09246[arXiv:1603.09246].
 
-[.bibliography-entry%unbreakable]
+[.bibliography-entry]
 Oquab, M. et al. (2023). DINOv2: Learning Robust Visual Features without Supervision. link:https://arxiv.org/abs/2304.07193[arXiv:2304.07193].
 
-[.bibliography-entry%unbreakable]
+[.bibliography-entry]
 Peng, Z. et al. (2022). BEiT v2: Masked Image Modeling with Vector-Quantized Visual Tokenizers. link:https://arxiv.org/abs/2208.06366[arXiv:2208.06366].
 
-[.bibliography-entry%unbreakable]
+[.bibliography-entry]
 Radford, A. et al. (2019). Language Models are Unsupervised Multitask Learners. OpenAI technical report.
 
-[.bibliography-entry%unbreakable]
+[.bibliography-entry]
 Radford, A. et al. (2021). Learning Transferable Visual Models From Natural Language Supervision. *International Conference on Machine Learning*. link:https://arxiv.org/abs/2103.00020[arXiv:2103.00020].
 
-[.bibliography-entry%unbreakable]
+[.bibliography-entry]
 Siméoni, O. et al. (2025). DINOv3. link:https://arxiv.org/abs/2508.10104[arXiv:2508.10104].
 
-[.bibliography-entry%unbreakable]
+[.bibliography-entry]
 Song, Y. et al. (2021). Score-Based Generative Modeling through Stochastic Differential Equations. *International Conference on Learning Representations*. link:https://arxiv.org/abs/2011.13456[arXiv:2011.13456].
 
-[.bibliography-entry%unbreakable]
+[.bibliography-entry]
 Tian, Y., Krishnan, D. and Isola, P. (2020). Contrastive Multiview Coding. *European Conference on Computer Vision*. link:https://arxiv.org/abs/1906.05849[arXiv:1906.05849].
 
-[.bibliography-entry%unbreakable]
+[.bibliography-entry]
 van den Oord, A., Li, Y. and Vinyals, O. (2018). Representation Learning with Contrastive Predictive Coding. link:https://arxiv.org/abs/1807.03748[arXiv:1807.03748].
 
-[.bibliography-entry%unbreakable]
+[.bibliography-entry]
 Wang, T. and Isola, P. (2020). Understanding Contrastive Representation Learning through Alignment and Uniformity on the Hypersphere. *International Conference on Machine Learning*. link:https://arxiv.org/abs/2005.10242[arXiv:2005.10242].
 
-[.bibliography-entry%unbreakable]
+[.bibliography-entry]
 Wei, C. et al. (2022). Masked Feature Prediction for Self-Supervised Visual Pre-Training. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. link:https://arxiv.org/abs/2112.09133[arXiv:2112.09133].
 
-[.bibliography-entry%unbreakable]
+[.bibliography-entry]
 Wu, Z., Xiong, Y., Yu, S. X. and Lin, D. (2018). Unsupervised Feature Learning via Non-Parametric Instance Discrimination. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. link:https://openaccess.thecvf.com/content_cvpr_2018/html/Wu_Unsupervised_Feature_Learning_CVPR_2018_paper.html[CVF Open Access].
 
-[.bibliography-entry%unbreakable]
+[.bibliography-entry]
 Wu, H., Balestriero, R. and Levine, M. (2026). VISReg: Variance-Invariance-Sketching Regularization for JEPA Training. link:https://arxiv.org/abs/2606.02572[arXiv:2606.02572].
 
-[.bibliography-entry%unbreakable]
+[.bibliography-entry]
 Xie, Z. et al. (2022). SimMIM: A Simple Framework for Masked Image Modeling. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. link:https://arxiv.org/abs/2111.09886[arXiv:2111.09886].
 
-[.bibliography-entry%unbreakable]
+[.bibliography-entry]
 Zbontar, J. et al. (2021). Barlow Twins: Self-Supervised Learning via Redundancy Reduction. *International Conference on Machine Learning*. link:https://arxiv.org/abs/2103.03230[arXiv:2103.03230].
 
-[.bibliography-entry%unbreakable]
+[.bibliography-entry]
 Zhai, X. et al. (2023). Sigmoid Loss for Language Image Pre-Training. *IEEE/CVF International Conference on Computer Vision*. link:https://arxiv.org/abs/2303.15343[arXiv:2303.15343].
 
-[.bibliography-entry%unbreakable]
+[.bibliography-entry]
 Zhang, R., Isola, P. and Efros, A. A. (2016). Colorful Image Colorization. *European Conference on Computer Vision*. link:https://arxiv.org/abs/1603.08511[arXiv:1603.08511].
 
-[.bibliography-entry%unbreakable]
+[.bibliography-entry]
 Zhou, J. et al. (2022). iBOT: Image BERT Pre-Training with Online Tokenizer. link:https://arxiv.org/abs/2111.07832[arXiv:2111.07832].

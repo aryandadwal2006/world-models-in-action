@@ -39,7 +39,7 @@ The composed AsciiDoc chapter has 29 numbered figure placeholders. Printed order
 ## Production rules
 
 - Create original teaching schematics; do not paste paper figures or screenshots of implementations.
-- Use a white background, restrained monochrome line work, explicit labels/arrows, grayscale-safe patterns and a consistent book visual style.
+- Use a white background, dark grayscale-safe line work, and #3B6FB6 as the only restrained accent for key paths/highlights. Use flat 2D artwork, with no gradients, 3D effects, Mermaid or decorative watermarks; functional component labels remain necessary.
 - Mathematical examples must match the chapter. Worked values are illustrative, not experiment results.
 - Replace a placeholder only after mathematical, caption, line-weight and page-width checks.
 - Figures explain mechanisms; they do not prove semantic correctness, predictive sufficiency, action-conditioned dynamics or planning utility.

@@ -96,8 +96,8 @@ if r"\(" in source or r"\)" in source:
     errors.append("Markdown-style inline math delimiters remain; use latexmath macros.")
 if len(re.findall(r"^== References$", source, flags=re.MULTILINE)) != 1:
     errors.append("Expected one consolidated References heading.")
-if sum(line == "[.bibliography-entry%unbreakable]" for line in lines) != 47:
-    errors.append("All 47 bibliography entries must stay together across page breaks.")
+if sum(line == "[.bibliography-entry]" for line in lines) != 47:
+    errors.append("Expected all 47 bibliography entries to use the compact reference style.")
 briefs = sorted(image_dir.glob("CH03_F[0-9][0-9]_Dadwal.md"))
 if len(briefs) != 29:
     errors.append(f"Expected 29 prompts; found {len(briefs)}.")

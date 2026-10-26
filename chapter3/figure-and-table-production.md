@@ -36,7 +36,7 @@
 | 3.28 | images/CH03_F28_Dadwal.md | Aliasing is a failure of predictive sufficiency |
 | 3.29 | images/CH03_F29_Dadwal.md | An encoder can provide a vector, spatial tokens or temporal context |
 
-Each source placeholder points to a detailed prompt. Artwork is intentionally absent; do not infer numbering from legacy experiment filenames.
+Each source placeholder points to a detailed prompt. Artwork is intentionally absent; do not infer numbering from legacy experiment filenames. Prompts use the book's #3B6FB6 accent, white background and grayscale-safe flat 2D line work.
 
 ## Tables and listings
 

@@ -30,11 +30,13 @@ Failure modes
 
 3.1 Self-supervised learning foundations
 3.2 Contrastive learning
-3.3 Masked prediction
-3.4 Latent bottlenecks
-3.5 Compact state representations
-3.6 Building a simple latent encoder
+3.3 Non-contrastive objectives
+3.4 Masked prediction
+3.5 Latent bottlenecks
+3.6 Compact state representations
 3.7 Summary
+3.8 Exercises
+3.9 References
 
 4. JEPA and Predictive Representation Learning
 
