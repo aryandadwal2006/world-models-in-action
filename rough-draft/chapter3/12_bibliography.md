@@ -54,3 +54,18 @@ This is the working citation register; the final AsciiDoc reference section shou
 - Paper publication year, arXiv first-posted year and code release date can differ. The references should follow the style guide's chosen convention consistently.
 - “Official code” means an upstream repository identified by the paper authors/team; it does not guarantee permissive licensing, active maintenance, exact paper reproduction or current dependency compatibility.
 - Papers about image-text alignment may use noisy captions and could be considered weakly supervised depending on the source of text. Avoid blanket claims that all such methods are supervision-free in every ordinary sense.
+
+
+## Additional historical pretext-task papers
+- Doersch, C., Gupta, A. and Efros, A. A. (2015). Unsupervised Visual Representation Learning by Context Prediction. https://arxiv.org/abs/1505.05192.
+- Noroozi, M. and Favaro, P. (2016). Unsupervised Learning of Visual Representations by Solving Jigsaw Puzzles. https://arxiv.org/abs/1603.09246.
+- Zhang, R., Isola, P. and Efros, A. A. (2016). Colorful Image Colorization. https://arxiv.org/abs/1603.08511.
+- Gidaris, S., Singh, P. and Komodakis, N. (2018). Unsupervised Representation Learning by Predicting Image Rotations. https://arxiv.org/abs/1803.07728.
+
+## Additional mainstream masked prediction
+- Xie, Z. et al. (2022). SimMIM: A Simple Framework for Masked Image Modeling. https://arxiv.org/abs/2111.09886.
+- Wei, C. et al. (2022). Masked Feature Prediction for Self-Supervised Visual Pre-Training. https://arxiv.org/abs/2112.09133.
+- Peng, Z. et al. (2022). BEiT v2: Masked Image Modeling with Vector-Quantized Visual Tokenizers. https://arxiv.org/abs/2208.06366.
+
+## Verified 2026 frontier update
+- Mur-Labadia, L. et al. (2026). V-JEPA 2.1: Unlocking Dense Features in Video Self-Supervised Learning. https://arxiv.org/abs/2603.14482. The official repository lists a dense predictive loss over visible and masked tokens, deep self-supervision at intermediate layers, multimodal image/video tokenizers, and model/data scaling.

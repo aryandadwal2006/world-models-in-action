@@ -54,4 +54,4 @@ This structure is more explanatory than presenting 15 paper summaries in publica
 - Assran et al. (2023), I-JEPA, https://arxiv.org/abs/2301.08243.
 - Bardes et al. (2024), V-JEPA, https://arxiv.org/abs/2404.08471.
 - Assran et al. (2025), V-JEPA 2, https://arxiv.org/abs/2506.09985.
-- V-JEPA 2.1 (current release; paper/technical report to verify), official repository https://github.com/facebookresearch/vjepa2.
+- Mur-Labadia, L. et al. (2026), V-JEPA 2.1: Unlocking Dense Features in Video Self-Supervised Learning, https://arxiv.org/abs/2603.14482; official implementation https://github.com/facebookresearch/vjepa2.
