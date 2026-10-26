@@ -370,7 +370,7 @@ SimCLR (Chen et al., 2020) made the augmented-view recipe explicit. Two views pa
 
 SimCLR's results depended on augmentation composition, batch size, architecture, training duration and optimization. A large batch increases the number of available negatives under an in-batch objective, but changes the classification problem itself and may add more false negatives. Its contribution is a clear recipe for contrastive visual learning, not evidence that every contrastive method needs one specific batch size or projector.
 
-MoCo (He et al., 2020) uses a query encoder and a key encoder, with a queue storing keys from earlier minibatches. The query feature \(q=f_{\theta_q}(x_q)\) is trained to identify its matching key \(k^+=f_{\theta_k}(x_k)\) among the positive and queued negative keys \(k_j\in Q\). Its candidate loss has the form
+MoCo (He et al., 2020) uses a query encoder and a key encoder, with a queue storing keys from earlier minibatches. The query feature latexmath:[q=f_{\theta_q}(x_q)] is trained to identify its matching key latexmath:[k^+=f_{\theta_k}(x_k)] among the positive and queued negative keys latexmath:[k_j\in Q]. Its candidate loss has the form
 
 [latexmath]
 ++++
