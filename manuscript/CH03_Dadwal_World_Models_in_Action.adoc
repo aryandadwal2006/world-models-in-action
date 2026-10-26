@@ -880,7 +880,7 @@ to minimize a target-feature error such as
 \|\widehat h_r-\operatorname{sg}(h_r)\|_2^2.
 ++++
 
-Here \(\operatorname{sg}\) denotes stop-gradient. Particular papers use different norms, normalization, layer targets, reductions and mask protocols; these are method-defining details.
+Here latexmath:[\operatorname{sg}] denotes stop-gradient. Particular papers use different norms, normalization, layer targets, reductions and mask protocols; these are method-defining details.
 
 The **context encoder** sees only visible/context tokens, so it cannot copy target tokens from that path. The **target encoder** supplies target embeddings and commonly receives no loss gradients; standard I-JEPA/V-JEPA recipes update it by an exponential moving average of the online encoder. The **predictor** consumes context features and target locations to infer selected target embeddings. It is not a pixel decoder.
 
@@ -1213,17 +1213,19 @@ Assran, M. et al. (2023). Self-Supervised Learning from Images with a Joint-Embe
 
 Assran, M. et al. (2025). V-JEPA 2: Self-Supervised Video Models Enable Understanding, Prediction and Planning. link:https://arxiv.org/abs/2506.09985[arXiv:2506.09985].
 
-Baevski, A., Zhou, Y., Mohamed, A. and Auli, M. (2020). wav2vec 2.0: A Framework for Self-Supervised Learning of Speech Representations. *Advances in Neural Information Processing Systems*. link:https://arxiv.org/abs/2006.11477[arXiv:2006.11477].
+Bachman, P., Hjelm, R. D. and Buchwalter, W. (2019). Learning Representations by Maximizing Mutual Information Across Views. link:https://arxiv.org/abs/1906.00910[arXiv:1906.00910].
 
 Baevski, A., Hsu, W.-N., Xu, Q., Babu, A., Gu, J. and Auli, M. (2022). data2vec: A General Framework for Self-Supervised Learning in Speech, Vision and Language. *International Conference on Machine Learning*. link:https://arxiv.org/abs/2202.03555[arXiv:2202.03555].
+
+Baevski, A., Zhou, Y., Mohamed, A. and Auli, M. (2020). wav2vec 2.0: A Framework for Self-Supervised Learning of Speech Representations. *Advances in Neural Information Processing Systems*. link:https://arxiv.org/abs/2006.11477[arXiv:2006.11477].
 
 Balestriero, R. and LeCun, Y. (2025). LeJEPA: Provable and Scalable Self-Supervised Learning Without the Heuristics. link:https://arxiv.org/abs/2511.08544[arXiv:2511.08544].
 
 Bao, H., Dong, L. and Wei, F. (2022). BEiT: BERT Pre-Training of Image Transformers. *International Conference on Learning Representations*. link:https://arxiv.org/abs/2106.08254[arXiv:2106.08254].
 
-Bardes, A., Ponce, J. and LeCun, Y. (2022). VICReg: Variance-Invariance-Covariance Regularization For Self-Supervised Learning. *International Conference on Learning Representations*. link:https://arxiv.org/abs/2105.04906[arXiv:2105.04906].
-
 Bardes, A. et al. (2024). Revisiting Feature Prediction for Learning Visual Representations from Video. link:https://arxiv.org/abs/2404.08471[arXiv:2404.08471].
+
+Bardes, A., Ponce, J. and LeCun, Y. (2022). VICReg: Variance-Invariance-Covariance Regularization For Self-Supervised Learning. *International Conference on Learning Representations*. link:https://arxiv.org/abs/2105.04906[arXiv:2105.04906].
 
 Caron, M. et al. (2018). Deep Clustering for Unsupervised Learning of Visual Features. *European Conference on Computer Vision*. link:https://arxiv.org/abs/1807.05520[arXiv:1807.05520].
 
@@ -1249,6 +1251,8 @@ Gidaris, S., Singh, P. and Komodakis, N. (2018). Unsupervised Representation Lea
 
 Grill, J.-B. et al. (2020). Bootstrap Your Own Latent: A New Approach to Self-Supervised Learning. *Advances in Neural Information Processing Systems*. link:https://arxiv.org/abs/2006.07733[arXiv:2006.07733].
 
+Gutmann, M. and Hyvärinen, A. (2010). Noise-Contrastive Estimation: A New Estimation Principle for Unnormalized Statistical Models. *Proceedings of the Thirteenth International Conference on Artificial Intelligence and Statistics*. link:https://proceedings.mlr.press/v9/gutmann10a.html[PMLR].
+
 He, K. et al. (2020). Momentum Contrast for Unsupervised Visual Representation Learning. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. link:https://arxiv.org/abs/1911.05722[arXiv:1911.05722].
 
 He, K. et al. (2022). Masked Autoencoders Are Scalable Vision Learners. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. link:https://arxiv.org/abs/2111.06377[arXiv:2111.06377].
@@ -1258,6 +1262,8 @@ Ho, J., Jain, A. and Abbeel, P. (2020). Denoising Diffusion Probabilistic Models
 Hsu, W.-N. et al. (2021). HuBERT: Self-Supervised Speech Representation Learning by Masked Prediction of Hidden Units. link:https://arxiv.org/abs/2106.07447[arXiv:2106.07447].
 
 LeCun, Y., Chopra, S., Hadsell, R., Ranzato, M. and Huang, F. (2006). A Tutorial on Energy-Based Learning. In *Predicting Structured Data*. MIT Press. link:https://yann.lecun.org/exdb/publis/pdf/lecun-06.pdf[PDF].
+
+Misra, I. and van der Maaten, L. (2020). Self-Supervised Learning of Pretext-Invariant Representations. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. link:https://openaccess.thecvf.com/content_CVPR_2020/html/Misra_Self-Supervised_Learning_of_Pretext-Invariant_Representations_CVPR_2020_paper.html[CVF Open Access].
 
 Mur-Labadia, L. et al. (2026). V-JEPA 2.1: Unlocking Dense Features in Video Self-Supervised Learning. link:https://arxiv.org/abs/2603.14482[arXiv:2603.14482].
 
@@ -1275,11 +1281,17 @@ Siméoni, O. et al. (2025). DINOv3. link:https://arxiv.org/abs/2508.10104[arXiv:
 
 Song, Y. et al. (2021). Score-Based Generative Modeling through Stochastic Differential Equations. *International Conference on Learning Representations*. link:https://arxiv.org/abs/2011.13456[arXiv:2011.13456].
 
+Tian, Y., Krishnan, D. and Isola, P. (2020). Contrastive Multiview Coding. *European Conference on Computer Vision*. link:https://arxiv.org/abs/1906.05849[arXiv:1906.05849].
+
 van den Oord, A., Li, Y. and Vinyals, O. (2018). Representation Learning with Contrastive Predictive Coding. link:https://arxiv.org/abs/1807.03748[arXiv:1807.03748].
+
+Wang, T. and Isola, P. (2020). Understanding Contrastive Representation Learning through Alignment and Uniformity on the Hypersphere. *International Conference on Machine Learning*. link:https://arxiv.org/abs/2005.10242[arXiv:2005.10242].
 
 Wei, C. et al. (2022). Masked Feature Prediction for Self-Supervised Visual Pre-Training. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. link:https://arxiv.org/abs/2112.09133[arXiv:2112.09133].
 
 Wu, H., Balestriero, R. and Levine, M. (2026). VISReg: Variance-Invariance-Sketching Regularization for JEPA Training. link:https://arxiv.org/abs/2606.02572[arXiv:2606.02572].
+
+Wu, Z., Xiong, Y., Yu, S. X. and Lin, D. (2018). Unsupervised Feature Learning via Non-Parametric Instance Discrimination. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. link:https://openaccess.thecvf.com/content_cvpr_2018/html/Wu_Unsupervised_Feature_Learning_CVPR_2018_paper.html[CVF Open Access].
 
 Xie, Z. et al. (2022). SimMIM: A Simple Framework for Masked Image Modeling. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. link:https://arxiv.org/abs/2111.09886[arXiv:2111.09886].
 
