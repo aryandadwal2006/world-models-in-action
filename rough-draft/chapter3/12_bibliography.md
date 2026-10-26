@@ -114,3 +114,14 @@ This is the working citation register; the final AsciiDoc reference section shou
 - Cover, T. M. and Thomas, J. A. (2006). *Elements of Information Theory*, 2nd ed. Wiley. Background reference for entropy, mutual information and the data-processing inequality.
 
 - Wang, T. and Isola, P. (2020). “Understanding Contrastive Representation Learning through Alignment and Uniformity on the Hypersphere.” https://arxiv.org/abs/2005.10242.
+
+
+## CPC, energy-based and generative models
+
+- van den Oord, A., Li, Y., and Vinyals, O. (2018). [Representation Learning with Contrastive Predictive Coding](https://arxiv.org/abs/1807.03748).
+- van den Oord, A., Li, Y., and Vinyals, O. (2020). [Unsupervised Pretraining Transfers Well Across Languages](https://arxiv.org/abs/2002.02848). Public audio CPC code is pinned separately.
+- Hjelm, R. D. et al. (2019). [Learning Deep Representations by Mutual Information Estimation and Maximization](https://arxiv.org/abs/1808.06670). Deep InfoMax.
+- Gutmann, M. and Hyvärinen, A. (2010). [Noise-contrastive estimation](https://arxiv.org/abs/1006.2224).
+- Ho, J., Jain, A., and Abbeel, P. (2020). [Denoising Diffusion Probabilistic Models](https://arxiv.org/abs/2006.11239).
+- Song, Y. et al. (2021). [Score-Based Generative Modeling through Stochastic Differential Equations](https://arxiv.org/abs/2011.13456).
+- Lipman, Y. et al. (2023). [Flow Matching for Generative Modeling](https://arxiv.org/abs/2210.02747).

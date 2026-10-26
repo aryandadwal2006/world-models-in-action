@@ -241,3 +241,14 @@ The Gram implementation forms similarity matrices from target and output feature
 Pinned file: https://github.com/facebookresearch/dino/blob/7c446df5b9f45747937fb0d72314eb9f7b66930a/main_dino.py
 
 The argument warmup_teacher_temp_epochs is initialized to 0 in the parser, although its help string says “Default: 30”. The parser value is the executable default. The help-text mismatch is documented here because it materially affects a faithful recipe reconstruction; inspect the command/config for the reported run.
+
+
+## CPC, Deep InfoMax and diffusion official-source audit
+
+- **CPC audio implementation:** facebookresearch/CPC_audio at revision b98a1bdf1fe9ea219816db7a6c28115d404a3510, an archived MIT-licensed implementation for audio and the transfer setting in the 2020 paper. It is not a claim that this audio code is the only or exact original 2018 CPC training setup.
+- **Deep InfoMax:** rdevon/DIM at revision bac4765a8126746675f517c7bfa1b04b88044d51. The README identifies JSD, NCE, DV and related objectives and warns that PyTorch-version changes affected results. This is dependence-estimation representation learning; do not treat it as automatic evidence of a normalized generative EBM.
+- **DDPM:** hojonathanho/diffusion at revision 1e0dceb3b3495bbe19116a5e1b3596cd0706c543. The official README documents a TensorFlow 1.15/Python 3.5/TPU-GCS-oriented historical recipe.
+- **Score-based SDE:** yang-song/score_sde_pytorch at revision cb1f359f4aadf0ff9a5e122fe8fffc9451fd6e44.
+- **Guided diffusion:** openai/guided-diffusion at revision 22e0df8183507e13a7813f8d38d51b072ca1e67c.
+
+These source revisions were resolved to their upstream GitHub commits during the audit. That confirms the reference identity, not execution, compatibility with modern dependencies or reproduction of published results.

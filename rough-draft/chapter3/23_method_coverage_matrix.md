@@ -152,3 +152,8 @@ See [Visual SSL objectives](35_visual_ssl_objectives_from_first_principles.md) f
 ## Dense/local visual SSL reference
 
 See [Dense and local visual SSL](36_dense_local_visual_ssl_from_first_principles.md) for local correspondence assumptions, patch-level targets, dense-feature evaluation and source/reproduction boundaries for DenseCL, PixPro, VICRegL, iBOT, Leopart, SelfPatch and DINOv2/v3.
+
+
+## CPC, EBM and diffusion scope note
+
+[The CPC, energy-based and diffusion dossier](37_cpc_energy_based_and_diffusion_objectives.md) provides the first-principles objective boundary: future-latent candidate prediction, joint/product-of-marginal discrimination, normalized energy models, denoising diffusion, score-based SDEs and flow matching.
