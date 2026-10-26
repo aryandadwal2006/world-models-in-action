@@ -28,10 +28,11 @@ The dossier is an original synthesis, not a replacement for reading canonical pa
 18. [Method coverage matrix](23_method_coverage_matrix.md): primary-paper map across major families, coverage status and implementation checks.
 19. [Primary-paper recipe audit](27_primary_paper_recipe_audit_and_replication_risks.md): method-specific objectives and replication pitfalls, with clear separation between standard equations and implementation details still to verify.
 20. [Dense/local, speech and multimodal method cards](28_dense_local_speech_and_multimodal_method_cards.md): DenseCL, PixPro, VICRegL, Leopart, SelfPatch, wav2vec 2.0, HuBERT, WavLM, data2vec, CLIP, ALIGN and SigLIP with equations, target assumptions and official-source pointers.
-21. [Upstream code-source audit](29_upstream_code_source_audit.md): exact code paths for DenseCL, PixPro, VICRegL, Leopart, SelfPatch, speech SSL, SigLIP, DINOv3 and LeJEPA, plus limitations of the CLIP/LeJEPA/VISReg releases.
-22. [Proposed flow and page budget](10_flow_and_page_budget.md): how to compress the dossier into a coherent reader-facing sequence.
-23. [Figure storyboard](11_figure_storyboard.md): conceptual diagrams needed in the final chapter.
-24. [Bibliography](12_bibliography.md): canonical citations and source-verification notes.
+21. [Historical contrastive lineages](30_historical_contrastive_lineage_and_derivations.md): first-principles derivations and comparisons of NPID, PIRL, CMC and AMDIM.
+22. [Upstream code-source audit](29_upstream_code_source_audit.md): exact code paths and limitations for dedicated and shared upstream implementations.
+23. [Proposed flow and page budget](10_flow_and_page_budget.md): how to compress the dossier into a coherent reader-facing sequence.
+24. [Figure storyboard](11_figure_storyboard.md): conceptual diagrams needed in the final chapter.
+25. [Bibliography](12_bibliography.md): canonical citations and source-verification notes.
 
 The original shorter notes remain useful as focused cross-checks: [contrastive InfoNCE](02_contrastive_infoNCE.md), [negative-free bootstrapping](03_negative_free_bootstrap.md), [redundancy reduction](04_redundancy_reduction.md), [clustering and prototypes](05_clustering_and_prototypes.md), [masked prediction](06_masked_prediction.md), and [frontier boundaries](08_frontier_and_boundaries.md).
 

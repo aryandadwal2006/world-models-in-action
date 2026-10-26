@@ -96,3 +96,15 @@ Before finalizing any method note, ensure the dossier has:
 8. paper-reported evidence and limitations;
 9. official implementation and license/revision;
 10. a direct statement of what the objective does **not** establish about world-model sufficiency.
+
+
+## 8. Historical contrastive lineages added to the dossier
+
+| Method | Primary source | Main contribution | Theory note | Upstream source |
+|---|---|---|---|---|
+| Non-parametric instance discrimination (NPID) | Wu et al. (2018), https://openaccess.thecvf.com/content_cvpr_2018/html/Wu_Unsupervised_Feature_Learning_CVPR_2018_paper.html | Instance identity as a proxy class; memory bank and NCE | 30 | VISSL's pinned NPID configuration as a maintained reference |
+| PIRL / NPID++ | Misra and van der Maaten (2020), https://openaccess.thecvf.com/content_CVPR_2020/html/Misra_Self-Supervised_Learning_of_Pretext-Invariant_Representations_CVPR_2020_paper.html | Contrastive identity with pretext invariance; NPID is a special case of the formulation | 30 | VISSL's pinned PIRL configuration; verify against paper |
+| CMC | Tian et al. (2019 preprint / 2020 publication), https://arxiv.org/abs/1906.05849 | Contrastive pairing between views of a shared source | 30 | Author-published HobbitLong/CMC, pinned in implementations/cmc/ |
+| AMDIM | Bachman et al. (2019), https://arxiv.org/abs/1906.00910 | Augmented, multiscale local/global feature discrimination | 30 | Author-published Philip-Bachman/amdim-public, pinned in implementations/amdim/ |
+
+The four rows are complementary historical branches, not a strict sequence of successors. Record whether the method uses NCE or a minibatch InfoNCE softmax and do not equate their estimators without matching their sampling and normalization assumptions.

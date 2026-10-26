@@ -132,3 +132,31 @@ A source checkout establishes item 2. A config can support item 3. Neither estab
 ## 6. Verification scope
 
 The paths above were resolved from Git trees at the pinned commits. This audit covers the most opaque local, speech, cross-modal, and modern regularization implementations. It intentionally avoids copying upstream code. For further work, inspect the immutable source links, compare with the exact paper version, and document any mismatch before writing a runnable teaching example.
+
+
+## 7. Historical contrastive sources added on main-extra
+
+The following pinned source paths were added after the earlier local/speech/multimodal audit.
+
+### CMC: author-published implementation
+
+- Pinned source: [HobbitLong/CMC](https://github.com/HobbitLong/CMC/tree/7b227be0b10ef4e526c72af07664f5079ed9ee09), stored as implementations/cmc/.
+- Data and view construction: [dataset.py](https://github.com/HobbitLong/CMC/blob/7b227be0b10ef4e526c72af07664f5079ed9ee09/dataset.py).
+- Training orchestration: [train_CMC.py](https://github.com/HobbitLong/CMC/blob/7b227be0b10ef4e526c72af07664f5079ed9ee09/train_CMC.py).
+- NCE machinery: [NCE/NCEAverage.py](https://github.com/HobbitLong/CMC/blob/7b227be0b10ef4e526c72af07664f5079ed9ee09/NCE/NCEAverage.py) and [NCE/NCECriterion.py](https://github.com/HobbitLong/CMC/blob/7b227be0b10ef4e526c72af07664f5079ed9ee09/NCE/NCECriterion.py).
+- Scope: this is the authors' CMC implementation. The same repository labels its MoCo/InsDis implementation as unofficial.
+
+### AMDIM: author-published implementation
+
+- Pinned source: [Philip-Bachman/amdim-public](https://github.com/Philip-Bachman/amdim-public/tree/8754ae149ed28da8066f696f95ba4ca0e3ffebd8), stored as implementations/amdim/.
+- Architecture: [model.py](https://github.com/Philip-Bachman/amdim-public/blob/8754ae149ed28da8066f696f95ba4ca0e3ffebd8/model.py).
+- Objective/critic costs: [costs.py](https://github.com/Philip-Bachman/amdim-public/blob/8754ae149ed28da8066f696f95ba4ca0e3ffebd8/costs.py).
+- Training-task definition and orchestration: [task_self_supervised.py](https://github.com/Philip-Bachman/amdim-public/blob/8754ae149ed28da8066f696f95ba4ca0e3ffebd8/task_self_supervised.py) and [train.py](https://github.com/Philip-Bachman/amdim-public/blob/8754ae149ed28da8066f696f95ba4ca0e3ffebd8/train.py).
+- Scope: the README describes a historical multi-GPU setup and an Apex dependency for mixed precision. A pinned checkout is a source reference, not evidence of an unmodified modern reproduction.
+
+### VISSL: shared FAIR research library
+
+- Pinned source: [facebookresearch/vissl](https://github.com/facebookresearch/vissl/tree/09270ed25a6c2cf71263d955b64cbe076d34ac45), stored as implementations/vissl/.
+- Method configurations: [npid](https://github.com/facebookresearch/vissl/tree/09270ed25a6c2cf71263d955b64cbe076d34ac45/configs/config/pretrain/npid), [pirl](https://github.com/facebookresearch/vissl/tree/09270ed25a6c2cf71263d955b64cbe076d34ac45/configs/config/pretrain/pirl), [jigsaw](https://github.com/facebookresearch/vissl/tree/09270ed25a6c2cf71263d955b64cbe076d34ac45/configs/config/pretrain/jigsaw), [simclr](https://github.com/facebookresearch/vissl/tree/09270ed25a6c2cf71263d955b64cbe076d34ac45/configs/config/pretrain/simclr) and [swav](https://github.com/facebookresearch/vissl/tree/09270ed25a6c2cf71263d955b64cbe076d34ac45/configs/config/pretrain/swav).
+- Representative loss implementations: [nce_loss.py](https://github.com/facebookresearch/vissl/blob/09270ed25a6c2cf71263d955b64cbe076d34ac45/vissl/losses/nce_loss.py), [simclr_info_nce_loss.py](https://github.com/facebookresearch/vissl/blob/09270ed25a6c2cf71263d955b64cbe076d34ac45/vissl/losses/simclr_info_nce_loss.py), [swav_loss.py](https://github.com/facebookresearch/vissl/blob/09270ed25a6c2cf71263d955b64cbe076d34ac45/vissl/losses/swav_loss.py) and [barlow_twins_loss.py](https://github.com/facebookresearch/vissl/blob/09270ed25a6c2cf71263d955b64cbe076d34ac45/vissl/losses/barlow_twins_loss.py).
+- Scope: VISSL is a shared research library, not a dedicated repository for every method it contains. Match the config, code path and paper version before claiming a reproduction.
