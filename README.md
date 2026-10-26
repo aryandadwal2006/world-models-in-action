@@ -33,7 +33,7 @@ git submodule sync --recursive
 git submodule update --init --recursive
 ```
 
-The full collection makes the checkout large; initialize one repository at a time if preferred. Every upstream keeps its own license and dependencies. Model weights and datasets are not bundled.
+The full collection makes the checkout large; initialize one repository at a time if preferred. Every upstream keeps its own license and dependencies. Model weights and datasets are not bundled. The MoCo source is pinned to the last code-bearing upstream revision because a later upstream commit deleted the repository tree; its README and LICENSE text conflict, so inspect both before any redistribution.
 
 The repository includes cached DMC train/validation datasets for the chapter experiments. Regenerating them requires the DeepMind Control Suite and MuJoCo rendering setup; downstream experiments can run from the caches. Experiment claims and reproduction instructions are recorded in `ch03/README.md` and `ch03/publication_readiness_audit.md`.
 
