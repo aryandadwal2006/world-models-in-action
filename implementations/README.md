@@ -54,6 +54,9 @@ Update one submodule deliberately, review its license and upstream changes, and 
 | LeJEPA / SIGReg | [galilai-group/lejepa](https://github.com/galilai-group/lejepa) | `c293d291ca87cd4fddee9d3fffe4e914c7272052` | LeJEPA / SIGReg source; `implementations/lejepa/` |
 
 | EB-JEPA | [facebookresearch/eb_jepa](https://github.com/facebookresearch/eb_jepa) | `966e61e9285b3a876f49b9774e9720d9a99a7925` | EB-JEPA source; `implementations/eb-jepa/` |
+| CMC | [HobbitLong/CMC](https://github.com/HobbitLong/CMC) | `7b227be0b10ef4e526c72af07664f5079ed9ee09` | Author-published implementation of Contrastive Multiview Coding; `implementations/cmc/`. The same repository also contains MoCo/InsDis code, but its README labels those implementations unofficial. |
+| AMDIM | [Philip-Bachman/amdim-public](https://github.com/Philip-Bachman/amdim-public) | `8754ae149ed28da8066f696f95ba4ca0e3ffebd8` | Authors' code for Augmented Multiscale Deep InfoMax; `implementations/amdim/`. Historical dependencies and compute assumptions apply. |
+| Historical method suite (PIRL, NPID, NPID++, DeepClusterV2, RotNet, Jigsaw, SwAV and others) | [facebookresearch/vissl](https://github.com/facebookresearch/vissl) | `09270ed25a6c2cf71263d955b64cbe076d34ac45` | Official FAIR/VISSL library with implementations and configs for multiple methods; `implementations/vissl/`. Verify the specific config and code path before calling it a paper reproduction. |
 
 ## Important scope / license notes
 
@@ -72,6 +75,6 @@ Update one submodule deliberately, review its license and upstream changes, and 
 ## Coverage notes added for the expanded collection
 
 - Shared upstream repositories may contain multiple methods and dependencies; the method-specific source lives in the upstream subdirectory, not in a locally copied standalone implementation.
-- The V-JEPA 2 source includes the V-JEPA 2.1 release. LeJEPA/SIGReg has an official-source submodule. VISReg's official code link currently redirects to a repository that is not accessible publicly through the GitHub API; therefore no code submodule is included.
-- No public author/team repository was verified in this pass for ALIGN or the original NNCLR and CPC papers. These are intentionally not represented by an unofficial repository falsely labeled official.
+- The V-JEPA 2 source includes the V-JEPA 2.1 release. LeJEPA/SIGReg has an official-source submodule. VISSL is a shared historical-method library, not a dedicated upstream for each method it implements. VISReg's public pointer redirects to a destination that was not accessible as a public repository during this audit; no code submodule is included.
+- No public author/team repository was verified in this pass for ALIGN or the original NNCLR and CPC papers. CMC and AMDIM now have their authors' published code repositories pinned, and VISSL supplies additional FAIR-maintained reference implementations for historical methods. These are intentionally not represented by an unofficial repository falsely labeled official.
 - Initializing the whole collection clones substantial upstream history. Use `git submodule update --init implementations/<name>` to initialize one repository at a time.

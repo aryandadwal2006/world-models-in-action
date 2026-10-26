@@ -143,3 +143,15 @@
 [submodule "implementations/eb-jepa"]
 	path = implementations/eb-jepa
 	url = https://github.com/facebookresearch/eb_jepa.git
+
+[submodule "implementations/cmc"]
+	path = implementations/cmc
+	url = https://github.com/HobbitLong/CMC.git
+
+[submodule "implementations/amdim"]
+	path = implementations/amdim
+	url = https://github.com/Philip-Bachman/amdim-public.git
+
+[submodule "implementations/vissl"]
+	path = implementations/vissl
+	url = https://github.com/facebookresearch/vissl.git

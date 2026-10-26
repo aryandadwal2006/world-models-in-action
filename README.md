@@ -8,7 +8,7 @@ Code companion for *World Models in Action*. This branch reorganizes Chapter 3 s
 
 - **Chapter-oriented pedagogical implementations:** `worldmodels/`. These are compact, readable implementations for the book, not copies of upstream repositories.
 - **Experiment runners:** `ch03/`. These preserve data protocols, configs, multi-seed runs, evaluation, plotting and metric export.
-- **Original upstream method repositories:** `implementations/`. This directory contains Git submodules pinned to original author/team repositories or shared upstream research codebases. No replacement method code is authored or modified there.
+- **Original upstream method repositories:** `implementations/`. This directory contains Git submodules pinned to original author/team repositories or shared upstream research codebases. CMC, AMDIM and the FAIR/VISSL method suite are included alongside the method-specific repositories. No replacement method code is authored or modified there.
 - **Verification:** `tests/`.
 - **Evidence:** `ch03/figures/`, `ch03/results/`, `checkpoints/` and `ch03/publication_readiness_audit.md`.
 - **Research notes:** `extra/papers-and-derivations.md`.
