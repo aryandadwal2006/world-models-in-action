@@ -84,7 +84,7 @@ Every self-supervised method constructs a target relationship from the data. The
 .The major families of self-supervised learning
 image::CH03_T01_SSL_Landscape.svg[The major families of self-supervised learning,pdfwidth=100%]
 
-Figure 3.1 is a map of dominant learning signals, not a partition into disjoint categories. DINO uses teacher-student self-distillation over prototype outputs; iBOT joins masking and teacher targets; wav2vec 2.0 combines masking, quantization and contrastive discrimination. The useful question is what each component contributes.
+figure 3.1 is a map of dominant learning signals, not a partition into disjoint categories. DINO uses teacher-student self-distillation over prototype outputs; iBOT joins masking and teacher targets; wav2vec 2.0 combines masking, quantization and contrastive discrimination. The useful question is what each component contributes.
 
 [#unique_section_ch3_004_contrastive_learning_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
 == Contrastive learning
@@ -126,6 +126,8 @@ This objective is ordinary softmax cross-entropy. Write \(a_{ij}=s(z_i,z_j)/\tau
 ++++
 
 The positive logit receives gradient \(q_{i,p(i)}-1\), which pushes it upward under gradient descent. A negative logit receives gradient \(q_{ij}\), which pushes it downward. The gradient on a negative is weighted by its current probability: a hard negative receives more repulsive gradient than an already dissimilar candidate. Since \(a_{ij}=s(z_i,z_j)/\tau\), differentiation with respect to similarity introduces the factor \(1/\tau\).
+
+figure 3.2 connects the positive-pair construction to the candidate distribution and its gradient.
 
 [#ch3-figure-F02,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .One anchor, one positive and a candidate distribution
@@ -257,6 +259,8 @@ If every example has the same value in one dimension, its batch standard deviati
 
 The methods are related but not identical. Barlow Twins uses normalized cross-correlation as the central matrix objective. VICReg uses a direct invariance term, a standard-deviation floor and a covariance penalty. Their shared lesson is that view agreement and non-collapse are separate requirements. Their moment constraints are not a guarantee of a world-model-ready state.
 
+figure 3.3 compares the target path and anti-collapse mechanism used by the major non-identical objective families.
+
 [#ch3-figure-F03,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Different methods make different target paths and constraints explicit
 image::CH03_T03_MethodMechanisms.svg[Different methods make target paths and constraints explicit,pdfwidth=100%]
@@ -287,6 +291,8 @@ L=\frac{1}{|M|}\sum_{i\in M}\ell(\hat y_i,y_i).
 ++++
 
 This form leaves the crucial choice open: what is the target? It might be pixel values, a discrete code, a word token, a replaced-token label or a contextualized feature. The mask tells the model where information is withheld; the target tells it what relationship must be learned.
+
+figure 3.4 compares three target spaces for masked inputs: pixels, discrete visual codes and contextualized features.
 
 [#ch3-figure-F04,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .The target space changes the prediction problem
@@ -330,7 +336,7 @@ CLIP aligns image and text embeddings using a symmetric contrastive objective. I
 
 SigLIP replaces the batchwise softmax with pairwise sigmoid-style losses. This changes the normalization and scaling behavior, not the underlying need for reliable pair construction. SigLIP 2 extends the family toward multilingual understanding, localization and dense features. Do not describe SigLIP as merely a temperature variant of CLIP.
 
-Speech methods expose other target-construction choices. wav2vec 2.0 masks latent speech frames and contrasts contextual representations against quantized targets. HuBERT predicts cluster-derived pseudo-labels for masked speech regions. data2vec predicts contextual teacher features. The comparison is summarized below.
+Speech methods expose other target-construction choices. wav2vec 2.0 masks latent speech frames and contrasts contextual representations against quantized targets. HuBERT predicts cluster-derived pseudo-labels for masked speech regions. data2vec predicts contextual teacher features. table 3.1 compares methods by target, loss, signal construction and limitation rather than by a single benchmark score.
 
 [#ch3-table-T01,reftext={chapter}.{counter:table},caption='{table-caption}.{counter:table-number} ']
 .Self-supervised objectives compared by the signal they construct
