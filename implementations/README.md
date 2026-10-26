@@ -52,7 +52,7 @@ Update one submodule deliberately, review its license and upstream changes, and 
 | Leopart | [MkUuWaUjinga/leopart](https://github.com/MkUuWaUjinga/leopart) | `7835701338d477c70d581c0a10e594257dcac198` | Leopart source; `implementations/leopart/` |
 | SelfPatch | [alinlab/SelfPatch](https://github.com/alinlab/SelfPatch) | `81aef149fa984a32bdbb2cf5a98aa0e072591535` | SelfPatch source; `implementations/selfpatch/` |
 | LeJEPA / SIGReg | [galilai-group/lejepa](https://github.com/galilai-group/lejepa) | `c293d291ca87cd4fddee9d3fffe4e914c7272052` | LeJEPA / SIGReg source; `implementations/lejepa/` |
-| VISReg | [Author's pointer README](https://github.com/HaiyuWu/visreg) → [project page](https://haiyuwu.github.io/visreg/) | Not pinned | Public README redirects to `https://github.com/altos-labs/visreg`; that target was not available as a public repo via the GitHub API on 26 Oct 2026. No code submodule is included. |
+
 | EB-JEPA | [facebookresearch/eb_jepa](https://github.com/facebookresearch/eb_jepa) | `966e61e9285b3a876f49b9774e9720d9a99a7925` | EB-JEPA source; `implementations/eb-jepa/` |
 
 ## Important scope / license notes
