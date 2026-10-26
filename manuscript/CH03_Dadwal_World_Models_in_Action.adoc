@@ -392,8 +392,8 @@ After the loss is evaluated against the current queue, keys from the current min
 [latexmath]
 ++++
 \mathcal L_{\mathrm{v3}}=
-\operatorname{CE}\!\left(\frac{Q_1K_2^\top}{\tau},y\right)
-+\operatorname{CE}\!\left(\frac{Q_2K_1^\top}{\tau},y\right).
+\mathrm{CE}\!\left(\frac{Q_1K_2^\top}{\tau},y\right)
++\mathrm{CE}\!\left(\frac{Q_2K_1^\top}{\tau},y\right).
 ++++
 
 The momentum encoder remains stop-gradient and EMA-updated; the online path has a predictor. This is not the v1/v2 queue algorithm with a different backbone. The reference code also multiplies each cross-entropy term by a temperature-dependent constant, a loss-scale convention rather than a different candidate relation.
@@ -581,8 +581,8 @@ DINO (Caron et al., 2021) matches distributions rather than regressing one featu
 
 [latexmath]
 ++++
-p_s(x)=\operatorname{softmax}\!\left(\frac{a_s(x)}{T_s}\right),\qquad
-q_t(x)=\operatorname{softmax}\!\left(\frac{a_t(x)-c}{T_t}\right).
+p_s(x)=\mathrm{softmax}\!\left(\frac{a_s(x)}{T_s}\right),\qquad
+q_t(x)=\mathrm{softmax}\!\left(\frac{a_t(x)-c}{T_t}\right).
 ++++
 
 Here latexmath:[c] is a running center of teacher outputs, latexmath:[T_t] controls teacher-target sharpness, and the teacher parameters follow an EMA of the student parameters. The student is trained across selected, different teacher-student views. For a target distribution latexmath:[q_t], the student's cross-entropy is
@@ -694,7 +694,7 @@ For each feature dimension latexmath:[j], let latexmath:[\sigma_j(Z)] be its sta
 [latexmath]
 ++++
 v(Z)=\frac{1}{d}\sum_{j=1}^{d}
-\max\!\left(0,\gamma-\sqrt{\operatorname{Var}(Z_j)+\epsilon}\right).
+\max\!\left(0,\gamma-\sqrt{\mathrm{Var}(Z_j)+\epsilon}\right).
 \tag{3.10}
 ++++
 
@@ -702,7 +702,7 @@ The covariance term penalizes the squared off-diagonal entries of the empirical 
 
 [latexmath]
 ++++
-c(Z)=\frac{1}{d}\sum_{i\ne j}\operatorname{Cov}(Z)_{ij}^{2}.
+c(Z)=\frac{1}{d}\sum_{i\ne j}\mathrm{Cov}(Z)_{ij}^{2}.
 \tag{3.11}
 ++++
 
@@ -721,7 +721,7 @@ The sample covariance used for latexmath:[c(Z)] is computed after centering the 
 
 [latexmath]
 ++++
-\operatorname{Cov}(Z)_{ij}
+\mathrm{Cov}(Z)_{ij}
 =\frac{1}{N-1}\sum_{b=1}^{N}
 (z_{b,i}-\mu_i)(z_{b,j}-\mu_j).
 ++++
@@ -862,7 +862,7 @@ For each randomly sampled unit direction latexmath:[w_k], project the normalized
 ++++
 \mathcal L_{\mathrm{shape}}=
 \frac1{VKB}\sum_{v=1}^{V}\sum_{k=1}^{K}
-\left\|\operatorname{sort}(\widetilde Z_v w_k)-q_{1:B}\right\|_2^2.
+\left\|\mathrm{sort}(\widetilde Z_v w_k)-q_{1:B}\right\|_2^2.
 ++++
 
 The batch-center penalty is
@@ -914,9 +914,9 @@ The VISReg authors report stronger correction near collapse and favorable result
 
 
 
-The table is an index, not a claim that these systems share one objective. In image-text training, **CLIP** uses normalized image and text embeddings, a learned logit scale and cross-entropy in both image-to-text and text-to-image directions. **SigLIP** uses pairwise sigmoid/logistic terms for matched and mismatched pairs rather than the same batchwise softmax. Natural-language descriptions are supervision from data even though they are not manually assigned class labels.
+The table is an index, not a claim that these systems share one objective. In image-text training, **CLIP** (Radford et al., 2021) uses normalized image and text embeddings, a learned logit scale and cross-entropy in both image-to-text and text-to-image directions. **SigLIP** (Zhai et al., 2023) uses pairwise sigmoid/logistic terms for matched and mismatched pairs rather than the same batchwise softmax. Natural-language descriptions are supervision from data even though they are not manually assigned class labels.
 
-For speech, **wav2vec 2.0** masks latent speech frames and contrasts context features against quantized targets; **HuBERT** predicts cluster-derived targets at masked positions; **data2vec** predicts contextualized teacher features. For language, BERT predicts selected corrupted tokens from bidirectional context, GPT-style causal language models predict the next token from a prefix, and ELECTRA discriminates observed tokens from generator-replaced tokens. Context and target distributions differ. Generative modeling returns in later chapters: diffusion and energy-based methods have different target and probability/sampling contracts, so they should not be folded into the same family merely because the target is data-derived.
+For speech, **wav2vec 2.0** (Baevski et al., 2020) masks latent speech frames and contrasts context features against quantized targets; **HuBERT** (Hsu et al., 2021) predicts cluster-derived targets at masked positions; **data2vec** (Baevski et al., 2022) predicts contextualized teacher features. For language, **BERT** (Devlin et al., 2019) predicts selected corrupted tokens from bidirectional context, GPT-style causal language models (Radford et al., 2019) predict the next token from a prefix, and **ELECTRA** (Clark et al., 2020) discriminates observed tokens from generator-replaced tokens. Context and target distributions differ. Generative modeling returns in later chapters: diffusion and energy-based methods have different target and probability/sampling contracts, so they should not be folded into the same family merely because the target is data-derived.
 
 Table 3.1 compares the signal each method constructs and the limitation that remains.
 
