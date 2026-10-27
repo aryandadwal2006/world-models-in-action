@@ -7,17 +7,17 @@ Code companion and Chapter 3 authoring repository for *World Models in Action*.
 ## Branch roles
 
 - **`main`** is the canonical code-companion/reproducibility release: core implementations, experiment runners, regression tests, and empirical artifacts.
-- **`manuscript`** contains that code context plus the current composed Chapter 3 AsciiDoc source, figure assets, author-side PDF preview, and manuscript build workflow.
+- **`manuscript-theory`** contains the current composed Chapter 3 manuscript, its figure briefs, the author-side PDF preview, and the manuscript build/verification workflow. This is the current source branch for the theory-first chapter.
 - **Current chapter source:** [`manuscript/CH03_Dadwal_World_Models_in_Action.adoc`](manuscript/CH03_Dadwal_World_Models_in_Action.adoc).
-- **Current figure-number crosswalk:** [`images/README.md`](images/README.md). Do not infer printed figure numbers from the legacy `F##` asset stems.
+- **Current author-side PDF:** [`manuscript/CH03_Dadwal_World_Models_in_Action.pdf`](manuscript/CH03_Dadwal_World_Models_in_Action.pdf). This is a preview, not Manning's final production typesetting.
+- **Canonical printed figure register:** [`images/README.md`](images/README.md). The current chapter has 29 figure placeholders; use that register rather than inferring printed numbers from legacy `F##` asset stems.
+- **Figure/table/listing crosswalk:** [`chapter3/figure-and-table-production.md`](chapter3/figure-and-table-production.md).
 - The `chapter3/` section-by-section drafts and `chapter_03_design.md` are historical planning material, not current manuscript sources.
-
-The PDF under `manuscript/` is an author-side preview, not Manning's final production typesetting.
 
 ## Code source of truth
 
 - **Core implementations:** `worldmodels/`. Models, losses, sequence sampling, data handling, and evaluation utilities live here.
-- **Experiment runners:** `ch03/`. These preserve the full data protocol, training configuration, multi-seed runs, evaluations, plotting, and metric export needed for the chapter.
+- **Experiment runners:** `ch03/`. These preserve the data protocol, training configuration, multi-seed runs, evaluations, plotting, and metric export needed for the chapter.
 - **Verification:** `tests/`. Tests exercise the canonical modules and important data/evaluation contracts.
 - **Evidence:** `ch03/figures/`, `ch03/results/`, `checkpoints/`, and `ch03/publication_readiness_audit.md` hold generated outputs, checkpoints, and limitations.
 
@@ -34,11 +34,11 @@ python -m pip install -r requirements.txt
 python -m unittest discover -s tests -v
 ```
 
-The repository includes cached DMC train/validation datasets for the chapter experiments. Regenerating them requires the DeepMind Control Suite and MuJoCo rendering setup; downstream experiments can run from the caches. Experiment claims and reproduction instructions are recorded in `ch03/README.md` and `ch03/publication_readiness_audit.md`.
+The repository includes cached DMC train/validation datasets for the chapter experiments. Regenerating them requires the DeepMind Control Suite and MuJoCo rendering setup; downstream experiments can run from the caches. Experiment claims and reproduction instructions are recorded in [`ch03/README.md`](ch03/README.md) and [`ch03/publication_readiness_audit.md`](ch03/publication_readiness_audit.md).
 
 ## Reading order
 
-Start with the code map in [Chapter 3 README](ch03/README.md). It maps conceptual listings to canonical source files and the empirical artifacts used by the chapter. For the current prose, figure numbering, and PDF build, use [the manuscript README](manuscript/README.md).
+Start with the code map in [Chapter 3 README](ch03/README.md). It maps conceptual listings to canonical source files and empirical artifacts. For current prose, figure numbering, the PDF preview, and build steps, use the [manuscript README](manuscript/README.md) and [figure register](images/README.md).
 
 ## Re-run an experiment
 
@@ -52,4 +52,4 @@ python ch03/09_masked_autoencoder.py
 python ch03/11_temporal_cpc.py
 ```
 
-The training scripts may overwrite their standard checkpoints, metrics, or figures, so use isolated output paths for new runs. CPC's primary evaluation is held-out future-latent retrieval using the trained InfoNCE scores; it is not physical-state prediction, action-conditioned transition prediction, recursive rollout, or planning. For exact settings, provenance, and interpretation limits, read [the Chapter 3 code map](ch03/README.md) and [the publication-readiness audit](ch03/publication_readiness_audit.md) before interpreting stored scores as general claims.
+The training scripts may overwrite their standard checkpoints, metrics, or figures, so use isolated output paths for new runs. CPC's primary evaluation is held-out future-latent retrieval using the trained InfoNCE scores; it is not physical-state prediction, action-conditioned transition prediction, recursive rollout, or planning. For exact settings, provenance, and interpretation limits, read the [Chapter 3 code map](ch03/README.md) and [publication-readiness audit](ch03/publication_readiness_audit.md) before interpreting stored scores as general claims.
