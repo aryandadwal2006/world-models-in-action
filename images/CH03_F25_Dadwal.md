@@ -1,4 +1,4 @@
-# Figure 3.25: Discrete tokens and teacher features are different masked targets
+# Figure 3.24: Discrete tokens and teacher features are different masked targets
 
 **Status:** Detailed production brief only. No artwork is included in this branch.
 
@@ -24,7 +24,7 @@ Label IDs, distributions and continuous hidden vectors separately.
 
 ## Caption
 
-Figure 3.25. Discrete tokens and teacher features are different masked targets.
+Figure 3.24. Discrete tokens and teacher features are different masked targets.
 
 ## Production note
 
