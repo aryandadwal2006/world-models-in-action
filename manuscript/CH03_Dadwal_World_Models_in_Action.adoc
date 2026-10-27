@@ -911,13 +911,6 @@ For speech, **wav2vec 2.0** (Baevski et al., 2020) masks latent speech frames an
 **Artwork placeholder: Figure 3.21.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F21_Dadwal.md.
 ****
 
-[#ch3-figure-F22,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.A training loss and a probe answer different questions
-[.figure-placeholder%unbreakable]
-****
-**Artwork placeholder: Figure 3.22.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F22_Dadwal.md.
-****
-
 [#unique_section_ch3_016_masked_prediction_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
 == Masked prediction: choose what the model must recover
 
@@ -954,7 +947,7 @@ The target-space schematic holds the mask fixed and changes only the prediction 
 .One visible context, several masked-prediction targets
 [.figure-placeholder%unbreakable]
 ****
-**Artwork placeholder: Figure 3.23.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F23_Dadwal.md.
+**Artwork placeholder: Figure 3.22.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F23_Dadwal.md.
 ****
 
 
@@ -984,7 +977,7 @@ The architecture in xref:ch3-figure-F24[] shows why the MAE encoder sees only vi
 .MAE's visible-only encoder and masked-patch decoder
 [.figure-placeholder%unbreakable]
 ****
-**Artwork placeholder: Figure 3.24.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F24_Dadwal.md.
+**Artwork placeholder: Figure 3.23.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F24_Dadwal.md.
 ****
 
 [#unique_section2_ch3_019_beit_ibot_and_data2vec_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
@@ -1023,7 +1016,7 @@ BERT-style masked language modeling predicts selected corrupted tokens from bidi
 .Discrete tokens and teacher features are different masked targets
 [.figure-placeholder%unbreakable]
 ****
-**Artwork placeholder: Figure 3.25.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F25_Dadwal.md.
+**Artwork placeholder: Figure 3.24.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F25_Dadwal.md.
 ****
 
 [#unique_section2_ch3_032_diffusion_and_masked_prediction_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
@@ -1038,7 +1031,7 @@ The key distinction here is between the target used to train a representation an
 .Masked prediction and diffusion learn different conditional tasks
 [.figure-placeholder%unbreakable]
 ****
-**Artwork placeholder: Figure 3.26.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F26_Dadwal.md.
+**Artwork placeholder: Figure 3.25.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F26_Dadwal.md.
 ****
 
 [#unique_section_ch3_024_latent_bottlenecks_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
@@ -1048,7 +1041,7 @@ The key distinction here is between the target used to train a representation an
 .The projection head, global vector and local feature grid
 [.figure-placeholder%unbreakable]
 ****
-**Artwork placeholder: Figure 3.27.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F27_Dadwal.md.
+**Artwork placeholder: Figure 3.26.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F27_Dadwal.md.
 ****
 
 [#unique_section2_ch3_024_bottleneck_dimension_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
@@ -1128,6 +1121,14 @@ Here, *compact* means constrained and usable by downstream prediction, not neces
 [#unique_section_ch3_026_a_world_model_audit_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
 == Compact state representations
 
+[#ch3-figure-F29,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
+.An encoder can provide a vector, spatial tokens or temporal context
+[.figure-placeholder%unbreakable]
+****
+**Artwork placeholder: Figure 3.27.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F29_Dadwal.md.
+****
+
+
 [#ch3-figure-F28,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Aliasing is a failure of predictive sufficiency
 [.figure-placeholder%unbreakable]
@@ -1178,11 +1179,11 @@ The readout also sets a limit on the conclusion. If a linear probe fails but a n
 
 
 
-[#ch3-figure-F29,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.An encoder can provide a vector, spatial tokens or temporal context
+[#ch3-figure-F22,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
+.A training loss and a probe answer different questions
 [.figure-placeholder%unbreakable]
 ****
-**Artwork placeholder: Figure 3.29.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F29_Dadwal.md.
+**Artwork placeholder: Figure 3.29.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F22_Dadwal.md.
 ****
 
 [#unique_section_ch3_027_summary_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
