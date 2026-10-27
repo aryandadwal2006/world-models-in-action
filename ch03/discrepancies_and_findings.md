@@ -3,7 +3,7 @@
 **Updated:** 18 October 2026  
 **Purpose:** Maintain the code/experiment account of empirical findings, fixes, and interpretation limits. This ledger supersedes earlier dated experiment-status notes in the commit history.
 
-> **Scope clarification (22 October 2026):** this ledger documents implementation and experiment findings, not the current manuscript's printed numbering or production status. Its legacy references to Tables 3.3–3.5 are experiment-history labels. The composed chapter uses 20 numbered figures and two numbered tables; use `images/README.md` and `chapter3/figure-and-table-production.md` to map current artwork and printed object numbers.
+> **Scope clarification (22 October 2026):** this ledger documents implementation and experiment findings, not the current manuscript's printed numbering or production status. Its legacy references to Tables 3.3–3.5 are experiment-history labels. The composed chapter uses 18 numbered figure placeholders, one numbered synthesis table and one numbered listing; use `images/README.md` and `chapter3/figure-and-table-production.md` for printed numbering.
 
 ## Release status
 

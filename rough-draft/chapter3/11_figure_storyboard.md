@@ -2,12 +2,12 @@
 
 **Status (27 October 2026): archived concept notes, not the active production register.**
 
-The earlier six-figure storyboard below has been superseded. The current theory-first manuscript on `manuscript-theory` contains **29 figure placeholders**, with a dedicated, updated production brief for each figure. No rendered artwork has been approved or inserted yet.
+The earlier six-figure storyboard below has been superseded. The revised manuscript on `manuscript-theory` contains **18 figure placeholders**, with a dedicated production brief for each retained figure. No rendered artwork has been approved or inserted yet.
 
 ## Current figure-production sources
 
 - **Canonical register and printed order:** `images/README.md`
-- **Per-figure instructions:** `images/CH03_F01_Dadwal.md` through `images/CH03_F29_Dadwal.md`, interpreted using the printed-number crosswalk in `images/README.md`
+- **Per-figure instructions:** only the 18 briefs listed in `images/README.md`, interpreted using its printed-number crosswalk.
 - **Synchronized figure/table/listing crosswalk:** `chapter3/figure-and-table-production.md`
 - **Current manuscript:** `manuscript/CH03_Dadwal_World_Models_in_Action.adoc`
 - **Production gate:** `rough-draft/chapter3/38_dossier_readiness_and_manuscript_gate.md`

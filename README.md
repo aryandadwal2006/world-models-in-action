@@ -10,7 +10,7 @@ Code companion and Chapter 3 authoring repository for *World Models in Action*.
 - **`manuscript-theory`** contains the current composed Chapter 3 manuscript, its figure briefs, the author-side PDF preview, and the manuscript build/verification workflow. This is the current source branch for the theory-first chapter.
 - **Current chapter source:** [`manuscript/CH03_Dadwal_World_Models_in_Action.adoc`](manuscript/CH03_Dadwal_World_Models_in_Action.adoc).
 - **Current author-side PDF:** [`manuscript/CH03_Dadwal_World_Models_in_Action.pdf`](manuscript/CH03_Dadwal_World_Models_in_Action.pdf). This is a preview, not Manning's final production typesetting.
-- **Canonical printed figure register:** [`images/README.md`](images/README.md). The current chapter has 29 figure placeholders; use that register rather than inferring printed numbers from legacy `F##` asset stems.
+- **Canonical printed figure register:** [`images/README.md`](images/README.md). The current chapter has 18 figure placeholders; use that register rather than inferring printed numbers from retained legacy `F##` asset stems.
 - **Figure/table/listing crosswalk:** [`chapter3/figure-and-table-production.md`](chapter3/figure-and-table-production.md).
 - The `chapter3/` section-by-section drafts and `chapter_03_design.md` are historical planning material, not current manuscript sources.
 

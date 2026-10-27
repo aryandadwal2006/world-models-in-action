@@ -1,6 +1,6 @@
 # Chapter 3 manuscript and PDF build
 
-This folder contains the composed AsciiDoc chapter and author-side PDF workflow on `manuscript-theory`. The theory-first prose pass is complete; the current source has been rebuilt into the committed author-side PDF. It derives objectives from target construction, loss, gradient/update mechanism, assumptions and limitations. It contains no custom training runs and does not imply official source attribution equals independent reproduction.
+This folder contains the composed AsciiDoc chapter and author-side PDF workflow on `manuscript-theory`. The prose and figure plan were revised on 27 October 2026; run the verifier and rebuild the author-side PDF before continuing figure production. It derives objectives from target construction, loss, gradient/update mechanism, assumptions and limitations. It contains no custom training runs and does not imply official source attribution equals independent reproduction.
 
 ## Build and validate
 
@@ -16,7 +16,7 @@ The build produces CH03_Dadwal_World_Models_in_Action.pdf. It is an author-side 
 
 ## Figure placeholders
 
-The chapter currently has 29 conceptual figure placeholders, one numbered synthesis table, and one short source-attributed PyTorch VICReg listing. Each figure has a detailed brief in the images directory. The directory intentionally contains no rendered artwork; the Markdown briefs are the production source until the author generates and approves each figure.
+The chapter currently has 18 conceptual figure placeholders, one numbered synthesis table, and one short source-attributed PyTorch VICReg listing. Each figure has a detailed brief in the images directory. The directory intentionally contains no rendered artwork; the Markdown briefs are the production source until the author generates and approves each figure.
 
 ## Code and official implementations
 

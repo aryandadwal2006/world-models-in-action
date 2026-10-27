@@ -1,4 +1,4 @@
-> **Status (27 October 2026): historical editorial plan, superseded by the composed manuscript.** The current chapter's section order is fixed by `manuscript/CH03_Dadwal_World_Models_in_Action.adoc` and the book TOC; the prose pass is complete. Use this file only for background on the intended teaching flow, not as a remaining-work checklist or authority for additions, section order, figure counts, code listings, JEPA coverage or page budget. The current next step is producing and reviewing the 29 figures listed in `images/README.md`.
+> **Status (27 October 2026): historical editorial plan, superseded by the composed manuscript.** The current source and section order live in `manuscript/CH03_Dadwal_World_Models_in_Action.adoc`; the current register lists 18 figures after the figure-and-prose audit. Use this file only for background, not as a checklist or authority for figure counts, code listings, JEPA coverage or page budget.
 
 # Chapter 3 final-draft specification
 

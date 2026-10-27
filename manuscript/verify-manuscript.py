@@ -78,12 +78,16 @@ if len(anchor_ids) != len(set(anchor_ids)):
 figures = [line for line in lines if line.startswith("[#ch3-figure-")]
 tables = [line for line in lines if line.startswith("[#ch3-table-")]
 listings = [line for line in lines if line.startswith("[#ch3-listing-")]
-if len(figures) != 29:
-    errors.append(f"Expected 29 figures; found {len(figures)}.")
+expected_figure_ids = ["F02", "F03", "F04", "F05", "F07", "F10", "F12", "F13", "F14", "F15", "F16", "F17", "F19", "F23", "F24", "F27", "F28", "F22"]
+actual_figure_ids = [re.match(r"\[#ch3-figure-(F\d+),", line).group(1) for line in figures]
+if actual_figure_ids != expected_figure_ids:
+    errors.append(f"Figure anchors do not match the approved printed order: {actual_figure_ids}")
+if len(figures) != 18:
+    errors.append(f"Expected 18 figures; found {len(figures)}.")
 if len(tables) != 1:
     errors.append(f"Expected one synthesis table; found {len(tables)}.")
-if sum(line == "[.figure-placeholder%unbreakable]" for line in lines) != 29:
-    errors.append("All 29 figure placeholder boxes must be kept together across pages.")
+if sum(line == "[.figure-placeholder%unbreakable]" for line in lines) != 18:
+    errors.append("All 18 figure placeholder boxes must be kept together across pages.")
 if 'options="header,unbreakable"' not in source:
     errors.append("The synthesis table must stay together when it fits on one page.")
 if len(listings) != 1 or sum(line.startswith("[source,") for line in lines) != 1:
@@ -106,12 +110,16 @@ if len(re.findall(r"^== References$", source, flags=re.MULTILINE)) != 1:
     errors.append("Expected one consolidated References heading.")
 if sum(line == "[.bibliography-entry]" for line in lines) != 47:
     errors.append("Expected all 47 bibliography entries to use the compact reference style.")
+expected_brief_ids = {"F02", "F03", "F04", "F05", "F07", "F10", "F12", "F13", "F14", "F15", "F16", "F17", "F19", "F22", "F23", "F24", "F27", "F28"}
 briefs = sorted(image_dir.glob("CH03_F[0-9][0-9]_Dadwal.md"))
-if len(briefs) != 29:
-    errors.append(f"Expected 29 prompts; found {len(briefs)}.")
-for number in range(1, 30):
-    if not (image_dir / f"CH03_F{number:02d}_Dadwal.md").is_file():
-        errors.append(f"Missing brief for Figure 3.{number}.")
+actual_brief_ids = {path.stem.replace("CH03_", "").replace("_Dadwal", "") for path in briefs}
+if actual_brief_ids != expected_brief_ids:
+    errors.append(f"Figure prompts do not match the approved register: {sorted(actual_brief_ids)}")
+if len(briefs) != 18:
+    errors.append(f"Expected 18 prompts; found {len(briefs)}.")
+for figure_id in expected_brief_ids:
+    if not (image_dir / f"CH03_{figure_id}_Dadwal.md").is_file():
+        errors.append(f"Missing production brief for {figure_id}.")
 for path in image_dir.iterdir():
     if path.is_file() and path.suffix.lower() != ".md":
         errors.append(f"Rendered artwork found in prompt-only directory: {path.name}")

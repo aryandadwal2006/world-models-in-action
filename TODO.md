@@ -45,7 +45,7 @@ For the current manuscript's printed figure numbering, use `images/README.md`. F
 
 The current composed source is `manuscript/CH03_Dadwal_World_Models_in_Action.adoc` on **`manuscript-theory`**. The adjacent `manuscript/CH03_Dadwal_World_Models_in_Action.pdf` is a freshly generated author-side preview, not Manning's final typesetting.
 
-The content pass is complete and the chapter is ready for figure production. The current source contains **29 numbered figure placeholders, one numbered synthesis table, and one short PyTorch VICReg listing**. It has a consolidated bibliography, no outbound hyperlinks, no TensorFlow listing, and no standalone JEPA architecture tutorial. The intended Chapter 4 JEPA coverage remains separate.
+The prose and figure-plan revision is complete; verification and a fresh PDF build are the next gate. The current source contains **18 numbered figure placeholders, one numbered synthesis table, and one short PyTorch VICReg listing**. It has a consolidated bibliography, no outbound hyperlinks, no TensorFlow listing, and no standalone JEPA architecture tutorial. The intended Chapter 4 JEPA coverage remains separate.
 
 - Build and verifier instructions: `manuscript/README.md`
 - Canonical printed figure register: `images/README.md`

@@ -13,7 +13,7 @@ This directory contains section-by-section Markdown drafts converted from an ear
 - **Code and experiment source:** [`ch03/README.md`](../ch03/README.md), `worldmodels/`, `ch03/results/`
 - **Historical design rationale:** [`chapter_03_design.md`](../chapter_03_design.md), explicitly marked as superseded planning material.
 
-Do not use the section drafts or the old numbered plans in this folder as the authority for current prose, figure numbering, table numbering, or production readiness. The current composed manuscript has 29 figure placeholders, one numbered synthesis table, and one short VICReg listing. Stable image filename stems do not always match printed figure numbers.
+Do not use the section drafts or the old numbered plans in this folder as the authority for current prose, figure numbering, table numbering, or production readiness. The current composed manuscript has 18 figure placeholders, one numbered synthesis table, and one short VICReg listing. Stable image filename stems do not always match printed figure numbers.
 
 ## Retained draft order
 

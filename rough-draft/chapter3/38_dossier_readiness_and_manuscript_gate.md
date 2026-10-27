@@ -1,46 +1,52 @@
-# Chapter 3 final-draft and production gate
+# Chapter 3 revision and production gate
 
 **Updated:** 27 October 2026  
 **Current branch:** `manuscript-theory`  
 **Current source:** `manuscript/CH03_Dadwal_World_Models_in_Action.adoc`  
-**State:** the theory-first prose pass is complete and approved to proceed to figure production. The current source has been rebuilt into the committed author-side PDF. The manuscript itself should remain unchanged during the artwork phase except for approved placeholder replacement and necessary layout fixes.
+**State:** prose and figure plan revised after the figure-by-figure audit. The source and register now specify 18 figures. Structural verification and a fresh PDF build are still required; no rendered artwork has been approved or inserted.
 
-## Scope and current form
+## Editorial contract
 
-The chapter follows the book TOC: self-supervised foundations, contrastive objectives, non-contrastive objectives, masked prediction, latent bottlenecks, compact state representations, summary, exercises and references. Its organizing idea is that each objective rewards selected relationships in the data, which does not by itself certify a representation as a sufficient state for a world model.
+Chapter 3 follows the book's TOC: self-supervised foundations, contrastive objectives, non-contrastive objectives, masked prediction, latent bottlenecks, compact state representations, summary, exercises and references. It builds on Chapter 1's world-model loop and Chapter 2's state contract. It should not reteach the anatomy of a world model; it should explain which relationships each training objective constrains and what that does not establish about downstream state quality.
 
-The chapter derives the central mathematical mechanisms, including InfoNCE/NT-Xent and its gradient and sampling assumptions; BYOL and SimSiam update/gradient paths; DINO teacher distributions; Barlow Twins and VICReg statistics; SIGReg/LeJEPA and VISReg distribution constraints; masked-target objectives; and predictive sufficiency. Energy-based learning and diffusion are distinguished from feature-learning objectives. JEPAs are mentioned in the methods survey, while their architecture tutorial remains in Chapter 4. Do not reintroduce a standalone JEPA subsection or a Chapter 4 bridge.
+The reader baseline (MQR) is basic Python/PyTorch, neural networks and transformers, with no assumed self-supervised learning background. Retain first-principles derivations of InfoNCE, BYOL/SimSiam gradient and update paths, teacher distributions, Barlow Twins/VICReg statistics, masked-target objectives and distributional regularizers. Define new symbols and assumptions where they first matter. Do not repeat Chapter 2's full explanations of sufficiency and aliasing; invoke them as the downstream contract and explain their consequences for objective design and evaluation.
 
-The composed source contains:
-- **29 numbered figure placeholders**, each matched to a detailed brief under `images/`;
-- **one numbered synthesis table**;
-- **one short source-attributed PyTorch excerpt** from the official VICReg implementation;
-- one consolidated bibliography and exercises;
-- no outbound hyperlinks in the chapter itself.
+## Current inventory
 
-The source is a theory-first book chapter, not an experiment report or a hands-on implementation tutorial. Empirical findings from the original literature are attributed to their papers; the source excerpt does not claim independent reproduction.
+- **18 conceptual figure placeholders**, listed in `images/README.md` in printed order.
+- **One numbered synthesis table** and **one short source-attributed PyTorch VICReg listing**.
+- One consolidated bibliography and exercises.
+- No rendered artwork in the prompt-only `images/` directory.
 
-## Current validation status
+The reduction removes the artificial family map, repeated method-card overviews and separate diffusion comparison. The two InfoNCE figures are merged into a single loss-and-gradient schematic. The projector path and downstream representation interfaces are combined in a two-lane figure that keeps their roles distinct.
 
-| Gate | Current position | Remaining action |
-|---|---|---|
-| Structure and source checks | The manuscript verifier is configured for the current one-table/one-listing structure, 29 figure placeholders, the consolidated bibliography, native AsciiDoc math, unique anchors and no outbound links. The current PDF was generated through the branch's manuscript build workflow. | Rerun verification and build after artwork insertion or any source/layout change. |
-| Mathematics and technical claims | The current source distinguishes target construction, optimization mechanism, assumptions and limitations across method families. | During figure production, check every arrow, equation and label against the source. Avoid expanding prose unless a concrete error is found. |
-| Prose and scope | The prose pass is complete; redundancy has been reduced and the diffusion discussion is intentionally compact. | No further broad rewrite is planned. Make only evidence-based corrections if a specific issue is found. |
-| Figures | All 29 briefs are present. No rendered artwork has been approved or inserted. | Generate original figures from the current briefs; validate each figure and replace the corresponding placeholder only after approval. |
-| Numbering and crosswalks | `images/README.md` is the canonical printed-order figure register. `chapter3/figure-and-table-production.md` is synchronized to it and also records the current table/listing. | Keep both crosswalks synchronized when an explicitly approved change affects numbering. |
-| Bibliography and attribution | Methods are attributed in prose and entries are gathered in the references section; the chapter intentionally contains no outbound hyperlinks. | Check author/year/title accuracy and the final bibliography layout when reviewing the integrated PDF. |
-| PDF and layout | The source has a freshly generated author-side PDF with placeholders. This is not Manning's final production typesetting. | After figures are inserted, inspect page breaks, equation readability, figure sizing/captions, table fit and bibliography pagination. |
-| Final production readiness | **Not yet print-ready** because artwork and final integrated layout review remain. | Approve all 29 figures and inspect the rebuilt illustrated chapter before treating the chapter as production-complete. |
+## Validation checklist
 
-## Figure production principles
+| Gate | Required check |
+|---|---|
+| Source structure | Run `python3 manuscript/verify-manuscript.py`; confirm 18 figure anchors match the canonical register, one table, one listing and unique anchors. |
+| Explanations | Confirm the opening builds on Chapters 1–2; retain first-principles derivations rather than repeat earlier state definitions. |
+| Mathematics | Check InfoNCE values and gradients; distinguish sampled candidate normalization from a full partition function; qualify the VICReg variance floor relative to `epsilon`; preserve target and gradient paths. |
+| Scope | Keep CPC as the temporal-prediction bridge. Keep JEPA architecture in Chapter 4 and diffusion mechanics in Chapter 9. Do not restore the family map or method-card galleries. |
+| Figures | Generate only from the 18 approved briefs. Check type at final book-column width. |
+| PDF | Run `./build-pdf.sh`; inspect equation formatting, captions, section transitions and bibliography flow. The PDF is an author-side preview, not Manning's final typesetting. |
+| Artwork integration | Replace placeholders only after each figure is approved, rebuild the PDF, then inspect the full integrated chapter. |
 
-1. Work from `images/README.md` and the matching `images/CH03_FNN_Dadwal.md` brief; filename stems are not printed figure numbers.
-2. Use original teaching schematics, a white background, grayscale-safe dark line work and `#3B6FB6` as the only restrained accent. No gradients, 3D effects, Mermaid or decorative watermarks.
-3. Preserve distinctions the prose is careful about: a training score is not semantic sufficiency; anti-collapse constraints do not establish semantic quality; finite distribution diagnostics do not prove exact distribution matching; and latent prediction is not automatically action-conditioned rollout.
-4. Do not add invented metrics, paper screenshots, claims of reproduced results, or extra JEPA architecture content.
-5. Review each figure at final book-column width and confirm that its caption, labels and arrows remain readable in the rendered PDF.
+## Scientific interpretation limits
 
-## Release boundary
+- Self-supervised loss fit is evidence about the chosen proxy target, not a universal quality score.
+- Collapse diagnostics and distribution regularizers do not prove semantic or predictive sufficiency.
+- CPC candidate retrieval is not physical-state prediction, an action-conditioned transition model, or recursive rollout.
+- A linear probe tests linear accessibility under a protocol; failure does not prove information absence.
+- Finite projection/sample diagnostics do not prove exact distribution matching.
+- Keep DINO, DINOv2 and DINOv3 components distinct; do not attribute later recipe details to original DINO.
 
-Content editing is complete for the current figure-production phase. The next milestone is the **illustrated** chapter preview, not another full rewrite. The chapter becomes production-ready only after all artwork is approved and the final integrated PDF has been inspected.
+## Sources of truth
+
+- Authored chapter: `manuscript/CH03_Dadwal_World_Models_in_Action.adoc`
+- Author-side PDF/build instructions: `manuscript/README.md`
+- Canonical printed register: `images/README.md`
+- Synchronized crosswalk: `chapter3/figure-and-table-production.md`
+- Code and evidence: `ch03/README.md`, `worldmodels/` and canonical JSON under `ch03/results/`
+
+Historical plans remain archived and are not a source for current figure counts or captions.
