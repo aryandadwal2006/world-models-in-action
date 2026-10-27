@@ -35,7 +35,7 @@ A world model needs a representation that preserves distinctions relevant to pre
 
 When labels are unavailable, the training signal must be constructed from the data. Methods may identify a matching view among candidates, predict a representation produced by another branch, constrain feature statistics across a batch, or predict content hidden from the encoder. These objectives differ in their targets, their assumptions and their optimization dynamics.
 
-The companion repository keeps commit-pinned links to upstream implementations in its link:https://github.com/aryandadwal2006/world-models-in-action/tree/main-extra/implementations/README.md[official implementation manifest]. Those source pointers preserve provenance; they do not imply that this book independently reproduced the papers' results, and each project has its own dependencies and license.
+Methods are attributed to their original papers, and paper-reported findings are distinguished from results independently reproduced for this book. The short code excerpt is attributed to the official PyTorch implementation; it illustrates the stated calculation rather than presenting a new training implementation.
 
 The central question is therefore not just whether the training loss decreases. It is what the loss rewards the encoder for preserving. A feature may solve the pretraining task yet omit information needed for a later prediction. The following sections derive the principal objectives and explain exactly what their mathematical constraints do and do not establish.
 [#unique_section_ch3_001_the_objective_is_a_contract_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
@@ -90,8 +90,6 @@ L_{\mathrm{cons}}(\theta)=
 
 The expectation averages over the views the augmentation pipeline actually creates, not every transformation that might occur in the world. If a transformation removes information, the encoder is rewarded for making the two resulting views agree despite that missing information. Information that varies unpredictably across views cannot reliably help reduce this loss. This is how augmentation defines an implicit preference over what the representation keeps.
 
-A useful view changes nuisance factors while leaving the intended shared content recoverable. A crop may preserve object identity but alter visible context; a color transformation may preserve shape but alter appearance. That assumption belongs to the data and task, not to the loss function itself.
-
 This can be made precise. Let latexmath:[\mathcal{T}] be a set of transformations and define the orbit of an input latexmath:[x] as
 latexmath:[\mathcal{O}(x)=\{T(x):T\in\mathcal{T}\}].
 If an encoder is exactly invariant, then
@@ -111,7 +109,7 @@ Invariance is also different from *equivariance*. An invariant representation re
 
 Historically, visual self-supervision used hand-designed pretext tasks such as predicting image rotation (Gidaris et al., 2018), restoring the spatial order of jigsaw patches (Noroozi and Favaro, 2016), predicting spatial context (Doersch et al., 2015), and colorizing grayscale images (Zhang et al., 2016). These tasks assign synthetic targets to unlabeled data and make the target-design assumption easy to see. They remain useful conceptual examples, but the architecture survey below focuses on the broader contrastive, bootstrap, statistical, clustering and masked-prediction families that followed.
 
-These earlier tasks are often called pretext tasks: labels are created automatically from the input, and the encoder is trained to solve the constructed task. Their weakness is not that they fail to learn features. It is that the pretext label may be predictable from shortcuts or may require only a subset of the information needed elsewhere. An encoder can predict rotation using scene-layout cues without learning a representation that preserves every detail of the scene. This motivates objectives whose targets arise from relationships between views, statistics of feature batches, or missing content rather than one fixed synthetic label.
+These are pretext tasks: targets are generated from the input rather than supplied by human annotation. They can teach useful features, but the target may admit shortcuts or require only a subset of the information needed downstream. Predicting image rotation, for example, need not preserve every scene distinction relevant to future prediction. Later objectives use relations between views, feature-batch statistics, or hidden content instead of one fixed synthetic label.
 
 [sidebar]
 .The principle behind representation learning
@@ -221,8 +219,6 @@ This objective is ordinary softmax cross-entropy. Write latexmath:[a_{ij}=s(z_i,
 The positive logit receives gradient latexmath:[q_{i,p(i)}-1], which pushes it upward under gradient descent. A negative logit receives gradient latexmath:[q_{ij}], which pushes it downward. The gradient on a negative is weighted by its current probability: a hard negative receives more repulsive gradient than an already dissimilar candidate. Since latexmath:[a_{ij}=s(z_i,z_j)/\tau], differentiation with respect to the unscaled similarity introduces the factor latexmath:[1/\tau].
 
 For example, suppose one anchor has cosine similarities latexmath:[0.80], latexmath:[0.10] and latexmath:[-0.30] to its positive and two negatives, with latexmath:[\tau=0.5]. The logits are latexmath:[1.6], latexmath:[0.2] and latexmath:[-0.6]. Softmax assigns the positive probability about latexmath:[0.737], so the loss for this anchor is latexmath:[-\log(0.737)\approx0.306]. If all three candidates received equal probability, the loss would be latexmath:[-\log(1/3)\approx1.099]. The loss measures whether the correct candidate is easy to identify relative to the candidates that happened to be sampled.
-
-The logit derivative explains the direction of the update. If the positive has probability latexmath:[q_+], its derivative is latexmath:[q_+-1], which is nonpositive. Gradient descent therefore raises the positive logit unless it is already assigned probability one. A negative with probability latexmath:[q_j] has positive derivative latexmath:[q_j], so its logit is lowered. The gradient focuses on candidates that the model currently finds plausible; easy negatives contribute little because their probabilities are already small.
 
 For a cosine score latexmath:[s(u,v)=\hat u^\top\hat v], where latexmath:[\hat u=u/\lVert u\rVert_2] and latexmath:[\hat v=v/\lVert v\rVert_2], the derivative with respect to the first vector is
 
@@ -409,7 +405,7 @@ SimCLR and MoCo are central modern examples, but their shared candidate-classifi
 
 **AMDIM** uses local and global representations at multiple feature scales. It contrasts a local feature with a global feature from the same image while mismatched images supply negatives. This introduces spatially indexed dependencies that global instance discrimination may not enforce.
 
-These methods all construct a discrimination problem, but their positive relations and sampling distributions differ. An information-bound interpretation must follow the sampler, not the generic label “contrastive.” See the original papers on link:https://openaccess.thecvf.com/content_cvpr_2018/html/Wu_Unsupervised_Feature_Learning_CVPR_2018_paper.html[NPID], link:https://openaccess.thecvf.com/content_CVPR_2020/html/Misra_Self-Supervised_Learning_of_Pretext-Invariant_Representations_CVPR_2020_paper.html[PIRL], link:https://arxiv.org/abs/1906.05849[CMC] and link:https://arxiv.org/abs/1906.00910[AMDIM].
+These methods all construct a discrimination problem, but their positive relations and sampling distributions differ. Wu et al. (2018) study non-parametric instance discrimination; Misra and van der Maaten (2020) construct pretext-invariant representations; Tian et al. (2020) use contrastive multiview coding; and Bachman et al. (2019) introduce AMDIM. Any information-bound interpretation must follow the actual candidate sampler, not the generic label “contrastive.”
 
 [#ch3-figure-F11,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Historical contrastive objectives change the positive relation
@@ -500,8 +496,6 @@ The target parameters change according to
 
 with latexmath:[m] close to one. The target is therefore a smoothed history of the online network, not an independently optimized network. This is the defining difference from ordinary shared-weight Siamese regression.
 
-With fixed momentum latexmath:[m], repeated EMA updates give old parameters geometrically decreasing influence. The target is consequently neither fixed nor an exact copy of the current online network: it is a moving reference that changes more slowly than the optimized branch. This temporal asymmetry is an essential part of BYOL's method, not merely a way to save computation.
-
 For clarity, the two-view objective can be written
 
 [latexmath]
@@ -513,7 +507,7 @@ D(p_1,\mathrm{sg}(\bar z_2))
 
 During a gradient step, the first term updates the online encoder, projector and predictor through latexmath:[p_1]; it does not update the target parameters through latexmath:[\bar z_2]. The second term reverses the roles of the views. After the gradient update, the EMA rule updates the target parameters. Thus two distinct operations occur: gradient descent optimizes the online network against a fixed target value for that step, and parameter averaging moves the target afterward.
 
-This order explains why an EMA target is more than a detached copy. A detached copy would stop gradients through the target but would not specify how the target changes over training. EMA defines a low-pass update: fast fluctuations in online weights have less immediate effect on the target, while persistent changes gradually pass into it. In the limiting case latexmath:[m=0], the target copies the online weights after each update; as latexmath:[m] approaches one, the target evolves more slowly. This describes the update mechanism, not a universal proof against collapse.
+The target is a smoothed history of online parameters: older values have geometrically decreasing influence. During a gradient step it is fixed; after that step, EMA moves it toward the updated online network. At latexmath:[m=0] it copies the online parameters, while larger latexmath:[m] slows its change. This specifies the update dynamics, not a universal proof against collapse.
 
 
 
@@ -528,9 +522,7 @@ D_{\mathrm{SimSiam}}(p_1,\mathrm{sg}(z_2))
 
 where latexmath:[D_{\mathrm{SimSiam}}] is negative cosine similarity. The stop-gradient leaves a target's forward value unchanged but removes the gradient path through that target in the corresponding term. Because the loss is symmetric, each shared branch acts as predictor in one term and target in the other. BYOL instead maintains a separate target network whose parameters follow the EMA update.
 
-The predictor and stop-gradient change the optimization dynamics; they do not remove the constant-output solution from the mathematical objective.
-
-The distance used in the symmetric objective can be written
+The predictor and stop-gradient change optimization dynamics, but the constant-output solution remains a solution of the similarity objective. The distance used in the symmetric objective is
 
 [latexmath]
 ++++
@@ -540,11 +532,7 @@ D_{\mathrm{SimSiam}}(p,z)
 
 Minimizing this negative cosine similarity maximizes directional agreement without requiring the two vectors to have the same norm. In latexmath:[D(p_1,\mathrm{sg}(z_2))], the numerical value of latexmath:[z_2] still affects the loss, but its gradient path is removed. The shared encoder can nevertheless receive gradients through latexmath:[z_2] when that representation appears as the predictor-side output in the opposite term. Stop-gradient is applied to a particular *role* of the representation in each term, not as a permanent property of the tensor.
 
-This distinction matters when interpreting a computational graph. “The target branch has no gradient” is accurate for a single detached target path; it would be inaccurate to say that the shared encoder receives no gradient from the second view across the full symmetric loss. The symmetry of the loss and the asymmetry of each gradient path coexist.
-
- The original SimSiam study found that stop-gradient was essential to its proposed configuration. That is a method-specific result, not a theorem that any Siamese network with a detached branch must learn non-collapsed features.
-
-The predictor makes the two sides of the training relation structurally asymmetric. The online path must learn a transformation latexmath:[q] whose output matches the other branch's representation, while the target path's value is held fixed for that loss term. If the target also received gradients from the same term, the two sides could reduce the discrepancy by moving together immediately. Stop-gradient prevents that direct route for the target side, but it does not by itself force informative features. The predictor, normalization, shared parameters and optimization dynamics together determine whether training moves away from collapse in the original recipes.
+Stop-gradient removes the target-side gradient only for that term; in the symmetric loss, the shared encoder still receives gradients when the same view appears as the predictor-side output. The original SimSiam study found stop-gradient essential to its tested recipe, but this is not a theorem that every detached Siamese network avoids collapse.
 
 
 
@@ -596,7 +584,7 @@ These releases also illustrate a general caution: reported improvements belong t
 
 DINOv2 is a combined training recipe, not simply a replacement loss: it combines class-token DINO distillation, iBOT-style masked patch distillation and a KoLeo nearest-neighbour regularizer. The class branch matches teacher distributions across crops; the patch branch predicts teacher prototype distributions at masked student positions; KoLeo discourages local crowding in normalized backbone features. Depending on configuration, targets may use centering or Sinkhorn-Knopp balancing. Centering subtracts a running mean of teacher logits; Sinkhorn-Knopp iteratively balances assignment marginals. They are not synonyms.
 
-DINOv3 retains related distillation machinery and adds large-scale data, architecture and training choices. Gram anchoring, when enabled, matches teacher and student pairwise patch-similarity matrices rather than requiring coordinate-by-coordinate equality of feature vectors. It is a relational constraint, not proof of physical-state sufficiency, and it is configuration-dependent. See link:https://arxiv.org/abs/2304.07193[DINOv2], link:https://arxiv.org/abs/2508.10104[DINOv3] and their source configurations.
+DINOv3 retains related distillation machinery and adds large-scale data, architecture and training choices. Gram anchoring, when enabled, matches teacher and student pairwise patch-similarity matrices rather than requiring coordinate-by-coordinate equality of feature vectors. It is a relational constraint, not proof of physical-state sufficiency, and it is configuration-dependent. The DINOv2 and DINOv3 papers describe broader training recipes; their results should not be attributed to Gram anchoring alone without controlled ablations.
 
 [#ch3-figure-F15,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .DINO teacher-student cross-view distillation
@@ -640,15 +628,9 @@ L_{\mathrm{BT}}=\sum_i(1-C_{ii})^2+
 \tag{3.8}
 ++++
 
-If latexmath:[C_{ii}] is below one, the corresponding coordinate is not perfectly aligned across views. A nonzero latexmath:[C_{ij}] for latexmath:[i\ne j] means coordinate latexmath:[i] in one view is linearly correlated with coordinate latexmath:[j] in the other. The loss pushes the cross-correlation matrix toward identity. It controls second-order cross-view statistics; it does not establish statistical independence for arbitrary distributions, nor does it assign a meaningful physical interpretation to each coordinate.
+The diagonal terms encourage each coordinate to agree with its counterpart across views; the off-diagonal terms penalize linear cross-view correlation between different coordinates. Because features are standardized over the batch, these entries describe co-variation across examples rather than the relationship between two coordinates in one example. Duplicate coordinates incur an off-diagonal penalty, while poorly aligned coordinates incur a diagonal penalty.
 
-The diagonal and off-diagonal penalties have different purposes. The diagonal term encourages coordinate latexmath:[i] from view A to align with coordinate latexmath:[i] from view B. The off-diagonal term discourages coordinate latexmath:[i] in one view from correlating with coordinate latexmath:[j\ne i] in the other. Barlow Twins does not merely minimize the distance between the two feature vectors: it specifies a pattern for the entire batch cross-correlation matrix.
-
-For intuition, suppose two projected coordinates are duplicates, latexmath:[z_2=z_1]. Their off-diagonal cross-correlation is high, so Barlow Twins penalizes that redundancy. If a coordinate does not agree across views, its diagonal correlation falls below one and incurs a diagonal penalty. The objective therefore combines cross-view agreement with pressure against repeated linear information across dimensions. Because the features are standardized over the batch, the correlation matrix describes patterns across examples, not the similarity of two coordinates within a single example.
-
-The standardization is important: the loss is not simply comparing raw feature magnitudes. It measures how two coordinates co-vary across the batch after centering and scaling. A diagonal entry close to one means that a coordinate in the first view tracks its counterpart in the second view; an off-diagonal entry close to zero means that two different coordinates do not exhibit linear cross-view correlation under this batch distribution.
-
-The coefficient latexmath:[\lambda] controls the penalty for off-diagonal correlation relative to diagonal mismatch. If it is small, the objective prioritizes cross-view agreement and permits more redundancy. If it is large, decorrelation receives more weight, but decorrelation is still only a second-order constraint: two coordinates can be uncorrelated while sharing nonlinear dependence. The method reduces one measurable form of redundancy; it does not make each coordinate independent in the full probabilistic sense.
+The coefficient latexmath:[\lambda] sets the strength of decorrelation relative to alignment. This is a second-order constraint: uncorrelated features can still have nonlinear dependence, and the coordinates are not automatically meaningful physical variables. Barlow Twins specifies a pattern for the batch cross-correlation matrix, not merely a distance between paired vectors.
 
 
 
@@ -744,7 +726,7 @@ loss = (self.args.sim_coeff * repr_loss
         + self.args.std_coeff * std_loss
         + self.args.cov_coeff * cov_loss)
 ----
-Long expressions are wrapped to fit the book's listing width without changing the calculation. The official implementation uses view agreement, a standard-deviation hinge with target one, and squared off-diagonal covariance. The helper and surrounding architecture appear in the link:https://github.com/facebookresearch/vicreg/blob/4e12602fd495af83efd1631fbe82523e6db092e0/main_vicreg.py[pinned main_vicreg.py]. The upstream repository uses the MIT License; exact reductions and weights should be matched when reproducing a result.
+Long expressions are wrapped to fit the book's listing width without changing the calculation. The official PyTorch implementation uses view agreement, a standard-deviation hinge with target one, and squared off-diagonal covariance. The helper and surrounding architecture are in the project's main training script. The upstream repository uses the MIT License; exact reductions and weights should be matched when reproducing a result.
 
 [#ch3-figure-F17,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .VICReg separates agreement, variance and covariance
@@ -804,7 +786,7 @@ The paper's recipe is designed not to require an EMA target encoder and stop-gra
 
 **VISReg** separates scale, shape and center. Keep two distinct meanings of *center* separate: the prediction target is the mean embedding of global views of the same source image; the regularizer's center term penalizes the minibatch mean for each view.
 
-In the source-inspected link:https://github.com/galilai-group/stable-pretraining/blob/ab836bf699a2be712dfcf980a5eb70d36391e876/stable_pretraining/methods/visreg.py[reference implementation], the projected embeddings have shape latexmath:[Z\in\mathbb R^{V\times B\times d}], with latexmath:[V] views, minibatch size latexmath:[B] and feature dimension latexmath:[d]. For each view latexmath:[v], the batch mean and centered embeddings are
+In the reference implementation inspected for this chapter, the projected embeddings have shape latexmath:[Z\in\mathbb R^{V\times B\times d}], with latexmath:[V] views, minibatch size latexmath:[B] and feature dimension latexmath:[d]. For each view latexmath:[v], the batch mean and centered embeddings are
 
 [latexmath]
 ++++
@@ -881,7 +863,7 @@ latexmath:[\mathcal L=(1-\lambda_{\mathrm{mix}})\mathcal L_{\mathrm{inv}}+\lambd
 
 The *same-image global-view center* is the target for view consistency, whereas the *per-view minibatch mean* is penalized by latexmath:[\mathcal L_{\mathrm{center}}]. They are different operations. SIGReg instead uses a characteristic-function discrepancy; VISReg compares sorted projected samples with Gaussian quantiles. The stop-gradient here decouples scale and shape gradients; it is not a BYOL-style teacher pathway.
 
-The VISReg authors report stronger correction near collapse and favorable results on tested out-of-distribution, low-rank and long-tailed settings. These are reported findings, not guarantees for every optimizer or data distribution. Report batch size, projection count, objective weights, architecture and evaluation protocol when comparing these methods. See link:https://arxiv.org/abs/2511.08544[LeJEPA] and link:https://arxiv.org/abs/2606.02572[VISReg].
+The VISReg authors report stronger correction near collapse and favorable results on tested out-of-distribution, low-rank and long-tailed settings. These are reported findings, not guarantees for every optimizer or data distribution. Report batch size, projection count, objective weights, architecture and evaluation protocol when comparing these methods. Balestriero and LeCun's LeJEPA paper and the VISReg paper describe the respective recipes and assumptions.
 
 [#ch3-figure-F19,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .VICReg, SIGReg/LeJEPA and VISReg constrain different aspects of feature distributions
@@ -899,7 +881,7 @@ The VISReg authors report stronger correction near collapse and favorable result
 
 The table is an index, not a claim that these systems share one objective. In image-text training, **CLIP** (Radford et al., 2021) uses normalized image and text embeddings, a learned logit scale and cross-entropy in both image-to-text and text-to-image directions. **SigLIP** (Zhai et al., 2023) uses pairwise sigmoid/logistic terms for matched and mismatched pairs rather than the same batchwise softmax. Natural-language descriptions are supervision from data even though they are not manually assigned class labels.
 
-For speech, **wav2vec 2.0** (Baevski et al., 2020) masks latent speech frames and contrasts context features against quantized targets; **HuBERT** (Hsu et al., 2021) predicts cluster-derived targets at masked positions; **data2vec** (Baevski et al., 2022) predicts contextualized teacher features. For language, **BERT** (Devlin et al., 2019) predicts selected corrupted tokens from bidirectional context, GPT-style causal language models (Radford et al., 2019) predict the next token from a prefix, and **ELECTRA** (Clark et al., 2020) discriminates observed tokens from generator-replaced tokens. Context and target distributions differ. Generative modeling returns in later chapters: diffusion and energy-based methods have different target and probability/sampling contracts, so they should not be folded into the same family merely because the target is data-derived.
+For speech, **wav2vec 2.0** (Baevski et al., 2020) masks latent speech frames and contrasts context features against quantized targets; **HuBERT** (Hsu et al., 2021) predicts cluster-derived targets at masked positions; **data2vec** (Baevski et al., 2022) predicts contextualized teacher features. For language, **BERT** (Devlin et al., 2019) predicts selected corrupted tokens from bidirectional context, GPT-style causal language models (Radford et al., 2019) predict the next token from a prefix, and **ELECTRA** (Clark et al., 2020) discriminates observed tokens from generator-replaced tokens. Joint-embedding predictive architectures (JEPAs), including I-JEPA and V-JEPA, predict learned target representations from context rather than reconstructing pixels; their architectures and variants are covered in Chapter 4. These examples differ in both the context available to the model and the target it must predict. Diffusion and energy-based models have different generative or probabilistic contracts and should not be folded into a single family merely because their training signals are data-derived.
 
 [#ch3-table-T01,reftext={chapter}.{counter:table},caption='{table-caption}.{counter:table-number} ']
 .Self-supervised objectives compared by the signal they construct
@@ -907,12 +889,15 @@ For speech, **wav2vec 2.0** (Baevski et al., 2020) masks latent speech frames an
 |===
 |Method family |What the objective enforces |What it does not guarantee
 |SimCLR / MoCo |Identify a positive among sampled candidates |Negatives may be semantically related; features depend on candidate construction
+|CPC |Rank a future latent against sampled candidates |Candidate identification is not a calibrated transition model or an action-conditioned rollout
 |BYOL / SimSiam |Predict a detached view representation |Agreement alone does not rule out constant outputs
 |DINO family |Match teacher distributions over learned prototypes |Teacher targets can collapse or omit information of interest
 |Barlow Twins |Cross-view correlation matrix near identity |Second-order decorrelation is not semantic sufficiency
 |VICReg |View agreement plus variance and covariance constraints |Nonconstant, decorrelated features can still encode nuisance variation
+|SIGReg / VISReg |Constrain projected feature-distribution shape |Distributional regularity does not establish semantic or predictive sufficiency
 |MAE |Predict pixel values at masked patches |Pixel reconstruction does not prove predictive sufficiency
 |BEiT / iBOT / data2vec |Predict discrete codes or teacher features |The representation inherits the chosen target's biases
+|JEPAs |Predict target embeddings from context |Feature prediction does not automatically yield a sufficient state
 |DeepCluster / SwAV |Predict or match pseudo-cluster assignments |Cluster assignments need not correspond to downstream concepts
 |===
 
@@ -930,57 +915,8 @@ For speech, **wav2vec 2.0** (Baevski et al., 2020) masks latent speech frames an
 **Artwork placeholder: Figure 3.21.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F21_Dadwal.md.
 ****
 
-[#unique_section2_ch3_022_predictive_latent_targets_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
-=== Predicting target representations
-
-Joint-embedding predictive architectures (JEPAs) predict a representation of a target region or future segment from a representation of its context. They need not reconstruct target pixels or identify the target among explicitly sampled negatives.
-
-Let latexmath:[x] be an image or video clip, with context positions latexmath:[C] and target positions latexmath:[Y]. A context encoder sees only the context input,
-
-[latexmath]
-++++
-z_C=f_\theta(x_C,C),
-++++
-
-while a target encoder produces features from the original or less-corrupted observation,
-
-[latexmath]
-++++
-h_Y=f_{\bar\theta}(x)_Y.
-++++
-
-The predictor uses context embeddings and target-position information,
-
-[latexmath]
-++++
-\widehat h_Y=g_\phi(z_C,C,Y),
-++++
-
-to minimize a target-feature error such as
-
-[latexmath]
-++++
-\mathcal L_{\mathrm{pred}}
-=\frac{1}{|Y|d}\sum_{r\in Y}
-\|\widehat h_r-\mathrm{sg}(h_r)\|_2^2.
-++++
-
-Here sg denotes the stop-gradient operator. Particular papers use different norms, normalization, layer targets, reductions and mask protocols; these are method-defining details.
-
-The **context encoder** sees only visible/context tokens, so it cannot copy target tokens from that path. The **target encoder** supplies target embeddings and commonly receives no loss gradients; standard I-JEPA/V-JEPA recipes update it by an exponential moving average of the online encoder. The **predictor** consumes context features and target locations to infer selected target embeddings. It is not a pixel decoder.
-
-**I-JEPA** uses context regions and multiple target blocks in an image. **V-JEPA** extends the target relation across space and time in video clips. The masking protocol determines which locations are hidden and what information is available to the predictor.
-
-**V-JEPA 2** separates action-free video pretraining from **V-JEPA 2-AC**, an action-conditioned post-training stage using interaction trajectories. Passive video can teach correlations in observed motion, but a predictor with no action input is not directly trained to answer which future follows a chosen action. Conditioning on actions changes the prediction problem; correctness still depends on state-action coverage and testing under interventions.
-
-**V-JEPA 2.1** adds dense predictive loss, intermediate-layer self-supervision and multimodal image/video tokenizers to the published recipe. Dense loss can include context as well as masked tokens, and deep self-supervision changes which internal features receive direct training signals. These are recipe-level modifications; results should not be attributed to an isolated term without controlled ablations.
-
-The boundary with CPC is precise. CPC scores a future latent against sampled candidate latents using contrastive identification. JEPA predicts target embeddings at selected positions without requiring an explicit negative-candidate classification objective in its core loss. The boundary with MAE is equally important: MAE predicts target pixels; JEPA predicts target features. Neither relation alone proves that the learned representation is a sufficient state for every downstream world model.
-
-Chapter 4 develops JEPA architecture and predictive representations in detail. Here the key lesson is that target choice changes what information the loss rewards. Predicting in latent space avoids a pixel-reconstruction requirement, but the representation can still omit task-critical information.
-
 [#ch3-figure-F22,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.The JEPA context-target prediction architecture
+.A training loss and a probe answer different questions
 [.figure-placeholder%unbreakable]
 ****
 **Artwork placeholder: Figure 3.22.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F22_Dadwal.md.
@@ -1096,34 +1032,11 @@ BERT-style masked language modeling predicts selected corrupted tokens from bidi
 
 [#unique_section2_ch3_032_diffusion_and_masked_prediction_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === Masked prediction and diffusion solve different problems
+Masked prediction and diffusion both infer targets from corrupted inputs, but they define different tasks. A masked objective selects positions and predicts their hidden contents from the visible context. In MAE the target is pixels; BEiT uses discrete codes; iBOT and data2vec use teacher-derived targets.
 
-Masked prediction and diffusion both train a network to infer a target from a corrupted input, but their corruption processes and objectives differ. A masked autoencoder hides a subset of patch positions and predicts the content at those positions. The visible context remains uncorrupted, and the loss is usually restricted to the masked positions. Diffusion instead corrupts the data by adding noise at a sampled noise level. In the standard denoising diffusion formulation, a clean sample latexmath:[x_0] and Gaussian noise latexmath:[\epsilon] produce
+Diffusion instead corrupts a sample at a chosen noise level and trains a denoiser to estimate the corruption or an equivalent score-related target. A schedule of noise levels and a reverse denoising process turn that objective into a generative sampling procedure. A masked-prediction encoder is commonly transferred after its decoder is removed; predicting missing patches does not, by itself, define a generative model over complete images. Conversely, a diffusion model may learn useful internal features, but its denoising objective does not guarantee a compact state sufficient for a downstream prediction.
 
-[latexmath]
-++++
-x_t=\sqrt{\bar\alpha_t}\,x_0+
-\sqrt{1-\bar\alpha_t}\,\epsilon,
-\qquad \epsilon\sim\mathcal{N}(0,I).
-++++
-
-A network conditioned on latexmath:[x_t] and the noise level latexmath:[t] can be trained to predict the added noise:
-
-[latexmath]
-++++
-L_{\mathrm{diff}}=
-\mathbb{E}_{x_0,t,\epsilon}
-\left[\lVert\epsilon-\epsilon_\theta(x_t,t)\rVert_2^2\right].
-++++
-
-This is a schematic form of the common noise-prediction objective; diffusion papers also use other parameterizations and weighting schemes. Unlike the masked-patch loss, the target is the corruption noise or an equivalent score-related quantity rather than the missing clean pixels at a fixed set of positions.
-
-The distinction is functional. A masked encoder is commonly pretrained to produce representations that can be transferred after its reconstruction decoder is removed. A diffusion model is trained as part of a reverse denoising process that can transform noise into samples from a learned data distribution. The learned denoiser may contain useful representations, but a diffusion loss by itself does not define a compact predictive state or guarantee that its internal activations are suitable for a downstream prediction task. Conversely, a masked-reconstruction encoder is not automatically a generative model just because its decoder predicts missing pixels.
-
-The corruption level is also used differently. MAE usually samples a mask and predicts its hidden positions; the network need not learn a continuous schedule of noise levels or a sequence of reverse transitions. Diffusion samples noise levels from a schedule and learns a family of denoising functions, one for each noise level. Sampling then applies a series of reverse steps, rather than reconstructing a single masked image in one decoder pass. The objective is connected to denoising score matching and, under the diffusion model construction, to a generative likelihood bound. That generative interpretation is distinct from the representation-learning claim made by a successful masked-prediction encoder.
-
-The practical boundary for this chapter is narrow: MAE, BEiT and iBOT illustrate ways to learn from hidden content by selecting different targets; diffusion illustrates how a denoising objective can instead be organized into a generative model. The mathematical resemblance of predicting a corruption target does not make the resulting model or learned feature space equivalent.
-
-The schematic below contrasts the masked-target contract with diffusion's noise-prediction target and reverse sampling process; the equations defining each objective appear in the preceding discussion.
+The key distinction here is between the target used to train a representation and the process required to generate complete samples. Diffusion parameterizations, noise schedules and sampling belong to the book's later treatment of generative models.
 
 [#ch3-figure-F26,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Masked prediction and diffusion learn different conditional tasks
@@ -1262,6 +1175,10 @@ Consider two short video histories that end with an object at the same image loc
 
 The practical evaluation should therefore state the claim being tested. A probe supports a claim about accessibility of specified variables. A nearest-neighbor score supports a claim about local feature geometry under a specified metric. A reconstruction metric supports a claim about recovery of a chosen target. A predictive-sufficiency claim is stronger and requires evidence tied to the target distribution and observation history of interest.
 
+A useful audit begins by naming the prediction target, the observations available at inference, and the horizon over which the claim is made. It then identifies the exact tensor exported by the encoder, freezes that encoder for representation probes, and reports the readout, normalization, data split and metric. The evaluation should include at least one measurement tied directly to the intended target, rather than relying only on the pretraining loss or an unrelated benchmark. When temporal or action-conditioned predictions matter, the evaluation must include histories and action conditions relevant to that setting; a static-image probe cannot answer those questions.
+
+The readout also sets a limit on the conclusion. If a linear probe fails but a nonlinear predictor succeeds, the information may be present but not linearly accessible. If both fail, the experiment still cannot prove that the information is absent under every possible decoder; it shows that the tested readouts did not recover it under the given data and optimization budget. Supervised labels used only for this evaluation should be described as evaluation targets, not as part of self-supervised pretraining. These distinctions keep a diagnostic from being promoted into a stronger claim than its design supports.
+
 
 
 
@@ -1275,15 +1192,15 @@ The practical evaluation should therefore state the claim being tested. A probe 
 [#unique_section_ch3_027_summary_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
 == Summary
 
-Self-supervised learning constructs a training target from data. Contrastive methods identify a positive among sampled candidates; their gradients depend on the candidate distribution, and their information-theoretic interpretation requires specific sampling assumptions. BYOL and SimSiam predict a detached feature target but differ in whether that target is updated by EMA. DINO matches teacher output distributions. Barlow Twins penalizes departures of cross-view correlation from identity, while VICReg separates view agreement, a variance floor and covariance regularization.
+Self-supervised learning constructs a target relationship from data. Contrastive methods such as SimCLR and MoCo rank positives against sampled candidates; CPC applies that idea to future latents. BYOL and SimSiam predict detached view targets but differ in how their targets change. DINO matches teacher distributions, Barlow Twins constrains cross-view correlations, and VICReg separates agreement, variance and covariance penalties. SIGReg and VISReg constrain aspects of feature-distribution shape, while clustering methods create pseudo-targets from current features.
 
-Masked prediction changes both the hidden context and the target: MAE predicts pixels, BEiT predicts discrete codes, and iBOT/data2vec use teacher-derived targets. The choice of target determines what errors are penalized. The latent bottleneck then determines which features are retained and which distinctions may be lost. A useful representation must preserve enough information for the prediction of interest; the pretraining loss by itself cannot establish that condition. SIGReg/LeJEPA and VISReg constrain different aspects of embedding distribution shape, but their guarantees remain tied to their stated theory and recipes.
+Masked methods differ in whether they predict pixels, discrete codes or teacher features. JEPAs also predict learned target representations, but their architectures are not required to understand the distinctions developed here. Across these families, the target and loss specify which relationships training rewards; the encoder architecture and output bottleneck determine where those constraints act. None of these ingredients, nor a low pretraining loss alone, establishes predictive sufficiency. That claim must be evaluated for a named target, input history and prediction horizon.
 
 [#unique_section_ch3_028_exercises_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
 == Exercises
 
 . For an anchor with one positive and latexmath:[K-1] negatives, derive the softmax-cross-entropy gradient with respect to each scaled similarity logit. Explain why a high-probability negative receives a larger gradient than a low-probability negative.
-. Using cosine similarities latexmath:[0.80], latexmath:[0.10], and latexmath:[-0.30] with temperature latexmath:[0.5], calculate the three softmax probabilities and the loss assigned to the positive.
+. A frozen encoder is excellent at image retrieval but weak at predicting motion. Give two plausible reasons for the mismatch, then design a target-specific evaluation that distinguishes missing temporal information from information that is present but difficult for a linear readout to access.
 . State the parameter-update difference between BYOL and SimSiam. In each method, which pathway receives gradients, and which mechanism changes the target?
 . Write the Barlow Twins objective in terms of the cross-correlation matrix. Explain the role of its diagonal and off-diagonal terms, then contrast it with VICReg's three terms.
 . Compare the targets used by MAE, BEiT and iBOT/data2vec. For each method, state what is predicted and what the loss measures.
@@ -1295,142 +1212,142 @@ Masked prediction changes both the hidden context and the target: MAE predicts p
 == References
 
 [.bibliography-entry]
-Assran, M. et al. (2023). Self-Supervised Learning from Images with a Joint-Embedding Predictive Architecture. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. link:https://arxiv.org/abs/2301.08243[arXiv:2301.08243].
+Assran, M. et al. (2023). Self-Supervised Learning from Images with a Joint-Embedding Predictive Architecture. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. arXiv:2301.08243.
 
 [.bibliography-entry]
-Assran, M. et al. (2025). V-JEPA 2: Self-Supervised Video Models Enable Understanding, Prediction and Planning. link:https://arxiv.org/abs/2506.09985[arXiv:2506.09985].
+Assran, M. et al. (2025). V-JEPA 2: Self-Supervised Video Models Enable Understanding, Prediction and Planning. arXiv:2506.09985.
 
 [.bibliography-entry]
-Bachman, P., Hjelm, R. D. and Buchwalter, W. (2019). Learning Representations by Maximizing Mutual Information Across Views. link:https://arxiv.org/abs/1906.00910[arXiv:1906.00910].
+Bachman, P., Hjelm, R. D. and Buchwalter, W. (2019). Learning Representations by Maximizing Mutual Information Across Views. arXiv:1906.00910.
 
 [.bibliography-entry]
-Baevski, A., Zhou, Y., Mohamed, A. and Auli, M. (2020). wav2vec 2.0: A Framework for Self-Supervised Learning of Speech Representations. *Advances in Neural Information Processing Systems*. link:https://arxiv.org/abs/2006.11477[arXiv:2006.11477].
+Baevski, A., Zhou, Y., Mohamed, A. and Auli, M. (2020). wav2vec 2.0: A Framework for Self-Supervised Learning of Speech Representations. *Advances in Neural Information Processing Systems*. arXiv:2006.11477.
 
 [.bibliography-entry]
-Baevski, A., Hsu, W.-N., Xu, Q., Babu, A., Gu, J. and Auli, M. (2022). data2vec: A General Framework for Self-Supervised Learning in Speech, Vision and Language. *International Conference on Machine Learning*. link:https://arxiv.org/abs/2202.03555[arXiv:2202.03555].
+Baevski, A., Hsu, W.-N., Xu, Q., Babu, A., Gu, J. and Auli, M. (2022). data2vec: A General Framework for Self-Supervised Learning in Speech, Vision and Language. *International Conference on Machine Learning*. arXiv:2202.03555.
 
 [.bibliography-entry]
-Balestriero, R. and LeCun, Y. (2025). LeJEPA: Provable and Scalable Self-Supervised Learning Without the Heuristics. link:https://arxiv.org/abs/2511.08544[arXiv:2511.08544].
+Balestriero, R. and LeCun, Y. (2025). LeJEPA: Provable and Scalable Self-Supervised Learning Without the Heuristics. arXiv:2511.08544.
 
 [.bibliography-entry]
-Bao, H., Dong, L. and Wei, F. (2022). BEiT: BERT Pre-Training of Image Transformers. *International Conference on Learning Representations*. link:https://arxiv.org/abs/2106.08254[arXiv:2106.08254].
+Bao, H., Dong, L. and Wei, F. (2022). BEiT: BERT Pre-Training of Image Transformers. *International Conference on Learning Representations*. arXiv:2106.08254.
 
 [.bibliography-entry]
-Bardes, A., Ponce, J. and LeCun, Y. (2022). VICReg: Variance-Invariance-Covariance Regularization For Self-Supervised Learning. *International Conference on Learning Representations*. link:https://arxiv.org/abs/2105.04906[arXiv:2105.04906].
+Bardes, A., Ponce, J. and LeCun, Y. (2022). VICReg: Variance-Invariance-Covariance Regularization For Self-Supervised Learning. *International Conference on Learning Representations*. arXiv:2105.04906.
 
 [.bibliography-entry]
-Bardes, A. et al. (2024). Revisiting Feature Prediction for Learning Visual Representations from Video. link:https://arxiv.org/abs/2404.08471[arXiv:2404.08471].
+Bardes, A. et al. (2024). Revisiting Feature Prediction for Learning Visual Representations from Video. arXiv:2404.08471.
 
 [.bibliography-entry]
-Caron, M. et al. (2018). Deep Clustering for Unsupervised Learning of Visual Features. *European Conference on Computer Vision*. link:https://arxiv.org/abs/1807.05520[arXiv:1807.05520].
+Caron, M. et al. (2018). Deep Clustering for Unsupervised Learning of Visual Features. *European Conference on Computer Vision*. arXiv:1807.05520.
 
 [.bibliography-entry]
-Caron, M. et al. (2020). Unsupervised Learning of Visual Features by Contrasting Cluster Assignments. *Advances in Neural Information Processing Systems*. link:https://arxiv.org/abs/2006.09882[arXiv:2006.09882].
+Caron, M. et al. (2020). Unsupervised Learning of Visual Features by Contrasting Cluster Assignments. *Advances in Neural Information Processing Systems*. arXiv:2006.09882.
 
 [.bibliography-entry]
-Caron, M. et al. (2021). Emerging Properties in Self-Supervised Vision Transformers. *IEEE/CVF International Conference on Computer Vision*. link:https://arxiv.org/abs/2104.14294[arXiv:2104.14294].
+Caron, M. et al. (2021). Emerging Properties in Self-Supervised Vision Transformers. *IEEE/CVF International Conference on Computer Vision*. arXiv:2104.14294.
 
 [.bibliography-entry]
-Chen, T. et al. (2020). A Simple Framework for Contrastive Learning of Visual Representations. *International Conference on Machine Learning*. link:https://arxiv.org/abs/2002.05709[arXiv:2002.05709].
+Chen, T. et al. (2020). A Simple Framework for Contrastive Learning of Visual Representations. *International Conference on Machine Learning*. arXiv:2002.05709.
 
 [.bibliography-entry]
-Chen, X. et al. (2020). Improved Baselines with Momentum Contrastive Learning. link:https://arxiv.org/abs/2003.04297[arXiv:2003.04297].
+Chen, X. et al. (2020). Improved Baselines with Momentum Contrastive Learning. arXiv:2003.04297.
 
 [.bibliography-entry]
-Chen, X. and He, K. (2021). Exploring Simple Siamese Representation Learning. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. link:https://arxiv.org/abs/2011.10566[arXiv:2011.10566].
+Chen, X. and He, K. (2021). Exploring Simple Siamese Representation Learning. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. arXiv:2011.10566.
 
 [.bibliography-entry]
-Chen, X. et al. (2021). An Empirical Study of Training Self-Supervised Vision Transformers. link:https://arxiv.org/abs/2104.02057[arXiv:2104.02057].
+Chen, X. et al. (2021). An Empirical Study of Training Self-Supervised Vision Transformers. arXiv:2104.02057.
 
 [.bibliography-entry]
-Clark, K. et al. (2020). ELECTRA: Pre-training Text Encoders as Discriminators Rather Than Generators. *International Conference on Learning Representations*. link:https://arxiv.org/abs/2003.10555[arXiv:2003.10555].
+Clark, K. et al. (2020). ELECTRA: Pre-training Text Encoders as Discriminators Rather Than Generators. *International Conference on Learning Representations*. arXiv:2003.10555.
 
 [.bibliography-entry]
-Devlin, J. et al. (2019). BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding. *North American Chapter of the Association for Computational Linguistics*. link:https://arxiv.org/abs/1810.04805[arXiv:1810.04805].
+Devlin, J. et al. (2019). BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding. *North American Chapter of the Association for Computational Linguistics*. arXiv:1810.04805.
 
 [.bibliography-entry]
-Doersch, C., Gupta, A. and Efros, A. A. (2015). Unsupervised Visual Representation Learning by Context Prediction. *IEEE International Conference on Computer Vision*. link:https://arxiv.org/abs/1505.05192[arXiv:1505.05192].
+Doersch, C., Gupta, A. and Efros, A. A. (2015). Unsupervised Visual Representation Learning by Context Prediction. *IEEE International Conference on Computer Vision*. arXiv:1505.05192.
 
 [.bibliography-entry]
-Gidaris, S., Singh, P. and Komodakis, N. (2018). Unsupervised Representation Learning by Predicting Image Rotations. *International Conference on Learning Representations*. link:https://arxiv.org/abs/1803.07728[arXiv:1803.07728].
+Gidaris, S., Singh, P. and Komodakis, N. (2018). Unsupervised Representation Learning by Predicting Image Rotations. *International Conference on Learning Representations*. arXiv:1803.07728.
 
 [.bibliography-entry]
-Grill, J.-B. et al. (2020). Bootstrap Your Own Latent: A New Approach to Self-Supervised Learning. *Advances in Neural Information Processing Systems*. link:https://arxiv.org/abs/2006.07733[arXiv:2006.07733].
+Grill, J.-B. et al. (2020). Bootstrap Your Own Latent: A New Approach to Self-Supervised Learning. *Advances in Neural Information Processing Systems*. arXiv:2006.07733.
 
 [.bibliography-entry]
-Gutmann, M. and Hyvärinen, A. (2010). Noise-Contrastive Estimation: A New Estimation Principle for Unnormalized Statistical Models. *Proceedings of the Thirteenth International Conference on Artificial Intelligence and Statistics*. link:https://proceedings.mlr.press/v9/gutmann10a.html[PMLR].
+Gutmann, M. and Hyvärinen, A. (2010). Noise-Contrastive Estimation: A New Estimation Principle for Unnormalized Statistical Models. *Proceedings of the Thirteenth International Conference on Artificial Intelligence and Statistics*. PMLR.
 
 [.bibliography-entry]
-He, K. et al. (2020). Momentum Contrast for Unsupervised Visual Representation Learning. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. link:https://arxiv.org/abs/1911.05722[arXiv:1911.05722].
+He, K. et al. (2020). Momentum Contrast for Unsupervised Visual Representation Learning. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. arXiv:1911.05722.
 
 [.bibliography-entry]
-He, K. et al. (2022). Masked Autoencoders Are Scalable Vision Learners. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. link:https://arxiv.org/abs/2111.06377[arXiv:2111.06377].
+He, K. et al. (2022). Masked Autoencoders Are Scalable Vision Learners. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. arXiv:2111.06377.
 
 [.bibliography-entry]
-Ho, J., Jain, A. and Abbeel, P. (2020). Denoising Diffusion Probabilistic Models. *Advances in Neural Information Processing Systems*. link:https://arxiv.org/abs/2006.11239[arXiv:2006.11239].
+Ho, J., Jain, A. and Abbeel, P. (2020). Denoising Diffusion Probabilistic Models. *Advances in Neural Information Processing Systems*. arXiv:2006.11239.
 
 [.bibliography-entry]
-Hsu, W.-N. et al. (2021). HuBERT: Self-Supervised Speech Representation Learning by Masked Prediction of Hidden Units. link:https://arxiv.org/abs/2106.07447[arXiv:2106.07447].
+Hsu, W.-N. et al. (2021). HuBERT: Self-Supervised Speech Representation Learning by Masked Prediction of Hidden Units. arXiv:2106.07447.
 
 [.bibliography-entry]
-LeCun, Y., Chopra, S., Hadsell, R., Ranzato, M. and Huang, F. (2006). A Tutorial on Energy-Based Learning. In *Predicting Structured Data*. MIT Press. link:https://yann.lecun.org/exdb/publis/pdf/lecun-06.pdf[PDF].
+LeCun, Y., Chopra, S., Hadsell, R., Ranzato, M. and Huang, F. (2006). A Tutorial on Energy-Based Learning. In *Predicting Structured Data*. MIT Press. PDF.
 
 [.bibliography-entry]
-Misra, I. and van der Maaten, L. (2020). Self-Supervised Learning of Pretext-Invariant Representations. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. link:https://openaccess.thecvf.com/content_CVPR_2020/html/Misra_Self-Supervised_Learning_of_Pretext-Invariant_Representations_CVPR_2020_paper.html[CVF Open Access].
+Misra, I. and van der Maaten, L. (2020). Self-Supervised Learning of Pretext-Invariant Representations. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. CVF Open Access.
 
 [.bibliography-entry]
-Mur-Labadia, L. et al. (2026). V-JEPA 2.1: Unlocking Dense Features in Video Self-Supervised Learning. link:https://arxiv.org/abs/2603.14482[arXiv:2603.14482].
+Mur-Labadia, L. et al. (2026). V-JEPA 2.1: Unlocking Dense Features in Video Self-Supervised Learning. arXiv:2603.14482.
 
 [.bibliography-entry]
-Noroozi, M. and Favaro, P. (2016). Unsupervised Learning of Visual Representations by Solving Jigsaw Puzzles. *European Conference on Computer Vision*. link:https://arxiv.org/abs/1603.09246[arXiv:1603.09246].
+Noroozi, M. and Favaro, P. (2016). Unsupervised Learning of Visual Representations by Solving Jigsaw Puzzles. *European Conference on Computer Vision*. arXiv:1603.09246.
 
 [.bibliography-entry]
-Oquab, M. et al. (2023). DINOv2: Learning Robust Visual Features without Supervision. link:https://arxiv.org/abs/2304.07193[arXiv:2304.07193].
+Oquab, M. et al. (2023). DINOv2: Learning Robust Visual Features without Supervision. arXiv:2304.07193.
 
 [.bibliography-entry]
-Peng, Z. et al. (2022). BEiT v2: Masked Image Modeling with Vector-Quantized Visual Tokenizers. link:https://arxiv.org/abs/2208.06366[arXiv:2208.06366].
+Peng, Z. et al. (2022). BEiT v2: Masked Image Modeling with Vector-Quantized Visual Tokenizers. arXiv:2208.06366.
 
 [.bibliography-entry]
 Radford, A. et al. (2019). Language Models are Unsupervised Multitask Learners. OpenAI technical report.
 
 [.bibliography-entry]
-Radford, A. et al. (2021). Learning Transferable Visual Models From Natural Language Supervision. *International Conference on Machine Learning*. link:https://arxiv.org/abs/2103.00020[arXiv:2103.00020].
+Radford, A. et al. (2021). Learning Transferable Visual Models From Natural Language Supervision. *International Conference on Machine Learning*. arXiv:2103.00020.
 
 [.bibliography-entry]
-Siméoni, O. et al. (2025). DINOv3. link:https://arxiv.org/abs/2508.10104[arXiv:2508.10104].
+Siméoni, O. et al. (2025). DINOv3. arXiv:2508.10104.
 
 [.bibliography-entry]
-Song, Y. et al. (2021). Score-Based Generative Modeling through Stochastic Differential Equations. *International Conference on Learning Representations*. link:https://arxiv.org/abs/2011.13456[arXiv:2011.13456].
+Song, Y. et al. (2021). Score-Based Generative Modeling through Stochastic Differential Equations. *International Conference on Learning Representations*. arXiv:2011.13456.
 
 [.bibliography-entry]
-Tian, Y., Krishnan, D. and Isola, P. (2020). Contrastive Multiview Coding. *European Conference on Computer Vision*. link:https://arxiv.org/abs/1906.05849[arXiv:1906.05849].
+Tian, Y., Krishnan, D. and Isola, P. (2020). Contrastive Multiview Coding. *European Conference on Computer Vision*. arXiv:1906.05849.
 
 [.bibliography-entry]
-van den Oord, A., Li, Y. and Vinyals, O. (2018). Representation Learning with Contrastive Predictive Coding. link:https://arxiv.org/abs/1807.03748[arXiv:1807.03748].
+van den Oord, A., Li, Y. and Vinyals, O. (2018). Representation Learning with Contrastive Predictive Coding. arXiv:1807.03748.
 
 [.bibliography-entry]
-Wang, T. and Isola, P. (2020). Understanding Contrastive Representation Learning through Alignment and Uniformity on the Hypersphere. *International Conference on Machine Learning*. link:https://arxiv.org/abs/2005.10242[arXiv:2005.10242].
+Wang, T. and Isola, P. (2020). Understanding Contrastive Representation Learning through Alignment and Uniformity on the Hypersphere. *International Conference on Machine Learning*. arXiv:2005.10242.
 
 [.bibliography-entry]
-Wei, C. et al. (2022). Masked Feature Prediction for Self-Supervised Visual Pre-Training. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. link:https://arxiv.org/abs/2112.09133[arXiv:2112.09133].
+Wei, C. et al. (2022). Masked Feature Prediction for Self-Supervised Visual Pre-Training. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. arXiv:2112.09133.
 
 [.bibliography-entry]
-Wu, Z., Xiong, Y., Yu, S. X. and Lin, D. (2018). Unsupervised Feature Learning via Non-Parametric Instance Discrimination. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. link:https://openaccess.thecvf.com/content_cvpr_2018/html/Wu_Unsupervised_Feature_Learning_CVPR_2018_paper.html[CVF Open Access].
+Wu, Z., Xiong, Y., Yu, S. X. and Lin, D. (2018). Unsupervised Feature Learning via Non-Parametric Instance Discrimination. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. CVF Open Access.
 
 [.bibliography-entry]
-Wu, H., Balestriero, R. and Levine, M. (2026). VISReg: Variance-Invariance-Sketching Regularization for JEPA Training. link:https://arxiv.org/abs/2606.02572[arXiv:2606.02572].
+Wu, H., Balestriero, R. and Levine, M. (2026). VISReg: Variance-Invariance-Sketching Regularization for JEPA Training. arXiv:2606.02572.
 
 [.bibliography-entry]
-Xie, Z. et al. (2022). SimMIM: A Simple Framework for Masked Image Modeling. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. link:https://arxiv.org/abs/2111.09886[arXiv:2111.09886].
+Xie, Z. et al. (2022). SimMIM: A Simple Framework for Masked Image Modeling. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. arXiv:2111.09886.
 
 [.bibliography-entry]
-Zbontar, J. et al. (2021). Barlow Twins: Self-Supervised Learning via Redundancy Reduction. *International Conference on Machine Learning*. link:https://arxiv.org/abs/2103.03230[arXiv:2103.03230].
+Zbontar, J. et al. (2021). Barlow Twins: Self-Supervised Learning via Redundancy Reduction. *International Conference on Machine Learning*. arXiv:2103.03230.
 
 [.bibliography-entry]
-Zhai, X. et al. (2023). Sigmoid Loss for Language Image Pre-Training. *IEEE/CVF International Conference on Computer Vision*. link:https://arxiv.org/abs/2303.15343[arXiv:2303.15343].
+Zhai, X. et al. (2023). Sigmoid Loss for Language Image Pre-Training. *IEEE/CVF International Conference on Computer Vision*. arXiv:2303.15343.
 
 [.bibliography-entry]
-Zhang, R., Isola, P. and Efros, A. A. (2016). Colorful Image Colorization. *European Conference on Computer Vision*. link:https://arxiv.org/abs/1603.08511[arXiv:1603.08511].
+Zhang, R., Isola, P. and Efros, A. A. (2016). Colorful Image Colorization. *European Conference on Computer Vision*. arXiv:1603.08511.
 
 [.bibliography-entry]
-Zhou, J. et al. (2022). iBOT: Image BERT Pre-Training with Online Tokenizer. link:https://arxiv.org/abs/2111.07832[arXiv:2111.07832].
+Zhou, J. et al. (2022). iBOT: Image BERT Pre-Training with Online Tokenizer. arXiv:2111.07832.
