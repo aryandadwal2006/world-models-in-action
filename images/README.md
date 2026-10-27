@@ -1,6 +1,6 @@
 # Chapter 3 figure production briefs
 
-**Status:** Prompt-only artwork directory for manuscript-theory. No PNG, JPEG, WebP, SVG or other rendered artwork belongs here until generated and approved.
+**Status (27 October 2026):** canonical figure register for the current `manuscript-theory` source. The directory remains prompt-only: no PNG, JPEG, WebP, SVG or other rendered artwork has been approved or inserted. The composed chapter has 29 placeholders, one numbered synthesis table and one short VICReg listing.
 
 The composed AsciiDoc chapter has 29 numbered figure placeholders. Printed order follows anchors in the chapter source, not legacy experiment filenames. Each CH03_FNN_Dadwal.md file contains purpose, composition, required visual content, exclusions, acceptance checks and caption.
 
