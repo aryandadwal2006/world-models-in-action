@@ -1,4 +1,4 @@
-# Figure 3.27: The projection head, global vector and local feature grid
+# Figure 3.26: The projection head, global vector and local feature grid
 
 **Status:** Detailed production brief only. No artwork is included in this branch.
 
@@ -24,7 +24,7 @@ Show different interfaces, not a quality hierarchy.
 
 ## Caption
 
-Figure 3.27. The projection head, global vector and local feature grid.
+Figure 3.26. The projection head, global vector and local feature grid.
 
 ## Production note
 
