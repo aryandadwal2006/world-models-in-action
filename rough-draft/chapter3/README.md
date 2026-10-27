@@ -1,5 +1,7 @@
 # Chapter 3 theory dossier
 
+**Status (27 October 2026):** research and source-study material supporting the composed chapter. The reader-facing content pass is complete on `manuscript-theory`; the current next step is production of the 29 figures, not another synthesis pass. The dossier remains intentionally broader than the chapter and is not the source of truth for current prose, printed numbering, or production status. See `manuscript/README.md`, `images/README.md`, `chapter3/figure-and-table-production.md`, and `38_dossier_readiness_and_manuscript_gate.md` for current records.
+
 ## Purpose and source policy
 
 This is the unbounded research draft behind the reader-facing Chapter 3, *Representation learning before generation*. It is intentionally much more detailed than the finished chapter and records conceptual lineage, equations, derivations, collapse arguments, method-specific decisions, frontier updates and checks needed for a source-grounded final chapter.
@@ -36,7 +38,7 @@ The dossier is an original synthesis, not a replacement for reading canonical pa
 26. [Visual SSL objectives](35_visual_ssl_objectives_from_first_principles.md): first-principles comparison of SimCLR, MoCo, BYOL, SimSiam, Barlow Twins, VICReg, SwAV, DINO, MAE and SimMIM.
 27. [Dense and local visual SSL](36_dense_local_visual_ssl_from_first_principles.md): local correspondence, patch targets, dense features, DINOv2/v3 and spatial evaluation.
 28. [CPC, energy-based models and diffusion](37_cpc_energy_based_and_diffusion_objectives.md): temporal latent prediction, energy models, NCE, diffusion and score-based generation, with boundaries made explicit.
-29. [Dossier readiness gate](38_dossier_readiness_and_manuscript_gate.md): method-family coverage, source-audit status, unresolved checks and explicit criteria for starting manuscript synthesis.
+29. [Dossier readiness and production gate](38_dossier_readiness_and_manuscript_gate.md): current manuscript status, validation boundary, and remaining figure/PDF production checks.
 30. [Upstream code-source audit](29_upstream_code_source_audit.md): exact code paths and limitations for dedicated and shared upstream implementations.
 31. [Proposed flow and page budget](10_flow_and_page_budget.md): how to compress the dossier into a coherent reader-facing sequence.
 32. [Figure storyboard](11_figure_storyboard.md): conceptual diagrams needed in the final chapter.
