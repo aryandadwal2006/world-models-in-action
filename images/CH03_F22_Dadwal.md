@@ -1,31 +1,43 @@
-# Figure 3.22: The JEPA context-target prediction architecture
+# Figure 3.22: A training loss and a probe answer different questions
 
 **Status:** Detailed production brief only. No artwork is included in this branch.
 
 ## Purpose
 
-Bridge to Chapter 4 by contrasting latent prediction with pixel reconstruction.
+Show why a successful pretraining objective is evidence about its chosen target, not a universal certificate that the representation preserves all information needed by a downstream world model.
 
 ## Composition
 
-Context encoder, target encoder and predictor.
+Use a clear left-to-right progression with three main stages:
+
+1. **Pretraining objective:** a view-pair or masked input enters an encoder; a visible loss symbol marks agreement, candidate ranking, or target reconstruction. Label the output of this stage "fit to the chosen target".
+2. **Representation diagnostics:** show three compact tests, labelled "linear probe", "retrieval / feature geometry", and "reconstruction". Each should point to the specific claim it tests, not to a universal quality score.
+3. **Target-specific prediction:** show the frozen representation entering a predictor for a named target and horizon. Label the conclusion "evidence for this target and protocol", not "guaranteed sufficient".
+
+At the bottom, add one restrained conclusion: "No single metric certifies predictive sufficiency." Keep the diagram legible at book-column width. Use simple arrows and labels, not decorative icons or charts with invented numeric values.
 
 ## Required content
 
-Split image/video into context C and target Y. Context sees C only; target encoder produces target embeddings from less-corrupted input with stopped gradients. Predictor takes context features and target positions to predict target embeddings. Show EMA for the usual recipe and note passive versus action-conditioned prediction.
+- Distinguish a training loss from downstream probes and direct target-specific prediction.
+- Make it explicit that every diagnostic has a scope: objective fit, linear accessibility, selected feature geometry, reconstruction of a chosen target, or prediction of a specified target.
+- Show that the target, observation history, prediction horizon and readout protocol determine what the evaluation can support.
+- Indicate that a direct prediction test is stronger evidence for the named target than an unrelated pretraining metric, but is still not a universal guarantee.
 
 ## Exclusions
 
-No pixel decoder, explicit negatives, planner or sufficiency guarantee.
+No JEPA architecture, no benchmark scores, no invented measurements, no single numerical "representation quality" score, and no claim that a probe can prove information is absent.
 
 ## Acceptance checks
 
-Label context, target, predictor, stop-gradient and EMA.
+- A reader can distinguish all three stages without reading the caption.
+- The figure does not imply that linear-probe failure proves information is absent.
+- The final target-specific test is clearly scoped to its target and protocol.
+- All text remains readable at final book size.
 
 ## Caption
 
-Figure 3.22. The JEPA context-target prediction architecture.
+Figure 3.22. A training loss and a probe answer different questions.
 
 ## Production note
 
-Create original explanatory artwork, not a reproduction of a paper figure or screenshot of code. Use a white background, dark grayscale-safe line work, and #3B6FB6 as the only restrained accent for key arrows or highlights. Important distinctions must remain legible in grayscale. Use flat 2D artwork: no gradients, 3D effects, Mermaid, decorative watermarks, leaderboards or unnecessary labels; component and equation labels specified by this brief are required. Keep every visual claim consistent with the manuscript and cited sources; do not invent empirical data.
+Create original explanatory artwork, not a reproduction of a paper figure or screenshot of code. Use a white background, dark grayscale-safe line work, and #3B6FB6 as the only restrained accent for key paths or highlights. Important distinctions must remain legible in grayscale. Use flat 2D artwork: no gradients, 3D effects, Mermaid, decorative watermarks, leaderboards or unnecessary labels. Keep every visual claim consistent with the manuscript; do not invent empirical data.
