@@ -494,7 +494,7 @@ The target parameters change according to
 \bar\phi\leftarrow m\bar\phi+(1-m)\phi,
 ++++
 
-with latexmath:[m] close to one. The target is therefore a smoothed history of the online network, not an independently optimized network. This is the defining difference from ordinary shared-weight Siamese regression.
+where latexmath:[m] is the momentum coefficient, usually close to one.
 
 For clarity, the two-view objective can be written
 
@@ -505,9 +505,7 @@ D(p_1,\mathrm{sg}(\bar z_2))
 +D(p_2,\mathrm{sg}(\bar z_1)).
 ++++
 
-During a gradient step, the first term updates the online encoder, projector and predictor through latexmath:[p_1]; it does not update the target parameters through latexmath:[\bar z_2]. The second term reverses the roles of the views. After the gradient update, the EMA rule updates the target parameters. Thus two distinct operations occur: gradient descent optimizes the online network against a fixed target value for that step, and parameter averaging moves the target afterward.
-
-The target is a smoothed history of online parameters: older values have geometrically decreasing influence. During a gradient step it is fixed; after that step, EMA moves it toward the updated online network. At latexmath:[m=0] it copies the online parameters, while larger latexmath:[m] slows its change. This specifies the update dynamics, not a universal proof against collapse.
+During a gradient step, the first term updates the online encoder, projector and predictor through latexmath:[p_1] while the target value latexmath:[\bar z_2] is fixed. The second term swaps the views. After the gradient step, EMA moves the target toward the updated online parameters. Across repeated updates, older online weights have geometrically decreasing influence; at latexmath:[m=0] the target copies the online network, while larger latexmath:[m] slows its change. This temporal smoothing is part of BYOL's optimization dynamics, not a universal proof against collapse.
 
 
 
@@ -530,9 +528,7 @@ D_{\mathrm{SimSiam}}(p,z)
 =-\frac{p^\top z}{\lVert p\rVert_2\lVert z\rVert_2}.
 ++++
 
-Minimizing this negative cosine similarity maximizes directional agreement without requiring the two vectors to have the same norm. In latexmath:[D(p_1,\mathrm{sg}(z_2))], the numerical value of latexmath:[z_2] still affects the loss, but its gradient path is removed. The shared encoder can nevertheless receive gradients through latexmath:[z_2] when that representation appears as the predictor-side output in the opposite term. Stop-gradient is applied to a particular *role* of the representation in each term, not as a permanent property of the tensor.
-
-Stop-gradient removes the target-side gradient only for that term; in the symmetric loss, the shared encoder still receives gradients when the same view appears as the predictor-side output. The original SimSiam study found stop-gradient essential to its tested recipe, but this is not a theorem that every detached Siamese network avoids collapse.
+Minimizing this negative cosine similarity maximizes directional agreement without requiring the two vectors to have the same norm. In latexmath:[D(p_1,\mathrm{sg}(z_2))], the numerical value of latexmath:[z_2] still affects the loss, but its target-side gradient is removed. Because the loss is symmetric and both views share an encoder, that view still contributes encoder gradients when it serves as the predictor-side representation in the opposite term. The original SimSiam study found stop-gradient essential to its tested recipe; this is not a theorem that every detached Siamese network avoids collapse.
 
 
 
