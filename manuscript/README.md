@@ -20,4 +20,4 @@ The chapter includes 29 conceptual figure placeholders. Each has a detailed brie
 
 ## Code and official implementations
 
-The chapter includes two short source excerpts from pinned official SimCLR and VICReg revisions. They are not complete trainers, alternate reimplementations or evidence of reproduction. Implementation links occur beside methods, with scholarly citations in one bibliography. The main-extra branch maintains upstream submodules for full recipes, dependencies and licensing. Open the [commit-pinned official implementation manifest](https://github.com/aryandadwal2006/world-models-in-action/tree/main-extra/implementations/README.md) to find the upstream project and revision for each method.
+The chapter contains one short source-attributed excerpt from the official PyTorch VICReg implementation. It is not a complete trainer, an alternate reimplementation or evidence of reproduction. The manuscript intentionally contains no outbound hyperlinks; methods are attributed in prose and identified in the consolidated bibliography.
