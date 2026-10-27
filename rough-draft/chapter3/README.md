@@ -40,8 +40,8 @@ The dossier is an original synthesis, not a replacement for reading canonical pa
 28. [CPC, energy-based models and diffusion](37_cpc_energy_based_and_diffusion_objectives.md): temporal latent prediction, energy models, NCE, diffusion and score-based generation, with boundaries made explicit.
 29. [Dossier readiness and production gate](38_dossier_readiness_and_manuscript_gate.md): current manuscript status, validation boundary, and remaining figure/PDF production checks.
 30. [Upstream code-source audit](29_upstream_code_source_audit.md): exact code paths and limitations for dedicated and shared upstream implementations.
-31. [Proposed flow and page budget](10_flow_and_page_budget.md): how to compress the dossier into a coherent reader-facing sequence.
-32. [Figure storyboard](11_figure_storyboard.md): conceptual diagrams needed in the final chapter.
+31. [Historical flow and page-budget plan](10_flow_and_page_budget.md): retained editorial rationale; superseded by the composed chapter and not a remaining-work checklist.
+32. [Historical figure storyboard](11_figure_storyboard.md): superseded by the current 29-figure register in `images/README.md` and its per-figure production briefs.
 33. [Bibliography](12_bibliography.md): canonical citations and source-verification notes.
 
 The original shorter notes remain useful as focused cross-checks: [contrastive InfoNCE](02_contrastive_infoNCE.md), [negative-free bootstrapping](03_negative_free_bootstrap.md), [redundancy reduction](04_redundancy_reduction.md), [clustering and prototypes](05_clustering_and_prototypes.md), [masked prediction](06_masked_prediction.md), and [frontier boundaries](08_frontier_and_boundaries.md).
