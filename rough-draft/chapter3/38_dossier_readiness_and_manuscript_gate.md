@@ -15,7 +15,7 @@ The chapter contains no custom training experiments or full hand-written reimple
 
 | Gate | Current position | Remaining action |
 |---|---|---|
-| Mathematics | Equations for InfoNCE, MoCo variants, BYOL/SimSiam, DINO, Barlow Twins, VICReg, MAE, CPC, diffusion, SIGReg/LeJEPA and VISReg are present. VISReg reductions were checked against a source-inspected reference implementation. | Final equation/source pass after the author approves and inserts actual artwork; preserve configuration-specific caveats. |
+| Mathematics | Equations for InfoNCE, MoCo variants, BYOL/SimSiam, DINO, Barlow Twins, VICReg, MAE, CPC, SIGReg/LeJEPA and VISReg are present. Diffusion is now a concise conceptual boundary rather than a second derivation. VISReg reductions were checked against a source-inspected reference implementation. | Final equation/source pass after the author approves and inserts actual artwork; preserve configuration-specific caveats. |
 | Prose and scope | Repeated explanations trimmed; method families distinguish their targets, gradient paths, update rules and limitations. | Final editorial review against adjacent chapters; keep JEPA to a brief mention in the survey, with its architecture owned by Chapter 4. |
 | Figures | 29 detailed prompts and matching source placeholders; no rendered art in this branch. | Generate original figures from the prompts, check equations/arrows/captions and page-width readability, then replace each placeholder only after approval. |
 | Official sources | Code excerpts are pinned and attributed; method links sit beside the relevant method. | Recheck source links and licenses at release. |
