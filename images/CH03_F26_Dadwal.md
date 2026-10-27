@@ -1,4 +1,4 @@
-# Figure 3.26: Masked prediction and diffusion learn different conditional tasks
+# Figure 3.25: Masked prediction and diffusion learn different conditional tasks
 
 **Status:** Detailed production brief only. No artwork is included in this branch.
 
@@ -24,7 +24,7 @@ Label target positions versus injected noise.
 
 ## Caption
 
-Figure 3.26. Masked prediction and diffusion learn different conditional tasks.
+Figure 3.25. Masked prediction and diffusion learn different conditional tasks.
 
 ## Production note
 
