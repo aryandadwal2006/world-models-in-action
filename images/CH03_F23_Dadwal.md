@@ -2,6 +2,10 @@
 
 **Status:** Detailed production brief only. No artwork is included in this branch.
 
+**Artwork boundary:** The figure number and title at the top, and the caption below, are editorial metadata. Do not render any of them inside the artwork; the book layout supplies figure number and caption separately.
+
+**Typography:** Size labels and equations for print at book-column width, using lettering about 1–2 pt larger than screen-first infographic defaults.
+
 ## Purpose
 
 Separate masking from target construction.
