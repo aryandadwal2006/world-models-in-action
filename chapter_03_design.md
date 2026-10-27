@@ -1,14 +1,19 @@
 # Chapter 3 Design — Representation Learning Before Generation (v3; archived)
 
-**Book:** World Models in Action (Manning) · **Status:** archived planning snapshot; not the current manuscript specification
+**Book:** *World Models in Action* (Manning) · **Status:** historical planning snapshot; not the current manuscript specification.
 
-> **Current status (22 October 2026):** this v3 plan is historical context, not the live chapter source or production checklist. The composed chapter is `manuscript/CH03_Dadwal_World_Models_in_Action.adoc` on the `manuscript` branch. The adjacent PDF is an author-side preview, not the final Manning proof.
+> **Current status (27 October 2026):** this plan is retained as historical rationale only. The current composed chapter is `manuscript/CH03_Dadwal_World_Models_in_Action.adoc` on `manuscript-theory`, and its freshly generated author-side PDF is alongside it. The prose pass is complete and the next phase is figure production.
 >
-> **Use these current records instead:** `manuscript/README.md` for build/validation; `images/README.md` and `chapter3/figure-and-table-production.md` for the current printed figure/asset crosswalk; `ch03/README.md` for canonical implementation and experiment paths; canonical JSON files under `ch03/results/` for numerical evidence.
+> **Current sources of truth:** `manuscript/README.md` for build/validation; `images/README.md` for the canonical 29-figure production register; `chapter3/figure-and-table-production.md` for the synced figure/table/listing crosswalk; `rough-draft/chapter3/38_dossier_readiness_and_manuscript_gate.md` for the current production gate; `ch03/README.md` and canonical JSON files under `ch03/results/` for code and empirical evidence.
 >
-> **Important differences from this plan:** the composed chapter has 20 numbered figure anchors, two numbered table anchors (Table 3.1 notation and Table 3.2 representation-objective trade-offs), and 12 numbered listing anchors. The former 15-figure plan, reserved Figure 3.8 slot, planned Tables 3.3–3.6, and unchecked Manning checklist below are not current instructions. Stable asset stems and legacy result filenames do not determine printed object numbers.
+> **Current manuscript inventory:** 29 figure placeholders, one numbered synthesis table, one short source-attributed PyTorch VICReg listing, one consolidated bibliography, and exercises. The manuscript intentionally contains no outbound hyperlinks, no TensorFlow listing, and no standalone JEPA architecture tutorial. Chapter 4 owns the JEPA tutorial.
 >
-> Preserve the material below as historical design rationale only. Do not use it to renumber or restructure the composed chapter without an explicit new revision plan.
+> **Historical material warning:** the detailed plan below contains superseded alternatives and earlier proposed structures, figure counts, tables, bridges and checklist items. Do not treat them as outstanding instructions, use them to renumber artwork, or copy them back into the composed source. Where this plan conflicts with the current records above, the current records prevail.
+
+**Inputs used:** v2 design, CH01 text, CH02 AsciiDoc source, Manning Manual of Style, MQR, Gui et al. "A Survey on Self-supervised Learning" (arXiv:2301.05712), dm_control official repository, and world-model benchmark survey discussion.
+
+---
+
 **Inputs used:** v2 design, CH01 text, CH02 AsciiDoc source, Manning Manual of Style, MQR, Gui et al. "A Survey on Self-supervised Learning" (arXiv:2301.05712), dm_control official repository (github.com/google-deepmind/dm_control), world-model benchmark survey discussion
 
 ---
