@@ -1,3 +1,10 @@
+// HISTORICAL TEMPLATE EXAMPLE ONLY — not the composed Chapter 3 source.
+// Current source: manuscript/CH03_Dadwal_World_Models_in_Action.adoc
+// Current manuscript branch: manuscript-theory
+// Use this file only as a reference for Manning-style AsciiDoc structure.
+// Current figure numbering and production instructions are in images/README.md
+// and chapter3/figure-and-table-production.md.
+
 = BOOK title
 :chapter: 3
 :sectnums:
