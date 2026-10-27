@@ -86,8 +86,12 @@ if sum(line == "[.figure-placeholder%unbreakable]" for line in lines) != 29:
     errors.append("All 29 figure placeholder boxes must be kept together across pages.")
 if 'options="header,unbreakable"' not in source:
     errors.append("The synthesis table must stay together when it fits on one page.")
-if len(listings) != 2 or sum(line.startswith("[source,") for line in lines) != 2:
-    errors.append(f"Expected two short source listings; found {len(listings)} anchors.")
+if len(listings) != 1 or sum(line.startswith("[source,") for line in lines) != 1:
+    errors.append(f"Expected one short PyTorch source listing; found {len(listings)} anchors.")
+if "[#ch3-listing-vicreg," not in source or "torch.sqrt" not in source:
+    errors.append("The sole code listing must remain the official PyTorch VICReg excerpt.")
+if "tensorflow" in source.casefold() or re.search(r"\btf\.", source):
+    errors.append("TensorFlow references/listings are not permitted in this chapter source.")
 if re.search(r"^image::", source, flags=re.MULTILINE):
     errors.append("Image directives remain in prompt-only manuscript.")
 if re.search(r"\[[^\]]+\]\(https?://", source):
@@ -112,4 +116,4 @@ if errors:
     for error in errors:
         print(" - " + error)
     sys.exit(1)
-print(f"Chapter 3 validation passed: {len(headings)} headings, {len(figures)} figure placeholders/prompts, 1 table, 2 source listings, no rendered artwork.")
+print(f"Chapter 3 validation passed: {len(headings)} headings, {len(figures)} figure placeholders/prompts, 1 table, 1 PyTorch source listing, no TensorFlow, no rendered artwork.")
