@@ -27,7 +27,7 @@ The composed AsciiDoc chapter has 29 numbered figure placeholders. Printed order
 | Figure 3.19 | CH03_F19_Dadwal.md | VICReg, SIGReg/LeJEPA and VISReg constrain different aspects of feature distributions |
 | Figure 3.20 | CH03_F20_Dadwal.md | DeepCluster and SwAV: pseudo-labels and prototypes |
 | Figure 3.21 | CH03_F21_Dadwal.md | Different modalities create different self-supervised targets |
-| Figure 3.22 | CH03_F22_Dadwal.md | The JEPA context-target prediction architecture |
+| Figure 3.22 | CH03_F22_Dadwal.md | A training loss and a probe answer different questions |
 | Figure 3.23 | CH03_F23_Dadwal.md | One visible context, several masked-prediction targets |
 | Figure 3.24 | CH03_F24_Dadwal.md | MAE's visible-only encoder and masked-patch decoder |
 | Figure 3.25 | CH03_F25_Dadwal.md | Discrete tokens and teacher features are different masked targets |
