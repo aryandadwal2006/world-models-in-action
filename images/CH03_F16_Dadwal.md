@@ -1,4 +1,4 @@
-# Figure 3.16: Barlow Twins: the cross-correlation matrix
+# Figure 3.11: Barlow Twins: the cross-correlation matrix
 
 **Status:** Detailed production brief only. No artwork is included in this branch.
 
@@ -24,7 +24,7 @@ Label matrix axes as dimensions from views A and B.
 
 ## Caption
 
-Figure 3.16. Barlow Twins: the cross-correlation matrix.
+Figure 3.11. Barlow Twins: the cross-correlation matrix.
 
 ## Production note
 

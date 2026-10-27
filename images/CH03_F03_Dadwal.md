@@ -1,31 +1,31 @@
-# Figure 3.3: Augmentation defines the invariances rewarded by training
+# Figure 3.2: Augmentation defines the invariances rewarded by training
 
 **Status:** Detailed production brief only. No artwork is included in this branch.
 
 ## Purpose
 
-Show that augmentation is part of the objective, not neutral preprocessing.
+Show that augmentation is part of the learning objective, not neutral preprocessing.
 
 ## Composition
 
-Source observation, two transformed views, then retained versus removed information.
+Source observation, two independently sampled transformed views, then the representation that the consistency loss encourages the encoder to produce. Include one failure case where an aggressive crop removes task-critical information.
 
 ## Required content
 
-Show two independently sampled views; crop/intensity perturbations are examples, not universal choices. Add a failure case where an aggressive crop removes task-critical information, so view consistency rewards discarding it. Label the transform distribution as defining an implicit equivalence relation.
+Use crop and intensity perturbations as examples, not universal choices. Show the transform distribution as the source of a preference for invariance. If exact equivalence classes are mentioned visually, mark them as an idealized condition requiring exact invariance over a specified transformation set, not as an automatic property of stochastic augmentations.
 
 ## Exclusions
 
-No claim the same augmentations are valid for all tasks or modalities.
+No claim that the same augmentations are valid for all tasks or modalities; no claim that the sampled distribution is automatically a mathematical equivalence relation.
 
 ## Acceptance checks
 
-Distinguish transformations from the semantic assumptions they encode.
+Distinguish transformations from the semantic assumptions they encode. The failure case makes clear that a loss can reward ignoring information removed by the view construction.
 
 ## Caption
 
-Figure 3.3. Augmentation defines the invariances rewarded by training.
+Figure 3.2. Augmentation defines the invariances rewarded by training.
 
 ## Production note
 
-Create original explanatory artwork, not a reproduction of a paper figure or screenshot of code. Use a white background, dark grayscale-safe line work, and #3B6FB6 as the only restrained accent for key arrows or highlights. Important distinctions must remain legible in grayscale. Use flat 2D artwork: no gradients, 3D effects, Mermaid, decorative watermarks, leaderboards or unnecessary labels; component and equation labels specified by this brief are required. Keep every visual claim consistent with the manuscript and cited sources; do not invent empirical data.
+Create original explanatory artwork, not a reproduction of a paper figure or screenshot of code. Use a white background, dark grayscale-safe line work and #3B6FB6 as the only restrained accent. Flat 2D only; no gradients, 3D effects, Mermaid, watermarks or decorative labels.

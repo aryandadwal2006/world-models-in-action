@@ -1,4 +1,4 @@
-# Figure 3.4: Constructing positives and negatives
+# Figure 3.3: Constructing positives and negatives
 
 **Status:** Detailed production brief only. No artwork is included in this branch.
 
@@ -24,7 +24,7 @@ Keep anchor, positive, negatives and source examples distinct.
 
 ## Caption
 
-Figure 3.4. Constructing positives and negatives.
+Figure 3.3. Constructing positives and negatives.
 
 ## Production note
 

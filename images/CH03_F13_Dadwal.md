@@ -1,4 +1,4 @@
-# Figure 3.13: Why agreement alone permits collapse
+# Figure 3.8: Why agreement alone permits collapse
 
 **Status:** Detailed production brief only. No artwork is included in this branch.
 
@@ -24,7 +24,7 @@ Equation and mapping jointly show the point.
 
 ## Caption
 
-Figure 3.13. Why agreement alone permits collapse.
+Figure 3.8. Why agreement alone permits collapse.
 
 ## Production note
 

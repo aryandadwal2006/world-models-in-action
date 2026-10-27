@@ -1,4 +1,4 @@
-# Figure 3.12: CPC: causal context predicts future latent candidates
+# Figure 3.7: CPC: causal context predicts future latent candidates
 
 **Status:** Detailed production brief only. No artwork is included in this branch.
 
@@ -24,7 +24,7 @@ Past/current versus future must be unmistakable.
 
 ## Caption
 
-Figure 3.12. CPC: causal context predicts future latent candidates.
+Figure 3.7. CPC: causal context predicts future latent candidates.
 
 ## Production note
 

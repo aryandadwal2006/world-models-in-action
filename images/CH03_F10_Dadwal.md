@@ -1,31 +1,33 @@
-# Figure 3.10: Momentum contrast: query encoder, key encoder and queue
+# Figure 3.6: Momentum contrast: query encoder, key encoder and queue
 
 **Status:** Detailed production brief only. No artwork is included in this branch.
 
 ## Purpose
 
-Explain the momentum encoder and dictionary queue.
+Explain the defining MoCo v1/v2 mechanism: a gradient-trained query encoder compares its output with a momentum-encoder key and a queue of previously encoded keys.
 
 ## Composition
 
-Query path, target/key path, EMA arrow and FIFO queue.
+One main pathway with query branch, stop-gradient key branch, EMA parameter update and a FIFO queue. The main figure depicts MoCo v1/v2 only.
 
 ## Required content
 
-For MoCo v1/v2, the gradient-trained query encoder outputs q. The paired view passes through a stop-gradient key encoder to k+. Compare q with k+ and queued earlier keys. Draw an EMA arrow from query parameters to key parameters and enqueue/dequeue arrows for features. Add a clearly secondary side note: MoCo v3 removes the FIFO queue and uses current-batch momentum targets gathered across workers, with an online predictor.
+The query encoder receives gradients and produces `q`. The paired view passes through a stop-gradient key encoder to produce the positive key `k+`. The query is scored against that key and queued earlier keys. Draw the EMA parameter update from query encoder parameters to key encoder parameters; separately show the queue's enqueue/dequeue operations.
+
+Mark the queue contents as features produced by earlier parameter values, so readers can see why the momentum encoder reduces abrupt drift but does not eliminate staleness.
 
 ## Exclusions
 
-No gradients into the key encoder; do not confuse EMA with queue operations.
+Do not draw gradients into the key encoder; do not conflate EMA updates with queue operations. Do not add MoCo v3 as a second mini-architecture; the prose explains that v3 removes the FIFO queue.
 
 ## Acceptance checks
 
-Label query, key, positive, queued negatives and EMA separately.
+Query, positive key, queued negatives, stop-gradient, EMA parameter update and queue operations are individually labelled and visually distinct.
 
 ## Caption
 
-Figure 3.10. Momentum contrast: query encoder, key encoder and queue.
+Figure 3.6. Momentum contrast: query encoder, key encoder and queue.
 
 ## Production note
 
-Create original explanatory artwork, not a reproduction of a paper figure or screenshot of code. Use a white background, dark grayscale-safe line work, and #3B6FB6 as the only restrained accent for key arrows or highlights. Important distinctions must remain legible in grayscale. Use flat 2D artwork: no gradients, 3D effects, Mermaid, decorative watermarks, leaderboards or unnecessary labels; component and equation labels specified by this brief are required. Keep every visual claim consistent with the manuscript and cited sources; do not invent empirical data.
+Create original explanatory artwork, not a reproduction of a paper figure or screenshot of code. Use a white background, dark grayscale-safe line work and #3B6FB6 as the only restrained accent. Use flat 2D artwork: no gradients, 3D effects, Mermaid, watermarks or decorative arrows.

@@ -1,4 +1,4 @@
-# Figure 3.29: A training loss and a probe answer different questions
+# Figure 3.18: A training loss and a probe answer different questions
 
 **Status:** Detailed production brief only. No artwork is included in this branch.
 
@@ -36,7 +36,7 @@ No JEPA architecture, no benchmark scores, no invented measurements, no single n
 
 ## Caption
 
-Figure 3.29. A training loss and a probe answer different questions.
+Figure 3.18. A training loss and a probe answer different questions.
 
 ## Production note
 

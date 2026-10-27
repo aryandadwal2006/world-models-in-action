@@ -1,4 +1,4 @@
-# Figure 3.28: Aliasing is a failure of predictive sufficiency
+# Figure 3.17: Aliasing is a failure of predictive sufficiency
 
 **Status:** Detailed production brief only. No artwork is included in this branch.
 
@@ -24,7 +24,7 @@ Equality of z and inequality of futures are central.
 
 ## Caption
 
-Figure 3.28. Aliasing is a failure of predictive sufficiency.
+Figure 3.17. Aliasing is a failure of predictive sufficiency.
 
 ## Production note
 

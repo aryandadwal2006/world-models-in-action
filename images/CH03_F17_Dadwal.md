@@ -1,4 +1,4 @@
-# Figure 3.17: VICReg separates agreement, variance and covariance
+# Figure 3.12: VICReg separates agreement, variance and covariance
 
 **Status:** Detailed production brief only. No artwork is included in this branch.
 
@@ -24,7 +24,7 @@ Each panel states the constraint and its limitation.
 
 ## Caption
 
-Figure 3.17. VICReg separates agreement, variance and covariance.
+Figure 3.12. VICReg separates agreement, variance and covariance.
 
 ## Production note
 

@@ -1,4 +1,4 @@
-# Figure 3.7: Alignment and uniformity are distinct geometric requirements
+# Figure 3.5: Alignment and uniformity are distinct geometric requirements
 
 **Status:** Detailed production brief only. No artwork is included in this branch.
 
@@ -24,7 +24,7 @@ Label the drawing conceptual rather than fitted data.
 
 ## Caption
 
-Figure 3.7. Alignment and uniformity are distinct geometric requirements.
+Figure 3.5. Alignment and uniformity are distinct geometric requirements.
 
 ## Production note
 
