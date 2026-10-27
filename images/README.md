@@ -32,5 +32,6 @@ Printed numbering follows anchor order in `manuscript/CH03_Dadwal_World_Models_i
 - Original teaching schematics only; no pasted paper figures or implementation screenshots.
 - White background, grayscale-safe dark line work and `#3B6FB6` as the only restrained accent. Flat 2D only; no gradients, 3D effects, Mermaid or decorative watermarks.
 - Worked values are illustrative, not experiment results.
-- Keep every label readable at book-column width; type must be deliberately sized for print, not screen.
+- Do not render figure numbers, titles, captions or prose descriptions inside artwork; the book layout supplies the number and caption separately.
+- Use print-sized lettering, about 1–2 pt larger than a typical screen-first infographic, and check every label at book-column width.
 - The deleted family map is not to be replaced with a new taxonomy. The method table is a navigation aid, not a claim of mutually exclusive families.

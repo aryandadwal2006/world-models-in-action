@@ -26,3 +26,10 @@
 Table 3.1 compares objective signals. Listing 3.1 is a short source-attributed excerpt from official PyTorch VICReg. The revised chapter contains 18 figure placeholders, one table and one listing.
 
 Use the individual briefs and this crosswalk to create original 2D figures with white backgrounds, grayscale-safe dark line work and restrained `#3B6FB6`. Check every equation/arrow against the text and inspect the rebuilt PDF at book-column width. No artwork is yet approved.
+
+
+## Artwork production constraints
+
+- Do not render figure numbers, titles, captions or prose descriptions inside artwork; the book layout supplies the number and caption separately.
+- Use print-sized lettering, about 1–2 pt larger than a typical screen-first infographic. All labels must remain readable at book-column width.
+- Use white backgrounds, grayscale-safe dark line work and restrained `#3B6FB6`; flat 2D only, with no gradients, 3D effects, Mermaid or decorative watermarks.
