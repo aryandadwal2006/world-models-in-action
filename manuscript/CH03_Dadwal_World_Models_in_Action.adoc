@@ -31,13 +31,13 @@ This chapter covers
 * Masked prediction and the choice of prediction target
 * Latent bottlenecks and the limits of representation evaluation
 
-A world model needs a representation that preserves distinctions relevant to predicting future observations. Pixels contain both useful information and details that a predictive model may not need. An encoder maps the observation latexmath:[x] to a representation latexmath:[z=f_\theta(x)], but compression alone does not make latexmath:[z] useful. Two observations that should lead to different predictions must not be merged merely because their images are similar.
+Chapter 2 established the contract for a useful state: it must preserve distinctions that change the future predictions the system needs to make, while discarding details that do not matter for those predictions. This chapter moves from that requirement to the learning problem: how can an encoder learn useful features when state labels are unavailable?
 
-When labels are unavailable, the training signal must be constructed from the data. Methods may identify a matching view among candidates, predict a representation produced by another branch, constrain feature statistics across a batch, or predict content hidden from the encoder. These objectives differ in their targets, their assumptions and their optimization dynamics.
+Let latexmath:[x] denote an observation and let latexmath:[f_\theta] be an encoder with output latexmath:[z=f_\theta(x)]. Self-supervised learning constructs a training signal from the data itself. A method may identify a matching view among candidates, predict a target produced by another branch, constrain feature statistics, or estimate content withheld from the input. In each case, the loss directly rewards a proxy relation; it does not directly optimize the full state contract from Chapter 2.
 
 Methods are attributed to their original papers, and paper-reported findings are distinguished from results independently reproduced for this book. The short code excerpt is attributed to the official PyTorch implementation; it illustrates the stated calculation rather than presenting a new training implementation.
 
-The central question is therefore not just whether the training loss decreases. It is what the loss rewards the encoder for preserving. A feature may solve the pretraining task yet omit information needed for a later prediction. The following sections derive the principal objectives and explain exactly what their mathematical constraints do and do not establish.
+The question throughout this chapter is specific: what must an encoder preserve to make the chosen training objective easy to satisfy, and what evidence tells us whether that information is useful for a downstream prediction?
 [#unique_section_ch3_001_the_objective_is_a_contract_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
 == Self-supervised learning foundations
 
@@ -60,7 +60,14 @@ z=f_\theta(x).
 
 A smaller representation is useful only if the information removed is unnecessary for the task. A vector may preserve object identity while losing location or orientation. It may describe a frame's appearance while losing motion that is apparent only from a sequence. Compression can remove nuisance detail, but it can also merge observations whose futures differ.
 
-Chapter 2 formalized the desired contract in terms of sufficiency, minimality and aliasing. Self-supervised objectives do not observe that contract directly. They rely on a proxy relationship in the data. A representation may perform well on the proxy task while failing to retain information the world model needs.
+[#ch3-figure-F02,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
+.The representation contract
+[.figure-placeholder%unbreakable]
+****
+**Artwork placeholder: Figure 3.1.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F02_Dadwal.md.
+****
+
+Chapter 2 formalized this contract in terms of sufficiency, minimality and aliasing. Here the distinction is between the property the state should have and the proxy relation the training loss actually enforces.
 
 [#unique_section2_ch3_003_invariance_is_a_decision_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === Invariance is a decision
@@ -106,6 +113,12 @@ That reduction is beneficial only if the target of interest is constant within e
 
 Invariance is also different from *equivariance*. An invariant representation remains unchanged under a transformation. An equivariant representation changes in a predictable way. For example, if an image is translated, an image-level category feature may ideally remain fixed, while a spatial feature map may shift in correspondence with the image. Classification and localization therefore need not prefer the same transformation behavior. A feature map that is deliberately equivariant can be more useful than a globally invariant vector when the target depends on where a feature occurs.
 
+[#ch3-figure-F03,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
+.Augmentation defines the invariances rewarded by training
+[.figure-placeholder%unbreakable]
+****
+**Artwork placeholder: Figure 3.2.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F03_Dadwal.md.
+****
 
 Historically, visual self-supervision used hand-designed pretext tasks such as predicting image rotation (Gidaris et al., 2018), restoring the spatial order of jigsaw patches (Noroozi and Favaro, 2016), predicting spatial context (Doersch et al., 2015), and colorizing grayscale images (Zhang et al., 2016). These tasks assign synthetic targets to unlabeled data and make the target-design assumption easy to see. They remain useful conceptual examples, but the architecture survey below focuses on the broader contrastive, bootstrap, statistical, clustering and masked-prediction families that followed.
 
@@ -117,49 +130,22 @@ These are pretext tasks: targets are generated from the input rather than suppli
 Every self-supervised method constructs a target relationship from the data. The relationship may be agreement between views, a ranking among candidates, a teacher's output distribution, statistics of a feature batch, a cluster assignment or a missing patch. Ask what information makes that relationship easy to satisfy, then ask whether that information is what the downstream model needs.
 ****
 
-The map below groups methods by their dominant training signal while allowing overlap between families.
-
-The family map in figure 3.1 groups objectives by the signal they construct, rather than by publication date.
-
-[#ch3-figure-F01,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.Self-supervised objectives grouped by their training signal
-[.figure-placeholder%unbreakable]
-****
-**Artwork placeholder: Figure 3.1.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F01_Dadwal.md.
-****
-
-[#ch3-figure-F02,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.The representation contract
-[.figure-placeholder%unbreakable]
-****
-**Artwork placeholder: Figure 3.2.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F02_Dadwal.md.
-****
-
-
-The map is not a partition into disjoint categories. DINO uses teacher-student self-distillation over prototype outputs; iBOT joins masking and teacher targets; wav2vec 2.0 combines masking, quantization and contrastive discrimination.
-
-[#ch3-figure-F03,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.Augmentation defines the invariances rewarded by training
-[.figure-placeholder%unbreakable]
-****
-**Artwork placeholder: Figure 3.3.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F03_Dadwal.md.
-****
+The methods in this chapter are grouped by their main teaching mechanism, not as a universal taxonomy. Mechanisms overlap: DINO matches teacher distributions over prototypes, iBOT combines masked patch prediction with teacher targets, and wav2vec 2.0 combines masking with contrastive discrimination. The section order is an editorial route through the material, not a claim that each method belongs to one exclusive family.
 
 [#unique_section_ch3_004_contrastive_learning_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
 == Contrastive learning
-
-
-[#ch3-figure-F04,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.Constructing positives and negatives
-[.figure-placeholder%unbreakable]
-****
-**Artwork placeholder: Figure 3.4.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F04_Dadwal.md.
-****
 
 [#unique_section2_ch3_005_from_pairs_to_candidate_classification_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === From pairs to candidate classification
 
 A contrastive method begins with an anchor, a related positive example and distractors called negatives. The encoder maps each example to a feature vector. A similarity function scores the anchor against each candidate. Training rewards the positive for receiving a higher score than the negatives.
+
+[#ch3-figure-F04,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
+.Constructing positives and negatives
+[.figure-placeholder%unbreakable]
+****
+**Artwork placeholder: Figure 3.3.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F04_Dadwal.md.
+****
 
 In the common two-view construction, each source example latexmath:[x_n] is transformed independently twice:
 
@@ -176,7 +162,6 @@ If two different source examples are semantically equivalent, treating one as an
 The negative set is part of the statistical problem, not just a source of extra examples. A contrastive loss trains the encoder to preserve distinctions that help identify the positive against the sampled candidates. If negatives are easy, the model can often solve the task using broad visual cues. As training improves, the most probable negatives dominate the gradient and the model is pushed to distinguish harder cases. This can sharpen useful features, but it can also make the learned geometry depend on details of the candidate distribution.
 
 The loss does not tell the model which differences are semantically important. It only supplies a ranking label for the candidates. If the dataset repeatedly pairs two views of the same source image while treating every other image as negative, the representation is encouraged to keep same-source views close and other sampled views relatively separated. Two different images of the same object may still be pushed apart. Methods that use multiple positives, debiased negatives or semantic labels change this constraint, but they also change the learning problem.
-
 
 For two feature vectors, cosine similarity is their dot product after unit normalization:
 
@@ -231,23 +216,14 @@ For a cosine score latexmath:[s(u,v)=\hat u^\top\hat v], where latexmath:[\hat u
 
 This gradient changes the direction of a normalized vector to improve its relative score. In a neural network, the same representation can appear as an anchor and as a candidate in other loss terms, so its total gradient accumulates contributions from all those roles. Contrastive learning is not merely “pull positives together”: it adjusts the representation so that positives outrank the negatives in the sampled candidate set.
 
-The InfoNCE schematic visualizes the anchor, candidate set, softmax distribution and resulting gradient.
+Figure xref:ch3-figure-F05[] combines the worked candidate-classification example with the derivative of the loss with respect to each scaled similarity logit.
 
 [#ch3-figure-F05,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.InfoNCE as candidate classification
+.InfoNCE: candidate probabilities and gradients
 [.figure-placeholder%unbreakable]
 ****
-**Artwork placeholder: Figure 3.5.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F05_Dadwal.md.
+**Artwork placeholder: Figure 3.4.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F05_Dadwal.md.
 ****
-
-
-[#ch3-figure-F06,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.How the InfoNCE gradient acts on candidate scores
-[.figure-placeholder%unbreakable]
-****
-**Artwork placeholder: Figure 3.6.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F06_Dadwal.md.
-****
-
 
 [#unique_section2_ch3_006_what_infoNCE_does_and_does_not_prove_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === What InfoNCE does and does not prove
@@ -310,35 +286,10 @@ Uniformity is not semantic correctness: features can spread out while encoding b
 .Alignment and uniformity are distinct geometric requirements
 [.figure-placeholder%unbreakable]
 ****
-**Artwork placeholder: Figure 3.7.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F07_Dadwal.md.
+**Artwork placeholder: Figure 3.5.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F07_Dadwal.md.
 ****
 
-[#unique_section2_ch3_031_energy_based_scores_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
-=== The energy-based view of contrastive scores
-
-An energy-based model assigns a scalar compatibility score, or energy, to a configuration. Lower energy means the model regards the configuration as more compatible with the observed evidence. For an anchor latexmath:[x] and candidate latexmath:[y], let latexmath:[E_\theta(x,y)] be the energy. A conditional distribution can be written
-
-[latexmath]
-++++
-p_\theta(y\mid x)=
-\frac{\exp[-E_\theta(x,y)]}
-{\sum_{y'}\exp[-E_\theta(x,y')]}.
-++++
-
-The denominator is a partition function: it normalizes the scores over all candidate values latexmath:[y']. If the candidate space is large or continuous, computing that normalizer can be difficult. An unnormalized energy function can still rank alternatives, but ranking alone is not the same as having an explicitly normalized probability model over the full space.
-
-Contrastive learning can be read as energy-based candidate classification. Set latexmath:[E_\theta(x,y)=-s_\theta(x,y)/\tau]. The softmax over the anchor's sampled candidates assigns lower energy to the positive and higher energy to alternatives. The NT-Xent gradient therefore has the same structure as ordinary cross-entropy over candidate energies: lower the positive's energy relative to the negatives, with more gradient assigned to negatives that currently receive high probability. The candidate denominator in InfoNCE is a finite, sampled normalization, not necessarily the full partition function over every possible image or latent.
-
-This connection clarifies both the power and the limit of the method. A learned energy can represent a rich compatibility relation without immediately providing a tractable normalized distribution over all images. If the goal is classification among a fixed candidate set, ranking may be enough. If the goal is generation, likelihood evaluation or drawing samples from the full distribution, additional machinery is needed. Denoising diffusion models, discussed later, use a different training construction to learn a sequence of denoising transitions; they should not be treated as merely a larger InfoNCE denominator.
-
-Energy-based learning is a general framework rather than a synonym for contrastive learning. Some energy-based methods compare observed configurations to generated or sampled alternatives; some train through likelihood or margin-based objectives. InfoNCE is one particular candidate-discrimination loss whose energy interpretation is especially transparent because its normalization and gradient are explicit. See LeCun et al. (2006) for the broader framework.
-
-[#ch3-figure-F08,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.A contrastive score, an energy model and a diffusion process
-[.figure-placeholder%unbreakable]
-****
-**Artwork placeholder: Figure 3.8.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F08_Dadwal.md.
-****
+An energy-based model assigns compatibility scores and defines a probability distribution only after a normalizer is specified. InfoNCE can be interpreted as candidate classification using energies, but its denominator normalizes over the sampled candidate set, not generally over every possible image or latent. Candidate ranking is therefore not equivalent to a tractable generative model of the full observation distribution. Broader energy-based methods and diffusion models have different objectives and sampling requirements; their generative details are covered later in the book (LeCun et al., 2006).
 
 [#unique_section2_ch3_007_simclr_and_moco_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === SimCLR and MoCo: two ways to construct candidates
@@ -377,19 +328,13 @@ The momentum encoder remains stop-gradient and EMA-updated; the online path has 
 
 Both methods remain sensitive to the definition of positive pairs and negatives. The queue expands the candidate set, while the momentum encoder mitigates abrupt feature drift without eliminating staleness. Neither mechanism establishes that every negative is semantically different.
 
-
-[#ch3-figure-F09,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.SimCLR's two-view encoder and projection head
-[.figure-placeholder%unbreakable]
-****
-**Artwork placeholder: Figure 3.9.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F09_Dadwal.md.
-****
+Figure xref:ch3-figure-F10[] shows the queue-based MoCo v1/v2 mechanism. MoCo v3 changes that candidate construction and is distinguished in the text rather than crowded into the same drawing.
 
 [#ch3-figure-F10,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Momentum contrast: query encoder, key encoder and queue
 [.figure-placeholder%unbreakable]
 ****
-**Artwork placeholder: Figure 3.10.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F10_Dadwal.md.
+**Artwork placeholder: Figure 3.6.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F10_Dadwal.md.
 ****
 
 [#unique_section2_ch3_034_historical_contrastive_branches_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
@@ -407,13 +352,6 @@ SimCLR and MoCo are central modern examples, but their shared candidate-classifi
 
 These methods all construct a discrimination problem, but their positive relations and sampling distributions differ. Wu et al. (2018) study non-parametric instance discrimination; Misra and van der Maaten (2020) construct pretext-invariant representations; Tian et al. (2020) use contrastive multiview coding; and Bachman et al. (2019) introduce AMDIM. Any information-bound interpretation must follow the actual candidate sampler, not the generic label “contrastive.”
 
-[#ch3-figure-F11,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.Historical contrastive objectives change the positive relation
-[.figure-placeholder%unbreakable]
-****
-**Artwork placeholder: Figure 3.11.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F11_Dadwal.md.
-****
-
 [#unique_section2_ch3_008_cpc_as_a_historical_bridge_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === CPC as a historical bridge
 
@@ -425,7 +363,7 @@ A CPC future-latent retrieval score only shows that the correct future code can 
 .CPC: causal context predicts future latent candidates
 [.figure-placeholder%unbreakable]
 ****
-**Artwork placeholder: Figure 3.12.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F12_Dadwal.md.
+**Artwork placeholder: Figure 3.7.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F12_Dadwal.md.
 ****
 
 [#unique_section_ch3_005_noncontrastive_objectives_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
@@ -445,6 +383,13 @@ L_{\mathrm{inv}}=\frac{1}{N}\sum_{i=1}^{N}\lVert z_i-z_i'\rVert_2^2.
 
 If the encoder maps every input to the same constant vector latexmath:[c], then latexmath:[z_i=z_i'=c] for every example and the loss is zero. The objective has no term requiring different inputs to remain distinguishable. A constant output is therefore a collapsed solution, even though it is useless for representing the data.
 
+[#ch3-figure-F13,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
+.Why agreement alone permits collapse
+[.figure-placeholder%unbreakable]
+****
+**Artwork placeholder: Figure 3.8.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F13_Dadwal.md.
+****
+
 This observation does not mean every method that matches two views will collapse. It means agreement alone cannot rule collapse out. The architecture, stop-gradient placement, target updates, normalizations and optimization dynamics affect which solutions training reaches. The methods below differ in precisely those mechanisms; none should be described as having a universal guarantee based only on its loss formula.
 
 It is useful to distinguish complete collapse from dimensional collapse. In complete collapse, all inputs map to the same vector and the representation contains no information about differences between examples. In dimensional collapse, the output varies, but most of its covariance is concentrated in a small number of directions. A model can therefore avoid the constant solution and still use its nominal latexmath:[d]-dimensional space inefficiently.
@@ -463,13 +408,6 @@ r_{\mathrm{eff}}=\exp\!\left(-\sum_i p_i\log p_i\right).
 The quantity latexmath:[r_{\mathrm{eff}}] is an effective-rank diagnostic. If all variance lies in one direction, the distribution latexmath:[p_i] is concentrated and the effective rank is near one. If variance is spread evenly across latexmath:[d] directions, the effective rank is latexmath:[d]. This statistic differs from the count of nonzero dimensions: a representation can have a formally full-rank covariance matrix while almost all its variance lies in a few directions.
 
 Effective rank remains a geometric diagnostic, not a semantic one. A high-rank representation can encode color noise, background texture or image identity; a low-rank representation can still preserve all information required for a simple target. Variance, covariance and effective rank tell us about the distribution of features across a batch. They do not identify what the features mean or prove that a selected future variable is recoverable. That requires a separate target-specific evaluation.
-
-[#ch3-figure-F13,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.Why agreement alone permits collapse
-[.figure-placeholder%unbreakable]
-****
-**Artwork placeholder: Figure 3.13.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F13_Dadwal.md.
-****
 
 [#unique_section2_ch3_010_byol_and_simsiam_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === BYOL and SimSiam: bootstrap prediction
@@ -507,8 +445,6 @@ D(p_1,\mathrm{sg}(\bar z_2))
 
 During a gradient step, the first term updates the online encoder, projector and predictor through latexmath:[p_1] while the target value latexmath:[\bar z_2] is fixed. The second term swaps the views. After the gradient step, EMA moves the target toward the updated online parameters. Across repeated updates, older online weights have geometrically decreasing influence; at latexmath:[m=0] the target copies the online network, while larger latexmath:[m] slows its change. This temporal smoothing is part of BYOL's optimization dynamics, not a universal proof against collapse.
 
-
-
 SimSiam (Chen and He, 2021) uses the same encoder and projector for both views and a predictor on each branch, but no EMA target network. With latexmath:[z_i=g(f(x_i))] and latexmath:[p_i=q(z_i)], its symmetric loss has the form
 
 [latexmath]
@@ -530,13 +466,11 @@ D_{\mathrm{SimSiam}}(p,z)
 
 Minimizing this negative cosine similarity maximizes directional agreement without requiring the two vectors to have the same norm. In latexmath:[D(p_1,\mathrm{sg}(z_2))], the numerical value of latexmath:[z_2] still affects the loss, but its target-side gradient is removed. Because the loss is symmetric and both views share an encoder, that view still contributes encoder gradients when it serves as the predictor-side representation in the opposite term. The original SimSiam study found stop-gradient essential to its tested recipe; this is not a theorem that every detached Siamese network avoids collapse.
 
-
-
 [#ch3-figure-F14,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .BYOL and SimSiam: similar predictors, different target updates
 [.figure-placeholder%unbreakable]
 ****
-**Artwork placeholder: Figure 3.14.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F14_Dadwal.md.
+**Artwork placeholder: Figure 3.9.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F14_Dadwal.md.
 ****
 
 [#unique_section2_ch3_011_dino_and_self_distillation_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
@@ -570,15 +504,13 @@ For a fixed teacher target, the entropy term is constant with respect to the stu
 
 Centering and sharpening address different undesirable target distributions. Without centering, one output coordinate can dominate across many inputs, encouraging the teacher to repeatedly favor the same prototype. Centering counteracts this dominance, but by itself may encourage overly uniform outputs. Sharpening lowers the teacher temperature, making each target distribution more concentrated rather than uniform. Their combination helps retain input-dependent assignments. These are practical anti-collapse mechanisms of the DINO recipe; they should not be generalized into a theorem that centering and sharpening alone guarantee useful features in every architecture or training setup.
 
-
 Prototype indices are learned output coordinates, not automatically human-defined categories. DINO is best understood as self-distillation with a prototype distribution, rather than as an ordinary clustering algorithm.
 
 Multi-crop training supplies a useful extra constraint. The teacher receives the larger global crops, while the student also sees smaller local crops. A local crop usually lacks some of the global context, so its output must match a target produced from a different field of view. This encourages features to remain consistent across scales, but a local crop may not contain enough evidence to infer every property of the full scene. The crop protocol determines which consistency the objective rewards.
 
 These releases also illustrate a general caution: reported improvements belong to a complete training system, including data, architecture, optimization and evaluation, rather than to an isolated loss substitution. The following details separate the original DINO mechanism from components added in later recipes.
 
-
-DINOv2 is a combined training recipe, not simply a replacement loss: it combines class-token DINO distillation, iBOT-style masked patch distillation and a KoLeo nearest-neighbour regularizer. The class branch matches teacher distributions across crops; the patch branch predicts teacher prototype distributions at masked student positions; KoLeo discourages local crowding in normalized backbone features. Depending on configuration, targets may use centering or Sinkhorn-Knopp balancing. Centering subtracts a running mean of teacher logits; Sinkhorn-Knopp iteratively balances assignment marginals. They are not synonyms.
+DINOv2 is a combined training recipe, not simply a replacement loss: it combines class-token DINO distillation, iBOT-style masked patch distillation and a KoLeo nearest-neighbour regularizer. The class branch matches teacher distributions across crops; the patch branch predicts teacher prototype distributions at masked student positions; KoLeo discourages local crowding in normalized backbone features. In the DINOv2 recipe, centering is used for class-token distillation, while Sinkhorn-Knopp balances patch-level assignments in the masked-patch branch. The precise target construction belongs to the cited recipe; these operations are not interchangeable.
 
 DINOv3 retains related distillation machinery and adds large-scale data, architecture and training choices. Gram anchoring, when enabled, matches teacher and student pairwise patch-similarity matrices rather than requiring coordinate-by-coordinate equality of feature vectors. It is a relational constraint, not proof of physical-state sufficiency, and it is configuration-dependent. The DINOv2 and DINOv3 papers describe broader training recipes; their results should not be attributed to Gram anchoring alone without controlled ablations.
 
@@ -586,14 +518,13 @@ DINOv3 retains related distillation machinery and adds large-scale data, archite
 .DINO teacher-student cross-view distillation
 [.figure-placeholder%unbreakable]
 ****
-**Artwork placeholder: Figure 3.15.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F15_Dadwal.md.
+**Artwork placeholder: Figure 3.10.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F15_Dadwal.md.
 ****
 
 [#unique_section2_ch3_012_redundancy_reduction_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === Redundancy reduction and explicit variance constraints
 
 BYOL, SimSiam and DINO make training dynamics or teacher targets central to avoiding trivial solutions. Barlow Twins (Zbontar et al., 2021) and VICReg (Bardes et al., 2022) express another idea: require paired views to agree, but constrain the statistics of features across a batch.
-
 
 [#unique_section2_ch3_013_barlow_twins_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === Barlow Twins: cross-correlation toward identity
@@ -628,13 +559,11 @@ The diagonal terms encourage each coordinate to agree with its counterpart acros
 
 The coefficient latexmath:[\lambda] sets the strength of decorrelation relative to alignment. This is a second-order constraint: uncorrelated features can still have nonlinear dependence, and the coordinates are not automatically meaningful physical variables. Barlow Twins specifies a pattern for the batch cross-correlation matrix, not merely a distance between paired vectors.
 
-
-
 [#ch3-figure-F16,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Barlow Twins: the cross-correlation matrix
 [.figure-placeholder%unbreakable]
 ****
-**Artwork placeholder: Figure 3.16.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F16_Dadwal.md.
+**Artwork placeholder: Figure 3.11.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F16_Dadwal.md.
 ****
 
 [#unique_section2_ch3_014_vicreg_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
@@ -689,13 +618,18 @@ The variance penalty and covariance penalty are deliberately different. A coordi
 
 The reductions are part of the definition. In latexmath:[s(Z,Z')], the squared feature-vector difference is summed over coordinates and averaged over examples; it is not automatically the same scalar as elementwise mean-squared error that divides by both batch size and feature dimension. That difference rescales the invariance term by the embedding dimension, changing the effective balance between latexmath:[\lambda], latexmath:[\mu] and latexmath:[\nu]. When comparing equations and implementations, check whether the norm is summed per example or averaged per coordinate before interpreting the coefficients.
 
-A fully constant representation makes latexmath:[s(Z,Z')=0] and makes all off-diagonal covariances zero, but it also makes each standard deviation zero. For any positive margin latexmath:[\gamma], the variance term is therefore positive. In this sense, the variance floor makes exact constant collapse incompatible with minimizing all three terms simultaneously. This explicit penalty differs from BYOL or SimSiam, where a constant representation can make the view-agreement part of the objective small. It still does not guarantee that optimization never reaches a bad solution or that nonconstant directions encode the desired semantics.
-
-
+A fully constant representation makes latexmath:[s(Z,Z')=0] and makes all off-diagonal covariances zero, but it also makes each standard deviation zero. With the usual positive margin latexmath:[\gamma>\sqrt{\epsilon}], the variance term is therefore positive. In this sense, the variance floor makes exact constant collapse incompatible with minimizing all three terms simultaneously. This explicit penalty differs from BYOL or SimSiam, where a constant representation can make the view-agreement part of the objective small. It still does not guarantee that optimization never reaches a bad solution or that nonconstant directions encode the desired semantics.
 
 The methods are related but not identical. Barlow Twins uses normalized cross-correlation as the central matrix objective. VICReg uses a direct invariance term, a standard-deviation floor and a covariance penalty. Their shared lesson is that view agreement and non-collapse are separate requirements. Their moment constraints are not a guarantee of a world-model-ready state.
 
 A simple two-coordinate example makes the distinction concrete. If both coordinates are copies of the same varying scalar, their variances may exceed the margin, so the variance term is satisfied; however, their covariance is high and the covariance term penalizes them. If the second coordinate is constant, its covariance with the first may be zero, but its standard deviation is below the margin and the variance term penalizes it. Only a feature batch with adequate spread and sufficiently low linear redundancy can make both statistical penalties small. The remaining variation can still describe the wrong thing, so a separate task-based evaluation is necessary.
+
+[#ch3-figure-F17,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
+.VICReg separates agreement, variance and covariance
+[.figure-placeholder%unbreakable]
+****
+**Artwork placeholder: Figure 3.12.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F17_Dadwal.md.
+****
 
 [#ch3-listing-vicreg,reftext={chapter}.{counter:listing},caption='{listing-caption}.{counter:listing-number} ']
 .Three VICReg terms in the official PyTorch implementation (source excerpt)
@@ -723,21 +657,6 @@ loss = (self.args.sim_coeff * repr_loss
         + self.args.cov_coeff * cov_loss)
 ----
 Long expressions are wrapped to fit the book's listing width without changing the calculation. The official PyTorch implementation uses view agreement, a standard-deviation hinge with target one, and squared off-diagonal covariance. The helper and surrounding architecture are in the project's main training script. The upstream repository uses the MIT License; exact reductions and weights should be matched when reproducing a result.
-
-[#ch3-figure-F17,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.VICReg separates agreement, variance and covariance
-[.figure-placeholder%unbreakable]
-****
-**Artwork placeholder: Figure 3.17.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F17_Dadwal.md.
-****
-
-[#ch3-figure-F18,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.Core non-contrastive mechanisms at a glance
-[.figure-placeholder%unbreakable]
-****
-**Artwork placeholder: Figure 3.18.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F18_Dadwal.md.
-****
-
 
 [#unique_section2_ch3_033_distribution_shape_regularization_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === Beyond covariance: SIGReg, LeJEPA and VISReg
@@ -862,22 +781,18 @@ The *same-image global-view center* is the target for view consistency, whereas 
 The VISReg authors report stronger correction near collapse and favorable results on tested out-of-distribution, low-rank and long-tailed settings. These are reported findings, not guarantees for every optimizer or data distribution. Report batch size, projection count, objective weights, architecture and evaluation protocol when comparing these methods. Balestriero and LeCun's LeJEPA paper and the VISReg paper describe the respective recipes and assumptions.
 
 [#ch3-figure-F19,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.VICReg, SIGReg/LeJEPA and VISReg constrain different aspects of feature distributions
+.VICReg, SIGReg and VISReg constrain different aspects of feature distributions
 [.figure-placeholder%unbreakable]
 ****
-**Artwork placeholder: Figure 3.19.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F19_Dadwal.md.
+**Artwork placeholder: Figure 3.13.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F19_Dadwal.md.
 ****
 
 [#unique_section2_ch3_016_brief_other_methods_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === Other methods in brief
 
-**DeepCluster** alternates between clustering the current feature vectors and training the encoder to predict the resulting cluster assignments. The pseudo-labels therefore change as the representation changes. **SwAV** computes prototype assignments online and predicts one view's assignment from another view's features; a balancing procedure discourages all examples from being assigned to a small number of prototypes. Both methods turn unlabeled features into pseudo-targets, but differ in how assignments are generated and refreshed.
+DeepCluster alternates between clustering current features and training the encoder against the resulting pseudo-labels. SwAV instead predicts one view's prototype assignment from another view's features, using balanced assignments in the referenced recipe. In both cases, clusters are training targets, not ground-truth semantic labels.
 
-
-
-The table is an index, not a claim that these systems share one objective. In image-text training, **CLIP** (Radford et al., 2021) uses normalized image and text embeddings, a learned logit scale and cross-entropy in both image-to-text and text-to-image directions. **SigLIP** (Zhai et al., 2023) uses pairwise sigmoid/logistic terms for matched and mismatched pairs rather than the same batchwise softmax. Natural-language descriptions are supervision from data even though they are not manually assigned class labels.
-
-For speech, **wav2vec 2.0** (Baevski et al., 2020) masks latent speech frames and contrasts context features against quantized targets; **HuBERT** (Hsu et al., 2021) predicts cluster-derived targets at masked positions; **data2vec** (Baevski et al., 2022) predicts contextualized teacher features. For language, **BERT** (Devlin et al., 2019) predicts selected corrupted tokens from bidirectional context, GPT-style causal language models (Radford et al., 2019) predict the next token from a prefix, and **ELECTRA** (Clark et al., 2020) discriminates observed tokens from generator-replaced tokens. Joint-embedding predictive architectures (JEPAs), including I-JEPA and V-JEPA, predict learned target representations from context rather than reconstructing pixels; their architectures and variants are covered in Chapter 4. These examples differ in both the context available to the model and the target it must predict. Diffusion and energy-based models have different generative or probabilistic contracts and should not be folded into a single family merely because their training signals are data-derived.
+The same principle applies across modalities. CLIP aligns images with paired text using a symmetric contrastive objective, while SigLIP uses pairwise sigmoid losses. BERT predicts masked tokens, GPT-style language models predict the next token from a prefix, and ELECTRA detects replaced tokens. In speech, wav2vec 2.0 contrasts contextual features with quantized targets, HuBERT predicts cluster-derived targets, and data2vec predicts teacher features. These are brief examples of different target constructions, not additional method tutorials. JEPA architecture remains in Chapter 4, and generative modelling remains in the later chapters.
 
 [#ch3-table-T01,reftext={chapter}.{counter:table},caption='{table-caption}.{counter:table-number} ']
 .Self-supervised objectives compared by the signal they construct
@@ -896,20 +811,6 @@ For speech, **wav2vec 2.0** (Baevski et al., 2020) masks latent speech frames an
 |JEPAs |Predict target embeddings from context |Feature prediction does not automatically yield a sufficient state
 |DeepCluster / SwAV |Predict or match pseudo-cluster assignments |Cluster assignments need not correspond to downstream concepts
 |===
-
-[#ch3-figure-F20,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.DeepCluster and SwAV: pseudo-labels and prototypes
-[.figure-placeholder%unbreakable]
-****
-**Artwork placeholder: Figure 3.20.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F20_Dadwal.md.
-****
-
-[#ch3-figure-F21,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.Different modalities create different self-supervised targets
-[.figure-placeholder%unbreakable]
-****
-**Artwork placeholder: Figure 3.21.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F21_Dadwal.md.
-****
 
 [#unique_section_ch3_016_masked_prediction_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
 == Masked prediction: choose what the model must recover
@@ -947,10 +848,8 @@ The target-space schematic holds the mask fixed and changes only the prediction 
 .One visible context, several masked-prediction targets
 [.figure-placeholder%unbreakable]
 ****
-**Artwork placeholder: Figure 3.22.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F23_Dadwal.md.
+**Artwork placeholder: Figure 3.14.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F23_Dadwal.md.
 ****
-
-
 
 [#unique_section2_ch3_018_mae_pixels_and_asymmetry_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === MAE: predict masked pixels
@@ -970,14 +869,13 @@ The normalization is over masked patches, so visible patches do not contribute t
 
 The original MAE recipe uses a high masking ratio, 75% of image patches. The encoder therefore processes a sparse visible subset, reducing token-processing cost. The mask ratio also controls prediction difficulty: with few masked patches, more of the image is directly available as context; with too many, the visible content may not determine the missing patches well. The 75% setting is characteristic of the original recipe, not a universal optimum for every resolution, patch size, decoder or target.
 
-
 The architecture in xref:ch3-figure-F24[] shows why the MAE encoder sees only visible patches while its decoder reconstructs masked positions.
 
 [#ch3-figure-F24,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .MAE's visible-only encoder and masked-patch decoder
 [.figure-placeholder%unbreakable]
 ****
-**Artwork placeholder: Figure 3.23.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F24_Dadwal.md.
+**Artwork placeholder: Figure 3.15.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F24_Dadwal.md.
 ****
 
 [#unique_section2_ch3_019_beit_ibot_and_data2vec_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
@@ -1007,42 +905,14 @@ These objectives predict a target *conditioned on what remains visible*. They do
 
 The target also controls the granularity of the error signal. Pixel regression distinguishes exact pixel values and penalizes large numerical deviations more than small ones. Discrete-code cross-entropy cares whether probability is assigned to the correct code, with similarities between codes not automatically reflected in the loss. Teacher-feature regression uses distances in a learned embedding space, so two different target patches may be considered close if the teacher represents them similarly. No target is universally best: the choice decides what counts as a meaningful prediction error.
 
-
 data2vec (Baevski et al., 2022) predicts contextualized teacher features from masked input and was designed as a framework spanning speech, vision and language. A teacher feature has already aggregated context and training biases from the teacher; it is not simply the original pixel content transformed by a fixed operation. This can make the target more structured, but the student also inherits omissions and biases in the teacher's feature space.
 
 BERT-style masked language modeling predicts selected corrupted tokens from bidirectional context. GPT-style causal language modeling predicts the next token from preceding tokens only. ELECTRA trains a discriminator to detect replaced tokens. These are brief analogies for target/context construction, not additional implementation tutorials.
 
-[#ch3-figure-F25,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.Discrete tokens and teacher features are different masked targets
-[.figure-placeholder%unbreakable]
-****
-**Artwork placeholder: Figure 3.24.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F25_Dadwal.md.
-****
-
-[#unique_section2_ch3_032_diffusion_and_masked_prediction_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
-=== Masked prediction and diffusion solve different problems
-Masked prediction and diffusion both infer targets from corrupted inputs, but they define different tasks. A masked objective selects positions and predicts their hidden contents from the visible context. In MAE the target is pixels; BEiT uses discrete codes; iBOT and data2vec use teacher-derived targets.
-
-Diffusion instead corrupts a sample at a chosen noise level and trains a denoiser to estimate the corruption or an equivalent score-related target. A schedule of noise levels and a reverse denoising process turn that objective into a generative sampling procedure. A masked-prediction encoder is commonly transferred after its decoder is removed; predicting missing patches does not, by itself, define a generative model over complete images. Conversely, a diffusion model may learn useful internal features, but its denoising objective does not guarantee a compact state sufficient for a downstream prediction.
-
-The key distinction here is between the target used to train a representation and the process required to generate complete samples. Diffusion parameterizations, noise schedules and sampling belong to the book's later treatment of generative models.
-
-[#ch3-figure-F26,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.Masked prediction and diffusion learn different conditional tasks
-[.figure-placeholder%unbreakable]
-****
-**Artwork placeholder: Figure 3.25.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F26_Dadwal.md.
-****
+Masked prediction and diffusion both learn from corrupted inputs, but their conditional tasks differ. A masked objective predicts selected hidden targets from visible context. A diffusion denoiser predicts a corruption-related target at a chosen noise level, and a specified reverse process turns those predictions into samples. Neither patch reconstruction nor noise prediction alone establishes that an encoder is sufficient for a world-model state; diffusion mechanics belong in Chapter 9.
 
 [#unique_section_ch3_024_latent_bottlenecks_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
 == Latent bottlenecks
-
-[#ch3-figure-F27,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.The projection head, global vector and local feature grid
-[.figure-placeholder%unbreakable]
-****
-**Artwork placeholder: Figure 3.26.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F27_Dadwal.md.
-****
 
 [#unique_section2_ch3_024_bottleneck_dimension_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === Dimension is capacity, not useful information
@@ -1067,13 +937,9 @@ I(Z;Y)=I(X;Y).
 
 The representation has retained all information that latexmath:[X] provides about latexmath:[Y], even if it has discarded many details of latexmath:[X] unrelated to latexmath:[Y]. A minimal sufficient representation seeks to retain that predictive information while minimizing what it carries about the rest of the input. The information-bottleneck objective expresses a trade-off, not a direct recipe for finding a unique vector. Different representations can be equally sufficient, especially when features are transformed by invertible maps.
 
-
-
 The important question is not “how small can the vector be?” It is “which distinctions can be discarded without changing the predictions we need to make?” A representation useful for image retrieval may be insufficient for predicting motion if it merges observations with different velocities or hidden states.
 
 This is why raw dimension is not the same as information rate. A real-valued vector with a small number of coordinates can, in principle, encode many distinctions in very fine numerical differences. In practice, finite precision, noise, limited data and the smoothness of learned functions constrain how reliably such distinctions can be used. Conversely, a very wide feature may carry highly redundant coordinates. Dimension is a proxy for capacity, while useful compression concerns which differences remain reliably decodable under the conditions where the model will be used.
-
-
 
 [#unique_section2_ch3_025_projection_head_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === The projection head and the feature that survives
@@ -1089,7 +955,6 @@ h=f_\theta(x),\qquad z=g_\phi(h).
 The loss is calculated on latexmath:[z], while the representation evaluated downstream is often latexmath:[h]. A projection head gives the pretraining objective a dedicated space in which to impose its constraints. It does not follow that latexmath:[z] and latexmath:[h] have the same geometry or serve the same downstream purpose.
 
 The exported tensor must be identified explicitly. Some evaluations use the feature latexmath:[h] before the projector; others use intermediate or patch-level transformer features. A low pretraining loss measured on latexmath:[z] is not itself evidence that the feature latexmath:[h] has the same geometry or usefulness. The projector can change the geometry substantially because it is a learned, generally nonlinear map. The pretraining loss directly constrains latexmath:[z], not every pairwise relation in latexmath:[h]. Claims about representation quality should state the tensor and evaluation protocol rather than infer quality from training loss alone.
-
 
 [#unique_section2_ch3_026_global_local_ID,reftext={chapter}.{section}.{subsection},caption='{chapter}.{section}.{subsection}']
 === A global vector or a grid of local features?
@@ -1107,7 +972,12 @@ This compresses the grid into one vector and removes explicit patch indexing fro
 
 The pooling equation also gives a simple source of aliasing. Consider two feature grids whose patch vectors are identical as a multiset but appear in different spatial orders. Average pooling gives the same sum, hence the same global vector, even though the arrangements differ. If the target depends on the arrangement, the pooled representation cannot be sufficient for that target. Positional information elsewhere in the encoder can reduce such collisions, but the pooling operation itself does not preserve the index of each patch.
 
-
+[#ch3-figure-F27,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
+.The training representation and the downstream interface
+[.figure-placeholder%unbreakable]
+****
+**Artwork placeholder: Figure 3.16.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F27_Dadwal.md.
+****
 
 [#unique_section2_ch3_027_compression_sufficiency_ID,reftext={chapter}.{section}.{subsection},caption='{chapter}.{section}.{subsection}']
 === Compression and predictive sufficiency
@@ -1116,74 +986,56 @@ A useful representation retains enough information for the relevant prediction w
 
 Here, *compact* means constrained and usable by downstream prediction, not necessarily information-theoretically minimal. The bottleneck should be selected and tested against the downstream task. A low-dimensional representation that aliases important states is not a success; a larger representation is not automatically better if it mostly stores nuisance detail.
 
-
-
 [#unique_section_ch3_026_a_world_model_audit_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
 == Compact state representations
 
-[#ch3-figure-F29,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.An encoder can provide a vector, spatial tokens or temporal context
-[.figure-placeholder%unbreakable]
-****
-**Artwork placeholder: Figure 3.27.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F29_Dadwal.md.
-****
+Chapter 2's state contract now becomes an evaluation question: does the representation preserve the distinctions needed to predict a specified target from the history available at inference? A low pretraining loss answers a narrower question. It shows that the model has learned to satisfy the relation supplied by its training objective.
 
-
-[#ch3-figure-F28,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.Aliasing is a failure of predictive sufficiency
-[.figure-placeholder%unbreakable]
-****
-**Artwork placeholder: Figure 3.28.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F28_Dadwal.md.
-****
-
-A low self-supervised loss establishes only that the representation satisfies its training objective. It does not establish that the representation is useful for the quantity a downstream model must predict. The distinction is mathematical: each pretraining objective constrains a selected relation, whereas predictive sufficiency concerns the full conditional distribution of a specified target.
-
-A linear probe tests whether a selected property is accessible through a linear map:
+A linear probe tests whether a selected property is accessible through a linear readout:
 
 [latexmath]
 ++++
 \hat y=Wz+b.
 ++++
 
-A poor score does not prove the property is absent; the representation may encode it nonlinearly. A high score establishes linear accessibility under that probe and data split, not sufficiency for every possible target. Probe results should identify the feature tensor, normalization, readout family, training split and held-out evaluation set. Otherwise, a reported difference can reflect feature selection, readout capacity or data leakage rather than the representation itself.
+A high score establishes linear accessibility under the stated probe, data split and feature choice. A low score does not establish that the property is absent; it may be encoded nonlinearly or be inaccessible to the chosen readout. Report the exported tensor, normalization, readout, training split and held-out metric so that a probe result has a clear interpretation.
 
-Other diagnostics measure other things. Per-coordinate variance can detect dimensions that are constant across a batch. The covariance spectrum can reveal whether most feature variation lies in only a few directions. Nearest-neighbor retrieval measures local geometry under a selected distance. Reconstruction evaluates a particular target and decoder. Contrastive retrieval evaluates ranking among a sampled candidate set. These results are not interchangeable: none alone demonstrates that the representation preserves every distinction required to predict the future.
+Other diagnostics answer different questions. Per-coordinate variance detects dimensions that are constant across a batch. The covariance spectrum measures how feature variation is distributed across directions. Nearest-neighbour retrieval tests local geometry under a selected metric, and reconstruction measures recovery of a chosen target. Each diagnostic has scope; none alone certifies that the representation preserves everything needed for future prediction.
 
-A useful formal definition is *predictive sufficiency*. Let latexmath:[X] denote the available observation or observation history, latexmath:[Z=f(X)] the representation, and latexmath:[Y] the future target. The representation is sufficient for latexmath:[Y] if
+Using Chapter 2's predictive-sufficiency condition, let latexmath:[X] denote the observation or history available to the encoder, latexmath:[Z=f(X)] its representation, and latexmath:[Y] the prediction target. Sufficiency for that target means
 
 [latexmath]
 ++++
 P(Y\mid X)=P(Y\mid Z).
 ++++
 
-Equivalently, latexmath:[Y\perp X\mid Z]: after conditioning on latexmath:[Z], the full input provides no additional information about latexmath:[Y]. This definition is relative to the target distribution. A representation can be sufficient for a coarse category while not being sufficient for a precise location, or sufficient for a one-step target while losing information required for a longer horizon. There is no target-independent scalar score that certifies sufficiency in all these settings.
+This condition depends on the target and its horizon. A representation may be sufficient for one-step category prediction and insufficient for a precise future location. For action-conditioned prediction, the same action must be considered on both sides of the comparison.
 
-The failure caused by aliasing follows immediately. Suppose two inputs map to the same representation,
+Aliasing violates the condition when two histories map to the same representation but imply different future distributions:
 
 [latexmath]
 ++++
-f(x_1)=f(x_2)=z,
-\qquad P(Y\mid x_1)\ne P(Y\mid x_2).
+f(x_1)=f(x_2)=z,\qquad P(Y\mid x_1)\ne P(Y\mid x_2).
 ++++
 
-A predictor that receives only latexmath:[z] must produce the same output distribution for both inputs. It cannot equal both distinct conditional distributions. Increasing the capacity of the downstream predictor cannot restore information removed by the encoder.
+For example, two video histories can end with an object at the same image location while showing motion in opposite directions. If the representation merges those histories, a predictor that receives only latexmath:[z] must return the same distribution for both. Increasing the predictor's capacity cannot recover a distinction the encoder discarded. This is a target-relative failure, not a claim that every pair of similar frames must have different futures.
 
-Consider two short video histories that end with an object at the same image location. In one history it has been moving left; in the other it has been moving right. If the representation discards the temporal difference and maps both histories to the same latexmath:[z], their next-frame distributions may differ even though the last frames are identical. The example does not imply that velocity must always be explicitly represented as a coordinate. It shows that distinctions that change the target distribution cannot be merged without loss relative to that target.
+[#ch3-figure-F28,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
+.Aliasing is a failure of predictive sufficiency
+[.figure-placeholder%unbreakable]
+****
+**Artwork placeholder: Figure 3.17.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F28_Dadwal.md.
+****
 
-The practical evaluation should therefore state the claim being tested. A probe supports a claim about accessibility of specified variables. A nearest-neighbor score supports a claim about local feature geometry under a specified metric. A reconstruction metric supports a claim about recovery of a chosen target. A predictive-sufficiency claim is stronger and requires evidence tied to the target distribution and observation history of interest.
+The evaluation should therefore be matched to the claim. When the aim is to preserve motion, evaluate against a motion-related target over the relevant history and horizon; a static-image retrieval score does not answer that question. A direct prediction test is stronger evidence for a named target than an unrelated pretraining metric, but it remains specific to the data, observation history, prediction horizon and readout protocol that were tested.
 
-A useful audit begins by naming the prediction target, the observations available at inference, and the horizon over which the claim is made. It then identifies the exact tensor exported by the encoder, freezes that encoder for representation probes, and reports the readout, normalization, data split and metric. The evaluation should include at least one measurement tied directly to the intended target, rather than relying only on the pretraining loss or an unrelated benchmark. When temporal or action-conditioned predictions matter, the evaluation must include histories and action conditions relevant to that setting; a static-image probe cannot answer those questions.
-
-The readout also sets a limit on the conclusion. If a linear probe fails but a nonlinear predictor succeeds, the information may be present but not linearly accessible. If both fail, the experiment still cannot prove that the information is absent under every possible decoder; it shows that the tested readouts did not recover it under the given data and optimization budget. Supervised labels used only for this evaluation should be described as evaluation targets, not as part of self-supervised pretraining. These distinctions keep a diagnostic from being promoted into a stronger claim than its design supports.
-
-
-
+If a linear probe fails while a nonlinear readout succeeds, the information may be present but not linearly accessible. If both tested readouts fail, the experiment still does not prove that the information is absent under every possible decoder; it shows that the tested procedures did not recover it. Negative R² means the fitted readout performs worse than the held-out-target mean baseline, not that the representation contains exactly zero information about the variable.
 
 [#ch3-figure-F22,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .A training loss and a probe answer different questions
 [.figure-placeholder%unbreakable]
 ****
-**Artwork placeholder: Figure 3.29.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F22_Dadwal.md.
+**Artwork placeholder: Figure 3.18.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F22_Dadwal.md.
 ****
 
 [#unique_section_ch3_027_summary_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
