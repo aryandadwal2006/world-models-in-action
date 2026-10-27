@@ -96,6 +96,10 @@ if re.search(r"^image::", source, flags=re.MULTILINE):
     errors.append("Image directives remain in prompt-only manuscript.")
 if re.search(r"\[[^\]]+\]\(https?://", source):
     errors.append("Markdown-style links remain; use native AsciiDoc link macros.")
+if re.search(r"(?i)link:https?://|https?://|www\\.", source):
+    errors.append("Outbound hyperlinks/URLs are not permitted in the chapter; use plain author-year attribution.")
+if "The JEPA context-target prediction architecture" in source or "Chapter 4 develops JEPA architecture" in source:
+    errors.append("Chapter 3 must not contain a standalone JEPA bridge/tutorial.")
 if r"\(" in source or r"\)" in source:
     errors.append("Markdown-style inline math delimiters remain; use latexmath macros.")
 if len(re.findall(r"^== References$", source, flags=re.MULTILINE)) != 1:
@@ -116,4 +120,4 @@ if errors:
     for error in errors:
         print(" - " + error)
     sys.exit(1)
-print(f"Chapter 3 validation passed: {len(headings)} headings, {len(figures)} figure placeholders/prompts, 1 table, 1 PyTorch source listing, no TensorFlow, no rendered artwork.")
+print(f"Chapter 3 validation passed: {len(headings)} headings, {len(figures)} figure placeholders/prompts, 1 table, 1 PyTorch source listing, no TensorFlow or outbound links, no rendered artwork.")
