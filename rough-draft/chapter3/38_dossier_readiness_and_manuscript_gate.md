@@ -1,7 +1,7 @@
 # Chapter 3 final-draft and publication gate
 
 **Current branch:** `manuscript-theory`  
-**State:** theory-first content revision in progress. The manuscript now has one PyTorch listing, no outbound hyperlinks, no standalone JEPA bridge/tutorial, less repeated prose, a compact diffusion comparison, and a stronger evaluation-sufficiency section. The committed PDF predates these changes and remains stale.
+**State:** the current content-editing pass is complete; source validation and PDF rebuild remain. The manuscript now has one PyTorch listing, no outbound hyperlinks, no standalone JEPA treatment, less repeated prose, a compact diffusion comparison, and a stronger evaluation-sufficiency section. The committed PDF predates these changes and remains stale.
 
 ## Scope and current form
 
@@ -15,12 +15,12 @@ The chapter contains no custom training experiments or full hand-written reimple
 
 | Gate | Current position | Remaining action |
 |---|---|---|
-| Mathematics | Equations for InfoNCE, MoCo variants, BYOL/SimSiam, DINO, Barlow Twins, VICReg, MAE, CPC, SIGReg/LeJEPA and VISReg are present. Diffusion is now a concise conceptual boundary rather than a second derivation. VISReg reductions were checked against a source-inspected reference implementation. | Final equation/source pass after the author approves and inserts actual artwork; preserve configuration-specific caveats. |
-| Prose and scope | Repeated explanations trimmed; method families distinguish their targets, gradient paths, update rules and limitations. | Final editorial review against adjacent chapters; keep JEPA to a brief mention in the survey, with its architecture owned by Chapter 4. |
+| Mathematics | Equations for InfoNCE, MoCo variants, BYOL/SimSiam, DINO, Barlow Twins, VICReg, MAE, CPC, SIGReg/LeJEPA and VISReg are present. Diffusion is now a concise conceptual boundary rather than a second derivation. VISReg reductions were checked against a source-inspected reference implementation. | Final equation/source pass on the revised source; preserve configuration-specific caveats. Artwork insertion should not introduce changes to the mathematical claims. |
+| Prose and scope | Repeated explanations trimmed; method families distinguish their targets, gradient paths, update rules and limitations. | Final editorial review against adjacent chapters; keep JEPA to a brief mention in the survey; do not reintroduce a separate bridge or architecture tutorial. |
 | Figures | 29 detailed prompts and matching source placeholders; no rendered art in this branch. | Generate original figures from the prompts, check equations/arrows/captions and page-width readability, then replace each placeholder only after approval. |
 | Official sources | Code excerpts are pinned and attributed; method links sit beside the relevant method. | Recheck source links and licenses at release. |
-| Structure | The verifier is now configured to require unique Manning-style anchors, 29 placeholders/prompts, one table, one PyTorch listing, no TensorFlow references/listings, one bibliography, native AsciiDoc math/links, and a prompt-only image folder. Source-side checks after the edit confirm the one-listing and no-TensorFlow conditions; the full verifier and PDF build still need to be rerun on this commit. | Rerun the workflow after each substantive source or layout change. |
-| Rendered PDF | The stored **41-page PDF predates** the TensorFlow-listing removal and blue-accent theme update; it still contains the old listing and must not be treated as the current source preview. | Rerun the source verifier and rebuild the PDF from the current branch, then inspect page flow, equations, the sole PyTorch listing, table layout and bibliography pagination. |
+| Structure | The verifier is now configured to require unique Manning-style anchors, 29 placeholders/prompts, one table, one PyTorch listing, no TensorFlow references/listings, one bibliography, native AsciiDoc math, internal figure references, no outbound hyperlinks, and a prompt-only image folder. Source-side checks after the edit confirm the one-listing and no-TensorFlow conditions; the full verifier and PDF build still need to be rerun on this commit. | Rerun the workflow after each substantive source or layout change. |
+| Rendered PDF | The stored **41-page PDF predates** the current text, link-removal, figure-order and theme changes; it still contains the old listing and must not be treated as the current source preview. | Rerun the source verifier and rebuild the PDF from the current branch, then inspect page flow, equations, the sole PyTorch listing, table layout and bibliography pagination. |
 | Print readiness | The current PDF is a theory-first author preview with visible placeholders, not a final book PDF. | Approve/insert all artwork and perform the final page-by-page review before calling it print-ready. |
 
 ## Release boundary
