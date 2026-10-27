@@ -14,10 +14,6 @@
 
 ---
 
-**Inputs used:** v2 design, CH01 text, CH02 AsciiDoc source, Manning Manual of Style, MQR, Gui et al. "A Survey on Self-supervised Learning" (arXiv:2301.05712), dm_control official repository (github.com/google-deepmind/dm_control), world-model benchmark survey discussion
-
----
-
 ## 0. Changelog from v2 to v3 — the warehouse is gone
 
 The chapter's thesis, structure (3.1–3.8), mathematics (equations 3.1–3.20), VICReg treatment, MAE comparison, bottleneck sweep, CPC→JEPA bridge, probe epistemology, and probe epistemology are **unchanged**. The current CPC and three-mechanism follow-up results use five trained seeds; other chapter experiments retain their recorded run-specific seed counts. What changes is the ground everything stands on: the custom warehouse world is deleted and replaced by the DeepMind Control Suite (DMC). Substantive changes:
