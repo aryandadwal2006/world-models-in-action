@@ -27,15 +27,14 @@ The composed AsciiDoc chapter has 29 numbered figure placeholders. Printed order
 | Figure 3.19 | CH03_F19_Dadwal.md | VICReg, SIGReg/LeJEPA and VISReg constrain different aspects of feature distributions |
 | Figure 3.20 | CH03_F20_Dadwal.md | DeepCluster and SwAV: pseudo-labels and prototypes |
 | Figure 3.21 | CH03_F21_Dadwal.md | Different modalities create different self-supervised targets |
-| Figure 3.29 | CH03_F22_Dadwal.md | A training loss and a probe answer different questions |
 | Figure 3.22 | CH03_F23_Dadwal.md | One visible context, several masked-prediction targets |
-| Figure 3.29 | CH03_F22_Dadwal.md | A training loss and a probe answer different questions |
 | Figure 3.23 | CH03_F24_Dadwal.md | MAE's visible-only encoder and masked-patch decoder |
 | Figure 3.24 | CH03_F25_Dadwal.md | Discrete tokens and teacher features are different masked targets |
 | Figure 3.25 | CH03_F26_Dadwal.md | Masked prediction and diffusion learn different conditional tasks |
 | Figure 3.26 | CH03_F27_Dadwal.md | The projection head, global vector and local feature grid |
-| Figure 3.28 | CH03_F28_Dadwal.md | Aliasing is a failure of predictive sufficiency |
 | Figure 3.27 | CH03_F29_Dadwal.md | An encoder can provide a vector, spatial tokens or temporal context |
+| Figure 3.28 | CH03_F28_Dadwal.md | Aliasing is a failure of predictive sufficiency |
+| Figure 3.29 | CH03_F22_Dadwal.md | A training loss and a probe answer different questions |
 
 ## Production rules
 
