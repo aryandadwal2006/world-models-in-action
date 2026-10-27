@@ -1,8 +1,8 @@
 # Chapter 3: Code map and experiment record
 
-This directory contains the experiment runners behind Chapter 3 of *World Models in Action*. The code listings in the book should point to the canonical implementation modules below; the runners preserve the full protocols used for figures, tables, and machine-readable results.
+This directory contains the experiment runners behind Chapter 3 of *World Models in Action*. The current manuscript contains one short source-attributed excerpt from the official VICReg PyTorch implementation; it is illustrative, not a full trainer. This directory documents the canonical code modules and experiment runners used by the companion artifacts, figures and machine-readable results.
 
-**Branch and numbering note (22 October 2026):** this is the code/experiment guide. The current composed chapter lives at `manuscript/CH03_Dadwal_World_Models_in_Action.adoc` on the `manuscript` branch. Some result JSONs and generated plot paths retain pre-composition names such as `table_03_04`, `table_03_05`, and `fig03_16`. These are stable experiment artifact paths, not current printed object numbers. The composed chapter has 20 numbered figures and two numbered tables; use `images/README.md` and `chapter3/figure-and-table-production.md` for the current asset-to-print crosswalk.
+**Branch and numbering note (27 October 2026):** this is the code/experiment guide. The current composed chapter lives at `manuscript/CH03_Dadwal_World_Models_in_Action.adoc` on `manuscript-theory`. Result JSONs and generated plot paths retain legacy names such as `table_03_04`, `table_03_05`, and `fig03_16`; these identify experiment artifacts and do not determine printed object numbers. The current manuscript has 29 conceptual figure placeholders, one numbered synthesis table, and one short source-attributed VICReg listing. Its figures are not a direct relabeling of the experiment plots. Use `images/README.md` for the canonical figure register and `chapter3/figure-and-table-production.md` for the synchronized figure/table/listing crosswalk.
 
 ## Book listing → canonical source
 
@@ -27,7 +27,7 @@ Run scripts from the repository root.
 
 | Runner | Purpose |
 |---|---|
-| `01_collect_dmc_data.py` | Collect/cache Control Suite tasks; its rendered task montage is current Figure 3.3 (the old plot/experiment filename convention differs) |
+| `01_collect_dmc_data.py` | Collect/cache Control Suite tasks; generated experiment plots are companion artifacts and are not automatically numbered manuscript figures |
 | `02_views_and_pairs.py` | Show positive/negative view construction |
 | `03_ntxent_from_scratch.py` | Compare loop and vectorized NT-Xent values and gradients |
 | `04_train_contrastive.py` | Contrastive training, probes, and latent-space figures |
@@ -49,8 +49,8 @@ Run scripts from the repository root.
 - `ch03/results/three_mechanisms_diagnostics.json`: expanded five-seed SimSiam/BYOL/Barlow Twins diagnostics.
 - `ch03/results/table_03_05_cpc_metrics.json`: primary matched-length CPC retrieval result (16-frame training/evaluation windows; legacy `Table 3.5` filename).
 - `ch03/results/cpc_retrieval_25frame_sensitivity.json`: secondary sequence-length sensitivity check; not the primary matched-length result.
-- `ch03/figures/fig03_09_collapse_demo.png` and `ch03/figures/fig03_09_objective_space.png`: retained experiment plots/provenance; their old `fig03_09` stems do not match current printed Figure 3.10.
-- `ch03/figures/fig03_16_cpc_future_retrieval.png`: primary matched-length CPC retrieval plot. In the composed chapter, the corresponding numbered artwork is Figure 3.18 (`images/CH03_F16_Dadwal.png`).
+- `ch03/figures/fig03_09_collapse_demo.png` and `ch03/figures/fig03_09_objective_space.png`: retained experiment plots/provenance; their `fig03_09` stems are legacy artifact names, not current printed figure numbers.
+- `ch03/figures/fig03_16_cpc_future_retrieval.png`: primary matched-length CPC retrieval plot. It remains a code-companion experiment artifact, not a placed figure in the current theory-first manuscript. Do not infer a printed figure number from this filename.
 
 The diagnostic run summaries are also described in `ch03/publication_readiness_audit.md` and `ch03/discrepancies_and_findings.md`. Timestamped smoke-test outputs are not primary results and are excluded from the release artifact set.
 
