@@ -96,7 +96,7 @@ if re.search(r"^image::", source, flags=re.MULTILINE):
     errors.append("Image directives remain in prompt-only manuscript.")
 if re.search(r"\[[^\]]+\]\(https?://", source):
     errors.append("Markdown-style links remain; use native AsciiDoc link macros.")
-if re.search(r"(?i)link:https?://|https?://|www\\.", source):
+if re.search(r"(?i)link:https?://|https?://|www\.", source):
     errors.append("Outbound hyperlinks/URLs are not permitted in the chapter; use plain author-year attribution.")
 if "The JEPA context-target prediction architecture" in source or "Chapter 4 develops JEPA architecture" in source:
     errors.append("Chapter 3 must not contain a standalone JEPA bridge/tutorial.")
