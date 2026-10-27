@@ -249,7 +249,7 @@ The optimal classifier therefore ranks candidates by the density ratio: a pair r
 I(X;Y)\ge \log K-\mathcal{L}_{\mathrm{NCE}},
 ++++
 
-where latexmath:[K] includes the positive candidate. Equivalently, latexmath:[\mathcal{L}_{\mathrm{NCE}}\ge \log K-I(X;Y)]. The finite candidate count limits this bound to latexmath:[\log K]. The bound does not grow without limit merely because training continues.
+where latexmath:[K] includes the positive candidate. Equivalently, latexmath:[\mathcal{L}_{\mathrm{NCE}}\ge \log K-I(X;Y)]. The finite candidate count limits this bound to latexmath:[\log K]. The bound does not grow without limit merely because training continues. The softmax denominator normalizes only over sampled candidates; it is not generally the partition function of a normalized model over every possible image or latent value. This is the boundary between InfoNCE-style candidate classification and the broader energy-based framework (LeCun et al., 2006).
 
 The assumptions matter. Nearby frames, repeated examples or multiple instances of one category can violate independent negative sampling. If negatives come from a different distribution, or candidates are dependent, the same bound does not automatically follow. The density-ratio argument explains the role of the loss and its sampling assumptions; it does not turn an arbitrary contrastive loss into a certified measure of semantic information.
 
@@ -289,7 +289,7 @@ Uniformity is not semantic correctness: features can spread out while encoding b
 **Artwork placeholder: Figure 3.5.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F07_Dadwal.md.
 ****
 
-An energy-based model assigns compatibility scores and defines a probability distribution only after a normalizer is specified. InfoNCE can be interpreted as candidate classification using energies, but its denominator normalizes over the sampled candidate set, not generally over every possible image or latent. Candidate ranking is therefore not equivalent to a tractable generative model of the full observation distribution. Broader energy-based methods and diffusion models have different objectives and sampling requirements; their generative details are covered later in the book (LeCun et al., 2006).
+
 
 [#unique_section2_ch3_007_simclr_and_moco_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === SimCLR and MoCo: two ways to construct candidates
@@ -798,7 +798,7 @@ The same principle applies across modalities. CLIP aligns images with paired tex
 .Self-supervised objectives compared by the signal they construct
 [width="100%",cols="21%,43%,36%",options="header,unbreakable"]
 |===
-|Method family |What the objective enforces |What it does not guarantee
+|Representative methods |What the objective enforces |What it does not establish
 |SimCLR / MoCo |Identify a positive among sampled candidates |Negatives may be semantically related; features depend on candidate construction
 |CPC |Rank a future latent against sampled candidates |Candidate identification is not a calibrated transition model or an action-conditioned rollout
 |BYOL / SimSiam |Predict a detached view representation |Agreement alone does not rule out constant outputs
