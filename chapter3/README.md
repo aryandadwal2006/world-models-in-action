@@ -2,7 +2,7 @@
 
 **Status (27 October 2026): archived working material, not the current chapter source.**
 
-This directory contains section-by-section Markdown drafts converted from an earlier Word draft. They remain available for historical wording and planning context, but their figure register, production checklist, numbering, and remaining-work notes are stale relative to the composed chapter.
+This directory contains section-by-section Markdown drafts converted from an earlier Word draft. Those drafts and their embedded figure/production notes remain historical context and are stale relative to the composed chapter. The standalone `figure-and-table-production.md` file is the current synchronized crosswalk; `images/README.md` is the canonical printed-order figure register.
 
 ## Current sources of truth
 
