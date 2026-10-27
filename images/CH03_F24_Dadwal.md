@@ -1,4 +1,4 @@
-# Figure 3.24: MAE's visible-only encoder and masked-patch decoder
+# Figure 3.23: MAE's visible-only encoder and masked-patch decoder
 
 **Status:** Detailed production brief only. No artwork is included in this branch.
 
@@ -24,7 +24,7 @@ Visible-token flow and masked-only loss are unmistakable.
 
 ## Caption
 
-Figure 3.24. MAE's visible-only encoder and masked-patch decoder.
+Figure 3.23. MAE's visible-only encoder and masked-patch decoder.
 
 ## Production note
 
