@@ -778,7 +778,7 @@ where latexmath:[\omega(t)] is the weighting used by the prescribed Epps-Pulley-
 +\lambda\mathcal L_{\mathrm{SIGReg}}.
 ++++
 
-The paper's recipe is designed not to require an EMA target encoder and stop-gradient target branch in the same way as BYOL/SimSiam. That is a different design, not evidence that earlier asymmetries are unnecessary for every task. The full JEPA predictor architecture is reserved for Chapter 4.
+The paper's recipe is designed not to require an EMA target encoder and stop-gradient target branch in the same way as BYOL/SimSiam. That is a different design, not evidence that earlier asymmetries are unnecessary for every task.
 
 **VISReg** separates scale, shape and center. Keep two distinct meanings of *center* separate: the prediction target is the mean embedding of global views of the same source image; the regularizer's center term penalizes the minibatch mean for each view.
 
@@ -1191,7 +1191,7 @@ The readout also sets a limit on the conclusion. If a linear probe fails but a n
 
 Self-supervised learning constructs a target relationship from data. Contrastive methods such as SimCLR and MoCo rank positives against sampled candidates; CPC applies that idea to future latents. BYOL and SimSiam predict detached view targets but differ in how their targets change. DINO matches teacher distributions, Barlow Twins constrains cross-view correlations, and VICReg separates agreement, variance and covariance penalties. SIGReg and VISReg constrain aspects of feature-distribution shape, while clustering methods create pseudo-targets from current features.
 
-Masked methods differ in whether they predict pixels, discrete codes or teacher features. JEPAs also predict learned target representations, but their architectures are not required to understand the distinctions developed here. Across these families, the target and loss specify which relationships training rewards; the encoder architecture and output bottleneck determine where those constraints act. None of these ingredients, nor a low pretraining loss alone, establishes predictive sufficiency. That claim must be evaluated for a named target, input history and prediction horizon.
+Masked methods differ in whether they predict pixels, discrete codes or teacher features; JEPAs instead predict learned target representations from context. Across these families, the target and loss specify which relationships training rewards, while the encoder architecture and output bottleneck determine where those constraints act. None of these ingredients, nor a low pretraining loss alone, establishes predictive sufficiency. That claim must be evaluated for a named target, input history and prediction horizon.
 
 [#unique_section_ch3_028_exercises_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
 == Exercises
