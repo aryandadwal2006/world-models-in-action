@@ -1,4 +1,4 @@
-# Figure 3.29: An encoder can provide a vector, spatial tokens or temporal context
+# Figure 3.27: An encoder can provide a vector, spatial tokens or temporal context
 
 **Status:** Detailed production brief only. No artwork is included in this branch.
 
@@ -24,7 +24,7 @@ Separate observation, representation, aggregation, action and later dynamics.
 
 ## Caption
 
-Figure 3.29. An encoder can provide a vector, spatial tokens or temporal context.
+Figure 3.27. An encoder can provide a vector, spatial tokens or temporal context.
 
 ## Production note
 
