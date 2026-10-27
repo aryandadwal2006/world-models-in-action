@@ -1,31 +1,21 @@
-# Chapter 3 figure storyboard
+# Historical Chapter 3 figure storyboard
 
-## Production status
+**Status (27 October 2026): archived concept notes, not the active production register.**
 
-The composed manuscript on manuscript-theory contains six original SVG diagrams and no placeholders. Each diagram explains a mechanism used in the chapter. No figure is a pasted paper screenshot or an empirical result plot.
+The earlier six-figure storyboard below has been superseded. The current theory-first manuscript on `manuscript-theory` contains **29 figure placeholders**, with a dedicated, updated production brief for each figure. No rendered artwork has been approved or inserted yet.
 
-Use a consistent Manning-style visual system: grayscale-safe contrasts, arrows, labels, solid/dashed lines and distinct shapes. The official papers verify the mechanisms; the book diagrams explain them in original artwork.
+## Current figure-production sources
 
-## Figure list in manuscript order
+- **Canonical register and printed order:** `images/README.md`
+- **Per-figure instructions:** `images/CH03_F01_Dadwal.md` through `images/CH03_F29_Dadwal.md`, interpreted using the printed-number crosswalk in `images/README.md`
+- **Synchronized figure/table/listing crosswalk:** `chapter3/figure-and-table-production.md`
+- **Current manuscript:** `manuscript/CH03_Dadwal_World_Models_in_Action.adoc`
+- **Production gate:** `rough-draft/chapter3/38_dossier_readiness_and_manuscript_gate.md`
 
-| No. | Source asset | Subject | What it explains |
-|---:|---|---|---|
-| 1 | images/CH03_T01_SSL_Landscape.svg | Objective-family map | Candidate discrimination, bootstrap targets, batch statistics, prototypes and masked prediction; families can overlap |
-| 2 | images/CH03_T02_InfoNCE.svg | InfoNCE candidate classification | Anchor, positive and negative set, temperature, softmax probabilities and gradient direction |
-| 3 | images/CH03_T03_MethodMechanisms.svg | Core objective comparison | Contrastive candidate loss, BYOL/SimSiam prediction pathways, DINO teacher distribution, Barlow Twins/VICReg batch constraints |
-| 4 | images/CH03_T04_TargetSpaces.svg | Masked target families | Pixel regression, discrete-code prediction and teacher-feature targets from the same masked input |
-| 5 | images/CH03_F12_Dadwal.svg | MAE architecture | Visible patches enter the encoder; mask tokens and encoded visible patches enter the decoder; loss applies to masked patches |
-| 6 | images/CH03_F02_Dadwal.svg | Representation contract | Nuisance invariance versus distinctions that must remain separable for different target futures |
+## Why this file is retained
 
-## Placement
-
-- Figure 1: foundations.
-- Figure 2: contrastive objective and gradient derivation.
-- Figure 3: after Barlow Twins/VICReg, as a synthesis of the core mechanisms.
-- Figure 4: general masked prediction and target-space distinction.
-- Figure 5: after the MAE loss and architecture explanation.
-- Figure 6: compact state representations and predictive sufficiency.
+The table and placement ideas from the earlier storyboard remain historical context only. Its six-item list refers to a superseded plan and must not be used to generate, place, number or approve the current artwork. Stable asset stems do not determine printed figure numbers.
 
 ## Copyright and claim discipline
 
-Use papers to verify the computation graph and notation, but do not paste paper screenshots. The SVGs are original conceptual teaching diagrams. A repository link establishes the source of the official code; it does not establish that the book ran or reproduced the method. Keep that distinction clear in captions and prose.
+Use primary papers to verify mechanisms and notation, but create original teaching diagrams rather than pasting screenshots or figures from papers. Do not invent measurements or imply the book independently reproduced a published method. Keep conceptual constraints separate from empirical results and ensure each illustration reflects the actual current prose and its stated limitations.
