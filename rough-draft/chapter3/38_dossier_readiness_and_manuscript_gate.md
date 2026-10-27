@@ -1,7 +1,7 @@
 # Chapter 3 final-draft and publication gate
 
 **Current branch:** `manuscript-theory`  
-**State:** theory-first manuscript composed; latest 41-page preview builds successfully and has been visually reviewed at contact-sheet level with targeted full-resolution checks.
+**State:** theory-first source revised for a PyTorch-only listing and the specified blue heading accent. The committed PDF has not yet been rebuilt from these latest source/theme changes, so the 41-page preview is stale.
 
 ## Scope and current form
 
@@ -19,8 +19,8 @@ The chapter contains no custom training experiments or full hand-written reimple
 | Prose and scope | Repeated explanations trimmed; method families distinguish their targets, gradient paths, update rules and limitations. | Final editorial review against adjacent chapters; avoid expanding JEPA beyond its bridge role. |
 | Figures | 29 detailed prompts and matching source placeholders; no rendered art in this branch. | Generate original figures from the prompts, check equations/arrows/captions and page-width readability, then replace each placeholder only after approval. |
 | Official sources | Code excerpts are pinned and attributed; method links sit beside the relevant method. | Recheck source links and licenses at release. |
-| Structure | The latest automated source verifier and PDF style check passed: unique Manning-style anchors, 29 placeholders/prompts, one table, one PyTorch listing, no TensorFlow references/listings, one bibliography, native AsciiDoc math/links, and prompt-only image folder. | Rerun the workflow after each substantive source or layout change. |
-| Rendered PDF | Latest successful preview: **41 pages**. Targeted checks covered operators in equations, VISReg notation, code listings, table layout, figure placeholders and bibliography pagination. | Repeat visual review after artwork replaces placeholders; final figure dimensions will change pagination. |
+| Structure | The verifier is now configured to require unique Manning-style anchors, 29 placeholders/prompts, one table, one PyTorch listing, no TensorFlow references/listings, one bibliography, native AsciiDoc math/links, and a prompt-only image folder. Source-side checks after the edit confirm the one-listing and no-TensorFlow conditions; the full verifier and PDF build still need to be rerun on this commit. | Rerun the workflow after each substantive source or layout change. |
+| Rendered PDF | The stored **41-page PDF predates** the TensorFlow-listing removal and blue-accent theme update; it still contains the old listing and must not be treated as the current source preview. | Rebuild the PDF from the current branch, then inspect page flow, equations, the sole PyTorch listing, table layout and bibliography pagination. |
 | Print readiness | The current PDF is a theory-first author preview with visible placeholders, not a final book PDF. | Approve/insert all artwork and perform the final page-by-page review before calling it print-ready. |
 
 ## Release boundary
