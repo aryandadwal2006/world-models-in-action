@@ -1,19 +1,19 @@
 # Legacy Chapter 3 section-draft workspace
 
-**Status (22 October 2026): archived working material, not the current chapter source.**
+**Status (27 October 2026): archived working material, not the current chapter source.**
 
 This directory contains section-by-section Markdown drafts converted from an earlier Word draft. They remain available for historical wording and planning context, but their figure register, production checklist, numbering, and remaining-work notes are stale relative to the composed chapter.
 
 ## Current sources of truth
 
-- **Authored chapter source:** [`manuscript/CH03_Dadwal_World_Models_in_Action.adoc`](../manuscript/CH03_Dadwal_World_Models_in_Action.adoc)
+- **Authored chapter source:** [`manuscript/CH03_Dadwal_World_Models_in_Action.adoc`](../manuscript/CH03_Dadwal_World_Models_in_Action.adoc) on `manuscript-theory`.
 - **Author-side PDF preview and build instructions:** [`manuscript/README.md`](../manuscript/README.md)
 - **Current asset-to-printed-figure map:** [`images/README.md`](../images/README.md)
-- **Current figure/table crosswalk:** [`figure-and-table-production.md`](figure-and-table-production.md)
+- **Current figure/table/listing crosswalk:** [`figure-and-table-production.md`](figure-and-table-production.md), synchronized with `images/README.md`.
 - **Code and experiment source:** [`ch03/README.md`](../ch03/README.md), `worldmodels/`, `ch03/results/`
 - **Historical design rationale:** [`chapter_03_design.md`](../chapter_03_design.md), explicitly marked as superseded planning material.
 
-Do not use the section drafts or the old numbered plans in this folder as the authority for current prose, figure numbering, table numbering, or production readiness. Stable image filename stems do not always match the figures' printed numbers.
+Do not use the section drafts or the old numbered plans in this folder as the authority for current prose, figure numbering, table numbering, or production readiness. The current composed manuscript has 29 figure placeholders, one numbered synthesis table, and one short VICReg listing. Stable image filename stems do not always match printed figure numbers.
 
 ## Retained draft order
 
