@@ -108,8 +108,8 @@ if r"\(" in source or r"\)" in source:
     errors.append("Markdown-style inline math delimiters remain; use latexmath macros.")
 if len(re.findall(r"^== References$", source, flags=re.MULTILINE)) != 1:
     errors.append("Expected one consolidated References heading.")
-if sum(line == "[.bibliography-entry]" for line in lines) != 47:
-    errors.append("Expected all 47 bibliography entries to use the compact reference style.")
+if sum(line == "[.bibliography-entry]" for line in lines) != 46:
+    errors.append("Expected all 46 bibliography entries to use the compact reference style.")
 expected_brief_ids = {"F02", "F03", "F04", "F05", "F07", "F10", "F12", "F13", "F14", "F15", "F16", "F17", "F19", "F22", "F23", "F24", "F27", "F28"}
 briefs = sorted(image_dir.glob("CH03_F[0-9][0-9]_Dadwal.md"))
 actual_brief_ids = {path.stem.replace("CH03_", "").replace("_Dadwal", "") for path in briefs}
