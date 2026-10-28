@@ -121,9 +121,8 @@ Invariance is also different from *equivariance*. An invariant representation re
 ****
 
 Two independently sampled augmentations turn one observation into two views whose representations are encouraged to agree. The augmentation distribution therefore defines which changes the encoder is rewarded for ignoring. This pressure is useful when transformations preserve the target, but a crop that removes task-critical content can encourage a harmful invariance.
-****
 
- These tasks assign synthetic targets to unlabeled data and make the target-design assumption easy to see. They remain useful conceptual examples, but the architecture survey below focuses on the broader contrastive, bootstrap, statistical, clustering and masked-prediction families that followed.
+Historically, visual self-supervision used hand-designed pretext tasks such as predicting image rotation (Gidaris et al., 2018), restoring the spatial order of jigsaw patches (Noroozi and Favaro, 2016), predicting spatial context (Doersch et al., 2015), and colorizing grayscale images (Zhang et al., 2016). These tasks assign synthetic targets to unlabeled data and make the target-design assumption easy to see. They remain useful conceptual examples, but the architecture survey below focuses on the broader contrastive, bootstrap, statistical, clustering and masked-prediction families that followed.
 
 These are pretext tasks: targets are generated from the input rather than supplied by human annotation. They can teach useful features, but the target may admit shortcuts or require only a subset of the information needed downstream. Predicting image rotation, for example, need not preserve every scene distinction relevant to future prediction. Later objectives use relations between views, feature-batch statistics, or hidden content instead of one fixed synthetic label.
 
