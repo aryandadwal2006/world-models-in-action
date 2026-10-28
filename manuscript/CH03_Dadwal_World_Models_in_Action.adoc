@@ -345,6 +345,8 @@ Figure xref:ch3-figure-F10[] shows the queue-based MoCo v1/v2 mechanism. MoCo v3
 **Artwork placeholder: Figure 3.6.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F10_Dadwal.md.
 ****
 
+The query encoder is trained by the contrastive loss, while the paired key is produced without backpropagation by a momentum-updated encoder. Its positive key is compared with historical keys stored in a FIFO queue; the EMA update and queue maintenance are separate operations, and queued features can become stale.
+
 [#unique_section2_ch3_034_historical_contrastive_branches_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === Historical contrastive branches
 
