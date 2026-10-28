@@ -880,10 +880,10 @@ The pooling equation also gives a simple source of aliasing. Consider two featur
 .The training representation and the downstream interface
 [.figure-placeholder%unbreakable]
 ****
-
-The pretraining loss acts on the projector output when a projection head is used, while downstream tasks often consume backbone features. Those features can be exposed as a pooled global vector, a spatial grid, or an aggregated temporal context, depending on what the task must preserve.
 **Artwork placeholder: Figure 3.15.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F27_Dadwal.md.
 ****
+
+The pretraining loss acts on the projector output when a projection head is used, while downstream tasks often consume backbone features. Those features can be exposed as a pooled global vector, a spatial grid, or an aggregated temporal context, depending on what the task must preserve.
 
 [#unique_section2_ch3_027_compression_sufficiency_ID,reftext={chapter}.{section}.{subsection},caption='{chapter}.{section}.{subsection}']
 === Compression and predictive sufficiency
