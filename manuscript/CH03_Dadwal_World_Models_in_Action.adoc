@@ -531,6 +531,8 @@ Multi-crop training supplies a useful extra constraint. The teacher receives the
 **Artwork placeholder: Figure 3.10.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F15_Dadwal.md.
 ****
 
+DINO trains a student to match a detached teacher distribution over learned prototypes for a different view of the same source. The teacher logits are centered and its distribution sharpened before cross-entropy is computed; the student receives gradients, while the teacher parameters follow an EMA update.
+
 These releases also illustrate a general caution: reported improvements belong to a complete training system, including data, architecture, optimization and evaluation, rather than to an isolated loss substitution. The following details separate the original DINO mechanism from components added in later recipes.
 
 DINOv2 (Oquab et al., 2023) is a combined training recipe, not simply a replacement loss: it combines class-token DINO distillation, iBOT-style masked patch distillation and a KoLeo nearest-neighbour regularizer. The class branch matches teacher distributions across crops; the patch branch predicts teacher prototype distributions at masked student positions; KoLeo discourages local crowding in normalized backbone features. In the DINOv2 recipe, centering is used for class-token distillation, while Sinkhorn-Knopp balances patch-level assignments in the masked-patch branch. The precise target construction belongs to the cited recipe; these operations are not interchangeable.
