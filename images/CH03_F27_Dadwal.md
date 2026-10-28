@@ -1,4 +1,4 @@
-# Figure 3.16: The training representation and the downstream interface
+# Figure 3.15: The training representation and the downstream interface
 
 **Status:** Detailed production brief only. No artwork is included in this branch.
 
@@ -35,7 +35,7 @@ The two lanes must not imply that `z`, a pooled vector, a patch grid and a tempo
 
 ## Caption
 
-Figure 3.16. The training representation and the downstream interface.
+Figure 3.15. The training representation and the downstream interface.
 
 ## Production note
 
