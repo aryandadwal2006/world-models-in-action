@@ -295,6 +295,8 @@ Uniformity is not semantic correctness: features can spread out while encoding b
 **Artwork placeholder: Figure 3.5.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F07_Dadwal.md.
 ****
 
+Alignment measures whether matched views are close in the normalized representation space; uniformity measures whether independent samples avoid excessive crowding. These are distinct geometric diagnostics, not a guarantee that the representation preserves task-relevant information.
+
 
 
 [#unique_section2_ch3_007_simclr_and_moco_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
