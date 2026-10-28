@@ -1,6 +1,6 @@
 # Chapter 3 figure production briefs
 
-**Status (27 October 2026):** current production register for the revised `manuscript-theory` source. No rendered artwork is approved or inserted. The composed chapter has **18 figure placeholders**, one numbered synthesis table and one short VICReg listing.
+**Status (28 October 2026):** current production register for the revised `manuscript-theory` source. No rendered artwork is approved or inserted. The composed chapter has **17 figure placeholders**, one numbered synthesis table and one short VICReg listing.
 
 Printed numbering follows anchor order in `manuscript/CH03_Dadwal_World_Models_in_Action.adoc`. The `F##` stems are retained legacy asset identifiers, not printed figure numbers.
 
@@ -20,7 +20,6 @@ Printed numbering follows anchor order in `manuscript/CH03_Dadwal_World_Models_i
 | 3.10 | `images/CH03_F15_Dadwal.md` | DINO teacher-student cross-view distillation |
 | 3.11 | `images/CH03_F16_Dadwal.md` | Barlow Twins: the cross-correlation matrix |
 | 3.12 | `images/CH03_F17_Dadwal.md` | VICReg separates agreement, variance and covariance |
-| 3.13 | `images/CH03_F19_Dadwal.md` | VICReg, SIGReg and VISReg constrain different aspects of feature distributions |
 | 3.14 | `images/CH03_F23_Dadwal.md` | One visible context, several masked-prediction targets |
 | 3.15 | `images/CH03_F24_Dadwal.md` | MAE's visible-only encoder and masked-patch decoder |
 | 3.16 | `images/CH03_F27_Dadwal.md` | The training representation and the downstream interface |
