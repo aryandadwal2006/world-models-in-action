@@ -402,6 +402,8 @@ If the encoder maps every input to the same constant vector latexmath:[c], then 
 **Artwork placeholder: Figure 3.8.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F13_Dadwal.md.
 ****
 
+A constant encoder makes every pair of views agree perfectly by mapping all inputs to the same vector, achieving zero invariance loss while erasing differences among examples. A nonconstant mapping can achieve the same zero loss while keeping different sources distinct, showing that agreement alone cannot rule out collapse.
+
 This observation does not mean every method that matches two views will collapse. It means agreement alone cannot rule collapse out. The architecture, stop-gradient placement, target updates, normalizations and optimization dynamics affect which solutions training reaches. The methods below differ in precisely those mechanisms; none should be described as having a universal guarantee based only on its loss formula.
 
 It is useful to distinguish complete collapse from dimensional collapse. In complete collapse, all inputs map to the same vector and the representation contains no information about differences between examples. In dimensional collapse, the output varies, but most of its covariance is concentrated in a small number of directions. A model can therefore avoid the constant solution and still use its nominal latexmath:[d]-dimensional space inefficiently.
