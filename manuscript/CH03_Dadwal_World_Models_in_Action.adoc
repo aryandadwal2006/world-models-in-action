@@ -584,6 +584,8 @@ The coefficient latexmath:[\lambda] sets the strength of decorrelation relative 
 **Artwork placeholder: Figure 3.11.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F16_Dadwal.md.
 ****
 
+Barlow Twins standardizes paired-view feature batches and drives their cross-correlation matrix toward an identity pattern: corresponding dimensions agree across views, while off-diagonal cross-view correlations are penalized. This constrains linear redundancy but does not guarantee full statistical independence or semantic meaning.
+
 [#unique_section2_ch3_014_vicreg_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === VICReg: make three constraints explicit
 
