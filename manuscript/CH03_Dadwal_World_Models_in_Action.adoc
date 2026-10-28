@@ -149,6 +149,8 @@ A contrastive method begins with an anchor, a related positive example and distr
 **Artwork placeholder: Figure 3.3.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F04_Dadwal.md.
 ****
 
+Each source example supplies two independently augmented views. For a selected anchor, the other view of the same source is the positive, while views from other source examples are negatives under the sampling rule. These labels come from source identity, not semantic class labels, so different examples can become false negatives when they depict related content or nearby video frames.
+
 In the common two-view construction, each source example latexmath:[x_n] is transformed independently twice:
 
 [latexmath]
