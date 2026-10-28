@@ -651,6 +651,8 @@ A simple two-coordinate example makes the distinction concrete. If both coordina
 **Artwork placeholder: Figure 3.12.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F17_Dadwal.md.
 ****
 
+VICReg combines three complementary constraints: matching paired-view representations, maintaining a standard-deviation floor for each feature dimension, and penalizing off-diagonal covariance within each view's batch. The statistical penalties address different failure modes but do not establish that the retained variation is semantically or predictively useful.
+
 [#ch3-listing-vicreg,reftext={chapter}.{counter:listing},caption='{listing-caption}.{counter:listing-number} ']
 .Three VICReg terms in the official PyTorch implementation (source excerpt)
 [source,python]
