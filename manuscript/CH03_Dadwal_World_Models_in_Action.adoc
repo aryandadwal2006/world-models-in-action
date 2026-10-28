@@ -61,11 +61,10 @@ z=f_\theta(x).
 A smaller representation is useful only if the information removed is unnecessary for the task. A vector may preserve object identity while losing location or orientation. It may describe a frame's appearance while losing motion that is apparent only from a sequence. Compression can remove nuisance detail, but it can also merge observations whose futures differ.
 
 [#ch3-figure-F02,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.The representation contract
+.The representation contract. Nuisance appearance changes can share one representation when they leave the target distribution unchanged. Histories with opposite motion must remain distinct when their future distributions differ; merging them is a predictive aliasing failure.
 [%unbreakable]
 image::CH03_F01_Dadwal.png[The representation contract,align=center,pdfwidth=100%]
 
-On the left, nuisance appearance changes leave the target distribution unchanged, so the observations may share one representation. On the right, a possible aliasing failure merges histories with opposite motion even though their future distributions differ. Chapter 2 formalized the desired contract in terms of sufficiency, minimality and aliasing; the figure contrasts that predictive contract with the proxy relation the training loss actually enforces.
 
 [#unique_section2_ch3_003_invariance_is_a_decision_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === Invariance is a decision
@@ -112,11 +111,10 @@ That reduction is beneficial only if the target of interest is constant within e
 Invariance is also different from *equivariance*. An invariant representation remains unchanged under a transformation. An equivariant representation changes in a predictable way. For example, if an image is translated, an image-level category feature may ideally remain fixed, while a spatial feature map may shift in correspondence with the image. Classification and localization therefore need not prefer the same transformation behavior. A feature map that is deliberately equivariant can be more useful than a globally invariant vector when the target depends on where a feature occurs.
 
 [#ch3-figure-F03,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.Augmentation defines the invariances rewarded by training
+.Augmentation defines the invariances rewarded by training. Two transformed views are trained to agree, so the augmentation distribution decides which changes the encoder learns to ignore. This helps only when those changes preserve information needed for the target.
 [%unbreakable]
 image::CH03_F02_Dadwal.png[Augmentation defines the invariances rewarded by training,align=center,pdfwidth=100%]
 
-Two independently sampled augmentations turn one observation into two views whose representations are encouraged to agree. The augmentation distribution therefore defines which changes the encoder is rewarded for ignoring. This pressure is useful when transformations preserve the target, but a crop that removes task-critical content can encourage a harmful invariance.
 
 Historically, visual self-supervision used hand-designed pretext tasks such as predicting image rotation (Gidaris et al., 2018), restoring the spatial order of jigsaw patches (Noroozi and Favaro, 2016), predicting spatial context (Doersch et al., 2015), and colorizing grayscale images (Zhang et al., 2016). These tasks assign synthetic targets to unlabeled data and make the target-design assumption easy to see. They remain useful conceptual examples, but the architecture survey below focuses on the broader contrastive, bootstrap, statistical, clustering and masked-prediction families that followed.
 
@@ -139,11 +137,10 @@ The methods in this chapter are grouped by their main teaching mechanism, not as
 A contrastive method begins with an anchor, a related positive example and distractors called negatives. The encoder maps each example to a feature vector. A similarity function scores the anchor against each candidate. Training rewards the positive for receiving a higher score than the negatives.
 
 [#ch3-figure-F04,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.Constructing positives and negatives
+.Constructing positives and negatives. The second augmented view of an anchor is the positive; views from other source examples are sampled negatives. Because labels follow source identity rather than semantic equivalence, related examples can become false negatives.
 [%unbreakable]
 image::CH03_F03_Dadwal.png[Constructing positives and negatives,align=center,pdfwidth=100%]
 
-Each source example supplies two independently augmented views. For a selected anchor, the other view of the same source is the positive, while views from other source examples are negatives under the sampling rule. These labels come from source identity, not semantic class labels, so different examples can become false negatives when they depict related content or nearby video frames.
 
 In the common two-view construction, each source example latexmath:[x_n] is transformed independently twice:
 
@@ -217,11 +214,10 @@ This gradient changes the direction of a normalized vector to improve its relati
 Figure xref:ch3-figure-F05[] combines the worked candidate-classification example with the derivative of the loss with respect to each scaled similarity logit.
 
 [#ch3-figure-F05,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.InfoNCE: Candidate probabilities and gradients
+.InfoNCE: Candidate probabilities and gradients. Temperature-scaled similarities become softmax probabilities and cross-entropy loss. Gradient descent raises the positive logit and lowers negative logits, with a harder negative receiving the larger update. Values are illustrative.
 [%unbreakable]
 image::CH03_F04_Dadwal.png[InfoNCE: Candidate probabilities and gradients,align=center,pdfwidth=100%]
 
-The same three candidates are followed from cosine similarities through temperature-scaled logits, softmax probabilities and cross-entropy loss. The derivative panel shows why gradient descent raises the positive logit and lowers the negative logits, with the harder negative receiving the larger gradient. All displayed values are illustrative.
 
 [#unique_section2_ch3_006_what_infoNCE_does_and_does_not_prove_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === What InfoNCE does and does not prove
@@ -281,11 +277,10 @@ where latexmath:[t>0] and x,y are independent samples. Nearby embeddings contrib
 Uniformity is not semantic correctness: features can spread out while encoding background texture or another nuisance variable. Alignment can be excellent because an augmentation erased a task-critical distinction. A useful representation requires invariances to match the prediction problem.
 
 [#ch3-figure-F07,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.Alignment and uniformity are distinct geometric requirements
+.Alignment and uniformity are distinct geometric requirements. Alignment measures how closely matched views lie; uniformity measures whether independent embeddings crowd together on the normalized sphere. These diagnostics describe geometry, not the amount of task-relevant information retained.
 [%unbreakable]
 image::CH03_F05_Dadwal.png[Alignment and uniformity are distinct geometric requirements,align=center,pdfwidth=100%]
 
-Alignment measures whether matched views are close in the normalized representation space; uniformity measures whether independent samples avoid excessive crowding. These are distinct geometric diagnostics, not a guarantee that the representation preserves task-relevant information.
 
 
 
@@ -329,11 +324,10 @@ Both methods remain sensitive to the definition of positive pairs and negatives.
 Figure xref:ch3-figure-F10[] shows the queue-based MoCo v1/v2 mechanism. MoCo v3 changes that candidate construction and is distinguished in the text rather than crowded into the same drawing.
 
 [#ch3-figure-F10,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.Momentum contrast: Query encoder, key encoder and queue
+.Momentum contrast: Query encoder, key encoder and queue. The query encoder receives contrastive gradients; a momentum-updated key encoder supplies the positive key and queue entries. The FIFO queue expands the candidate set, but stored features may become stale as the encoder changes.
 [%unbreakable]
 image::CH03_F06_Dadwal.png[Momentum contrast: Query encoder, key encoder and queue,align=center,pdfwidth=100%]
 
-The query encoder is trained by the contrastive loss, while the paired key is produced without backpropagation by a momentum-updated encoder. Its positive key is compared with historical keys stored in a FIFO queue; the EMA update and queue maintenance are separate operations, and queued features can become stale.
 
 [#unique_section2_ch3_034_historical_contrastive_branches_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === Historical contrastive branches
@@ -358,11 +352,10 @@ Contrastive Predictive Coding (CPC; van den Oord et al., 2018) encodes a sequenc
 A CPC future-latent retrieval score only shows that the correct future code can be identified among the sampled candidates under the chosen objective. It does not by itself establish accurate multi-step rollout, a sufficient predictive state, or that errors remain controlled when predictions are fed back into the model.
 
 [#ch3-figure-F12,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.CPC: Causal context predicts future latent candidates
+.CPC: Causal context predicts future latent candidates. Past observations form a causal context that scores future latents at several horizons against sampled candidates. Future targets are used for comparison, not context input; retrieval success alone does not demonstrate recursive rollout or planning.
 [%unbreakable]
 image::CH03_F07_Dadwal.png[CPC: Causal context predicts future latent candidates,align=center,pdfwidth=100%]
 
-CPC encodes observations through time (t) into a causal context, then uses horizon-specific scoring heads to identify each observed future latent among sampled candidates. The future targets are comparison candidates, not inputs to the context, and this retrieval objective alone does not demonstrate recursive rollout or planning.
 
 [#unique_section_ch3_005_noncontrastive_objectives_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
 == Non-contrastive objectives
@@ -382,11 +375,10 @@ L_{\mathrm{inv}}=\frac{1}{N}\sum_{i=1}^{N}\lVert z_i-z_i'\rVert_2^2.
 If the encoder maps every input to the same constant vector latexmath:[c], then latexmath:[z_i=z_i'=c] for every example and the loss is zero. The objective has no term requiring different inputs to remain distinguishable. A constant output is therefore a collapsed solution, even though it is useless for representing the data.
 
 [#ch3-figure-F13,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.Why agreement alone permits collapse
+.Why agreement alone permits collapse. Mapping every input to one constant vector gives perfect agreement while erasing differences. A nonconstant encoder can also achieve zero agreement loss, so agreement alone cannot exclude collapse; target updates and other constraints matter.
 [%unbreakable]
 image::CH03_F08_Dadwal.png[Why agreement alone permits collapse,align=center,pdfwidth=100%]
 
-A constant encoder makes every pair of views agree perfectly by mapping all inputs to the same vector, achieving zero invariance loss while erasing differences among examples. A nonconstant mapping can achieve the same zero loss while keeping different sources distinct, showing that agreement alone cannot rule out collapse.
 
 This observation does not mean every method that matches two views will collapse. It means agreement alone cannot rule collapse out. The architecture, stop-gradient placement, target updates, normalizations and optimization dynamics affect which solutions training reaches. The methods below differ in precisely those mechanisms; none should be described as having a universal guarantee based only on its loss formula.
 
@@ -465,11 +457,10 @@ D_{\mathrm{SimSiam}}(p,z)
 Minimizing this negative cosine similarity maximizes directional agreement without requiring the two vectors to have the same norm. In latexmath:[D(p_1,\mathrm{sg}(z_2))], the numerical value of latexmath:[z_2] still affects the loss, but its target-side gradient is removed. Because the loss is symmetric and both views share an encoder, that view still contributes encoder gradients when it serves as the predictor-side representation in the opposite term. The original SimSiam study found stop-gradient essential to its tested recipe; this is not a theorem that every detached Siamese network avoids collapse.
 
 [#ch3-figure-F14,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.BYOL and SimSiam: Similar predictors, different target updates
+.BYOL and SimSiam: Similar predictors, different target updates. Both predict a detached representation from another view. BYOL updates a separate target encoder by exponential moving average; SimSiam shares its encoder across views and uses stop-gradient without an EMA target network.
 [%unbreakable]
 image::CH03_F09_Dadwal.png[BYOL and SimSiam: Similar predictors, different target updates,align=center,pdfwidth=100%]
 
-Both methods predict one view's representation from the other and stop gradients through the target in each loss term. BYOL uses a separate target encoder and projector updated by an exponential moving average; SimSiam shares its encoder and projector across views and has no EMA target network.
 
 [#unique_section2_ch3_011_dino_and_self_distillation_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === DINO: match a teacher's distribution
@@ -507,11 +498,10 @@ Prototype indices are learned output coordinates, not automatically human-define
 Multi-crop training supplies a useful extra constraint. The teacher receives the larger global crops, while the student also sees smaller local crops. A local crop usually lacks some of the global context, so its output must match a target produced from a different field of view. This encourages features to remain consistent across scales, but a local crop may not contain enough evidence to infer every property of the full scene. The crop protocol determines which consistency the objective rewards.
 
 [#ch3-figure-F15,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.DINO teacher-student cross-view distillation
+.DINO teacher-student cross-view distillation. A student matches the teacher's prototype distribution for another view of the same source. Centering and sharpening shape the teacher target; the student receives gradients while the teacher tracks it through an exponential moving average.
 [%unbreakable]
 image::CH03_F10_Dadwal.png[DINO teacher-student cross-view distillation,align=center,pdfwidth=100%]
 
-DINO trains a student to match a detached teacher distribution over learned prototypes for a different view of the same source. The teacher logits are centered and its distribution sharpened before cross-entropy is computed; the student receives gradients, while the teacher parameters follow an EMA update.
 
 These releases also illustrate a general caution: reported improvements belong to a complete training system, including data, architecture, optimization and evaluation, rather than to an isolated loss substitution. The following details separate the original DINO mechanism from components added in later recipes.
 
@@ -558,11 +548,10 @@ The diagonal terms encourage each coordinate to agree with its counterpart acros
 The coefficient latexmath:[\lambda] sets the strength of decorrelation relative to alignment. This is a second-order constraint: uncorrelated features can still have nonlinear dependence, and the coordinates are not automatically meaningful physical variables. Barlow Twins specifies a pattern for the batch cross-correlation matrix, not merely a distance between paired vectors.
 
 [#ch3-figure-F16,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.Barlow Twins: The cross-correlation matrix
+.Barlow Twins: The cross-correlation matrix. The method standardizes paired-view features and drives their cross-correlation matrix toward identity: corresponding dimensions agree, while off-diagonal correlations shrink. This reduces linear redundancy but does not guarantee independence or semantic usefulness.
 [%unbreakable]
 image::CH03_F11_Dadwal.png[Barlow Twins: The cross-correlation matrix,align=center,pdfwidth=100%]
 
-Barlow Twins standardizes paired-view feature batches and drives their cross-correlation matrix toward an identity pattern: corresponding dimensions agree across views, while off-diagonal cross-view correlations are penalized. This constrains linear redundancy but does not guarantee full statistical independence or semantic meaning.
 
 [#unique_section2_ch3_014_vicreg_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === VICReg: make three constraints explicit
@@ -623,11 +612,10 @@ The methods are related but not identical. Barlow Twins uses normalized cross-co
 A simple two-coordinate example makes the distinction concrete. If both coordinates are copies of the same varying scalar, their variances may exceed the margin, so the variance term is satisfied; however, their covariance is high and the covariance term penalizes them. If the second coordinate is constant, its covariance with the first may be zero, but its standard deviation is below the margin and the variance term penalizes it. Only a feature batch with adequate spread and sufficiently low linear redundancy can make both statistical penalties small. The remaining variation can still describe the wrong thing, so a separate task-based evaluation is necessary.
 
 [#ch3-figure-F17,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.VICReg separates agreement, variance and covariance
+.VICReg separates agreement, variance and covariance. The invariance term matches paired views, the variance term prevents constant dimensions, and covariance regularization discourages redundant directions. These constraints address distinct geometric failures but do not establish that retained variation is useful for the target.
 [%unbreakable]
 image::CH03_F12_Dadwal.png[VICReg separates agreement, variance and covariance,align=center,pdfwidth=100%]
 
-VICReg combines three complementary constraints: matching paired-view representations, maintaining a standard-deviation floor for each feature dimension, and penalizing off-diagonal covariance within each view's batch. The statistical penalties address different failure modes but do not establish that the retained variation is semantically or predictively useful.
 
 [#ch3-listing-vicreg,reftext={chapter}.{counter:listing},caption='{listing-caption}.{counter:listing-number} ']
 .Three VICReg terms in the official PyTorch implementation (source excerpt)
@@ -715,11 +703,10 @@ Masking also changes what the model is allowed to observe. A model trained to re
 The target-space schematic holds the mask fixed and changes only the prediction target.
 
 [#ch3-figure-F23,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.One visible context, several masked-prediction targets
+.One visible context, several masked-prediction targets. The mask determines which positions are hidden; the target defines what must be predicted: pixel values, discrete tokenizer codes, or teacher-derived features or distributions. These are alternatives, not one architecture using every target.
 [%unbreakable]
 image::CH03_F13_Dadwal.png[One visible context, several masked-prediction targets,align=center,pdfwidth=100%]
 
-The mask determines which positions are withheld, while the target construction determines what the predictor must recover: pixel values, a discrete tokenizer code, or a teacher-derived feature or distribution. These are alternative objective designs, not one architecture that uses every target mechanism.
 
 [#unique_section2_ch3_018_mae_pixels_and_asymmetry_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === MAE: predict masked pixels
@@ -748,11 +735,10 @@ The original MAE recipe uses a high masking ratio, 75% of image patches. The enc
 Figure xref:ch3-figure-F24[] shows why the MAE encoder sees only visible patches while its decoder reconstructs masked positions.
 
 [#ch3-figure-F24,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.MAE's visible-only encoder and masked-patch decoder
+.MAE's visible-only encoder and masked-patch decoder. Only visible patch tokens enter the encoder. The decoder restores the full sequence with mask tokens and predicts pixels for masked patches, reducing encoder computation at high mask ratios. Downstream tasks typically use the encoder features.
 [%unbreakable]
 image::CH03_F14_Dadwal.png[MAE's visible-only encoder and masked-patch decoder,align=center,pdfwidth=100%]
 
-The encoder processes only visible patch tokens, saving computation when many patches are masked. The decoder then restores the full sequence with learned mask tokens and predicts patch pixels, while the reconstruction loss averages errors over masked patches only. The encoder representation, rather than the reconstruction decoder, is typically transferred downstream.
 
 [#unique_section2_ch3_019_beit_ibot_and_data2vec_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === BEiT, iBOT and data2vec: change the target
@@ -849,11 +835,10 @@ This compresses the grid into one vector and removes explicit patch indexing fro
 The pooling equation also gives a simple source of aliasing. Consider two feature grids whose patch vectors are identical as a multiset but appear in different spatial orders. Average pooling gives the same sum, hence the same global vector, even though the arrangements differ. If the target depends on the arrangement, the pooled representation cannot be sufficient for that target. Positional information elsewhere in the encoder can reduce such collisions, but the pooling operation itself does not preserve the index of each patch.
 
 [#ch3-figure-F27,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.The training representation and the downstream interface
+.The training representation and the downstream interface. Pretraining may optimize the projector output, while downstream tasks often use backbone features. Those features can be exported as a pooled vector, spatial grid or temporal context; the interface determines which distinctions remain accessible.
 [%unbreakable]
 image::CH03_F15_Dadwal.png[The training representation and the downstream interface,align=center,pdfwidth=100%]
 
-The pretraining loss acts on the projector output when a projection head is used, while downstream tasks often consume backbone features. Those features can be exposed as a pooled global vector, a spatial grid, or an aggregated temporal context, depending on what the task must preserve.
 
 [#unique_section2_ch3_027_compression_sufficiency_ID,reftext={chapter}.{section}.{subsection},caption='{chapter}.{section}.{subsection}']
 === Compression and predictive sufficiency
@@ -897,14 +882,13 @@ f(x_1)=f(x_2)=z,\qquad P(Y\mid x_1)\ne P(Y\mid x_2).
 For example, two video histories can end with an object at the same image location while showing motion in opposite directions. If the representation merges those histories, a predictor that receives only latexmath:[z] must return the same distribution for both. Increasing the predictor's capacity cannot recover a distinction the encoder discarded. This is a target-relative failure, not a claim that every pair of similar frames must have different futures.
 
 [#ch3-figure-F28,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.Aliasing is a failure of predictive sufficiency
+.Aliasing is a failure of predictive sufficiency. Two histories map to the same representation but imply different next-state distributions under the same action. A predictor given only that representation and action must return the same distribution for both, so it cannot predict both correctly.
 [%unbreakable]
 image::CH03_F16_Dadwal.png[Aliasing is a failure of predictive sufficiency,align=center,pdfwidth=100%]
 
-Two different histories can encode to the same representation even when they imply different next-state distributions under the same action. A predictor given only that representation and action must return the same distribution for both, so the representation is insufficient for this target.
 
 [#ch3-figure-F22,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.A training loss and a probe answer different questions. No single metric certifies predictive sufficiency.
+.A training loss and a probe answer different questions. No single metric certifies predictive sufficiency. Pretraining loss measures fit to its chosen target; a probe tests accessibility under a specified readout, while sufficiency requires evaluating a named target and prediction horizon on held-out data.
 [%unbreakable]
 image::CH03_F17_Dadwal.png[A training loss and a probe answer different questions. No single metric certifies predictive sufficiency.,align=center,pdfwidth=100%]
 

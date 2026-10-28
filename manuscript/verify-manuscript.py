@@ -91,6 +91,11 @@ if actual_figure_ids != expected_figure_ids:
     errors.append(f"Figure anchors do not match the approved order: {actual_figure_ids}")
 if len(figures) != 17:
     errors.append(f"Expected 17 figure blocks; found {len(figures)}.")
+figure_captions = [lines[i + 1][1:] for i, line in enumerate(lines)
+                   if line.startswith("[#ch3-figure-") and i + 1 < len(lines)]
+if len(figure_captions) != 17 or any(len(caption) > 340 for caption in figure_captions):
+    errors.append("Figure captions must all be present and stay within the four-line editorial length budget.")
+
 
 expected_assets = [f"CH03_F{i:02d}_Dadwal.png" for i in range(1, 18)]
 actual_assets = re.findall(r"^image::(CH03_F\d{2}_Dadwal\.png)\[", source, flags=re.MULTILINE)
