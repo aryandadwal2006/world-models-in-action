@@ -38,7 +38,7 @@ P(S_{t+1}\mid H_2,a)
 A predictor that receives only the same pair \((z,a)\) cannot distinguish the histories. It must return the same distribution for both:
 
 \[
-q(\cdot\mid z,a)=q(\cdot\mid z,a)
+\widehat P_1=\widehat P_2=q(\cdot\mid z,a)
 \]
 
 Show this repeated prediction as one shared output or two visibly identical copies, not as two separately learned predictions.
