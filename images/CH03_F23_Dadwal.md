@@ -1,4 +1,4 @@
-# Figure 3.14: One visible context, several masked-prediction targets
+# Figure 3.13: One visible context, several masked-prediction targets
 
 **Status:** Detailed production brief only. No artwork is included in this branch.
 
@@ -28,7 +28,7 @@ The common input makes target differences the focus.
 
 ## Caption
 
-Figure 3.14. One visible context, several masked-prediction targets.
+Figure 3.13. One visible context, several masked-prediction targets.
 
 ## Production note
 
