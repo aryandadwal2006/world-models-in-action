@@ -376,6 +376,8 @@ A CPC future-latent retrieval score only shows that the correct future code can 
 **Artwork placeholder: Figure 3.7.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F12_Dadwal.md.
 ****
 
+CPC encodes observations through time (t) into a causal context, then uses horizon-specific scoring heads to identify each observed future latent among sampled candidates. The future targets are comparison candidates, not inputs to the context, and this retrieval objective alone does not demonstrate recursive rollout or planning.
+
 [#unique_section_ch3_005_noncontrastive_objectives_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
 == Non-contrastive objectives
 
