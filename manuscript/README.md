@@ -17,6 +17,9 @@ The build produces `CH03_Dadwal_World_Models_in_Action.pdf`. This is an author-s
 
 ## Figure artwork
 
+Figure captions combine a short identifying phrase with a concise explanation of the visual argument. They are kept within a 340-character editorial budget, intended to fit within four printed lines; the first paragraph after each artwork is therefore not repeated as body text. The full caption is also recorded in the figure register and production crosswalk.
+
+
 All 17 current figures are inserted in printed order. The artwork files are `images/CH03_F01_Dadwal.png` through `images/CH03_F17_Dadwal.png`. The Markdown production briefs use retained legacy identifiers; `images/README.md` maps each brief to its printed figure and actual PNG file. Figure number and caption remain manuscript metadata and are not baked into the artwork.
 
 ## Code and official implementations
