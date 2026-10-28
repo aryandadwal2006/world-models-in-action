@@ -21,40 +21,40 @@ At the top, show one anchor icon or feature vector compared against exactly thre
 
 Add a small, explicit note: “Illustrative values, not empirical results.”
 
-Next, show temperature scaling with \\(\\tau=0.5\\), giving the logits:
-- positive: \\(a_y=0.80/0.5=1.6\\)
-- negative 1: \\(a_1=0.10/0.5=0.2\\)
-- negative 2: \\(a_2=-0.30/0.5=-0.6\\)
+Next, show temperature scaling with \(\tau=0.5\), giving the logits:
+- positive: \(a_y=0.80/0.5=1.6\)
+- negative 1: \(a_1=0.10/0.5=0.2\)
+- negative 2: \(a_2=-0.30/0.5=-0.6\)
 
 Keep similarities and logits in distinct rows or aligned columns, with headings that prevent readers from confusing the two.
 
 Then show a three-entry softmax distribution, in the same candidate order:
-- positive: \\(p_y\\approx0.737\\)
-- negative 1: \\(p_1\\approx0.182\\)
-- negative 2: \\(p_2\\approx0.082\\)
+- positive: \(p_y\approx0.737\)
+- negative 1: \(p_1\approx0.182\)
+- negative 2: \(p_2\approx0.082\)
 
 Show that the probabilities are normalized across exactly these three candidates. Their displayed values sum to 1.001 only because of rounding; do not imply the unrounded probabilities fail to sum to one. Do not include the anchor itself in the candidate set.
 
 Display the single-anchor cross-entropy:
-\\[
-\\mathcal{L}=-\\log p_y=-\\log(0.737)\\approx0.306.
-\\]
+\[
+\mathcal{L}=-\log p_y=-\log(0.737)\approx0.306.
+\]
 Use the positive probability as the target probability. Do not omit the positive from the softmax normalization.
 
 ### Right panel: derivative with respect to each scaled logit
 
 Use the same three candidate labels and order. At the top, display the general derivative:
-\\[
-\\frac{\\partial\\mathcal{L}}{\\partial a_k}
-=p_k-\\mathbf{1}[k=y].
-\\]
+\[
+\frac{\partial\mathcal{L}}{\partial a_k}
+=p_k-\mathbf{1}[k=y].
+\]
 
 Define the indicator clearly and briefly: it equals 1 for the positive index and 0 for a negative index.
 
 Evaluate the derivative for each candidate:
-- positive: \\(0.737-1=-0.263\\)
-- negative 1: \\(0.182\\)
-- negative 2: \\(0.082\\)
+- positive: \(0.737-1=-0.263\)
+- negative 1: \(0.182\)
+- negative 2: \(0.082\)
 
 Retain appropriate approximate-equality notation or make clear that these values are rounded. Keep the negative derivative magnitudes distinct: the higher-probability negative receives the larger positive derivative.
 
@@ -65,25 +65,25 @@ Then show a concise update-direction cue corresponding to gradient descent:
 Use labeled directional arrows or restrained up/down cues next to the values, but never use arrow direction as the only explanation. State the meaning in compact text: “Gradient descent raises the positive logit and lowers negative logits.”
 
 Near the bottom of this panel, connect logits back to unscaled similarities:
-\\[
-a_k=s_k/\\tau
-\\qquad\\Longrightarrow\\qquad
-\\frac{\\partial\\mathcal{L}}{\\partial s_k}
-=\\frac{1}{\\tau}
-\\left(p_k-\\mathbf{1}[k=y]\\right).
-\\]
-This must correctly communicate the additional factor \\(1/\\tau\\) when differentiating with respect to the unscaled similarity. Keep this relationship visually distinct from the logit derivative; do not mislabel logit gradients as parameter updates.
+\[
+a_k=s_k/\tau
+\qquad\Longrightarrow\qquad
+\frac{\partial\mathcal{L}}{\partial s_k}
+=\frac{1}{\tau}
+\left(p_k-\mathbf{1}[k=y]\right).
+\]
+This must correctly communicate the additional factor \(1/\tau\) when differentiating with respect to the unscaled similarity. Keep this relationship visually distinct from the logit derivative; do not mislabel logit gradients as parameter updates.
 
 ## Required conceptual accuracy
 
 - Treat the three numerical candidates as one illustrative anchor-level calculation, not measured or benchmark data.
-- The logits are the similarities divided by temperature \\(\\tau=0.5\\).
+- The logits are the similarities divided by temperature \(\tau=0.5\).
 - The softmax includes the positive and both negatives, but excludes the anchor itself.
 - The probability for the positive is approximately 0.737, yielding loss approximately 0.306.
-- For cross-entropy, the derivative with respect to a scaled logit is \\(p_k-\\mathbf{1}[k=y]\\).
+- For cross-entropy, the derivative with respect to a scaled logit is \(p_k-\mathbf{1}[k=y]\).
 - The positive-logit derivative is negative; under gradient descent, its logit increases. Negative-logit derivatives are positive; their logits decrease.
 - The harder negative has the larger current probability and therefore the larger derivative with respect to its logit.
-- The extra \\(1/\\tau\\) factor applies to the derivative with respect to unscaled similarity, not to the already-scaled-logit formula.
+- The extra \(1/\tau\) factor applies to the derivative with respect to unscaled similarity, not to the already-scaled-logit formula.
 - The figure explains derivatives with respect to logits and similarities. It must not suggest that these are already gradients with respect to network parameters. The representations and shared parameters receive accumulated gradients through the full computational graph.
 - Do not imply that every negative is semantically unrelated.
 
@@ -97,7 +97,7 @@ White background, dark grayscale-safe line work, and #3B6FB6 as the only accent.
 2. The softmax candidate set contains the positive and two negatives but not the anchor.
 3. The gradient equation and all three derivative signs are correct.
 4. The gradient-descent direction is explained correctly and is not confused with the sign of the derivative.
-5. The relationship between the logit and similarity derivatives includes exactly the factor \\(1/\\tau\\).
+5. The relationship between the logit and similarity derivatives includes exactly the factor \(1/\tau\).
 6. The text remains readable at book-column width, with no overlapping content.
 7. The image contains no figure number, title, caption, or invented empirical claim.
 
