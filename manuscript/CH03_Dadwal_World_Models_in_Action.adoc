@@ -487,6 +487,8 @@ Minimizing this negative cosine similarity maximizes directional agreement witho
 **Artwork placeholder: Figure 3.9.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F14_Dadwal.md.
 ****
 
+Both methods predict one view's representation from the other and stop gradients through the target in each loss term. BYOL uses a separate target encoder and projector updated by an exponential moving average; SimSiam shares its encoder and projector across views and has no EMA target network.
+
 [#unique_section2_ch3_011_dino_and_self_distillation_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === DINO: match a teacher's distribution
 
