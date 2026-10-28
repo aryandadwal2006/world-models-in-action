@@ -999,7 +999,7 @@ Ho, J., Jain, A. and Abbeel, P. (2020). Denoising Diffusion Probabilistic Models
 Hsu, W.-N. et al. (2021). HuBERT: Self-Supervised Speech Representation Learning by Masked Prediction of Hidden Units. arXiv:2106.07447.
 
 [.bibliography-entry]
-LeCun, Y., Chopra, S., Hadsell, R., Ranzato, M. and Huang, F. (2006). A Tutorial on Energy-Based Learning. In *Predicting Structured Data*. MIT Press. PDF.
+LeCun, Y., Chopra, S., Hadsell, R., Ranzato, M. and Huang, F. (2006). A Tutorial on Energy-Based Learning. In G. Bakir, T. Hofmann, B. Schölkopf, A. J. Smola and B. Taskar (eds.), *Predicting Structured Data* (pp. 191-246). MIT Press.
 
 [.bibliography-entry]
 Misra, I. and van der Maaten, L. (2020). Self-Supervised Learning of Pretext-Invariant Representations. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. CVF Open Access.
