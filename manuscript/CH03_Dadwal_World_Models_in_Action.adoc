@@ -809,6 +809,8 @@ The VISReg authors report stronger correction near collapse and favorable result
 **Artwork placeholder: Figure 3.13.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F19_Dadwal.md.
 ****
 
+VICReg constrains second-order statistics, SIGReg compares characteristic functions along random one-dimensional projections, and VISReg matches sorted projected samples to standard-normal quantiles while separately regularizing scale and minibatch center. These finite-batch distributional constraints are approximations, not certificates of exact Gaussianity or semantic sufficiency.
+
 [#unique_section2_ch3_016_brief_other_methods_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === Other methods in brief
 
