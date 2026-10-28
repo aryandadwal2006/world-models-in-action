@@ -229,6 +229,8 @@ Figure xref:ch3-figure-F05[] combines the worked candidate-classification exampl
 **Artwork placeholder: Figure 3.4.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F05_Dadwal.md.
 ****
 
+The same three candidates are followed from cosine similarities through temperature-scaled logits, softmax probabilities and cross-entropy loss. The derivative panel shows why gradient descent raises the positive logit and lowers the negative logits, with the harder negative receiving the larger gradient. All displayed values are illustrative.
+
 [#unique_section2_ch3_006_what_infoNCE_does_and_does_not_prove_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === What InfoNCE does and does not prove
 
