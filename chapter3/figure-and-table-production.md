@@ -20,7 +20,7 @@
 | 3.14 | `images/CH03_F24_Dadwal.md` | MAE's visible-only encoder and masked-patch decoder |
 | 3.15 | `images/CH03_F27_Dadwal.md` | The training representation and the downstream interface |
 | 3.16 | `images/CH03_F28_Dadwal.md` | Aliasing is a failure of predictive sufficiency |
-| 3.17 | `images/CH03_F22_Dadwal.md` | A training loss and a probe answer different questions |
+| 3.17 | `images/CH03_F22_Dadwal.md` | A training loss and a probe answer different questions. No single metric certifies predictive sufficiency. |
 
 Table 3.1 compares objective signals. Listing 3.1 is a short source-attributed excerpt from official PyTorch VICReg. The revised chapter contains 17 figure placeholders, one table and one listing.
 
