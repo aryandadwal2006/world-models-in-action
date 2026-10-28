@@ -116,6 +116,8 @@ if len(listings) != 1 or sum(line.startswith("[source,") for line in lines) != 1
     errors.append(f"Expected one short PyTorch source listing; found {len(listings)} anchors.")
 if "[#ch3-listing-vicreg," not in source or "torch.sqrt" not in source:
     errors.append("The sole code listing must remain the official PyTorch VICReg excerpt.")
+if '[source,python,options="unbreakable"]' not in source:
+    errors.append("The VICReg source listing must stay together across pages.")
 if "tensorflow" in source.casefold() or re.search(r"\btf\.", source):
     errors.append("TensorFlow references/listings are not permitted in this chapter source.")
 if re.search(r"\[[^\]]+\]\(https?://", source):
@@ -132,6 +134,8 @@ if r"\(" in source or r"\)" in source:
     errors.append("Markdown-style inline math delimiters remain; use latexmath macros.")
 if len(re.findall(r"^== References$", source, flags=re.MULTILINE)) != 1:
     errors.append("Expected one consolidated References heading.")
+if "<<<\n\n[#unique_section_ch3_029_references_ID" not in source:
+    errors.append("References should begin on a fresh page.")
 
 bibliography_entries = source.split("== References", 1)[-1].split()
 marker_count = sum(line == "[.bibliography-entry]" for line in lines)

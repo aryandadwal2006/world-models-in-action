@@ -631,7 +631,7 @@ VICReg combines three complementary constraints: matching paired-view representa
 
 [#ch3-listing-vicreg,reftext={chapter}.{counter:listing},caption='{listing-caption}.{counter:listing-number} ']
 .Three VICReg terms in the official PyTorch implementation (source excerpt)
-[source,python]
+[source,python,options="unbreakable"]
 ----
 # Source: facebookresearch/vicreg/main_vicreg.py
 repr_loss = F.mse_loss(x, y)
@@ -926,6 +926,8 @@ Masked methods differ in whether they predict pixels, discrete codes or teacher 
 . Give two observation histories latexmath:[x_1,x_2] that map to the same representation but have different conditional future distributions. Explain why no downstream predictor that receives only that representation can predict both distributions correctly.
 . Decompose DINO's teacher-student cross-entropy into target entropy and KL divergence. Explain what happens if the teacher returns the same distribution for every image.
 . For a batch whose second VICReg coordinate is constant but whose first coordinate varies, determine which term penalizes the second coordinate and why the covariance penalty alone would not be enough.
+
+<<<
 
 [#unique_section_ch3_029_references_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
 == References
