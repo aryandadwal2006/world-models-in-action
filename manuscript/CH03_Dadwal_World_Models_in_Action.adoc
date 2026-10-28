@@ -780,6 +780,8 @@ Figure xref:ch3-figure-F24[] shows why the MAE encoder sees only visible patches
 **Artwork placeholder: Figure 3.14.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F24_Dadwal.md.
 ****
 
+The encoder processes only visible patch tokens, saving computation when many patches are masked. The decoder then restores the full sequence with learned mask tokens and predicts patch pixels, while the reconstruction loss averages errors over masked patches only. The encoder representation, rather than the reconstruction decoder, is typically transferred downstream.
+
 [#unique_section2_ch3_019_beit_ibot_and_data2vec_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === BEiT, iBOT and data2vec: change the target
 
