@@ -681,142 +681,14 @@ loss = (self.args.sim_coeff * repr_loss
 Long expressions are wrapped to fit the book's listing width without changing the calculation. The official PyTorch implementation uses view agreement, a standard-deviation hinge with target one, and squared off-diagonal covariance. The helper and surrounding architecture are in the project's main training script. The upstream repository uses the MIT License; exact reductions and weights should be matched when reproducing a result.
 
 [#unique_section2_ch3_033_distribution_shape_regularization_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
-=== Beyond covariance: SIGReg, LeJEPA and VISReg
-
-VICReg constrains variance and off-diagonal covariance. These are interpretable second-order statistics, but two distributions can share a mean and covariance while differing in multimodality or tail behavior. SIGReg and VISReg investigate distribution-shape constraints, particularly for joint-embedding predictive training.
-
-LeJEPA's theory argues that an isotropic Gaussian embedding distribution is optimal for downstream prediction risk under the assumptions developed in its paper. For a standard Gaussian latexmath:[Z\sim\mathcal N(0,I_d)], every unit-direction projection latexmath:[w^\top Z] is standard normal. This is a theory result under specified conditions, not a universal claim that every downstream task requires Gaussian latents.
-
-**SIGReg** approximates distribution matching with random one-dimensional projections. For projected samples latexmath:[u_1,\ldots,u_B], the empirical characteristic function is
-
-[latexmath]
-++++
-\widehat\varphi_B(t)=\frac1B\sum_{b=1}^{B}e^{itu_b},
-\qquad
-\varphi_{\mathcal N(0,1)}(t)=e^{-t^2/2}.
-++++
-
-For random unit directions latexmath:[w_1,\ldots,w_K], a schematic form of this discrepancy is
-
-[latexmath]
-++++
-\mathcal L_{\mathrm{SIGReg}}(Z)
-=\frac1K\sum_{k=1}^{K}\int_{\mathbb R}
-\left|
-\frac1B\sum_{b=1}^{B}e^{itw_k^\top z_b}
--e^{-t^2/2}
-\right|^2\omega(t)\,dt,
-++++
-
-where latexmath:[\omega(t)] is the weighting used by the prescribed Epps-Pulley-style test. The practical implementation approximates the integral with its specified quadrature points and weights. The Cramér-Wold theorem motivates the sketching argument: all one-dimensional projections together characterize a distribution. A finite collection of projections is only an approximation, not proof of exact multivariate Gaussianity. Quadrature, weighting and normalization must follow the source.
-
-**LeJEPA** combines a predictive objective with SIGReg. It constructs a target from the mean embeddings of global views of the same source instance, then predicts that target from other views. Views must remain grouped by original image; averaging across images defines a different objective. A schematic objective is
-
-[latexmath]
-++++
-\mathcal L_{\mathrm{LeJEPA}}
-=(1-\lambda)\mathcal L_{\mathrm{pred}}
-+\lambda\mathcal L_{\mathrm{SIGReg}}.
-++++
-
-The paper's recipe is designed not to require an EMA target encoder and stop-gradient target branch in the same way as BYOL/SimSiam. That is a different design, not evidence that earlier asymmetries are unnecessary for every task.
-
-**VISReg** separates scale, shape and center. Keep two distinct meanings of *center* separate: the prediction target is the mean embedding of global views of the same source image; the regularizer's center term penalizes the minibatch mean for each view.
-
-In the reference implementation inspected for this chapter, the projected embeddings have shape latexmath:[Z\in\mathbb R^{V\times B\times d}], with latexmath:[V] views, minibatch size latexmath:[B] and feature dimension latexmath:[d]. For each view latexmath:[v], the batch mean and centered embeddings are
-
-[latexmath]
-++++
-\mu_{v,j}=\frac1B\sum_{b=1}^{B}z_{v,b,j},
-\qquad
-\widehat z_{v,b,j}=z_{v,b,j}-\mu_{v,j}.
-++++
-
-The implementation's coordinate scale is the population standard deviation with a small numerical offset:
-
-[latexmath]
-++++
-\sigma_{v,j}=
-\sqrt{\frac1B\sum_{b=1}^{B}\widehat z_{v,b,j}^{\,2}}+\epsilon.
-++++
-
-Its scale term pulls those standard deviations toward one:
-
-[latexmath]
-++++
-\mathcal L_{\mathrm{scale}}=
-\frac1{Vd}\sum_{v=1}^{V}\sum_{j=1}^{d}
-(\sigma_{v,j}-1)^2.
-++++
-
-For the shape term, the centered features are normalized by a *detached* copy of the scale vector. The stop-gradient is applied to the denominator, and no second epsilon is added after that scale has already been stabilized:
-
-[latexmath]
-++++
-\widetilde z_{v,b,j}
-=\frac{\widehat z_{v,b,j}}{\mathrm{sg}(\sigma_{v,j})}.
-++++
-
-For each randomly sampled unit direction latexmath:[w_k], project the normalized features and sort the latexmath:[B] values. Let latexmath:[q_b=\Phi^{-1}(b/(B+1))] be the corresponding standard-normal quantiles for latexmath:[b=1,\ldots,B]. The reference implementation averages the squared differences over views, projection directions and batch positions:
-
-[latexmath]
-++++
-\mathcal L_{\mathrm{shape}}=
-\frac1{VKB}\sum_{v=1}^{V}\sum_{k=1}^{K}
-\left\|\mathrm{sort}(\widetilde Z_v w_k)-q_{1:B}\right\|_2^2.
-++++
-
-The batch-center penalty is
-
-[latexmath]
-++++
-\mathcal L_{\mathrm{center}}=
-\frac1{Vd}\sum_{v=1}^{V}\|\mu_v\|_2^2.
-++++
-
-The complete regularizer keeps three explicit weights:
-
-[latexmath]
-++++
-\mathcal L_{\mathrm{Reg}}=
-\lambda_{\mathrm{scale}}\mathcal L_{\mathrm{scale}}
-+\lambda_{\mathrm{shape}}\mathcal L_{\mathrm{shape}}
-+\lambda_{\mathrm{center}}\mathcal L_{\mathrm{center}}.
-++++
-
-The full reference recipe also has a separate *view-invariance* term. For each source image latexmath:[b], let latexmath:[c_b] be the mean of its global-view projections. The model matches every global and local projection latexmath:[z_{v,b}] to that same-image center:
-
-[latexmath]
-++++
-\mathcal L_{\mathrm{inv}}=
-\frac1{VBd}\sum_{v=1}^{V}\sum_{b=1}^{B}
-\|z_{v,b}-c_b\|_2^2,
-\qquad
-c_b=\frac1{V_g}\sum_{v\in\mathcal V_g}z_{v,b}.
-++++
-
-The training loss mixes this invariance term with the regularizer,
-latexmath:[\mathcal L=(1-\lambda_{\mathrm{mix}})\mathcal L_{\mathrm{inv}}+\lambda_{\mathrm{mix}}\mathcal L_{\mathrm{Reg}}].
-
-The *same-image global-view center* is the target for view consistency, whereas the *per-view minibatch mean* is penalized by latexmath:[\mathcal L_{\mathrm{center}}]. They are different operations. SIGReg instead uses a characteristic-function discrepancy; VISReg compares sorted projected samples with Gaussian quantiles. The stop-gradient here decouples scale and shape gradients; it is not a BYOL-style teacher pathway.
-
-The VISReg authors report stronger correction near collapse and favorable results on tested out-of-distribution, low-rank and long-tailed settings. These are reported findings, not guarantees for every optimizer or data distribution. Report batch size, projection count, objective weights, architecture and evaluation protocol when comparing these methods. Balestriero and LeCun's LeJEPA paper and the VISReg paper describe the respective recipes and assumptions.
-
-[#ch3-figure-F19,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.VICReg, SIGReg and VISReg constrain different aspects of feature distributions
-[.figure-placeholder%unbreakable]
-****
-**Artwork placeholder: Figure 3.13.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F19_Dadwal.md.
-****
-
-VICReg constrains second-order statistics, SIGReg compares characteristic functions along random one-dimensional projections, and VISReg matches sorted projected samples to standard-normal quantiles while separately regularizing scale and minibatch center. These finite-batch distributional constraints are approximations, not certificates of exact Gaussianity or semantic sufficiency.
+JEPA-based predictive representation methods are covered in Chapter 4.
 
 [#unique_section2_ch3_016_brief_other_methods_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === Other methods in brief
 
 DeepCluster (Caron et al., 2018) alternates between clustering current features and training the encoder against the resulting pseudo-labels. SwAV (Caron et al., 2020) instead predicts one view's prototype assignment from another view's features, using balanced assignments in the referenced recipe. In both cases, clusters are training targets, not ground-truth semantic labels.
 
-The same principle applies across modalities. CLIP (Radford et al., 2021) aligns images with paired text using a symmetric contrastive objective, while SigLIP (Zhai et al., 2023) uses pairwise sigmoid losses. BERT (Devlin et al., 2019) predicts masked tokens, GPT-style language models (Radford et al., 2019) predict the next token from a prefix, and ELECTRA (Clark et al., 2020) detects replaced tokens. In speech, wav2vec 2.0 (Baevski et al., 2020) contrasts contextual features with quantized targets, HuBERT (Hsu et al., 2021) predicts cluster-derived targets, and data2vec (Baevski et al., 2022) predicts teacher features. These are brief examples of different target constructions, not additional method tutorials. JEPA architecture remains in Chapter 4, and generative modelling remains in the later chapters.
+The same principle applies across modalities. CLIP (Radford et al., 2021) aligns images with paired text using a symmetric contrastive objective, while SigLIP (Zhai et al., 2023) uses pairwise sigmoid losses. BERT (Devlin et al., 2019) predicts masked tokens, GPT-style language models (Radford et al., 2019) predict the next token from a prefix, and ELECTRA (Clark et al., 2020) detects replaced tokens. In speech, wav2vec 2.0 (Baevski et al., 2020) contrasts contextual features with quantized targets, HuBERT (Hsu et al., 2021) predicts cluster-derived targets, and data2vec (Baevski et al., 2022) predicts teacher features. These are brief examples of different target constructions, not additional method tutorials. generative modelling remains in the later chapters.
 
 [#ch3-table-T01,reftext={chapter}.{counter:table},caption='{table-caption}.{counter:table-number} ']
 .Self-supervised objectives compared by the signal they construct
@@ -829,10 +701,8 @@ The same principle applies across modalities. CLIP (Radford et al., 2021) aligns
 |DINO family |Match teacher distributions over learned prototypes |Teacher targets can collapse or omit information of interest
 |Barlow Twins |Cross-view correlation matrix near identity |Second-order decorrelation is not semantic sufficiency
 |VICReg |View agreement plus variance and covariance constraints |Nonconstant, decorrelated features can still encode nuisance variation
-|SIGReg / VISReg |Constrain projected feature-distribution shape |Distributional regularity does not establish semantic or predictive sufficiency
 |MAE |Predict pixel values at masked patches |Pixel reconstruction does not prove predictive sufficiency
 |BEiT / iBOT / data2vec |Predict discrete codes or teacher features |The representation inherits the chosen target's biases
-|JEPAs |Predict target embeddings from context |Feature prediction does not automatically yield a sufficient state
 |DeepCluster / SwAV |Predict or match pseudo-cluster assignments |Cluster assignments need not correspond to downstream concepts
 |===
 
@@ -1071,9 +941,9 @@ If a linear probe fails while a nonlinear readout succeeds, the information may 
 [#unique_section_ch3_027_summary_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
 == Summary
 
-Self-supervised learning constructs a target relationship from data. Contrastive methods such as SimCLR and MoCo rank positives against sampled candidates; CPC applies that idea to future latents. BYOL and SimSiam predict detached view targets but differ in how their targets change. DINO matches teacher distributions, Barlow Twins constrains cross-view correlations, and VICReg separates agreement, variance and covariance penalties. SIGReg and VISReg constrain aspects of feature-distribution shape, while clustering methods create pseudo-targets from current features.
+Self-supervised learning constructs a target relationship from data. Contrastive methods such as SimCLR and MoCo rank positives against sampled candidates; CPC applies that idea to future latents. BYOL and SimSiam predict detached view targets but differ in how their targets change. DINO matches teacher distributions, Barlow Twins constrains cross-view correlations, and VICReg separates agreement, variance and covariance penalties. clustering methods create pseudo-targets from current features.
 
-Masked methods differ in whether they predict pixels, discrete codes or teacher features; JEPAs instead predict learned target representations from context (Assran et al., 2023; Bardes et al., 2024; Assran et al., 2025). Across these families, the target and loss specify which relationships training rewards, while the encoder architecture and output bottleneck determine where those constraints act. None of these ingredients, nor a low pretraining loss alone, establishes predictive sufficiency. That claim must be evaluated for a named target, input history and prediction horizon.
+Masked methods differ in whether they predict pixels, discrete codes or teacher features. Across these families, the target and loss specify which relationships training rewards, while the encoder architecture and output bottleneck determine where those constraints act. None of these ingredients, nor a low pretraining loss alone, establishes predictive sufficiency. That claim must be evaluated for a named target, input history and prediction horizon.
 
 [#unique_section_ch3_028_exercises_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
 == Exercises
@@ -1091,10 +961,8 @@ Masked methods differ in whether they predict pixels, discrete codes or teacher 
 == References
 
 [.bibliography-entry]
-Assran, M. et al. (2023). Self-Supervised Learning from Images with a Joint-Embedding Predictive Architecture. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. arXiv:2301.08243.
 
 [.bibliography-entry]
-Assran, M. et al. (2025). V-JEPA 2: Self-Supervised Video Models Enable Understanding, Prediction and Planning. arXiv:2506.09985.
 
 [.bibliography-entry]
 Bachman, P., Hjelm, R. D. and Buchwalter, W. (2019). Learning Representations by Maximizing Mutual Information Across Views. arXiv:1906.00910.
@@ -1106,7 +974,6 @@ Baevski, A., Zhou, Y., Mohamed, A. and Auli, M. (2020). wav2vec 2.0: A Framework
 Baevski, A., Hsu, W.-N., Xu, Q., Babu, A., Gu, J. and Auli, M. (2022). data2vec: A General Framework for Self-Supervised Learning in Speech, Vision and Language. *International Conference on Machine Learning*. arXiv:2202.03555.
 
 [.bibliography-entry]
-Balestriero, R. and LeCun, Y. (2025). LeJEPA: Provable and Scalable Self-Supervised Learning Without the Heuristics. arXiv:2511.08544.
 
 [.bibliography-entry]
 Bao, H., Dong, L. and Wei, F. (2022). BEiT: BERT Pre-Training of Image Transformers. *International Conference on Learning Representations*. arXiv:2106.08254.
@@ -1115,7 +982,6 @@ Bao, H., Dong, L. and Wei, F. (2022). BEiT: BERT Pre-Training of Image Transform
 Bardes, A., Ponce, J. and LeCun, Y. (2022). VICReg: Variance-Invariance-Covariance Regularization For Self-Supervised Learning. *International Conference on Learning Representations*. arXiv:2105.04906.
 
 [.bibliography-entry]
-Bardes, A. et al. (2024). Revisiting Feature Prediction for Learning Visual Representations from Video. arXiv:2404.08471.
 
 [.bibliography-entry]
 Caron, M. et al. (2018). Deep Clustering for Unsupervised Learning of Visual Features. *European Conference on Computer Vision*. arXiv:1807.05520.
@@ -1211,7 +1077,6 @@ Wei, C. et al. (2022). Masked Feature Prediction for Self-Supervised Visual Pre-
 Wu, Z., Xiong, Y., Yu, S. X. and Lin, D. (2018). Unsupervised Feature Learning via Non-Parametric Instance Discrimination. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. CVF Open Access.
 
 [.bibliography-entry]
-Wu, H., Balestriero, R. and Levine, M. (2026). VISReg: Variance-Invariance-Sketching Regularization for JEPA Training. arXiv:2606.02572.
 
 [.bibliography-entry]
 Xie, Z. et al. (2022). SimMIM: A Simple Framework for Masked Image Modeling. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. arXiv:2111.09886.
