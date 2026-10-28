@@ -67,7 +67,7 @@ A smaller representation is useful only if the information removed is unnecessar
 **Artwork placeholder: Figure 3.1.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F02_Dadwal.md.
 ****
 
-Chapter 2 formalized this contract in terms of sufficiency, minimality and aliasing. Here the distinction is between the property the state should have and the proxy relation the training loss actually enforces.
+On the left, nuisance appearance changes leave the target distribution unchanged, so the observations may share one representation. On the right, a possible aliasing failure merges histories with different motion or contact states even though their future distributions differ. Chapter 2 formalized the desired contract in terms of sufficiency, minimality and aliasing; the figure contrasts that predictive contract with the proxy relation the training loss actually enforces.
 
 [#unique_section2_ch3_003_invariance_is_a_decision_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === Invariance is a decision
