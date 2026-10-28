@@ -745,6 +745,8 @@ The target-space schematic holds the mask fixed and changes only the prediction 
 **Artwork placeholder: Figure 3.13.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F23_Dadwal.md.
 ****
 
+The mask determines which positions are withheld, while the target construction determines what the predictor must recover: pixel values, a discrete tokenizer code, or a teacher-derived feature or distribution. These are alternative objective designs, not one architecture that uses every target mechanism.
+
 [#unique_section2_ch3_018_mae_pixels_and_asymmetry_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === MAE: predict masked pixels
 
