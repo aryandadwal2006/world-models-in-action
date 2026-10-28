@@ -643,7 +643,6 @@ loss = (self.args.sim_coeff * repr_loss
         + self.args.cov_coeff * cov_loss)
 ----
 [%unbreakable]
-
 Long expressions are wrapped to fit the book's listing width without changing the calculation. The official PyTorch implementation uses view agreement, a standard-deviation hinge with target one, and squared off-diagonal covariance. The helper and surrounding architecture are in the project's main training script. The upstream repository uses the MIT License; exact reductions and weights should be matched when reproducing a result.
 
 [#unique_section2_ch3_033_distribution_shape_regularization_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']

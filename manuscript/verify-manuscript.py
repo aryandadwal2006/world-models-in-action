@@ -123,7 +123,7 @@ if "[#ch3-listing-vicreg," not in source or "torch.sqrt" not in source:
     errors.append("The sole code listing must remain the official PyTorch VICReg excerpt.")
 if '[source,python,options="unbreakable"]' not in source:
     errors.append("The VICReg source listing must stay together across pages.")
-if "[%unbreakable]\n\nLong expressions are wrapped to fit the book" not in source:
+if "[%unbreakable]\nLong expressions are wrapped to fit the book" not in source:
     errors.append("The VICReg listing note must not be split as an orphan line.")
 if "tensorflow" in source.casefold() or re.search(r"\btf\.", source):
     errors.append("TensorFlow references/listings are not permitted in this chapter source.")
