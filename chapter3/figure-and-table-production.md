@@ -1,6 +1,6 @@
 # Chapter 3 figure, table and listing crosswalk
 
-**Current source:** `manuscript/CH03_Dadwal_World_Models_in_Action.adoc` on `manuscript-theory`. **Status:** synchronized after the figure-and-prose audit, 27 October 2026. Printed numbering follows source anchor order; legacy `F##` stems are stable asset names, not printed numbers.
+**Current source:** `manuscript/CH03_Dadwal_World_Models_in_Action.adoc` on `manuscript-theory`. **Status:** synchronized after the Chapter 4 scope and figure-numbering correction, 28 October 2026. Printed numbering follows source anchor order; legacy `F##` stems are stable asset names, not printed numbers.
 
 | Printed figure | Production brief | Caption |
 |---:|---|---|
@@ -16,14 +16,13 @@
 | 3.10 | `images/CH03_F15_Dadwal.md` | DINO teacher-student cross-view distillation |
 | 3.11 | `images/CH03_F16_Dadwal.md` | Barlow Twins: the cross-correlation matrix |
 | 3.12 | `images/CH03_F17_Dadwal.md` | VICReg separates agreement, variance and covariance |
-| 3.13 | `images/CH03_F19_Dadwal.md` | VICReg, SIGReg and VISReg constrain different aspects of feature distributions |
 | 3.14 | `images/CH03_F23_Dadwal.md` | One visible context, several masked-prediction targets |
 | 3.15 | `images/CH03_F24_Dadwal.md` | MAE's visible-only encoder and masked-patch decoder |
 | 3.16 | `images/CH03_F27_Dadwal.md` | The training representation and the downstream interface |
 | 3.17 | `images/CH03_F28_Dadwal.md` | Aliasing is a failure of predictive sufficiency |
 | 3.18 | `images/CH03_F22_Dadwal.md` | A training loss and a probe answer different questions |
 
-Table 3.1 compares objective signals. Listing 3.1 is a short source-attributed excerpt from official PyTorch VICReg. The revised chapter contains 18 figure placeholders, one table and one listing.
+Table 3.1 compares objective signals. Listing 3.1 is a short source-attributed excerpt from official PyTorch VICReg. The revised chapter contains 17 figure placeholders, one table and one listing.
 
 Use the individual briefs and this crosswalk to create original 2D figures with white backgrounds, grayscale-safe dark line work and restrained `#3B6FB6`. Check every equation/arrow against the text and inspect the rebuilt PDF at book-column width. No artwork is yet approved.
 
