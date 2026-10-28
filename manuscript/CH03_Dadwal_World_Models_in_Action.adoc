@@ -185,7 +185,7 @@ The batch loss averages this quantity over all latexmath:[2N] anchors:
 
 [latexmath]
 ++++
-L_{\mathrm{NT\text{-}Xent}}=\frac{1}{2N}\sum_{i=1}^{2N}\ell_i.
+L_{\mathrm{NT-Xent}}=\frac{1}{2N}\sum_{i=1}^{2N}\ell_i.
 ++++
 
 In the denominator of each term are one positive and latexmath:[2N-2] negatives. The positive is included in the denominator; the anchor is not. Stating the candidate set explicitly avoids ambiguity because papers do not all use the same symbol for the number of candidates or negatives.

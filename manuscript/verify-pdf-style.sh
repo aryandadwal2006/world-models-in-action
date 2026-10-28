@@ -22,8 +22,8 @@ if grep -Fqi "Artwork placeholder:" <<<"$all_text"; then
   exit 1
 fi
 for figure_number in $(seq 1 17); do
-  caption="Figure 3.$figure_number."
-  if ! grep -Fq "$caption" <<<"$all_text"; then
+  caption_regex="Figure 3\.${figure_number}([[:space:]]|$)"
+  if ! grep -Eq "$caption_regex" <<<"$all_text"; then
     echo "ERROR: final PDF is missing caption $caption" >&2
     exit 1
   fi

@@ -11,14 +11,14 @@ Printed numbering follows anchor order in `manuscript/CH03_Dadwal_World_Models_i
 | 3.1 | `images/CH03_F02_Dadwal.md` | `images/CH03_F01_Dadwal.png` | The representation contract |
 | 3.2 | `images/CH03_F03_Dadwal.md` | `images/CH03_F02_Dadwal.png` | Augmentation defines the invariances rewarded by training |
 | 3.3 | `images/CH03_F04_Dadwal.md` | `images/CH03_F03_Dadwal.png` | Constructing positives and negatives |
-| 3.4 | `images/CH03_F05_Dadwal.md` | `images/CH03_F04_Dadwal.png` | InfoNCE: candidate probabilities and gradients |
+| 3.4 | `images/CH03_F05_Dadwal.md` | `images/CH03_F04_Dadwal.png` | InfoNCE: Candidate probabilities and gradients |
 | 3.5 | `images/CH03_F07_Dadwal.md` | `images/CH03_F05_Dadwal.png` | Alignment and uniformity are distinct geometric requirements |
-| 3.6 | `images/CH03_F10_Dadwal.md` | `images/CH03_F06_Dadwal.png` | Momentum contrast: query encoder, key encoder and queue |
-| 3.7 | `images/CH03_F12_Dadwal.md` | `images/CH03_F07_Dadwal.png` | CPC: causal context predicts future latent candidates |
+| 3.6 | `images/CH03_F10_Dadwal.md` | `images/CH03_F06_Dadwal.png` | Momentum contrast: Query encoder, key encoder and queue |
+| 3.7 | `images/CH03_F12_Dadwal.md` | `images/CH03_F07_Dadwal.png` | CPC: Causal context predicts future latent candidates |
 | 3.8 | `images/CH03_F13_Dadwal.md` | `images/CH03_F08_Dadwal.png` | Why agreement alone permits collapse |
-| 3.9 | `images/CH03_F14_Dadwal.md` | `images/CH03_F09_Dadwal.png` | BYOL and SimSiam: similar predictors, different target updates |
+| 3.9 | `images/CH03_F14_Dadwal.md` | `images/CH03_F09_Dadwal.png` | BYOL and SimSiam: Similar predictors, different target updates |
 | 3.10 | `images/CH03_F15_Dadwal.md` | `images/CH03_F10_Dadwal.png` | DINO teacher-student cross-view distillation |
-| 3.11 | `images/CH03_F16_Dadwal.md` | `images/CH03_F11_Dadwal.png` | Barlow Twins: the cross-correlation matrix |
+| 3.11 | `images/CH03_F16_Dadwal.md` | `images/CH03_F11_Dadwal.png` | Barlow Twins: The cross-correlation matrix |
 | 3.12 | `images/CH03_F17_Dadwal.md` | `images/CH03_F12_Dadwal.png` | VICReg separates agreement, variance and covariance |
 | 3.13 | `images/CH03_F23_Dadwal.md` | `images/CH03_F13_Dadwal.png` | One visible context, several masked-prediction targets |
 | 3.14 | `images/CH03_F24_Dadwal.md` | `images/CH03_F14_Dadwal.png` | MAE's visible-only encoder and masked-patch decoder |
