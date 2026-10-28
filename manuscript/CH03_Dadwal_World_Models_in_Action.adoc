@@ -742,7 +742,7 @@ The target-space schematic holds the mask fixed and changes only the prediction 
 .One visible context, several masked-prediction targets
 [.figure-placeholder%unbreakable]
 ****
-**Artwork placeholder: Figure 3.14.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F23_Dadwal.md.
+**Artwork placeholder: Figure 3.13.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F23_Dadwal.md.
 ****
 
 [#unique_section2_ch3_018_mae_pixels_and_asymmetry_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
@@ -775,7 +775,7 @@ Figure xref:ch3-figure-F24[] shows why the MAE encoder sees only visible patches
 .MAE's visible-only encoder and masked-patch decoder
 [.figure-placeholder%unbreakable]
 ****
-**Artwork placeholder: Figure 3.15.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F24_Dadwal.md.
+**Artwork placeholder: Figure 3.14.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F24_Dadwal.md.
 ****
 
 [#unique_section2_ch3_019_beit_ibot_and_data2vec_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
@@ -876,7 +876,7 @@ The pooling equation also gives a simple source of aliasing. Consider two featur
 .The training representation and the downstream interface
 [.figure-placeholder%unbreakable]
 ****
-**Artwork placeholder: Figure 3.16.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F27_Dadwal.md.
+**Artwork placeholder: Figure 3.15.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F27_Dadwal.md.
 ****
 
 [#unique_section2_ch3_027_compression_sufficiency_ID,reftext={chapter}.{section}.{subsection},caption='{chapter}.{section}.{subsection}']
@@ -924,7 +924,7 @@ For example, two video histories can end with an object at the same image locati
 .Aliasing is a failure of predictive sufficiency
 [.figure-placeholder%unbreakable]
 ****
-**Artwork placeholder: Figure 3.17.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F28_Dadwal.md.
+**Artwork placeholder: Figure 3.16.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F28_Dadwal.md.
 ****
 
 The evaluation should therefore be matched to the claim. When the aim is to preserve motion, evaluate against a motion-related target over the relevant history and horizon; a static-image retrieval score does not answer that question. A direct prediction test is stronger evidence for a named target than an unrelated pretraining metric, but it remains specific to the data, observation history, prediction horizon and readout protocol that were tested.
@@ -935,7 +935,7 @@ If a linear probe fails while a nonlinear readout succeeds, the information may 
 .A training loss and a probe answer different questions
 [.figure-placeholder%unbreakable]
 ****
-**Artwork placeholder: Figure 3.18.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F22_Dadwal.md.
+**Artwork placeholder: Figure 3.17.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F22_Dadwal.md.
 ****
 
 [#unique_section_ch3_027_summary_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
