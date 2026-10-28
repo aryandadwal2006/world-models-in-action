@@ -251,7 +251,7 @@ I(X;Y)\ge \log K-\mathcal{L}_{\mathrm{NCE}},
 
 where latexmath:[K] includes the positive candidate. Equivalently, latexmath:[\mathcal{L}_{\mathrm{NCE}}\ge \log K-I(X;Y)]. The finite candidate count limits this bound to latexmath:[\log K]. The bound does not grow without limit merely because training continues. The softmax denominator normalizes only over sampled candidates; it is not generally the partition function of a normalized model over every possible image or latent value. This is the boundary between InfoNCE-style candidate classification and the broader energy-based framework (LeCun et al., 2006).
 
-The assumptions matter. Nearby frames, repeated examples or multiple instances of one category can violate independent negative sampling. If negatives come from a different distribution, or candidates are dependent, the same bound does not automatically follow. The density-ratio argument explains the role of the loss and its sampling assumptions; it does not turn an arbitrary contrastive loss into a certified measure of semantic information.
+The assumptions matter. Nearby frames, repeated examples or multiple instances of one category can violate independent negative sampling. If negatives come from a different distribution, or candidates are dependent, the same bound does not automatically follow. The density-ratio view is related to noise-contrastive estimation, which also learns through a data-versus-noise discrimination problem (Gutmann and Hyvärinen, 2010), but the exact objective and guarantee depend on the sampling scheme. The density-ratio argument explains the role of the loss and its sampling assumptions; it does not turn an arbitrary contrastive loss into a certified measure of semantic information.
 
 Finally, mutual information shared by two views is not the same as sufficiency for a later prediction. A feature can be shared between views yet irrelevant to the future quantity of interest. The information-theoretic bound says something about dependence under the sampling model, not whether all distinctions required by a downstream predictor have been retained.
 
@@ -517,9 +517,9 @@ Multi-crop training supplies a useful extra constraint. The teacher receives the
 
 These releases also illustrate a general caution: reported improvements belong to a complete training system, including data, architecture, optimization and evaluation, rather than to an isolated loss substitution. The following details separate the original DINO mechanism from components added in later recipes.
 
-DINOv2 is a combined training recipe, not simply a replacement loss: it combines class-token DINO distillation, iBOT-style masked patch distillation and a KoLeo nearest-neighbour regularizer. The class branch matches teacher distributions across crops; the patch branch predicts teacher prototype distributions at masked student positions; KoLeo discourages local crowding in normalized backbone features. In the DINOv2 recipe, centering is used for class-token distillation, while Sinkhorn-Knopp balances patch-level assignments in the masked-patch branch. The precise target construction belongs to the cited recipe; these operations are not interchangeable.
+DINOv2 (Oquab et al., 2023) is a combined training recipe, not simply a replacement loss: it combines class-token DINO distillation, iBOT-style masked patch distillation and a KoLeo nearest-neighbour regularizer. The class branch matches teacher distributions across crops; the patch branch predicts teacher prototype distributions at masked student positions; KoLeo discourages local crowding in normalized backbone features. In the DINOv2 recipe, centering is used for class-token distillation, while Sinkhorn-Knopp balances patch-level assignments in the masked-patch branch. The precise target construction belongs to the cited recipe; these operations are not interchangeable.
 
-DINOv3 retains related distillation machinery and adds large-scale data, architecture and training choices. Gram anchoring, when enabled, matches teacher and student pairwise patch-similarity matrices rather than requiring coordinate-by-coordinate equality of feature vectors. It is a relational constraint, not proof of physical-state sufficiency, and it is configuration-dependent. The DINOv2 and DINOv3 papers describe broader training recipes; their results should not be attributed to Gram anchoring alone without controlled ablations.
+DINOv3 (Siméoni et al., 2025) retains related distillation machinery and adds large-scale data, architecture and training choices. Gram anchoring, when enabled, matches teacher and student pairwise patch-similarity matrices rather than requiring coordinate-by-coordinate equality of feature vectors. It is a relational constraint, not proof of physical-state sufficiency, and it is configuration-dependent. The DINOv2 and DINOv3 papers describe broader training recipes; their results should not be attributed to Gram anchoring alone without controlled ablations.
 
 [#unique_section2_ch3_012_redundancy_reduction_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === Redundancy reduction and explicit variance constraints
@@ -790,9 +790,9 @@ The VISReg authors report stronger correction near collapse and favorable result
 [#unique_section2_ch3_016_brief_other_methods_ID,reftext={chapter}.{section}.{counter:subsection},caption='{chapter}.{section}.{subsection}']
 === Other methods in brief
 
-DeepCluster alternates between clustering current features and training the encoder against the resulting pseudo-labels. SwAV instead predicts one view's prototype assignment from another view's features, using balanced assignments in the referenced recipe. In both cases, clusters are training targets, not ground-truth semantic labels.
+DeepCluster (Caron et al., 2018) alternates between clustering current features and training the encoder against the resulting pseudo-labels. SwAV (Caron et al., 2020) instead predicts one view's prototype assignment from another view's features, using balanced assignments in the referenced recipe. In both cases, clusters are training targets, not ground-truth semantic labels.
 
-The same principle applies across modalities. CLIP aligns images with paired text using a symmetric contrastive objective, while SigLIP uses pairwise sigmoid losses. BERT predicts masked tokens, GPT-style language models predict the next token from a prefix, and ELECTRA detects replaced tokens. In speech, wav2vec 2.0 contrasts contextual features with quantized targets, HuBERT predicts cluster-derived targets, and data2vec predicts teacher features. These are brief examples of different target constructions, not additional method tutorials. JEPA architecture remains in Chapter 4, and generative modelling remains in the later chapters.
+The same principle applies across modalities. CLIP (Radford et al., 2021) aligns images with paired text using a symmetric contrastive objective, while SigLIP (Zhai et al., 2023) uses pairwise sigmoid losses. BERT (Devlin et al., 2019) predicts masked tokens, GPT-style language models (Radford et al., 2019) predict the next token from a prefix, and ELECTRA (Clark et al., 2020) detects replaced tokens. In speech, wav2vec 2.0 (Baevski et al., 2020) contrasts contextual features with quantized targets, HuBERT (Hsu et al., 2021) predicts cluster-derived targets, and data2vec (Baevski et al., 2022) predicts teacher features. These are brief examples of different target constructions, not additional method tutorials. JEPA architecture remains in Chapter 4, and generative modelling remains in the later chapters.
 
 [#ch3-table-T01,reftext={chapter}.{counter:table},caption='{table-caption}.{counter:table-number} ']
 .Self-supervised objectives compared by the signal they construct
@@ -915,7 +915,7 @@ data2vec (Baevski et al., 2022) predicts contextualized teacher features from ma
 
 BERT-style masked language modeling predicts selected corrupted tokens from bidirectional context. GPT-style causal language modeling predicts the next token from preceding tokens only. ELECTRA trains a discriminator to detect replaced tokens. These are brief analogies for target/context construction, not additional implementation tutorials.
 
-Masked prediction and diffusion both learn from corrupted inputs, but their conditional tasks differ. A masked objective predicts selected hidden targets from visible context. A diffusion denoiser predicts a corruption-related target at a chosen noise level, and a specified reverse process turns those predictions into samples. Neither patch reconstruction nor noise prediction alone establishes that an encoder is sufficient for a world-model state; diffusion mechanics belong in Chapter 9.
+Masked prediction and diffusion both learn from corrupted inputs, but their conditional tasks differ. A masked objective predicts selected hidden targets from visible context. A diffusion denoiser predicts a corruption-related target at a chosen noise level, and a specified reverse process turns those predictions into samples (Ho et al., 2020; Song et al., 2021). Neither patch reconstruction nor noise prediction alone establishes that an encoder is sufficient for a world-model state; diffusion mechanics belong in Chapter 9.
 
 [#unique_section_ch3_024_latent_bottlenecks_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
 == Latent bottlenecks
@@ -1049,7 +1049,7 @@ If a linear probe fails while a nonlinear readout succeeds, the information may 
 
 Self-supervised learning constructs a target relationship from data. Contrastive methods such as SimCLR and MoCo rank positives against sampled candidates; CPC applies that idea to future latents. BYOL and SimSiam predict detached view targets but differ in how their targets change. DINO matches teacher distributions, Barlow Twins constrains cross-view correlations, and VICReg separates agreement, variance and covariance penalties. SIGReg and VISReg constrain aspects of feature-distribution shape, while clustering methods create pseudo-targets from current features.
 
-Masked methods differ in whether they predict pixels, discrete codes or teacher features; JEPAs instead predict learned target representations from context. Across these families, the target and loss specify which relationships training rewards, while the encoder architecture and output bottleneck determine where those constraints act. None of these ingredients, nor a low pretraining loss alone, establishes predictive sufficiency. That claim must be evaluated for a named target, input history and prediction horizon.
+Masked methods differ in whether they predict pixels, discrete codes or teacher features; JEPAs instead predict learned target representations from context (Assran et al., 2023; Bardes et al., 2024; Assran et al., 2025). Across these families, the target and loss specify which relationships training rewards, while the encoder architecture and output bottleneck determine where those constraints act. None of these ingredients, nor a low pretraining loss alone, establishes predictive sufficiency. That claim must be evaluated for a named target, input history and prediction horizon.
 
 [#unique_section_ch3_028_exercises_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
 == Exercises
@@ -1149,9 +1149,6 @@ LeCun, Y., Chopra, S., Hadsell, R., Ranzato, M. and Huang, F. (2006). A Tutorial
 
 [.bibliography-entry]
 Misra, I. and van der Maaten, L. (2020). Self-Supervised Learning of Pretext-Invariant Representations. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. CVF Open Access.
-
-[.bibliography-entry]
-Mur-Labadia, L. et al. (2026). V-JEPA 2.1: Unlocking Dense Features in Video Self-Supervised Learning. arXiv:2603.14482.
 
 [.bibliography-entry]
 Noroozi, M. and Favaro, P. (2016). Unsupervised Learning of Visual Representations by Solving Jigsaw Puzzles. *European Conference on Computer Vision*. arXiv:1603.09246.
