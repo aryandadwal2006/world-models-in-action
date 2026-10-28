@@ -124,6 +124,10 @@ if re.search(r"(?i)link:https?://|https?://|www\.", source):
     errors.append("Outbound hyperlinks/URLs are not permitted in the chapter; use plain author-year attribution.")
 if "The JEPA context-target prediction architecture" in source or "Chapter 4 develops JEPA architecture" in source:
     errors.append("Chapter 3 must not contain a standalone JEPA bridge/tutorial.")
+for out_of_scope in ("SIGReg", "LeJEPA", "VISReg", "I-JEPA", "V-JEPA"):
+    if re.search(rf"\b{re.escape(out_of_scope)}\b", source):
+        errors.append(f"Out-of-scope JEPA-family detail remains in Chapter 3: {out_of_scope}")
+
 if r"\(" in source or r"\)" in source:
     errors.append("Markdown-style inline math delimiters remain; use latexmath macros.")
 if len(re.findall(r"^== References$", source, flags=re.MULTILINE)) != 1:
