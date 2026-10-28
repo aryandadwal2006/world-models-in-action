@@ -856,19 +856,19 @@ The target-space schematic holds the mask fixed and changes only the prediction 
 
 A masked autoencoder (MAE; He et al., 2022) divides an image into patches and hides a large fraction of them. Only visible patches pass through the encoder. A smaller decoder receives the encoded visible patches and learned mask tokens inserted at the missing positions; it predicts pixel values at the original patch locations. The asymmetric design saves encoder computation because the encoder never processes the hidden tokens.
 
-Let latexmath:[m_i=1] when patch latexmath:[i] is masked and latexmath:[0] otherwise, with patch target latexmath:[x_i] and prediction latexmath:[\\hat x_i]. Let latexmath:[P] be the number of scalar pixel and channel values in one patch. The mean squared error for patch latexmath:[i] is
+Let latexmath:[m_i=1] when patch latexmath:[i] is masked and latexmath:[0] otherwise, with patch target latexmath:[x_i] and prediction latexmath:[\hat x_i]. Let latexmath:[P] be the number of scalar pixel and channel values in one patch. The mean squared error for patch latexmath:[i] is
 
 [latexmath]
 ++++
-\\ell_i=\\frac{1}{P}\\lVert x_i-\\hat x_i\\rVert_2^2.
+\ell_i=\frac{1}{P}\lVert x_i-\hat x_i\rVert_2^2.
 ++++
 
 The reconstruction objective averages this per-patch error over masked patches:
 
 [latexmath]
 ++++
-L_{\\mathrm{MAE}}=
-\\frac{\\sum_i m_i\\ell_i}{\\sum_i m_i}.
+L_{\mathrm{MAE}}=
+\frac{\sum_i m_i\ell_i}{\sum_i m_i}.
 ++++
 
 The normalization is first over the scalar values within each patch and then over masked patches, so visible patches do not contribute to the loss. Under squared error, the conditional mean is the best prediction in expected squared-error terms. If several patch contents are plausible from the visible context, the conditional mean can blur those alternatives. Pixel reconstruction can nevertheless learn useful features; its limitation is that pixel accuracy does not guarantee that the retained encoder feature preserves every variable needed for a later prediction. The encoder, rather than the reconstruction decoder, is usually the component transferred to a downstream task.
