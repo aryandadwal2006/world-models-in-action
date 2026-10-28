@@ -936,7 +936,7 @@ For example, two video histories can end with an object at the same image locati
 Two different histories can encode to the same representation even when they imply different next-state distributions under the same action. A predictor given only that representation and action must return the same distribution for both, so the representation is insufficient for this target.
 
 [#ch3-figure-F22,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.A training loss and a probe answer different questions
+.A training loss and a probe answer different questions. No single metric certifies predictive sufficiency.
 [.figure-placeholder%unbreakable]
 ****
 **Artwork placeholder: Figure 3.17.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F22_Dadwal.md.
