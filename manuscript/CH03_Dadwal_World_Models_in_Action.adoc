@@ -62,10 +62,8 @@ A smaller representation is useful only if the information removed is unnecessar
 
 [#ch3-figure-F02,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .The representation contract
-[.figure-placeholder%unbreakable]
-****
-**Artwork placeholder: Figure 3.1.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F02_Dadwal.md.
-****
+[%unbreakable]
+image::CH03_F01_Dadwal.png[The representation contract,align=center,pdfwidth=100%]
 
 On the left, nuisance appearance changes leave the target distribution unchanged, so the observations may share one representation. On the right, a possible aliasing failure merges histories with opposite motion even though their future distributions differ. Chapter 2 formalized the desired contract in terms of sufficiency, minimality and aliasing; the figure contrasts that predictive contract with the proxy relation the training loss actually enforces.
 
@@ -115,10 +113,8 @@ Invariance is also different from *equivariance*. An invariant representation re
 
 [#ch3-figure-F03,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Augmentation defines the invariances rewarded by training
-[.figure-placeholder%unbreakable]
-****
-**Artwork placeholder: Figure 3.2.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F03_Dadwal.md.
-****
+[%unbreakable]
+image::CH03_F02_Dadwal.png[Augmentation defines the invariances rewarded by training,align=center,pdfwidth=100%]
 
 Two independently sampled augmentations turn one observation into two views whose representations are encouraged to agree. The augmentation distribution therefore defines which changes the encoder is rewarded for ignoring. This pressure is useful when transformations preserve the target, but a crop that removes task-critical content can encourage a harmful invariance.
 
@@ -144,10 +140,8 @@ A contrastive method begins with an anchor, a related positive example and distr
 
 [#ch3-figure-F04,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Constructing positives and negatives
-[.figure-placeholder%unbreakable]
-****
-**Artwork placeholder: Figure 3.3.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F04_Dadwal.md.
-****
+[%unbreakable]
+image::CH03_F03_Dadwal.png[Constructing positives and negatives,align=center,pdfwidth=100%]
 
 Each source example supplies two independently augmented views. For a selected anchor, the other view of the same source is the positive, while views from other source examples are negatives under the sampling rule. These labels come from source identity, not semantic class labels, so different examples can become false negatives when they depict related content or nearby video frames.
 
@@ -223,11 +217,9 @@ This gradient changes the direction of a normalized vector to improve its relati
 Figure xref:ch3-figure-F05[] combines the worked candidate-classification example with the derivative of the loss with respect to each scaled similarity logit.
 
 [#ch3-figure-F05,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.InfoNCE: candidate probabilities and gradients
-[.figure-placeholder%unbreakable]
-****
-**Artwork placeholder: Figure 3.4.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F05_Dadwal.md.
-****
+.InfoNCE: Candidate probabilities and gradients
+[%unbreakable]
+image::CH03_F04_Dadwal.png[InfoNCE: Candidate probabilities and gradients,align=center,pdfwidth=100%]
 
 The same three candidates are followed from cosine similarities through temperature-scaled logits, softmax probabilities and cross-entropy loss. The derivative panel shows why gradient descent raises the positive logit and lowers the negative logits, with the harder negative receiving the larger gradient. All displayed values are illustrative.
 
@@ -290,10 +282,8 @@ Uniformity is not semantic correctness: features can spread out while encoding b
 
 [#ch3-figure-F07,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Alignment and uniformity are distinct geometric requirements
-[.figure-placeholder%unbreakable]
-****
-**Artwork placeholder: Figure 3.5.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F07_Dadwal.md.
-****
+[%unbreakable]
+image::CH03_F05_Dadwal.png[Alignment and uniformity are distinct geometric requirements,align=center,pdfwidth=100%]
 
 Alignment measures whether matched views are close in the normalized representation space; uniformity measures whether independent samples avoid excessive crowding. These are distinct geometric diagnostics, not a guarantee that the representation preserves task-relevant information.
 
@@ -339,11 +329,9 @@ Both methods remain sensitive to the definition of positive pairs and negatives.
 Figure xref:ch3-figure-F10[] shows the queue-based MoCo v1/v2 mechanism. MoCo v3 changes that candidate construction and is distinguished in the text rather than crowded into the same drawing.
 
 [#ch3-figure-F10,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.Momentum contrast: query encoder, key encoder and queue
-[.figure-placeholder%unbreakable]
-****
-**Artwork placeholder: Figure 3.6.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F10_Dadwal.md.
-****
+.Momentum contrast: Query encoder, key encoder and queue
+[%unbreakable]
+image::CH03_F06_Dadwal.png[Momentum contrast: Query encoder, key encoder and queue,align=center,pdfwidth=100%]
 
 The query encoder is trained by the contrastive loss, while the paired key is produced without backpropagation by a momentum-updated encoder. Its positive key is compared with historical keys stored in a FIFO queue; the EMA update and queue maintenance are separate operations, and queued features can become stale.
 
@@ -370,11 +358,9 @@ Contrastive Predictive Coding (CPC; van den Oord et al., 2018) encodes a sequenc
 A CPC future-latent retrieval score only shows that the correct future code can be identified among the sampled candidates under the chosen objective. It does not by itself establish accurate multi-step rollout, a sufficient predictive state, or that errors remain controlled when predictions are fed back into the model.
 
 [#ch3-figure-F12,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.CPC: causal context predicts future latent candidates
-[.figure-placeholder%unbreakable]
-****
-**Artwork placeholder: Figure 3.7.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F12_Dadwal.md.
-****
+.CPC: Causal context predicts future latent candidates
+[%unbreakable]
+image::CH03_F07_Dadwal.png[CPC: Causal context predicts future latent candidates,align=center,pdfwidth=100%]
 
 CPC encodes observations through time (t) into a causal context, then uses horizon-specific scoring heads to identify each observed future latent among sampled candidates. The future targets are comparison candidates, not inputs to the context, and this retrieval objective alone does not demonstrate recursive rollout or planning.
 
@@ -397,10 +383,8 @@ If the encoder maps every input to the same constant vector latexmath:[c], then 
 
 [#ch3-figure-F13,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Why agreement alone permits collapse
-[.figure-placeholder%unbreakable]
-****
-**Artwork placeholder: Figure 3.8.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F13_Dadwal.md.
-****
+[%unbreakable]
+image::CH03_F08_Dadwal.png[Why agreement alone permits collapse,align=center,pdfwidth=100%]
 
 A constant encoder makes every pair of views agree perfectly by mapping all inputs to the same vector, achieving zero invariance loss while erasing differences among examples. A nonconstant mapping can achieve the same zero loss while keeping different sources distinct, showing that agreement alone cannot rule out collapse.
 
@@ -481,11 +465,9 @@ D_{\mathrm{SimSiam}}(p,z)
 Minimizing this negative cosine similarity maximizes directional agreement without requiring the two vectors to have the same norm. In latexmath:[D(p_1,\mathrm{sg}(z_2))], the numerical value of latexmath:[z_2] still affects the loss, but its target-side gradient is removed. Because the loss is symmetric and both views share an encoder, that view still contributes encoder gradients when it serves as the predictor-side representation in the opposite term. The original SimSiam study found stop-gradient essential to its tested recipe; this is not a theorem that every detached Siamese network avoids collapse.
 
 [#ch3-figure-F14,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.BYOL and SimSiam: similar predictors, different target updates
-[.figure-placeholder%unbreakable]
-****
-**Artwork placeholder: Figure 3.9.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F14_Dadwal.md.
-****
+.BYOL and SimSiam: Similar predictors, different target updates
+[%unbreakable]
+image::CH03_F09_Dadwal.png[BYOL and SimSiam: Similar predictors, different target updates,align=center,pdfwidth=100%]
 
 Both methods predict one view's representation from the other and stop gradients through the target in each loss term. BYOL uses a separate target encoder and projector updated by an exponential moving average; SimSiam shares its encoder and projector across views and has no EMA target network.
 
@@ -526,10 +508,8 @@ Multi-crop training supplies a useful extra constraint. The teacher receives the
 
 [#ch3-figure-F15,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .DINO teacher-student cross-view distillation
-[.figure-placeholder%unbreakable]
-****
-**Artwork placeholder: Figure 3.10.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F15_Dadwal.md.
-****
+[%unbreakable]
+image::CH03_F10_Dadwal.png[DINO teacher-student cross-view distillation,align=center,pdfwidth=100%]
 
 DINO trains a student to match a detached teacher distribution over learned prototypes for a different view of the same source. The teacher logits are centered and its distribution sharpened before cross-entropy is computed; the student receives gradients, while the teacher parameters follow an EMA update.
 
@@ -578,11 +558,9 @@ The diagonal terms encourage each coordinate to agree with its counterpart acros
 The coefficient latexmath:[\lambda] sets the strength of decorrelation relative to alignment. This is a second-order constraint: uncorrelated features can still have nonlinear dependence, and the coordinates are not automatically meaningful physical variables. Barlow Twins specifies a pattern for the batch cross-correlation matrix, not merely a distance between paired vectors.
 
 [#ch3-figure-F16,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
-.Barlow Twins: the cross-correlation matrix
-[.figure-placeholder%unbreakable]
-****
-**Artwork placeholder: Figure 3.11.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F16_Dadwal.md.
-****
+.Barlow Twins: The cross-correlation matrix
+[%unbreakable]
+image::CH03_F11_Dadwal.png[Barlow Twins: The cross-correlation matrix,align=center,pdfwidth=100%]
 
 Barlow Twins standardizes paired-view feature batches and drives their cross-correlation matrix toward an identity pattern: corresponding dimensions agree across views, while off-diagonal cross-view correlations are penalized. This constrains linear redundancy but does not guarantee full statistical independence or semantic meaning.
 
@@ -646,10 +624,8 @@ A simple two-coordinate example makes the distinction concrete. If both coordina
 
 [#ch3-figure-F17,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .VICReg separates agreement, variance and covariance
-[.figure-placeholder%unbreakable]
-****
-**Artwork placeholder: Figure 3.12.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F17_Dadwal.md.
-****
+[%unbreakable]
+image::CH03_F12_Dadwal.png[VICReg separates agreement, variance and covariance,align=center,pdfwidth=100%]
 
 VICReg combines three complementary constraints: matching paired-view representations, maintaining a standard-deviation floor for each feature dimension, and penalizing off-diagonal covariance within each view's batch. The statistical penalties address different failure modes but do not establish that the retained variation is semantically or predictively useful.
 
@@ -740,10 +716,8 @@ The target-space schematic holds the mask fixed and changes only the prediction 
 
 [#ch3-figure-F23,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .One visible context, several masked-prediction targets
-[.figure-placeholder%unbreakable]
-****
-**Artwork placeholder: Figure 3.13.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F23_Dadwal.md.
-****
+[%unbreakable]
+image::CH03_F13_Dadwal.png[One visible context, several masked-prediction targets,align=center,pdfwidth=100%]
 
 The mask determines which positions are withheld, while the target construction determines what the predictor must recover: pixel values, a discrete tokenizer code, or a teacher-derived feature or distribution. These are alternative objective designs, not one architecture that uses every target mechanism.
 
@@ -775,10 +749,8 @@ Figure xref:ch3-figure-F24[] shows why the MAE encoder sees only visible patches
 
 [#ch3-figure-F24,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .MAE's visible-only encoder and masked-patch decoder
-[.figure-placeholder%unbreakable]
-****
-**Artwork placeholder: Figure 3.14.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F24_Dadwal.md.
-****
+[%unbreakable]
+image::CH03_F14_Dadwal.png[MAE's visible-only encoder and masked-patch decoder,align=center,pdfwidth=100%]
 
 The encoder processes only visible patch tokens, saving computation when many patches are masked. The decoder then restores the full sequence with learned mask tokens and predicts patch pixels, while the reconstruction loss averages errors over masked patches only. The encoder representation, rather than the reconstruction decoder, is typically transferred downstream.
 
@@ -878,10 +850,8 @@ The pooling equation also gives a simple source of aliasing. Consider two featur
 
 [#ch3-figure-F27,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .The training representation and the downstream interface
-[.figure-placeholder%unbreakable]
-****
-**Artwork placeholder: Figure 3.15.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F27_Dadwal.md.
-****
+[%unbreakable]
+image::CH03_F15_Dadwal.png[The training representation and the downstream interface,align=center,pdfwidth=100%]
 
 The pretraining loss acts on the projector output when a projection head is used, while downstream tasks often consume backbone features. Those features can be exposed as a pooled global vector, a spatial grid, or an aggregated temporal context, depending on what the task must preserve.
 
@@ -928,24 +898,20 @@ For example, two video histories can end with an object at the same image locati
 
 [#ch3-figure-F28,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .Aliasing is a failure of predictive sufficiency
-[.figure-placeholder%unbreakable]
-****
-**Artwork placeholder: Figure 3.16.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F28_Dadwal.md.
-****
+[%unbreakable]
+image::CH03_F16_Dadwal.png[Aliasing is a failure of predictive sufficiency,align=center,pdfwidth=100%]
 
 Two different histories can encode to the same representation even when they imply different next-state distributions under the same action. A predictor given only that representation and action must return the same distribution for both, so the representation is insufficient for this target.
 
 [#ch3-figure-F22,reftext={chapter}.{counter:figure},caption='{figure-caption}.{counter:figure-number} ']
 .A training loss and a probe answer different questions. No single metric certifies predictive sufficiency.
-[.figure-placeholder%unbreakable]
-****
-**Artwork placeholder: Figure 3.17.** Artwork is intentionally absent from this branch. Use the full production brief in images/CH03_F22_Dadwal.md.
-****
+[%unbreakable]
+image::CH03_F17_Dadwal.png[A training loss and a probe answer different questions. No single metric certifies predictive sufficiency.,align=center,pdfwidth=100%]
 
 [#unique_section_ch3_027_summary_ID,reftext={chapter}.{counter:section},caption='{chapter}.{section}']
 == Summary
 
-Self-supervised learning constructs a target relationship from data. Contrastive methods such as SimCLR and MoCo rank positives against sampled candidates; CPC applies that idea to future latents. BYOL and SimSiam predict detached view targets but differ in how their targets change. DINO matches teacher distributions, Barlow Twins constrains cross-view correlations, and VICReg separates agreement, variance and covariance penalties. clustering methods create pseudo-targets from current features.
+Self-supervised learning constructs a target relationship from data. Contrastive methods such as SimCLR and MoCo rank positives against sampled candidates; CPC applies that idea to future latents. BYOL and SimSiam predict detached view targets but differ in how their targets change. DINO matches teacher distributions, Barlow Twins constrains cross-view correlations, and VICReg separates agreement, variance and covariance penalties. Clustering methods create pseudo-targets from current features.
 
 Masked methods differ in whether they predict pixels, discrete codes or teacher features. Across these families, the target and loss specify which relationships training rewards, while the encoder architecture and output bottleneck determine where those constraints act. None of these ingredients, nor a low pretraining loss alone, establishes predictive sufficiency. That claim must be evaluated for a named target, input history and prediction horizon.
 
@@ -965,10 +931,6 @@ Masked methods differ in whether they predict pixels, discrete codes or teacher 
 == References
 
 [.bibliography-entry]
-
-[.bibliography-entry]
-
-[.bibliography-entry]
 Bachman, P., Hjelm, R. D. and Buchwalter, W. (2019). Learning Representations by Maximizing Mutual Information Across Views. arXiv:1906.00910.
 
 [.bibliography-entry]
@@ -978,14 +940,10 @@ Baevski, A., Zhou, Y., Mohamed, A. and Auli, M. (2020). wav2vec 2.0: A Framework
 Baevski, A., Hsu, W.-N., Xu, Q., Babu, A., Gu, J. and Auli, M. (2022). data2vec: A General Framework for Self-Supervised Learning in Speech, Vision and Language. *International Conference on Machine Learning*. arXiv:2202.03555.
 
 [.bibliography-entry]
-
-[.bibliography-entry]
 Bao, H., Dong, L. and Wei, F. (2022). BEiT: BERT Pre-Training of Image Transformers. *International Conference on Learning Representations*. arXiv:2106.08254.
 
 [.bibliography-entry]
 Bardes, A., Ponce, J. and LeCun, Y. (2022). VICReg: Variance-Invariance-Covariance Regularization For Self-Supervised Learning. *International Conference on Learning Representations*. arXiv:2105.04906.
-
-[.bibliography-entry]
 
 [.bibliography-entry]
 Caron, M. et al. (2018). Deep Clustering for Unsupervised Learning of Visual Features. *European Conference on Computer Vision*. arXiv:1807.05520.
@@ -1079,8 +1037,6 @@ Wei, C. et al. (2022). Masked Feature Prediction for Self-Supervised Visual Pre-
 
 [.bibliography-entry]
 Wu, Z., Xiong, Y., Yu, S. X. and Lin, D. (2018). Unsupervised Feature Learning via Non-Parametric Instance Discrimination. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. CVF Open Access.
-
-[.bibliography-entry]
 
 [.bibliography-entry]
 Xie, Z. et al. (2022). SimMIM: A Simple Framework for Masked Image Modeling. *IEEE/CVF Conference on Computer Vision and Pattern Recognition*. arXiv:2111.09886.

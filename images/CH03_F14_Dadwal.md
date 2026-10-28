@@ -1,4 +1,4 @@
-# Figure 3.9: BYOL and SimSiam: similar predictors, different target updates
+# Figure 3.9: BYOL and SimSiam: Similar predictors, different target updates
 
 **Status:** Detailed production brief only. No artwork is included in this branch.
 

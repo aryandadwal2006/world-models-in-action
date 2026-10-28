@@ -15,6 +15,19 @@ for required in "World Models in Action" "Representation learning before generat
 done
 
 all_text="$(pdftotext -layout "$pdf" -)"
+# The rendered chapter must contain all seventeen numbered figure captions.
+
+if grep -Fqi "Artwork placeholder:" <<<"$all_text"; then
+  echo "ERROR: a figure placeholder remains in the final PDF." >&2
+  exit 1
+fi
+for figure_number in $(seq 1 17); do
+  caption="Figure 3.$figure_number."
+  if ! grep -Fq "$caption" <<<"$all_text"; then
+    echo "ERROR: final PDF is missing caption $caption" >&2
+    exit 1
+  fi
+done
 if grep -Fqi "Table of Contents" <<<"$all_text"; then
   echo "ERROR: standalone chapter PDF unexpectedly contains an auto-generated table of contents." >&2
   exit 1

@@ -1,4 +1,4 @@
-# Figure 3.6: Momentum contrast: query encoder, key encoder and queue
+# Figure 3.6: Momentum contrast: Query encoder, key encoder and queue
 
 **Status:** Detailed production brief only. No artwork is included in this branch.
 

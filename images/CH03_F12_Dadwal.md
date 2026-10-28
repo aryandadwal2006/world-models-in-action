@@ -1,4 +1,4 @@
-# Figure 3.7: CPC: causal context predicts future latent candidates
+# Figure 3.7: CPC: Causal context predicts future latent candidates
 
 **Status:** Detailed production brief only. No artwork is included in this branch.
 

@@ -1,4 +1,4 @@
-# Figure 3.4: InfoNCE: candidate probabilities and gradients
+# Figure 3.4: InfoNCE: Candidate probabilities and gradients
 
 **Status:** Detailed production brief only. No artwork is included in this branch.
 

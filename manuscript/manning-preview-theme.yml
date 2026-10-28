@@ -34,7 +34,7 @@ base:
 
 heading:
   font_family: $base_font_family
-  font_color: 3B6FB6
+  font_color: BA3925
   font_style: bold
   text_align: left
   line_height: 1.05

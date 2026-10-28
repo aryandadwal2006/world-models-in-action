@@ -1,4 +1,4 @@
-# Figure 3.11: Barlow Twins: the cross-correlation matrix
+# Figure 3.11: Barlow Twins: The cross-correlation matrix
 
 **Status:** Detailed production brief only. No artwork is included in this branch.
 

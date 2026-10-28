@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate Chapter 3 structure and the prompt-only figure register."""
+"""Validate the final, artwork-complete Chapter 3 manuscript."""
 from pathlib import Path
 import re
 import sys
@@ -12,20 +12,21 @@ lines = source.splitlines()
 errors = []
 
 required = (
-    "= World Models in Action\n", ":chapter: 3", ":sectnums:", ":sectnumlevels: 3",
-    ":imagesdir: ../images/", ":stem: latexmath", "[.book-title]", "This chapter covers",
-    "predictive sufficiency", "InfoNCE", "SimCLR", "MoCo", "CPC", "BYOL", "SimSiam",
-    "DINOv3", "Barlow Twins", "VICReg", "SIGReg", "LeJEPA", "VISReg",
-    "DeepCluster", "SwAV", "MAE", "BEiT", "iBOT", "data2vec", "BERT", "CLIP",
-    "SigLIP", "wav2vec 2.0", "energy-based", "diffusion", "References",
-    "\\lambda_{\\mathrm{scale}}", "\\lambda_{\\mathrm{shape}}", "\\lambda_{\\mathrm{center}}",
-    "same-image global-view center", "per-view minibatch mean",
+    "= World Models in Action\n", ":chapter: 3", ":sectnums:",
+    ":sectnumlevels: 3", ":imagesdir: ../images/", ":stem: latexmath",
+    "[.book-title]", "This chapter covers", "predictive sufficiency",
+    "InfoNCE", "SimCLR", "MoCo", "CPC", "BYOL", "SimSiam", "DINOv3",
+    "Barlow Twins", "VICReg", "DeepCluster", "SwAV", "MAE", "BEiT",
+    "iBOT", "data2vec", "BERT", "CLIP", "SigLIP", "wav2vec 2.0",
+    "energy-based", "diffusion", "References",
+    "JEPA-based predictive representation methods are covered in Chapter 4.",
 )
 for item in required:
     if item not in source:
         errors.append(f"Missing required topic or structure: {item}")
 if not source.startswith("= World Models in Action\n"):
     errors.append("Document title must be the first line.")
+
 try:
     opener = lines.index("This chapter covers")
     bullets = []
@@ -35,14 +36,16 @@ try:
         elif line.strip():
             break
     if not 3 <= len(bullets) <= 5:
-        errors.append(f"Expected 3–5 opener bullets; found {len(bullets)}.")
+        errors.append(f"Expected 3-5 opener bullets; found {len(bullets)}.")
     if sum(len(x) for x in bullets) > 360 or any(len(x) > 90 for x in bullets):
         errors.append("Chapter opener exceeds concise bullet limits.")
 except ValueError:
     errors.append("Missing chapter opener.")
-for forbidden in ("figure to be produced", "artwork pending", "@@figure_", "production slot", "== Official implementation references"):
+
+for forbidden in ("figure to be produced", "artwork pending", "@@figure_", "production slot",
+                  "== Official implementation references", "Artwork placeholder:"):
     if forbidden.casefold() in source.casefold():
-        errors.append(f"Obsolete marker/section remains: {forbidden}")
+        errors.append(f"Obsolete marker remains: {forbidden}")
 
 delimiters = {"++++", "----", "****", "____", "===="}
 inside = None
@@ -62,7 +65,8 @@ for number, line in enumerate(lines, start=1):
             errors.append(f"Heading exceeds level 4 at line {number}.")
         if level in (2, 3, 4):
             headings.append((number, level, title))
-            expected = {2: "[#unique_section_ch3_", 3: "[#unique_section2_ch3_", 4: "[#unique_section3_ch3_"}[level]
+            expected = {2: "[#unique_section_ch3_", 3: "[#unique_section2_ch3_",
+                        4: "[#unique_section3_ch3_"}[level]
             j = number - 2
             while j >= 0 and not lines[j].strip():
                 j -= 1
@@ -75,19 +79,37 @@ for number, line in enumerate(lines, start=1):
 anchor_ids = [line[2:line.index(",")] for line in lines if line.startswith("[#") and "," in line]
 if len(anchor_ids) != len(set(anchor_ids)):
     errors.append("Duplicate anchor IDs detected.")
+
 figures = [line for line in lines if line.startswith("[#ch3-figure-")]
 tables = [line for line in lines if line.startswith("[#ch3-table-")]
 listings = [line for line in lines if line.startswith("[#ch3-listing-")]
-expected_figure_ids = ["F02", "F03", "F04", "F05", "F07", "F10", "F12", "F13", "F14", "F15", "F16", "F17", "F19", "F23", "F24", "F27", "F28", "F22"]
+expected_figure_ids = ["F02", "F03", "F04", "F05", "F07", "F10", "F12",
+                       "F13", "F14", "F15", "F16", "F17", "F23", "F24",
+                       "F27", "F28", "F22"]
 actual_figure_ids = [re.match(r"\[#ch3-figure-(F\d+),", line).group(1) for line in figures]
 if actual_figure_ids != expected_figure_ids:
-    errors.append(f"Figure anchors do not match the approved printed order: {actual_figure_ids}")
-if len(figures) != 18:
-    errors.append(f"Expected 18 figures; found {len(figures)}.")
+    errors.append(f"Figure anchors do not match the approved order: {actual_figure_ids}")
+if len(figures) != 17:
+    errors.append(f"Expected 17 figure blocks; found {len(figures)}.")
+
+expected_assets = [f"CH03_F{i:02d}_Dadwal.png" for i in range(1, 18)]
+actual_assets = re.findall(r"^image::(CH03_F\d{2}_Dadwal\.png)\[", source, flags=re.MULTILINE)
+if actual_assets != expected_assets:
+    errors.append(f"Image macros do not match printed figure order: {actual_assets}")
+for asset in expected_assets:
+    path = image_dir / asset
+    if not path.is_file():
+        errors.append(f"Missing rendered figure asset: {asset}")
+    elif path.stat().st_size < 10000:
+        errors.append(f"Rendered figure asset is suspiciously small: {asset}")
+
+all_rendered = sorted(p.name for p in image_dir.glob("CH03_F*_Dadwal.png"))
+if all_rendered != expected_assets:
+    errors.append(f"Expected exactly the 17 numbered artwork assets; found {all_rendered}")
+if "figure-placeholder" in source:
+    errors.append("A figure placeholder style remains after artwork insertion.")
 if len(tables) != 1:
     errors.append(f"Expected one synthesis table; found {len(tables)}.")
-if sum(line == "[.figure-placeholder%unbreakable]" for line in lines) != 18:
-    errors.append("All 18 figure placeholder boxes must be kept together across pages.")
 if 'options="header,unbreakable"' not in source:
     errors.append("The synthesis table must stay together when it fits on one page.")
 if len(listings) != 1 or sum(line.startswith("[source,") for line in lines) != 1:
@@ -96,8 +118,6 @@ if "[#ch3-listing-vicreg," not in source or "torch.sqrt" not in source:
     errors.append("The sole code listing must remain the official PyTorch VICReg excerpt.")
 if "tensorflow" in source.casefold() or re.search(r"\btf\.", source):
     errors.append("TensorFlow references/listings are not permitted in this chapter source.")
-if re.search(r"^image::", source, flags=re.MULTILINE):
-    errors.append("Image directives remain in prompt-only manuscript.")
 if re.search(r"\[[^\]]+\]\(https?://", source):
     errors.append("Markdown-style links remain; use native AsciiDoc link macros.")
 if re.search(r"(?i)link:https?://|https?://|www\.", source):
@@ -108,24 +128,39 @@ if r"\(" in source or r"\)" in source:
     errors.append("Markdown-style inline math delimiters remain; use latexmath macros.")
 if len(re.findall(r"^== References$", source, flags=re.MULTILINE)) != 1:
     errors.append("Expected one consolidated References heading.")
-if sum(line == "[.bibliography-entry]" for line in lines) != 46:
-    errors.append("Expected all 46 bibliography entries to use the compact reference style.")
-expected_brief_ids = {"F02", "F03", "F04", "F05", "F07", "F10", "F12", "F13", "F14", "F15", "F16", "F17", "F19", "F22", "F23", "F24", "F27", "F28"}
+
+bibliography_entries = source.split("== References", 1)[-1].split()
+marker_count = sum(line == "[.bibliography-entry]" for line in lines)
+if marker_count != 41:
+    errors.append(f"Expected 41 bibliographic entries; found {marker_count}.")
+for i, line in enumerate(lines):
+    if line == "[.bibliography-entry]":
+        if i + 1 >= len(lines) or not lines[i + 1].strip() or lines[i + 1].startswith("[.bibliography-entry]"):
+            errors.append(f"Orphaned bibliography style marker at line {i + 1}.")
+
+expected_brief_ids = {"F02", "F03", "F04", "F05", "F07", "F10", "F12", "F13",
+                      "F14", "F15", "F16", "F17", "F22", "F23", "F24", "F27", "F28"}
 briefs = sorted(image_dir.glob("CH03_F[0-9][0-9]_Dadwal.md"))
-actual_brief_ids = {path.stem.replace("CH03_", "").replace("_Dadwal", "") for path in briefs}
+actual_brief_ids = {p.stem.replace("CH03_", "").replace("_Dadwal", "") for p in briefs}
 if actual_brief_ids != expected_brief_ids:
-    errors.append(f"Figure prompts do not match the approved register: {sorted(actual_brief_ids)}")
-if len(briefs) != 18:
-    errors.append(f"Expected 18 prompts; found {len(briefs)}.")
+    errors.append(f"Figure prompts do not match the current register: {sorted(actual_brief_ids)}")
+if len(briefs) != 17:
+    errors.append(f"Expected 17 figure production briefs; found {len(briefs)}.")
 for figure_id in expected_brief_ids:
     if not (image_dir / f"CH03_{figure_id}_Dadwal.md").is_file():
         errors.append(f"Missing production brief for {figure_id}.")
-for path in image_dir.iterdir():
-    if path.is_file() and path.suffix.lower() != ".md":
-        errors.append(f"Rendered artwork found in prompt-only directory: {path.name}")
+
+# All display equations use the configured LaTeX passthrough. Check common
+# structural failures without pretending a regex can validate TeX semantics.
+if source.count("[latexmath]") != source.count("++++") // 2:
+    errors.append("Possible mismatch between display-math attributes and passthrough fences.")
+if source.count("++++") % 2:
+    errors.append("Unbalanced display-math passthrough fences.")
+
 if errors:
     print("Chapter 3 validation FAILED:")
     for error in errors:
         print(" - " + error)
     sys.exit(1)
-print(f"Chapter 3 validation passed: {len(headings)} headings, {len(figures)} figure placeholders/prompts, 1 table, 1 PyTorch source listing, no TensorFlow or outbound links, no rendered artwork.")
+print(f"Chapter 3 validation passed: {len(headings)} section headings, 17 inserted figures, "
+      "1 synthesis table, 1 attributed PyTorch listing, 41 bibliography entries, and all 17 artwork assets.")
