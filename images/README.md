@@ -24,7 +24,7 @@ Printed numbering follows anchor order in `manuscript/CH03_Dadwal_World_Models_i
 | 3.14 | `images/CH03_F24_Dadwal.md` | MAE's visible-only encoder and masked-patch decoder |
 | 3.15 | `images/CH03_F27_Dadwal.md` | The training representation and the downstream interface |
 | 3.16 | `images/CH03_F28_Dadwal.md` | Aliasing is a failure of predictive sufficiency |
-| 3.17 | `images/CH03_F22_Dadwal.md` | A training loss and a probe answer different questions |
+| 3.17 | `images/CH03_F22_Dadwal.md` | A training loss and a probe answer different questions. No single metric certifies predictive sufficiency. |
 
 ## Production rules
 
