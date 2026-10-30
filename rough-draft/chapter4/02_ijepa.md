@@ -1,10 +1,10 @@
-# 02 — I-JEPA: predicting image representations from spatial context
+# 02  -  I-JEPA: predicting image representations from spatial context
 
 ## 1. Why I-JEPA is the first concrete architecture
 
 I-JEPA is the clearest first example because it makes the JEPA structure visible without introducing video time, actions or a planning objective. It takes an image, forms patch tokens, selects a context region and several target blocks, and trains a predictor to estimate the target encoder's features at those locations.
 
-The primary paper is Assran et al., “Self-supervised learning from images with a joint-embedding predictive architecture” (2023; CVPR 2024). The official implementation is the Meta FAIR repository facebookresearch/ijepa. Use the paper and repository together: the paper motivates the learning design, while the code and configuration specify practical mask sampling, target layers and training details.
+The primary paper is Assran et al., “Self-supervised learning from images with a joint-embedding predictive architecture” (2023; CVPR 2023). The official implementation is the Meta FAIR repository facebookresearch/ijepa. Use the paper and repository together: the paper motivates the learning design, while the code and configuration specify practical mask sampling, target layers and training details.
 
 ## 2. Architecture
 
@@ -56,11 +56,11 @@ Avoid generalizing natural-image classification results to robot control without
 
 ## 7. Recommended explanation and figures
 
-**Figure 4.3 — Context and target blocks in I-JEPA.** Show one image grid, a large context region, multiple target blocks, target-encoder features and predictor outputs. Distinguish visible context from target locations. Do not render the paper's original figure.
+**Figure 4.3  -  Context and target blocks in I-JEPA.** Show one image grid, a large context region, multiple target blocks, target-encoder features and predictor outputs. Distinguish visible context from target locations. Do not render the paper's original figure.
 
-**Figure 4.4 — Target geometry changes the prediction problem.** Use two examples: a nearby region and a distant target block. The goal is to show how mask geometry changes what information is needed, not to imply one is always better.
+**Figure 4.4  -  Target geometry changes the prediction problem.** Use two examples: a nearby region and a distant target block. The goal is to show how mask geometry changes what information is needed, not to imply one is always better.
 
-**Sidebar — What the loss does not see.** A JEPA loss compares vectors in a learned target space. If a cue is absent from that space, the predictor has no direct incentive to reproduce it.
+**Sidebar  -  What the loss does not see.** A JEPA loss compares vectors in a learned target space. If a cue is absent from that space, the predictor has no direct incentive to reproduce it.
 
 ## 8. Implementation notes
 

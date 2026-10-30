@@ -73,7 +73,7 @@ Open with two futures that are visually different in irrelevant ways but equival
 
 Introduce the terms context, target, embedding, predictor and joint embedding with one intuitive example. Do not repeat the general history of SSL, the InfoNCE derivation, or the entire representation-sufficiency discussion from Chapter 3.
 
-### 4.2 JEPA (Joint-Embedding Predictive Architecture) (approximately 28–34 pages)
+### 4.2 JEPA (Joint-Embedding Predictive Architecture) (approximately 40–48 pages)
 
 This is the mathematical and architectural center. Recommended sequence:
 
@@ -119,26 +119,7 @@ This is the mathematical and architectural center. Recommended sequence:
 - explain why dense feature quality matters for correspondence, localization and manipulation;
 - keep it distinct from V-JEPA 2-AC: 2.1 is a representation recipe, not simply a new action-conditioned planner.
 
-### 4.3 Action-conditioned predictive representations (approximately 8–10 pages)
-
-Use the transition from observation-only prediction to intervention:
-\[
-\hat z_{t+1}=g_\phi(z_t,a_t)
-\]
-as the simplest illustration, then explain why real models may predict multiple tokens, patches, time steps or distributions.
-
-Cover:
-- passive video: what tends to happen next;
-- action-conditioned video: what tends to happen after a specified action;
-- observational correlations vs action-dependent consequences;
-- demonstrations, robot data, action encodings and temporal alignment;
-- what is identifiable from passive data and what requires interventions or action labels;
-- uncertainty and multimodal futures;
-- a simple imagined-trajectory cost, but defer MPC algorithms and trajectory optimization details.
-
-Introduce JEPA-WMs and EB-JEPA here or in a short subsection. Distinguish the energy used to score a predicted latent from a complete control policy.
-
-### 4.4 Regularizing predictive embeddings: from VICReg to LeJEPA and VISReg (approximately 12–16 pages)
+### 4.2.7 Regularizing predictive embeddings: from VICReg to LeJEPA and VISReg (approximately 12–16 pages)
 
 Although the current TOC nests this in 4.2, the prose can use a clearly marked subsection to keep the chapter readable. If TOC changes are permitted later, consider a named subheading “The geometry of predictive embeddings.”
 
@@ -162,7 +143,33 @@ Although the current TOC nests this in 4.2, the prose can use a clearly marked s
 - computational scaling in terms of batch size, dimension and number of projections;
 - compare VICReg/SIGReg/VISReg without calling any one method a universal solution.
 
-### 4.5 Implementing a miniature JEPA system (approximately 5–7 pages)
+**4.2.8 Related modalities and variational formulations (3–4 pages, concise)**
+
+- A-JEPA and Audio-JEPA as audio-oriented masked feature prediction.
+- VL-JEPA as visual prediction of text embeddings with optional decoding.
+- Var-JEPA (Gögl and Yau) and VJEPA (Huang) as distinct probabilistic/variational formulations.
+- Treat these as a comparative extension, not as if all share the same loss or target update.
+
+### 4.3 Action-conditioned predictive representations (approximately 8–10 pages)
+
+Use the transition from observation-only prediction to intervention:
+\[
+\hat z_{t+1}=g_\phi(z_t,a_t)
+\]
+as the simplest illustration, then explain why real models may predict multiple tokens, patches, time steps or distributions.
+
+Cover:
+- passive video: what tends to happen next;
+- action-conditioned video: what tends to happen after a specified action;
+- observational correlations vs action-dependent consequences;
+- demonstrations, robot data, action encodings and temporal alignment;
+- what is identifiable from passive data and what requires interventions or action labels;
+- uncertainty and multimodal futures;
+- a simple imagined-trajectory cost, but defer MPC algorithms and trajectory optimization details.
+
+Introduce JEPA-WMs and EB-JEPA here or in a short subsection. Distinguish the energy used to score a predicted latent from a complete control policy.
+
+### 4.4 Implementing a miniature JEPA system (approximately 5–7 pages)
 
 Build a source-grounded reader walkthrough around the smallest faithful concept that can be understood on modest compute. Do not pretend this is a reproduction of I-JEPA or V-JEPA at paper scale.
 
@@ -177,7 +184,7 @@ Recommended teaching progression:
 
 The only code excerpts in the printed chapter should come from official paper repositories, or be clearly labeled as pseudocode. The reader-facing chapter must not silently convert pseudocode into a purported faithful reproduction. Use perhaps 3–5 short excerpts, each chosen to explain one non-obvious operation. All full commands, environment setup and file paths belong in the repository companion notes or appendix.
 
-### 4.6 Summary, exercises and references (approximately 4–5 pages)
+### 4.5 Summary, exercises and references (approximately 4–5 pages)
 
 End with a synthesis:
 - JEPA changes the target space, not the requirement to choose a useful target.
@@ -346,26 +353,26 @@ Follow the current Chapter 3 manuscript style and the Manning AsciiDoc template 
 
 ## 11. Drafting workflow and release gates
 
-**Gate A — source verification**
+**Gate A  -  source verification**
 - Read the primary paper for every method in the core table.
 - Check the exact loss, target construction, masking and update rules against official code/config.
 - Record paper version, date, commit or tag, license and limitations.
 
-**Gate B — narrative**
+**Gate B  -  narrative**
 - Draft the generic architecture before discussing specific architectures.
 - Place each paper in the teaching argument and identify the limitation it addresses.
 - Remove any explanation already taught in Chapter 3 unless the chapter needs a one-paragraph recap.
 
-**Gate C — scientific audit**
+**Gate C  -  scientific audit**
 - Check all theorem assumptions, objective normalizations and complexity claims.
 - Label empirical claims by source and benchmark.
 - Use a “claim not supported” register for all overstatements found in notes.
 
-**Gate D — visual and production**
+**Gate D  -  visual and production**
 - Approve figure briefs before generating artwork.
 - Inspect all labels at printed book-column width.
 - Verify all cross-references, equation numbers, listing line widths, captions and bibliography.
 - Run manuscript structural verification, build the PDF and inspect every page.
 
-**Gate E — reader test**
+**Gate E  -  reader test**
 A reader should be able to explain why latent target prediction differs from reconstruction, why V-JEPA 2-AC is a different stage from V-JEPA 2 pretraining, why SIGReg/VISReg do not prove sufficiency, and which additional elements are needed for an agent to plan. If they cannot, revise the explanation before adding more papers.

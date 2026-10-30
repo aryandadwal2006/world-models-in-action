@@ -1,10 +1,10 @@
-# 13 — Reference bibliography for Chapter 4
+# 13  -  Reference bibliography for Chapter 4
 
 This is a working primary-source bibliography, checked as of 31 October 2026. The reader-facing chapter should convert these entries into the book's consolidated bibliography format and avoid adding a separate URL appendix.
 
 ## Core JEPA papers
 
-1. Assran, M. et al. (2023). “Self-supervised learning from images with a joint-embedding predictive architecture.” arXiv:2301.08243; CVPR 2024. https://arxiv.org/abs/2301.08243
+1. Assran, M. et al. (2023). “Self-supervised learning from images with a joint-embedding predictive architecture.” arXiv:2301.08243; CVPR 2023. https://arxiv.org/abs/2301.08243
 2. Bardes, A. et al. (2024). “Revisiting Feature Prediction for Learning Visual Representations from Video.” arXiv:2404.08471. https://arxiv.org/abs/2404.08471
 3. Assran, M. et al. (2025). “V-JEPA 2: Self-Supervised Video Models Enable Understanding, Prediction and Planning.” arXiv:2506.09985. https://arxiv.org/abs/2506.09985
 4. Mur-Labadia, L. et al. (2026). “V-JEPA 2.1: Unlocking Dense Features in Video Self-Supervised Learning.” arXiv:2603.14482. https://arxiv.org/abs/2603.14482
@@ -20,7 +20,7 @@ This is a working primary-source bibliography, checked as of 31 October 2026. Th
 8. Fei, Z., Fan, M. and Huang, J. (2023). “A-JEPA: Joint-Embedding Predictive Architecture Can Listen.” arXiv:2311.15830. https://arxiv.org/abs/2311.15830
 9. Tuncay, L. et al. (2025). “Audio-JEPA: Joint-Embedding Predictive Architecture for Audio Representation Learning.” arXiv:2507.02915. https://arxiv.org/abs/2507.02915
 10. Chen, D. et al. (2025). “VL-JEPA: Joint Embedding Predictive Architecture for Vision-language.” arXiv:2512.10942. https://arxiv.org/abs/2512.10942
-11. Gögl, M. and Yau, C. (2026). “Var-JEPA: A Variational Formulation of the Joint-Embedding Predictive Architecture — Bridging Predictive and Generative Self-Supervised Learning.” ICML 2026, PMLR 306, pp. 35490–35513. https://proceedings.mlr.press/v306/gogl26a.html
+11. Gögl, M. and Yau, C. (2026). “Var-JEPA: A Variational Formulation of the Joint-Embedding Predictive Architecture  -  Bridging Predictive and Generative Self-Supervised Learning.” ICML 2026, PMLR 306, pp. 35490–35513. https://proceedings.mlr.press/v306/gogl26a.html
 12. Huang, Y. (2026). “VJEPA: Variational Joint Embedding Predictive Architectures as Probabilistic World Models.” ICML 2026, PMLR 306, pp. 47703–47731. https://proceedings.mlr.press/v306/huang26ba.html
 
 ## Action-conditioned world models and autonomy
