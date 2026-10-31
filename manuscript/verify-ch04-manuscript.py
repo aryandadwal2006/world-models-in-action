@@ -42,6 +42,8 @@ if len(display_blocks) < 20:
     errors.append(f"Expected at least 20 display equations; found {len(display_blocks)}.")
 if s.count("latexmath:[") < 20:
     errors.append("Too few inline math nodes; inspect inline math delimiters.")
+if re.search(r"latexmath:\[\$[^\]]*\$\]", s):
+    errors.append("Inline STEM macro still contains Markdown dollar delimiters.")
 if r"\[" in s or r"\]" in s:
     errors.append("Markdown display-math delimiters remain in assembled AsciiDoc.")
 if "g^*(C)" not in s or "T_{EP}" not in s or "sigma_j" not in s:
@@ -55,6 +57,12 @@ for x in sorted(found-expected): errors.append("Unexpected figure number: "+x)
 for f in draft.glob("*.md"):
     if f.name in {"README.md","references.md"}: continue
     text=f.read_text(encoding="utf-8")
+    for line_number, line in enumerate(text.splitlines(), start=1):
+        if line.count(r"\\(") != line.count(r"\\)"):
+            errors.append(
+                f"{f.name}:{line_number}: unbalanced inline-math delimiters "
+                f"(\\( count {line.count(r'\\(')}, \\) count {line.count(r'\\)')})."
+            )
     for m in re.finditer(r"\*\*Figure 4\.\d+[^*]*\*\*",text):
         if "Figure description." not in text[m.end():m.end()+700]:
             errors.append(f"{f.name}: figure heading lacks nearby description.")
