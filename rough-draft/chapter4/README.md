@@ -8,6 +8,8 @@
 
 ## Purpose
 
+The reader-facing first draft is in [draft/](draft/). It contains 15 ordered Markdown sections and a consolidated reference file. The generated AsciiDoc and PDF preview live in the repository's `manuscript/` directory; treat the Markdown sections here as the source of truth. The 21 figure entries are detailed descriptions/placeholders, not completed artwork.
+
 This folder turns the author's JEPA research notes into a source-aware plan for a substantial Chapter 4. The chapter should make the transition from representation learning (Chapter 3) to predictive world models (Chapters 5–7). Its central question is:
 
 > What does it mean to predict a representation of an unobserved part or future of the world, and under what additional conditions can that prediction become useful for action?
@@ -44,6 +46,10 @@ Use the following evidence order when writing reader-facing prose:
 5. The author's JEPA notes for derivations, intuitions, pedagogical examples and questions to investigate.
 
 The personal notes are not themselves evidence for paper-specific results. Where the notes conflict with a primary source or make an unqualified theoretical claim, the claim-audit file takes priority.
+
+## Build workflow
+
+From the repository root, run `python3 manuscript/assemble-ch04.py` and `python3 manuscript/verify-ch04-manuscript.py`, then use `manuscript/build-ch04-pdf.sh` from the `manuscript/` directory. The GitHub Actions workflow performs the same steps on pushes to `manuscript`. A generated PDF is valid only after the PDF verification script passes.
 
 ## Editorial conventions
 
