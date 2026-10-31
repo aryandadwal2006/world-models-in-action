@@ -66,7 +66,7 @@ Chapter 3 has already introduced contrastive learning, bootstrap methods, redund
 
 A predictive model can estimate an observation, a distribution over observations, or a representation of an observation. These choices define different learning problems. A JEPA takes the third route: encode the context and target, then train a predictor to make the context representation agree with the target representation.
 
-Let an observation be (x), with representation (z=f_(x)). The objective is not to reconstruct (x) from (z). Instead, use an available context (x_c) to predict a target feature (z_t) extracted from a withheld or later portion of the data. The loss measures the difference between the predicted and target embeddings.
+Let an observation be latexmath:[$x$], with representation latexmath:[$z=f_\theta\(x$]). The objective is not to reconstruct latexmath:[$x$] from latexmath:[$z$]. Instead, use an available context latexmath:[$x_c$] to predict a target feature latexmath:[$z_t$] extracted from a withheld or later portion of the data. The loss measures the difference between the predicted and target embeddings.
 
 This can be useful when the observation contains details that are expensive to model and irrelevant to the prediction of interest. A video frame contains texture, sensor noise, shadows and fine-grained appearance. Some details matter for physical interaction, but not all need to be predicted at every step. A model can potentially devote more capacity to object arrangement, motion and other structure by predicting in a feature space rather than reconstructing all pixels.
 
@@ -77,7 +77,27 @@ The qualification is important. The latent space does not become semantic merely
 
 Suppose a context is compatible with several future frames. Pixel-level regression can average incompatible appearances. Latent prediction can focus on a target feature that captures predictable structure, leaving unpredictable detail outside the target. This may make learning more tractable, but it raises a design question: which aspects of the future count as predictable and important?
 
-Under squared error, the optimal predictor of a target feature (Z_t) given context (C) is its conditional mean: [ g^*(C)=[Z_tC].] For a candidate prediction (h(C)), add and subtract the conditional mean (mu(C)): [ ] The cross term vanishes because latexmath:[$\mathbb{E}[Z_t-\mu(C)\mid C]=0$]. The first term does not depend on latexmath:[$h$], so the conditional mean minimizes expected squared error, assuming a finite conditional second moment.
+Under squared error, the optimal predictor of a target feature latexmath:[$Z_t$] given context latexmath:[$C$] is its conditional mean:
+
+[latexmath]
+++++
+\[
+g^*(C)=\mathbb{E}[Z_t\mid C].
+\]
+++++
+For a candidate prediction (hlatexmath:[$C$]), add and subtract the conditional mean (mulatexmath:[$C$]):
+
+[latexmath]
+++++
+\[
+\begin{aligned}
+\mathbb{E}[\|Z_t-h(C)\|^2\mid C]
+&=\mathbb{E}[\|Z_t-\mu(C)\|^2\mid C]\\
+&\quad+\|\mu(C)-h(C)\|^2.
+\end{aligned}
+\]
+++++
+The cross term vanishes because latexmath:[$\mathbb{E}[Z_t-\mu\(C$]C]=0). The first term does not depend on latexmath:[$h$], so the conditional mean minimizes expected squared error, assuming a finite conditional second moment.
 
 This identity explains an important limitation. If the target distribution is multimodal, the conditional mean can lie between plausible futures. A deterministic predictor trained with a pointwise squared loss may represent an average rather than preserve the alternatives. A JEPA objective alone does not solve multimodal prediction or calibrated uncertainty.
 
@@ -115,9 +135,44 @@ Representation-space prediction is a learning strategy, not a guarantee of seman
 
 A canonical JEPA contains a context encoder, a target encoder and a predictor. The context encoder processes the part of the observation that the model is allowed to see. The target encoder produces features for the withheld or later target. The predictor maps context features, together with information about the requested target, to an estimate of those target features.
 
-Let (x_c) denote the context and (x_t) the target. Their embeddings are [ z_c=f_(x_c),z_t=f_\{}(x_t).] A predictor with parameters latexmath:[$\phi$] produces [ z_t=g_(z_c,q),] where latexmath:[$q$] identifies the target location, time or query. A useful abstract objective is [ L_\{pred} =E_\{(x_c,x_t,q)} .] Here latexmath:[$d$] is a feature-space discrepancy and latexmath:[$\operatorname{sg}$] denotes stop-gradient on the target branch. This is a generic schematic, not a universal definition of every JEPA implementation.
+Let latexmath:[$x_c$] denote the context and latexmath:[$x_t$] the target. Their embeddings are
 
-In common teacher-student designs, the target parameters are updated as an exponential moving average: [ +(1-),] where latexmath:[$\tau$] is close to one. EMA provides a slowly changing target. It is a common stabilizing choice, not a requirement of the JEPA family. LeJEPA, for example, uses a different multi-view design without an EMA teacher.
+[latexmath]
+++++
+\[
+z_c=f_\theta(x_c),\qquad z_t=f_{\bar\theta}(x_t).
+\]
+++++
+A predictor with parameters latexmath:[$\phi$] produces
+
+[latexmath]
+++++
+\[
+\hat z_t=g_\phi(z_c,q),
+\]
+++++
+where latexmath:[$q$] identifies the target location, time or query. A useful abstract objective is
+
+[latexmath]
+++++
+\[
+\mathcal L_{pred}
+=\mathbb E_{(x_c,x_t,q)}
+\left[d\left(g_\phi(f_\theta(x_c),q),
+\operatorname{sg}(f_{\bar\theta}(x_t))\right)\right].
+\]
+++++
+Here latexmath:[$d$] is a feature-space discrepancy and latexmath:[$\operatorname{sg}$] denotes stop-gradient on the target branch. This is a generic schematic, not a universal definition of every JEPA implementation.
+
+In common teacher-student designs, the target parameters are updated as an exponential moving average:
+
+[latexmath]
+++++
+\[
+\bar\theta\leftarrow\tau\bar\theta+(1-\tau)\theta,
+\]
+++++
+where latexmath:[$\tau$] is close to one. EMA provides a slowly changing target. It is a common stabilizing choice, not a requirement of the JEPA family. LeJEPA, for example, uses a different multi-view design without an EMA teacher.
 
 [#unique_section_ch4_006_the_query_is_part_of_the_prediction]
 === The query is part of the prediction
@@ -210,7 +265,16 @@ The original V-JEPA paper reports training on approximately two million videos c
 
 A frozen-backbone score measures feature quality under a particular readout, not the ability to plan an action sequence. V-JEPA studies representation learning. It does not automatically infer the causal effect of a robot command: passive video records observed motion but does not necessarily expose the controls that produced it.
 
-Schematically, passive video prediction uses context such as (z_\{t}), whereas action-conditioned prediction also receives (a_t): [ p(z_\{t+1}z_\{t}) p(z_\{t+1}z_\{t},a_t).] These expressions identify the information difference; they are not literal definitions of the V-JEPA or V-JEPA 2 objectives.
+Schematically, passive video prediction uses context such as latexmath:[$z_{\leq t}$], whereas action-conditioned prediction also receives latexmath:[$a_t$]:
+
+[latexmath]
+++++
+\[
+p(z_{t+1}\mid z_{\leq t})\quad\text{versus}\quad
+p(z_{t+1}\mid z_{\leq t},a_t).
+\]
+++++
+These expressions identify the information difference; they are not literal definitions of the V-JEPA or V-JEPA 2 objectives.
 
 *Figure 4.5 - From spatial masking to spatiotemporal masking.*
 
@@ -237,7 +301,15 @@ The encoder and predictor are pretrained with masked latent feature prediction. 
 
 After pretraining, the authors freeze the visual encoder and learn a new action-conditioned predictor. It estimates future frame representations from past visual features, robot actions and end-effector states. The paper uses an autoregressive feature-prediction objective with a teacher-forced prediction loss and an additional rollout loss.
 
-A schematic model is [ z_\{t+1}=g_(z_\{t},a_\{t},s_\{t}),] where (z) denotes visual features, (a) actions and (s) end-effector state. The actual model uses sequences and specific action/state encodings. The key point is that the predictor receives variables describing the intervention, not only the observed video.
+A schematic model is
+
+[latexmath]
+++++
+\[
+\hat z_{t+1}=g_\phi(z_{\leq t},a_{\leq t},s_{\leq t}),
+\]
+++++
+where latexmath:[$z$] denotes visual features, latexmath:[$a$] actions and (s) end-effector state. The actual model uses sequences and specific action/state encodings. The key point is that the predictor receives variables describing the intervention, not only the observed video.
 
 At inference, the system receives a goal image and plans an action sequence expected to reach a matching visual state. The authors report deployment on Franka arms in two laboratories for reaching, grasping and pick-and-place tasks. They describe this as zero-shot with respect to the test environments: no data were collected from those deployment environments, and no task-specific training or reward was required for the evaluated tasks. The system did use robot data: the action-conditioned stage used less than 62 hours of unlabeled robot video from the DROID dataset.
 
@@ -248,7 +320,18 @@ At inference, the system receives a goal image and plans an action sequence expe
 
 A planner can search over candidate action sequences by evaluating the future representations they imply. A goal image is encoded into a target representation. Candidate actions are rolled through the action-conditioned model. The predicted representation is compared with the goal representation and the action sequence is updated.
 
-A schematic objective is [ _\{1:H} =_\{a_\{1:H}} d(z_\{t+H}(a_\{1:H}),z_\{goal}) +R(a_\{1:H}),] where (d) measures agreement with a goal representation and (R) can express an action or feasibility penalty. This explains the logic of latent-space planning; it is not a verbatim statement of every term in the V-JEPA 2-AC implementation.
+A schematic objective is
+
+[latexmath]
+++++
+\[
+\hat{\mathbf a}_{1:H}
+=\arg\min_{\mathbf a_{1:H}}
+d(\hat z_{t+H}(\mathbf a_{1:H}),z_{goal})
++\lambda R(\mathbf a_{1:H}),
+\]
+++++
+where (d) measures agreement with a goal representation and (R) can express an action or feasibility penalty. This explains the logic of latent-space planning; it is not a verbatim statement of every term in the V-JEPA 2-AC implementation.
 
 A predicted goal match can be plausible in feature space while the physical state is unsafe or infeasible. Planning quality depends on the representation, action model, horizon, cost, action constraints and feedback loop. Results from two laboratories are evidence under the reported setup, not proof of general-purpose physical reasoning.
 
@@ -324,7 +407,7 @@ The theorem and the implementation answer different questions. The theory studie
 [#unique_section_ch4_025_the_gaussian_target_and_the_scope_of_the_the]
 === The Gaussian target and the scope of the theory
 
-Let an encoder produce an embedding (Z=f_(X)R^d). The paper studies downstream prediction from frozen representations. In its linear setting, a probe fits a regularized least-squares estimator. The analysis compares embedding geometries under matched representational capacity, including a comparison between isotropic and anisotropic covariance structures. Anisotropy can increase the worst-case bias of a regularized linear estimator and the variance of an unregularized estimator.
+Let an encoder produce an embedding latexmath:[$Z=f_\theta(X)\in\mathbb R^d$]. The paper studies downstream prediction from frozen representations. In its linear setting, a probe fits a regularized least-squares estimator. The analysis compares embedding geometries under matched representational capacity, including a comparison between isotropic and anisotropic covariance structures. Anisotropy can increase the worst-case bias of a regularized linear estimator and the variance of an unregularized estimator.
 
 The paper also analyzes nonlinear probes, including radius-based nearest-neighbour regression and kernel regression. Under the regularity conditions and fixed-variance constraints stated in the paper, the analysis identifies the isotropic Gaussian as the unique minimizing distribution for the risk terms considered. The Gaussian’s score function and the associated Fisher-information functional are central to the nonlinear analysis.
 
@@ -335,36 +418,114 @@ The useful design principle is therefore conditional: if the goal is to support 
 [#unique_section_ch4_026_from_a_multivariate_test_to_one_dimensional_]
 === From a multivariate test to one-dimensional projections
 
-Suppose the empirical embedding distribution is (P_) and the desired target is (Q=N(0,I_d)). Directly testing whether a high-dimensional sample comes from (Q) can be computationally expensive. SIGReg instead projects the embeddings onto unit directions.
+Suppose the empirical embedding distribution is latexmath:[$P_\theta$] and the desired target is latexmath:[$Q=\mathcal N(0,I_d)$]. Directly testing whether a high-dimensional sample comes from latexmath:[$Q$] can be computationally expensive. SIGReg instead projects the embeddings onto unit directions.
 
-For a unit vector (aS^\{d-1}), the scalar projection is [ U=a^Z.] If (ZN(0,I_d)), then (UN(0,1)) for every unit direction (a). A directional test can therefore compare the projected sample with a univariate standard-normal target.
+For a unit vector latexmath:[$a\in\mathbb S^{d-1}$], the scalar projection is
 
-The Cramér-Wold theorem supplies the identification principle: a multivariate probability distribution is uniquely determined by the family of all its one-dimensional projected distributions. If every one-dimensional projection of (P) matches the corresponding projection of (Q), the two distributions are equal. That is an all-directions statement.
+[latexmath]
+++++
+\[
+U=a^\top Z.
+\]
+++++
+If latexmath:[$Z\sim\mathcal N(0,I_d)$], then latexmath:[$U\sim\mathcal N(0,1)$] for every unit direction latexmath:[$a$]. A directional test can therefore compare the projected sample with a univariate standard-normal target.
+
+The Cramér-Wold theorem supplies the identification principle: a multivariate probability distribution is uniquely determined by the family of all its one-dimensional projected distributions. If every one-dimensional projection of latexmath:[$P$] matches the corresponding projection of latexmath:[$Q$], the two distributions are equal. That is an all-directions statement.
 
 SIGReg uses a finite collection of directions at each training step. It resamples directions during training, so the optimizer sees a changing set of one-dimensional views over time. This stochastic sketch is computationally practical, but a finite minibatch and a finite number of directions do not prove exact equality of the population distributions. The paper’s analysis also studies how embedding smoothness and repeated random directions affect how strongly a finite sketch constrains the full distribution.
 
 [#unique_section_ch4_027_characteristic_functions]
 === Characteristic functions
 
-For a scalar random variable (U), its characteristic function is [ _U(t)=E[e^\{itU}].] For a standard normal random variable, [ _\{N(0,1)}(t)=e^\{-t^2/2}.] Given projected samples (u_1,,u_B), the empirical characteristic function is [ _B(t)=_\{b=1}^\{B}e^\{itu_b}.]
+For a scalar random variable latexmath:[$U$], its characteristic function is
+
+[latexmath]
+++++
+\[
+\varphi_U(t)=\mathbb E[e^{itU}].
+\]
+++++
+For a standard normal random variable,
+
+[latexmath]
+++++
+\[
+\varphi_{\mathcal N(0,1)}(t)=e^{-t^2/2}.
+\]
+++++
+Given projected samples latexmath:[$u_1,\ldots,u_B$], the empirical characteristic function is
+
+[latexmath]
+++++
+\[
+\widehat\varphi_B(t)=\frac{1}{B}\sum_{b=1}^{B}e^{itu_b}.
+\]
+++++
 
 The empirical characteristic function is a finite average of complex exponentials. It is differentiable with respect to the samples and can be aggregated across distributed workers using sum-reduction operations. Unlike high-order moments, the complex exponentials remain bounded as the magnitude of the input grows.
 
 [#unique_section_ch4_028_the_epps_pulley_statistic]
 === The Epps-Pulley statistic
 
-LeJEPA uses an Epps-Pulley-style statistic to compare an empirical characteristic function with the target characteristic function: [ T_\{EP}(u_\{1:B}) = B_\{-}^\{} |_B(t)-_0(t)|^2 w(t),dt,] where latexmath:[$\varphi_0(t)=e^{-t^2/2}$] and latexmath:[$w(t)$] is a weighting function, typically Gaussian. The weighting controls how discrepancies across frequencies contribute to the statistic.
+LeJEPA uses an Epps-Pulley-style statistic to compare an empirical characteristic function with the target characteristic function:
+
+[latexmath]
+++++
+\[
+T_{EP}(u_{1:B})
+=
+B\int_{-\infty}^{\infty}
+\left|\widehat\varphi_B(t)-\varphi_0(t)\right|^2
+w(t)\,dt,
+\]
+++++
+where latexmath:[$\varphi_0\(t$]=e^\{-t^2/2}) and latexmath:[$w\(t$]) is a weighting function, typically Gaussian. The weighting controls how discrepancies across frequencies contribute to the statistic.
 
 This formula is the population-integral description. A practical implementation approximates the integral by numerical quadrature over a finite set of frequencies. The LeJEPA paper reports a trapezoidal approximation using a small number of integration knots, and its experiments ablate the range and number of points. It also discusses the finite-minibatch bias in the empirical statistic, which vanishes at an latexmath:[$\mathcal O(1/B)$] rate in the paper’s analysis.
 
 SIGReg samples directions latexmath:[$a_1,\ldots,a_M$], computes the projected samples latexmath:[$a_m^\top z_b$], evaluates a univariate statistic for each direction, and aggregates the directional losses. For the training objective, the paper averages directional statistics rather than taking their maximum. The maximum appears in the testing-theoretic construction; averaging is chosen in the optimization objective to avoid sparse gradients concentrated on only the worst direction.
 
-A schematic training loss is [ L_\{SIGReg}(Z) = _\{m=1}^\{M} T_\{EP}(a_m^z_1,,a_m^z_B).] The precise quadrature range, frequency weights, direction sampling, normalization and distributed aggregation are implementation details and should be read from the cited paper version and official code, not inferred from this schematic.
+A schematic training loss is
+
+[latexmath]
+++++
+\[
+\mathcal L_{SIGReg}(Z)
+=
+\frac{1}{M}\sum_{m=1}^{M}
+T_{EP}\big(a_m^\top z_1,\ldots,a_m^\top z_B\big).
+\]
+++++
+The precise quadrature range, frequency weights, direction sampling, normalization and distributed aggregation are implementation details and should be read from the cited paper version and official code, not inferred from this schematic.
 
 [#unique_section_ch4_029_the_lejepa_objective]
 === The LeJEPA objective
 
-LeJEPA uses multiple global and local views of an observation. Let (z_\{n,v}) denote the embedding for sample (n) and view (v). Let the first (V_g) views be global, and let (V=V_g+V_l) include all global and local views. The paper’s prediction term encourages each view to agree with the mean embedding of the global views: [ _n=_\{v=1}^\{V_g}z_\{n,v}, L_\{pred} = _\{v=1}^\{V} |_n-z_\{n,v}|_2^2,] averaged across samples. SIGReg is applied to the embedding sets for the views. The total objective is [ L_\{LeJEPA} = (1-)L_\{pred} + L_\{SIGReg}.]
+LeJEPA uses multiple global and local views of an observation. Let latexmath:[$z_{n,v}$] denote the embedding for sample latexmath:[$n$] and view latexmath:[$v$]. Let the first latexmath:[$V_g$] views be global, and let latexmath:[$V=V_g+V_l$] include all global and local views. The paper’s prediction term encourages each view to agree with the mean embedding of the global views:
+
+[latexmath]
+++++
+\[
+\mu_n=\frac{1}{V_g}\sum_{v=1}^{V_g}z_{n,v},
+\qquad
+\mathcal L_{pred}
+=
+\frac{1}{V}\sum_{v=1}^{V}
+\|\mu_n-z_{n,v}\|_2^2,
+\]
+++++
+averaged across samples. SIGReg is applied to the embedding sets for the views. The total objective is
+
+[latexmath]
+++++
+\[
+\mathcal L_{LeJEPA}
+=
+(1-\lambda)\mathcal L_{pred}
++
+\lambda\mathcal L_{SIGReg}.
+\]
+++++
 
 This formulation differs from the common EMA teacher-predictor JEPA. In the specified LeJEPA recipe, the model does not require an EMA teacher, stop-gradient target branch or a predictor network. It uses a prediction term over multiple views and an explicit distributional regularizer. It should not be generalized into a claim that no JEPA requires target stabilization or that every target-prediction architecture can remove its predictor without changing the task.
 
@@ -408,28 +569,125 @@ The authors’ motivation is that VICReg’s covariance term controls second-ord
 [#unique_section_ch4_033_center_scale_and_shape]
 === Center, scale and shape
 
-Let (ZR^\{BD}) be a batch of embeddings, with (B) samples and (D) feature dimensions. Define the batch mean [ =_\{b=1}^\{B}z_b, Z_c=Z-.] Let latexmath:[$\sigma_j(Z_c)$] be the standard deviation of coordinate (j). VISReg defines a scale term [ L_\{scale} = _\{j=1}^\{D} (1-_j(Z_c))^2.] This term encourages unit standard deviation per coordinate. It supplies a direct penalty when the embedding dimensions shrink toward zero.
+Let latexmath:[$Z\in\mathbb R^{B\times D}$] be a batch of embeddings, with latexmath:[$B$] samples and latexmath:[$D$] feature dimensions. Define the batch mean
 
-The shape term first normalizes the centered embeddings by their coordinate-wise standard deviations. The standard deviation is detached from the gradient path: [ Z = .] Here latexmath:[$\operatorname{sg}$] is stop-gradient and the division is coordinate-wise. The small latexmath:[$\epsilon$] protects the normalization from numerical division by zero. The normalization is intended to remove scale from the shape comparison, so that the shape loss is not asked to restore the overall feature magnitude.
+[latexmath]
+++++
+\[
+\mu=\frac{1}{B}\sum_{b=1}^{B}z_b,
+\qquad
+Z_c=Z-\mu.
+\]
+++++
+Let latexmath:[$\sigma_j\(Z_c$]) be the standard deviation of coordinate latexmath:[$j$]. VISReg defines a scale term
+
+[latexmath]
+++++
+\[
+\mathcal L_{scale}
+=
+\frac{1}{D}\sum_{j=1}^{D}
+\left(1-\sigma_j(Z_c)\right)^2.
+\]
+++++
+This term encourages unit standard deviation per coordinate. It supplies a direct penalty when the embedding dimensions shrink toward zero.
+
+The shape term first normalizes the centered embeddings by their coordinate-wise standard deviations. The standard deviation is detached from the gradient path:
+
+[latexmath]
+++++
+\[
+\widetilde Z
+=
+\frac{Z_c}{\operatorname{sg}(\sigma(Z_c))+\epsilon}.
+\]
+++++
+Here latexmath:[$\operatorname{sg}$] is stop-gradient and the division is coordinate-wise. The small latexmath:[$\epsilon$] protects the normalization from numerical division by zero. The normalization is intended to remove scale from the shape comparison, so that the shape loss is not asked to restore the overall feature magnitude.
 
 [#unique_section_ch4_034_sliced_wasserstein_shape_objective]
 === Sliced-Wasserstein shape objective
 
-For a unit vector latexmath:[$w_k\in\mathbb S^{D-1}$], project the normalized embeddings: [ u_k=Z w_k.] The projected samples form a one-dimensional empirical distribution. If the target is a standard isotropic Gaussian in the embedding space, each unit-direction projection has a standard-normal target distribution.
+For a unit vector latexmath:[$w_k\in\mathbb S^{D-1}$], project the normalized embeddings:
 
-For equally weighted empirical samples with equal cardinality, the one-dimensional quadratic Wasserstein distance can be computed by sorting the samples and matching corresponding order statistics. Let latexmath:[$q_B$] denote the vector of target standard-normal quantiles under the paper’s finite-sample convention. The shape loss is [ L_\{shape} = _\{k=1}^\{K} | (Z w_k)-q_B |_2^2.] The (K) directions are sampled and normalized. Sorting gives the one-dimensional optimal matching for equal sample weights and equal sample counts. Different weighting or quantile conventions would change the exact formula, so the figure and prose should not hide this assumption.
+[latexmath]
+++++
+\[
+u_k=\widetilde Z w_k.
+\]
+++++
+The projected samples form a one-dimensional empirical distribution. If the target is a standard isotropic Gaussian in the embedding space, each unit-direction projection has a standard-normal target distribution.
 
-The Cramér-Wold theorem again provides the population-level intuition: all one-dimensional projections determine the multivariate distribution. VISReg uses a finite set of slices, so the training loss is a stochastic sketch. The number of directions (K) affects the quality of the approximation and the computation. It is not correct to say that finite (K) guarantees exact distributional equality.
+For equally weighted empirical samples with equal cardinality, the one-dimensional quadratic Wasserstein distance can be computed by sorting the samples and matching corresponding order statistics. Let latexmath:[$q_B$] denote the vector of target standard-normal quantiles under the paper’s finite-sample convention. The shape loss is
+
+[latexmath]
+++++
+\[
+\mathcal L_{shape}
+=
+\frac{1}{K}\sum_{k=1}^{K}
+\left\|
+\operatorname{sort}(\widetilde Z w_k)-q_B
+\right\|_2^2.
+\]
+++++
+The latexmath:[$K$] directions are sampled and normalized. Sorting gives the one-dimensional optimal matching for equal sample weights and equal sample counts. Different weighting or quantile conventions would change the exact formula, so the figure and prose should not hide this assumption.
+
+The Cramér-Wold theorem again provides the population-level intuition: all one-dimensional projections determine the multivariate distribution. VISReg uses a finite set of slices, so the training loss is a stochastic sketch. The number of directions latexmath:[$K$] affects the quality of the approximation and the computation. It is not correct to say that finite latexmath:[$K$] guarantees exact distributional equality.
 
 [#unique_section_ch4_035_centering_and_total_objective]
 === Centering and total objective
 
-VISReg adds a centering term [ L_\{center}=||_2^2.] The regularizer combines the three parts, with weights made explicit: [ L_\{reg} = _sL_\{scale} + _hL_\{shape} + _cL_\{center}.] The full objective combines this regularization with a predictive invariance term: [ L_\{VISReg} = (1-)L_\{pred} + L_\{reg}.] The exact normalization, loss weights, view-averaging convention and standard-deviation implementation should follow the paper’s version rather than a notationally simplified equation. In particular, the symbols latexmath:[$K$] and latexmath:[$D$] have different roles: (D) is the embedding dimension, while (K) is the number of random slices.
+VISReg adds a centering term
+
+[latexmath]
+++++
+\[
+\mathcal L_{center}=\|\mu\|_2^2.
+\]
+++++
+The regularizer combines the three parts, with weights made explicit:
+
+[latexmath]
+++++
+\[
+\mathcal L_{reg}
+=
+\lambda_s\mathcal L_{scale}
++
+\lambda_h\mathcal L_{shape}
++
+\lambda_c\mathcal L_{center}.
+\]
+++++
+The full objective combines this regularization with a predictive invariance term:
+
+[latexmath]
+++++
+\[
+\mathcal L_{VISReg}
+=
+(1-\lambda)\mathcal L_{pred}
++
+\lambda\mathcal L_{reg}.
+\]
+++++
+The exact normalization, loss weights, view-averaging convention and standard-deviation implementation should follow the paper’s version rather than a notationally simplified equation. In particular, the symbols latexmath:[$K$] and latexmath:[$D$] have different roles: latexmath:[$D$] is the embedding dimension, while latexmath:[$K$] is the number of random slices.
 
 [#unique_section_ch4_036_why_separate_scale_from_shape]
 === Why separate scale from shape?
 
-The scale loss acts directly on the standard deviation. For one coordinate, its derivative is [ (1-_j)^2 = -(1-_j).] As latexmath:[$\sigma_j\to0$], this derivative approaches latexmath:[$-2/D$], rather than zero. This demonstrates a non-vanishing derivative with respect to the scalar standard-deviation statistic at collapse.
+The scale loss acts directly on the standard deviation. For one coordinate, its derivative is
+
+[latexmath]
+++++
+\[
+\frac{\partial}{\partial\sigma_j}
+\frac{1}{D}(1-\sigma_j)^2
+=
+-\frac{2}{D}(1-\sigma_j).
+\]
+++++
+As latexmath:[$\sigma_j\to0$], this derivative approaches latexmath:[$-2/D$], rather than zero. This demonstrates a non-vanishing derivative with respect to the scalar standard-deviation statistic at collapse.
 
 It is important not to overstate what this derivative proves. It is not, by itself, a lower bound on the gradient with respect to every encoder parameter. The chain from parameters to batch statistics can be affected by the architecture, normalization, saturation, finite precision and data batch. The paper’s gradient comparisons are experiments under a stated simulation and training setup; the displayed scalar derivative is an analytic explanation of the scale term, not a universal theorem of recovery for arbitrary networks.
 
@@ -438,7 +696,15 @@ The detached standard deviation in the shape normalization prevents the shape lo
 [#unique_section_ch4_037_computational_considerations]
 === Computational considerations
 
-The main work includes projecting a batch into (K) directions and sorting (B) values along each direction. A schematic cost is [ O(BDK)+O(KBB).] The first term is the projection work; the second is the per-direction sorting cost. This expression makes the dependence on the number of slices explicit. If (K) grows with (D), the projection term changes accordingly. The paper discusses distributing slices across GPUs, which can increase the number of directions without requiring all projections to be handled by a single device.
+The main work includes projecting a batch into latexmath:[$K$] directions and sorting latexmath:[$B$] values along each direction. A schematic cost is
+
+[latexmath]
+++++
+\[
+\mathcal O(BDK)+\mathcal O(KB\log B).
+\]
+++++
+The first term is the projection work; the second is the per-direction sorting cost. This expression makes the dependence on the number of slices explicit. If latexmath:[$K$] grows with latexmath:[$D$], the projection term changes accordingly. The paper discusses distributing slices across GPUs, which can increase the number of directions without requiring all projections to be handled by a single device.
 
 The project page describes the method as linear in its scaling factors and highlights distributed slices. That statement should be read with the chosen scaling convention stated. It does not make the computation independent of batch size, embedding dimension or slice count.
 
@@ -475,7 +741,7 @@ ____
 *Figure 4.13 - Increasing the number of slices.*
 
 ____
-*Figure description.* Draw a unit circle or sphere with a small set of sampled directions in one panel and a denser set in the next. Show more coverage of the projection space alongside a larger compute annotation. State in the caption that this is a conceptual illustration of a sampling trade-off, not a convergence guarantee for a particular finite (K).
+*Figure description.* Draw a unit circle or sphere with a small set of sampled directions in one panel and a denser set in the next. Show more coverage of the projection space alongside a larger compute annotation. State in the caption that this is a conceptual illustration of a sampling trade-off, not a convergence guarantee for a particular finite latexmath:[$K$].
 ____
 
 VISReg and SIGReg share the broad goal of distributional regularization, but their statistics are different. SIGReg measures characteristic-function discrepancy along projections. VISReg sorts projected samples and measures a transport discrepancy while handling scale separately. The next section briefly places these ideas alongside related multimodal and probabilistic variants without treating each as a full new architecture family.
@@ -540,14 +806,39 @@ The shared idea is prediction in a representation space. The modality-specific e
 
 Passive video prediction is not yet a model of an agent’s interventions. If a robot observes a cup moving across a table, the frames alone may not reveal whether the motion came from the robot, another person, gravity or an external disturbance. To predict the consequence of a candidate action, the model must receive action information and be trained on data that connect actions to subsequent observations.
 
-An action-conditioned world model predicts a future representation from a history of observations and controls. A schematic form is [ z_\{t+1:t+H} = g_(z_\{t-L:t},a_\{t:t+H-1},s_\{t-L:t}),] where (z) denotes visual features, (a) the action sequence, and (s) optional proprioceptive or end-effector state. The exact history length, action representation, conditioning mechanism and rollout target differ across implementations.
+An action-conditioned world model predicts a future representation from a history of observations and controls. A schematic form is
+
+[latexmath]
+++++
+\[
+\hat z_{t+1:t+H}
+=
+g_\phi(z_{t-L:t},a_{t:t+H-1},s_{t-L:t}),
+\]
+++++
+where latexmath:[$z$] denotes visual features, latexmath:[$a$] the action sequence, and (s) optional proprioceptive or end-effector state. The exact history length, action representation, conditioning mechanism and rollout target differ across implementations.
 
 This extra input changes the identification problem. Passive pretraining can learn regularities in how the world usually evolves. Action-conditioned training must learn how the predicted future changes when the action changes. A model can be accurate on observed trajectories and still fail to answer counterfactual questions if the training data do not cover the relevant action-state combinations.
 
 [#unique_section_ch4_046_from_prediction_to_planning]
 === From prediction to planning
 
-Once a model can roll candidate actions forward in latent space, a planner can evaluate possible futures without decoding every pixel. Given a current latent state (z_t), candidate action sequence (mathbf a_\{t:t+H-1}), and goal representation (z_g), a basic objective is [ a^* = _\{a} C( z_\{t+1:t+H}(a),z_g ) + R(a).] The first term measures predicted compatibility with the goal; the second can penalize action magnitude, infeasible controls or other constraints. This is a conceptual decomposition, not a universal objective used by every JEPA system.
+Once a model can roll candidate actions forward in latent space, a planner can evaluate possible futures without decoding every pixel. Given a current latent state latexmath:[$z_t$], candidate action sequence latexmath:[$mathbf a_{t:t+H-1}$], and goal representation latexmath:[$z_g$], a basic objective is
+
+[latexmath]
+++++
+\[
+\mathbf a^*
+=
+\arg\min_{\mathbf a}
+\mathcal C\left(
+\hat z_{t+1:t+H}(\mathbf a),z_g
+\right)
++
+\lambda\mathcal R(\mathbf a).
+\]
+++++
+The first term measures predicted compatibility with the goal; the second can penalize action magnitude, infeasible controls or other constraints. This is a conceptual decomposition, not a universal objective used by every JEPA system.
 
 A planner usually optimizes a sequence but executes only the first action or a short prefix. It then receives a new observation, updates its state estimate, and replans. This is model-predictive control. Replanning limits the period during which the system relies on an open-loop prediction, but does not remove errors in the learned model or guarantee safety.
 
@@ -583,7 +874,19 @@ The official JEPA-WMs repository contains code, datasets and checkpoints. Its li
 [#unique_section_ch4_049_energy_based_prediction_and_planning]
 === Energy-based prediction and planning
 
-Energy-based models provide a complementary way to score compatibility. An energy function (E(x,y)) assigns a scalar to a pair or configuration. Lower energy means the configuration is preferred under the model’s learned scoring convention. An energy function is not automatically a normalized probability distribution. To obtain a Gibbs density, one would need a partition function: [ p(yx) = , Z(x)=,dy’.] For complex continuous spaces, computing (Z(x)) can be intractable. Many energy-based systems therefore use the energy as a score or objective without explicitly evaluating a normalized density.
+Energy-based models provide a complementary way to score compatibility. An energy function (E(x,y)) assigns a scalar to a pair or configuration. Lower energy means the configuration is preferred under the model’s learned scoring convention. An energy function is not automatically a normalized probability distribution. To obtain a Gibbs density, one would need a partition function:
+
+[latexmath]
+++++
+\[
+p(y\mid x)
+=
+\frac{\exp[-E(x,y)]}{Z(x)},
+\qquad
+Z(x)=\int \exp[-E(x,y')]\,dy'.
+\]
+++++
+For complex continuous spaces, computing (Zlatexmath:[$x$]) can be intractable. Many energy-based systems therefore use the energy as a score or objective without explicitly evaluating a normalized density.
 
 In a predictive world model, energy can score whether a proposed future representation is compatible with the context or whether a trajectory satisfies a desired constraint. In an agent architecture, a cost can instead express a task objective or discomfort. These uses are related but not identical. A prediction loss measures mismatch to a training target; an energy scores compatibility; a task cost ranks futures according to goals. The same scalar notation should not hide these different semantics.
 
@@ -705,7 +1008,15 @@ LeCun’s proposal distinguishes two ways an agent can select an action. Mode 1 
 [#unique_section_ch4_060_mode_1_reactive_behaviour]
 === Mode 1: reactive behaviour
 
-In Mode 1, Perception estimates the current state (s_t), and a policy component of the Actor maps that state to an action: [ a_t=A(s_t).] The policy may also read STM, for example to retrieve an action associated with a similar past state. It need not run a multi-step planning procedure for every action. The Configurator adjusts the policy for the task.
+In Mode 1, Perception estimates the current state latexmath:[$s_t$], and a policy component of the Actor maps that state to an action:
+
+[latexmath]
+++++
+\[
+a_t=A(s_t).
+\]
+++++
+The policy may also read STM, for example to retrieve an action associated with a similar past state. It need not run a multi-step planning procedure for every action. The Configurator adjusts the policy for the task.
 
 Mode 1 is computationally inexpensive at inference time because it can use a single forward pass through a policy. It can be sophisticated and can incorporate memory. Its defining feature is that it does not deliberately search through imagined action sequences using the World Model and Cost on each decision.
 
@@ -725,7 +1036,17 @@ Mode 2 uses the predictive model as an internal simulator. A typical episode fol
 . After optimization or search, the system executes the first action or a short prefix.
 . The next observation updates the state, and the process repeats.
 
-A deterministic shorthand is [ s_\{t+1}=F_(s_t,a_t), J(a)=_\{t=1}^\{H}C(s_t).] The Actor searches for an action sequence with low predicted cost. If the learned model and cost are differentiable, gradients can be propagated through the imagined rollout to the action variables. If actions are discrete or the objective is discontinuous, dynamic programming, combinatorial search, tree search or gradient-free optimization may be more appropriate.
+A deterministic shorthand is
+
+[latexmath]
+++++
+\[
+s_{t+1}=F_\theta(s_t,a_t),
+\qquad
+J(\mathbf a)=\sum_{t=1}^{H}C(\hat s_t).
+\]
+++++
+The Actor searches for an action sequence with low predicted cost. If the learned model and cost are differentiable, gradients can be propagated through the imagined rollout to the action variables. If actions are discrete or the objective is discontinuous, dynamic programming, combinatorial search, tree search or gradient-free optimization may be more appropriate.
 
 The real environment is not part of this differentiable computation graph. The agent differentiates through its learned model and cost, then executes an action in the world and obtains a new observation. This distinction is central to why a world model is useful: it permits many candidate sequences to be evaluated internally without physically executing all of them.
 
@@ -736,7 +1057,18 @@ Mode 2 resembles model-predictive control. A plan is optimized over a horizon, b
 
 Repeatedly running Mode 2 can be expensive. The World Model is a shared reasoning resource, and deliberative search repeatedly rolls it forward for candidate action sequences. LeCun proposes using the outputs of Mode 2 to train a reactive policy.
 
-Let latexmath:[$\tilde a_t$] be the action selected by Mode-2 optimization for state latexmath:[$s_t$]. A policy latexmath:[$A_\psi$] can be trained to imitate it: [ L_\{policy} = E_\{s_t} D(a_t,A_(s_t)),] where (D) is an action-space divergence or regression loss appropriate to the action representation. Once trained, the policy approximates the expensive planning result with a direct state-to-action mapping. This is a form of amortized inference: compute a costly answer for sampled states, then learn a faster function that approximates those answers.
+Let latexmath:[$\tilde a_t$] be the action selected by Mode-2 optimization for state latexmath:[$s_t$]. A policy latexmath:[$A_\psi$] can be trained to imitate it:
+
+[latexmath]
+++++
+\[
+\mathcal L_{policy}
+=
+\mathbb E_{s_t}
+D\left(\tilde a_t,A_\psi(s_t)\right),
+\]
+++++
+where latexmath:[$D$] is an action-space divergence or regression loss appropriate to the action representation. Once trained, the policy approximates the expensive planning result with a direct state-to-action mapping. This is a form of amortized inference: compute a costly answer for sampled states, then learn a faster function that approximates those answers.
 
 The reactive policy can be used directly in Mode 1, or to initialize an action sequence before Mode 2 refines it. The proposal therefore does not require choosing one mode permanently. Deliberative planning can create or improve a skill, while a reactive policy executes that skill efficiently.
 
@@ -747,7 +1079,17 @@ This is related to policy distillation and imitation learning, but the teacher h
 
 The proposal extends JEPA from a single predictive mapping to a hierarchy of representations and predictive models. A lower level can represent detailed perceptual states and short motor actions. Higher levels can represent temporally extended events, abstract state changes or action segments. A high-level model can predict a more distant target in a coarser representation, while a lower-level model predicts the intermediate states needed to realize that target.
 
-One way to express the idea is to let (s_t^\{(0)}) denote a fine-scale state and (s_t^\{(1)},s_t^\{(2)},) denote increasingly abstract states. Each level predicts a target at its own time scale: [ s_\{t+_k}^\{(k)} = F_k(s_\{t}^\{(k)},a_\{t:t+_k}).] This is schematic notation for a hierarchy, not a canonical implementation specification. The important structure is that a high-level plan can constrain the subgoals or action sequences of lower levels, while the lower levels provide the detailed predictions required to carry out the plan.
+One way to express the idea is to let latexmath:[$s_t^{(0)}$] denote a fine-scale state and latexmath:[$s_t^{(1)},s_t^{(2)},\ldots$] denote increasingly abstract states. Each level predicts a target at its own time scale:
+
+[latexmath]
+++++
+\[
+\hat s_{t+\Delta_k}^{(k)}
+=
+F_k(s_{\leq t}^{(k)},a_{t:t+\Delta_k}).
+\]
+++++
+This is schematic notation for a hierarchy, not a canonical implementation specification. The important structure is that a high-level plan can constrain the subgoals or action sequences of lower levels, while the lower levels provide the detailed predictions required to carry out the plan.
 
 Hierarchical prediction is motivated by long-horizon planning. A planner that reasons directly over every low-level control step may face an enormous search space. Temporally extended representations and action chunks can shorten the effective horizon at the high level. Yet abstraction creates its own risk: if a high-level state discards a variable needed by a low-level controller, the plan may be impossible to execute.
 
@@ -951,18 +1293,18 @@ The chapter’s main conclusion is that predictive representations are a compone
 [arabic, start=9]
 . Fei, Z., Fan, M. and Huang, J. (2023). ``A-JEPA: Joint-Embedding Predictive Architecture Can Listen.'' arXiv:2311.15830.
 . Tuncay, L. et al. (2025). ``Audio-JEPA: Joint-Embedding Predictive Architecture for Audio Representation Learning.'' arXiv:2507.02915.
-. Chen, D. et al. (2025/2026). ``VL-JEPA: Joint Embedding Predictive Architecture for Vision-Language.'' ICLR 2026. OpenReview paper.
-. Gögl, M. and Yau, C. (2026). ``Var-JEPA: A Variational Formulation of the Joint-Embedding Predictive Architecture.'' Proceedings of ICML 2026, PMLR 306.
-. Huang, Y. (2026). ``VJEPA: Variational Joint Embedding Predictive Architectures as Probabilistic World Models.'' Proceedings of ICML 2026, PMLR 306.
+. Chen, D., Shukor, M., Moutakanni, T., Chung, W., Yu, L., Kasarla, T., Bolourchi, A., LeCun, Y. and Fung, P. (2026). ``VL-JEPA: Joint Embedding Predictive Architecture for Vision-Language.'' ICLR 2026. OpenReview.
+. Gögl, M. and Yau, C. (2026). ``Var-JEPA: A Variational Formulation of the Joint-Embedding Predictive Architecture – Bridging Predictive and Generative Self-Supervised Learning.'' Proceedings of the 43rd ICML, PMLR 306:35490–35513.
+. Huang, Y. (2026). ``VJEPA: Variational Joint Embedding Predictive Architectures as Probabilistic World Models.'' Proceedings of the 43rd ICML, PMLR 306:47703–47731.
 
 *Action-conditioned world models and implementation references*
 
 [arabic, start=14]
-. Terver, B. et al. (2026). ``What Drives Success in Physical Planning with Joint-Embedding Predictive World Models?'' arXiv:2512.24497.
-. Terver, B. et al. (2026). ``A Lightweight Library for Energy-Based Joint-Embedding Predictive Architectures.'' arXiv:2602.03604. Official repository: facebookresearch/eb_jepa.
+. Terver, B., Yang, T.-Y., Ponce, J., Bardes, A. and LeCun, Y. (2025; revised 2026). ``What Drives Success in Physical Planning with Joint-Embedding Predictive World Models?'' arXiv:2512.24497.
+. Terver, B., Balestriero, R., Dervishi, M., Fan, D., Garrido, Q., Nagarajan, T., Sinha, K., Zhang, W., Rabbat, M., LeCun, Y. and Bar, A. (2026). ``A Lightweight Library for Energy-Based Joint-Embedding Predictive Architectures.'' arXiv:2602.03604. Official repository: facebookresearch/eb_jepa.
 . Facebook Research. ``I-JEPA.'' Official PyTorch repository: facebookresearch/ijepa.
 . Meta FAIR. ``V-JEPA 2.'' Official PyTorch repository: facebookresearch/vjepa2.
-. Meta FAIR. ``JEPA-WMs.'' Official research repository: facebookresearch/jepa-wms. Its stated CC BY-NC-ND 4.0 license must be respected; code and weights are not copied into this manuscript.
+. Meta FAIR. ``JEPA-WMs.'' Official research repository: facebookresearch/jepa-wms. Its repository license is CC BY-NC 4.0; code and weights are not copied into this manuscript.
 
 *Earlier papers used as Chapter 3 context*
 
