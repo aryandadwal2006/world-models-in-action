@@ -70,7 +70,7 @@ A reader can load released checkpoints and inspect inference, but checkpoint use
 
 ## 5. Code quotation and license
 
-Check the exact repository license and file header for each code fragment. The V-JEPA 2 repository describes most of the project as MIT-licensed with some components under separate Apache 2.0 terms. The JEPA-WMs repository indicates CC-BY-NC 4.0; do not assume commercial book reproduction of its code is permitted. The VISReg and LeJEPA repositories need a separate license check at the selected commit. Never infer code licensing from the arXiv paper's license.
+Check the exact repository license and file header for each code fragment. The archived I-JEPA repository carries CC BY-NC 4.0. The V-JEPA 2 repository carries an MIT license, and EB-JEPA carries Apache License 2.0. JEPA-WMs carries CC BY-NC 4.0, so commercial reproduction of its code requires a separate rights review. VISReg project materials identify its code and weights as non-commercial, but the canonical source and exact license file at the selected commit were not available in this audit. The LeJEPA repository's exact license also remains to be checked at the selected commit. No code-reuse permission is assumed from a paper citation or repository link. Never infer code licensing from the arXiv paper's license.
 
 Use a line-level attribution and identify the commit. If the license is unclear or incompatible with reproduction, present pseudocode authored for the book and cite the upstream implementation without copying code.
 
