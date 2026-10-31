@@ -18,17 +18,17 @@
 
 9. Fei, Z., Fan, M. and Huang, J. (2023). “A-JEPA: Joint-Embedding Predictive Architecture Can Listen.” arXiv:2311.15830.
 10. Tuncay, L. et al. (2025). “Audio-JEPA: Joint-Embedding Predictive Architecture for Audio Representation Learning.” arXiv:2507.02915.
-11. Chen, D. et al. (2025/2026). “VL-JEPA: Joint Embedding Predictive Architecture for Vision-Language.” ICLR 2026. OpenReview paper.
-12. Gögl, M. and Yau, C. (2026). “Var-JEPA: A Variational Formulation of the Joint-Embedding Predictive Architecture.” Proceedings of ICML 2026, PMLR 306.
-13. Huang, Y. (2026). “VJEPA: Variational Joint Embedding Predictive Architectures as Probabilistic World Models.” Proceedings of ICML 2026, PMLR 306.
+11. Chen, D., Shukor, M., Moutakanni, T., Chung, W., Yu, L., Kasarla, T., Bolourchi, A., LeCun, Y. and Fung, P. (2026). “VL-JEPA: Joint Embedding Predictive Architecture for Vision-Language.” ICLR 2026. OpenReview.
+12. Gögl, M. and Yau, C. (2026). “Var-JEPA: A Variational Formulation of the Joint-Embedding Predictive Architecture – Bridging Predictive and Generative Self-Supervised Learning.” Proceedings of the 43rd ICML, PMLR 306:35490–35513.
+13. Huang, Y. (2026). “VJEPA: Variational Joint Embedding Predictive Architectures as Probabilistic World Models.” Proceedings of the 43rd ICML, PMLR 306:47703–47731.
 
 ## Action-conditioned world models and implementation references
 
-14. Terver, B. et al. (2026). “What Drives Success in Physical Planning with Joint-Embedding Predictive World Models?” arXiv:2512.24497.
-15. Terver, B. et al. (2026). “A Lightweight Library for Energy-Based Joint-Embedding Predictive Architectures.” arXiv:2602.03604. Official repository: facebookresearch/eb_jepa.
+14. Terver, B., Yang, T.-Y., Ponce, J., Bardes, A. and LeCun, Y. (2025; revised 2026). “What Drives Success in Physical Planning with Joint-Embedding Predictive World Models?” arXiv:2512.24497.
+15. Terver, B., Balestriero, R., Dervishi, M., Fan, D., Garrido, Q., Nagarajan, T., Sinha, K., Zhang, W., Rabbat, M., LeCun, Y. and Bar, A. (2026). “A Lightweight Library for Energy-Based Joint-Embedding Predictive Architectures.” arXiv:2602.03604. Official repository: facebookresearch/eb_jepa.
 16. Facebook Research. “I-JEPA.” Official PyTorch repository: facebookresearch/ijepa.
 17. Meta FAIR. “V-JEPA 2.” Official PyTorch repository: facebookresearch/vjepa2.
-18. Meta FAIR. “JEPA-WMs.” Official research repository: facebookresearch/jepa-wms. Its stated CC BY-NC-ND 4.0 license must be respected; code and weights are not copied into this manuscript.
+18. Meta FAIR. “JEPA-WMs.” Official research repository: facebookresearch/jepa-wms. Its repository license is CC BY-NC 4.0; code and weights are not copied into this manuscript.
 
 ## Earlier papers used as Chapter 3 context
 

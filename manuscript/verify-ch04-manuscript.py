@@ -14,6 +14,11 @@ required=["I-JEPA","V-JEPA","V-JEPA 2-AC","V-JEPA 2.1","LeJEPA","SIGReg","VISReg
 for x in required:
     if x.casefold() not in s.casefold(): errors.append("Missing: "+x)
 if not s.startswith("= World Models in Action\n"): errors.append("Document title must be first.")
+# Catch the class of conversion error that previously stripped TeX delimiters.
+if s.count("latexmath:[") < 25:
+    errors.append("Too few inline LaTeX math nodes; inspect Markdown delimiters.")
+if s.count("[latexmath]") < 15:
+    errors.append("Too few display-math blocks; inspect Markdown equation delimiters.")
 if "image::" in s: errors.append("Unexpected artwork; descriptions only.")
 if "Artwork placeholder:" in s or "@@figure_" in s: errors.append("Obsolete placeholder.")
 expected={f"Figure 4.{i}" for i in range(1,22)}
