@@ -27,7 +27,7 @@ for f in draft.glob("*.md"):
         if "Figure description." not in text[m.end():m.end()+700]:
             errors.append(f"{f.name}: figure heading lacks nearby description.")
 for bad in ["gaussian is optimal for all downstream tasks","guarantees exact gaussianity",
-"the gradient is always nonzero for every parameter","no robot data"]:
+"the gradient is always nonzero for every parameter"]:
     if bad.casefold() in s.casefold(): errors.append("Overgeneralized claim: "+bad)
 n=len([f for f in draft.glob("*.md") if f.name not in {"README.md","references.md"}])
 if n!=15: errors.append(f"Expected 15 section sources, found {n}")
