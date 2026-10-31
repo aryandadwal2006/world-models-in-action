@@ -14,13 +14,38 @@ required=["I-JEPA","V-JEPA","V-JEPA 2-AC","V-JEPA 2.1","LeJEPA","SIGReg","VISReg
 for x in required:
     if x.casefold() not in s.casefold(): errors.append("Missing: "+x)
 if not s.startswith("= World Models in Action\n"): errors.append("Document title must be first.")
-# Catch the class of conversion error that previously stripped TeX delimiters.
-if s.count("latexmath:[") < 25:
-    errors.append("Too few inline LaTeX math nodes; inspect Markdown delimiters.")
-if s.count("[latexmath]") < 15:
-    errors.append("Too few display-math blocks; inspect Markdown equation delimiters.")
-if re.search(r"\\[latexmath\\]\\s*\\n\\+{4}\\s*\\n\\\\\\[", s):
-    errors.append("A display STEM block still contains literal TeX \\\\[ delimiters.")
+# Check rendered source math has non-empty display blocks and no Markdown delimiters.
+display_blocks = []
+lines = s.splitlines()
+i = 0
+while i < len(lines):
+    if lines[i].strip() == "[latexmath]":
+        if i + 1 >= len(lines) or lines[i + 1].strip() != "++++":
+            errors.append(f"Malformed display-math block at line {i + 1}.")
+            i += 1
+            continue
+        j = i + 2
+        while j < len(lines) and lines[j].strip() != "++++":
+            j += 1
+        if j >= len(lines):
+            errors.append(f"Unclosed display-math block at line {i + 1}.")
+            break
+        body = "\n".join(lines[i + 2:j]).strip()
+        if not body:
+            errors.append(f"Empty display-math block at line {i + 1}.")
+        display_blocks.append(body)
+        i = j + 1
+    else:
+        i += 1
+
+if len(display_blocks) < 20:
+    errors.append(f"Expected at least 20 display equations; found {len(display_blocks)}.")
+if s.count("latexmath:[") < 20:
+    errors.append("Too few inline math nodes; inspect inline math delimiters.")
+if r"\[" in s or r"\]" in s:
+    errors.append("Markdown display-math delimiters remain in assembled AsciiDoc.")
+if "g^*(C)" not in s or "T_{EP}" not in s or "sigma_j" not in s:
+    errors.append("Core equations are missing or were damaged during conversion.")
 if "image::" in s: errors.append("Unexpected artwork; descriptions only.")
 if "Artwork placeholder:" in s or "@@figure_" in s: errors.append("Obsolete placeholder.")
 expected={f"Figure 4.{i}" for i in range(1,22)}
