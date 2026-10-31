@@ -1,0 +1,86 @@
+name: Chapter 4 manuscript PDF
+
+on:
+  push:
+    branches: [manuscript]
+    paths:
+      - 'rough-draft/chapter4/draft/**'
+      - 'manuscript/assemble-ch04.py'
+      - 'manuscript/verify-ch04-manuscript.py'
+      - 'manuscript/build-ch04-pdf.sh'
+      - 'manuscript/verify-ch04-pdf.sh'
+      - '.github/workflows/chapter4-pdf.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: chapter4-pdf
+  cancel-in-progress: true
+
+jobs:
+  build-pdf:
+    name: Assemble, verify and publish Chapter 4 preview
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Check out selected branch
+        uses: actions/checkout@v4
+
+      - name: Install native PDF and STEM dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential cmake pkg-config bison flex fonts-lyx fonts-liberation \
+            poppler-utils pandoc \
+            libxml2-dev libxslt1-dev libgmp-dev libffi-dev \
+            libcairo2-dev libpango1.0-dev libgdk-pixbuf-2.0-dev libglib2.0-dev \
+            libzstd-dev libwebp-dev libgtk-3-dev
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+
+      - name: Assemble and verify Chapter 4 sources
+        run: |
+          python3 manuscript/assemble-ch04.py
+          python3 manuscript/verify-ch04-manuscript.py
+
+      - name: Build and verify PDF
+        working-directory: manuscript
+        run: |
+          gem install bundler
+          bundle install
+          bash ./build-ch04-pdf.sh
+
+      - name: Upload Chapter 4 PDF
+        uses: actions/upload-artifact@v4
+        with:
+          name: chapter4-manuscript-pdf
+          path: manuscript/CH04_Dadwal_World_Models_in_Action.pdf
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Commit AsciiDoc and PDF beside section sources
+        run: |
+          if [[ "$GITHUB_REF" != "refs/heads/manuscript" ]]; then
+            echo "Build completed; automatic commit is limited to the manuscript branch."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          remote_head="$(git ls-remote origin refs/heads/manuscript | cut -f1)"
+          if [[ "$remote_head" != "$GITHUB_SHA" ]]; then
+            echo "Branch advanced during build; artifact is retained, but source commit is skipped."
+            exit 0
+          fi
+          git add manuscript/CH04_Dadwal_World_Models_in_Action.adoc
+          git add -f manuscript/CH04_Dadwal_World_Models_in_Action.pdf
+          if git diff --cached --quiet; then
+            echo "AsciiDoc and PDF are unchanged."
+            exit 0
+          fi
+          git commit -m "Chapter 4 AsciiDoc and PDF generated [ch4-pdf-generated]"
+          git push origin HEAD:manuscript
