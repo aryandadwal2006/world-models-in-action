@@ -57,10 +57,37 @@ def normalize_math(markdown):
         raise SystemExit("unclosed display math")
     return "\n".join(output)
 
+def strip_display_delimiters(asciidoc):
+    lines = asciidoc.splitlines()
+    output = []
+    waiting_for_block = False
+    inside_math_block = False
+    for line in lines:
+        stripped = line.strip()
+        if stripped == "[latexmath]":
+            waiting_for_block = True
+            output.append(line)
+            continue
+        if stripped == "++++":
+            if waiting_for_block:
+                inside_math_block = True
+                waiting_for_block = False
+            elif inside_math_block:
+                inside_math_block = False
+            output.append(line)
+            continue
+        if inside_math_block and stripped in (r"\[", r"\]"):
+            continue
+        output.append(line)
+    return "\n".join(output)
+
 def pandoc(markdown):
     normalized = normalize_math(markdown)
-    r = subprocess.run(["pandoc", "--from=markdown+tex_math_dollars", "--to=asciidoc", "--wrap=none"], input=normalized, text=True, capture_output=True, check=True)
-    return r.stdout.strip()
+    r = subprocess.run(
+        ["pandoc", "--from=markdown+tex_math_dollars", "--to=asciidoc", "--wrap=none"],
+        input=normalized, text=True, capture_output=True, check=True
+    )
+    return strip_display_delimiters(r.stdout.strip())
 
 def add_anchors(adoc):
     out=[]; n=0
