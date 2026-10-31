@@ -57,6 +57,17 @@ def normalize_math(markdown):
         raise SystemExit("unclosed display math")
     return "\n".join(output)
 
+def strip_inline_delimiters(asciidoc):
+    # Pandoc wraps math inside the AsciiDoc STEM macro but retains Markdown
+    # dollar signs. Asciidoctor Mathematical expects only the TeX body. Strip
+    # one or more boundary dollars while preserving dollars inside the formula.
+    return re.sub(
+        r"latexmath:\[\$+(.*?)\$+\]",
+        lambda match: "latexmath:[" + match.group(1) + "]",
+        asciidoc,
+        flags=re.DOTALL,
+    )
+
 def strip_display_delimiters(asciidoc):
     lines = asciidoc.splitlines()
     output = []
@@ -87,7 +98,7 @@ def pandoc(markdown):
         ["pandoc", "--from=markdown+tex_math_dollars", "--to=asciidoc", "--wrap=none"],
         input=normalized, text=True, capture_output=True, check=True
     )
-    return strip_display_delimiters(r.stdout.strip())
+    return strip_inline_delimiters(strip_display_delimiters(r.stdout.strip()))
 
 def add_anchors(adoc):
     out=[]; n=0
