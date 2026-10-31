@@ -97,6 +97,10 @@ For every excerpt, maintain:
 - test/config used;
 - limitations and environment requirements.
 
-## 8. Current limitations of inspection
+## 8. Current inspection record and limitations
 
-The GitHub connector exposed the source repositories and their metadata, but not all files have yet been inspected line-by-line. This file is an implementation audit plan, not a claim that the official code has been reproduced. The final printed listing must only be selected after direct source inspection.
+The archived I-JEPA repository was inspected at commit `52c1ae95d05f743e000e8f10a1f3a79b10cff048`. The mask-collator implementation in `src/masks/multiblock.py` (blob `c82bf0f68cf612ec19dda95b6fa28c8c56553917`) and the training loop in `src/train.py` (blob `0f387d6b293a7708037235f2bc34a8cb12953dc4`) were read directly. The inspected code returns separate context and prediction masks, applies prediction masks to layer-normalized target features, evaluates the target branch without gradients, computes a smooth-L1 feature loss, updates the context encoder and predictor, and then applies the momentum update to the target encoder. The source was not copied into the manuscript because the repository is CC BY-NC 4.0 and the book is a commercial publication; the manuscript uses independently written explanatory pseudocode instead.
+
+The repository metadata and license headers for V-JEPA 2 (MIT), EB-JEPA (Apache-2.0), and JEPA-WMs (CC BY-NC 4.0) were checked. The VISReg project materials indicate non-commercial terms, but the canonical source and exact license at a selected commit were not available in this audit. The exact LeJEPA repository license also remains to be checked. No code reuse is approved by this inspection. Before publication, recheck every relevant license at the exact commit and file-level header, and record any permission obtained.
+
+This is an implementation inspection, not a reproduction. No large-scale training, paper benchmark, robot deployment, or new experiment was run for this chapter.
