@@ -62,7 +62,7 @@ This is not simply another name for V-JEPA 2-AC. The distinction is:
 - V-JEPA 2-AC adds action conditioning for latent world modelling and planning;
 - V-JEPA 2.1 improves the spatially dense representation objective and features.
 
-Dense representations are relevant where global pooled features are insufficient: object correspondence, localisation, grasp regions, interaction anticipation and spatially structured prediction. But better dense features still do not certify action-conditioned dynamics or planning success.
+Dense representations are relevant where global pooled features are insufficient: object correspondence, localisation, grasp regions, interaction anticipation and spatially structured prediction. But better dense features still do not certify action-conditioned dynamics or planning success. The robot-planning comparison in the V-JEPA 2.1 paper should be reported with its planner settings: Table 6 gives 60% grasp success for V-JEPA 2 and 70% for V-JEPA 2.1 under the matched 800-sample, 10-iteration, one-step, 3-second setting. The 80% V-JEPA 2.1 result uses a different 300-sample, 15-iteration, eight-step, 14-second setting. Do not collapse these into a matched 20-percentage-point gain.
 
 When reporting the paper's results, identify the benchmark and metric. Do not transfer an anticipation, depth, grasping or navigation result to a general claim of autonomous intelligence.
 
