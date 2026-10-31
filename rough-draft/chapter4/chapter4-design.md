@@ -1,378 +1,165 @@
-# Chapter 4 design: JEPA and Predictive Representation Learning
+# Chapter 4 design: JEPA, predictive representations and autonomous intelligence
+**Revision:** 1 November 2026. **Status:** editorial blueprint, not chapter prose.
 
-**Book:** *World Models in Action*  
-**Publisher:** Manning  
-**Target:** 60–75 printed pages for the core chapter; 50 pages is the minimum viable version. A deeper optional theory/frontier treatment can take the chapter to 90–100 pages.  
-**Status:** detailed editorial specification, research synthesis and production blueprint (31 October 2026).
+## 1. Decisions
+- Retain the approved top-level TOC: 4.1 Why predict in latent space; 4.2 JEPA; 4.3 Action-conditioned predictive representations; 4.4 Implementing a miniature JEPA system; 4.5 Summary.
+- Core: image/video JEPA, LeJEPA/SIGReg, VISReg, action conditioning, and LeCun's proposed autonomous-agent architecture.
+- After regularization, discuss only VL-JEPA for 1.5–2 pages. At most one original figure. Mention A-JEPA, Audio-JEPA, Var-JEPA and VJEPA briefly in a paragraph or compact row. No detailed tutorials or proof work for them.
+- Introduce energy/EBM compatibility in Chapter 4 because it is essential to LeCun's Cost module. Do not relocate the whole EBM theory here. Propose formal EBM foundations in Chapter 8 and cost-based action optimization in Chapter 7. The current TOC has no explicit EBM heading; this is a proposed addition.
+- Explain the important concepts in A Path Towards Autonomous Machine Intelligence across Chapters 4–7. In Chapter 4, explain the six-module system, Mode 1/Mode 2, distillation from Mode 2 to Mode 1, intrinsic cost and critic, associative STM, latent-variable futures, H-JEPA, hierarchical planning and configurator.
+- No new experiments, model training, benchmark replications or book-generated results. Use only paper-reported results and source-attributed reading of official implementations. At most 3–4 short code snippets/pseudocode. Code inspection is not reproduction.
+- Target 65–72 printed pages. Let the proofs take the space they need, but do not pad with modality surveys.
 
----
+## 2. Reader contract and book boundary
+Chapters 1–2 already introduce world models, state, dynamics, memory, reward/value and planning. Chapter 3 already covers SSL, contrastive and non-contrastive learning, BYOL/SimSiam, DINO, Barlow Twins, VICReg, masked prediction, bottlenecks, collapse and predictive sufficiency. Do not repeat those foundations.
 
-## 1. Chapter purpose
+Chapter 4 adds the JEPA context/target/predictor graph; I-JEPA; V-JEPA, V-JEPA 2, 2-AC and 2.1; deep distributional regularization; a brief VL-JEPA example; action-conditioned prediction; and LeCun's proposed agent architecture.
 
-Chapter 4 is the book's hinge between learning a representation and learning a world model. Chapter 3 explains how self-supervised objectives construct useful features, and why neither low training loss nor anti-collapse regularization proves that a state contains the information required for future prediction. Chapter 4 introduces a more direct learning signal: infer the representation of an unobserved region, frame or future from a restricted context.
+Later homes:
+- Ch. 5: persistent/recurrent temporal state, S4/Mamba; compare, but do not conflate, associative STM and SSM state.
+- Ch. 6: latent transition functions, stochasticity, uncertainty, rollout stability, multistep prediction and hierarchical time scales.
+- Ch. 7: costs, critic/value, actor, MPC, action-sequence optimization, search and hierarchical planning.
+- Ch. 8: VAE/AR/GAN and add a proposed formal section on energy-based models: energy vs normalized probability, latent inference, partition function, EBM learning/inference and comparison with other generative objectives.
+- Chs. 9–12: diffusion, interactive video, robotics, scaling and open problems.
 
-The chapter must answer five questions:
+## 3. Where EBMs belong
+Chapter 4 should teach the distinction between (i) a predictive model that estimates a target embedding, (ii) an energy that scores compatibility of a candidate configuration, and (iii) a task cost that scores predicted outcomes for action selection. Energy is not automatically a normalized probability.
 
-1. What is predicted in a Joint-Embedding Predictive Architecture (JEPA), and what is deliberately not reconstructed?
-2. How do context encoders, target encoders, predictors, masks and target updates work in the main image and video architectures?
-3. What mathematical problems remain after replacing pixel reconstruction with latent prediction, especially collapse, uncertainty and the geometry of the embedding distribution?
-4. What changes when a predictive representation is trained on video and then conditioned on actions?
-5. What extra ingredients turn a representation predictor into a world model that can support planning?
-
-The thesis should be more careful than “JEPAs learn the meaning of the world.” A JEPA learns to predict a selected target representation under a selected context and sampling distribution. That can reduce pressure to model unpredictable pixel detail, but the learned representation is still shaped by the target encoder, mask policy, temporal sampling, architecture, regularizer and data. A useful world model additionally needs the right state variables, action-conditioned transitions, appropriate uncertainty handling, and evaluation in the environment where planning will occur.
-
-### Reader promise
-
-By the end, a reader who knows the foundations in Chapters 1–3 should be able to:
-- draw and explain a generic JEPA training graph;
-- distinguish I-JEPA, V-JEPA, V-JEPA 2 and V-JEPA 2.1;
-- explain how a target encoder and predictor are used without assuming all JEPAs use the same update rule;
-- derive the conditional-mean consequence of squared-error latent prediction;
-- explain how VICReg, SIGReg and VISReg differ in the statistical properties they constrain;
-- describe the additional data and model components required for action conditioning;
-- identify why a strong representation benchmark is not the same as successful physical planning;
-- inspect an official implementation without mistaking it for a complete reproducibility package.
-
----
-
-## 2. Placement in the book and dependency map
-
-**Before this chapter**
-- Chapter 1 establishes the world-model idea, the distinction between prediction and generation, and the broad perception–state–prediction–planning loop.
-- Chapter 2 defines the anatomy of a world model: observations, latent state, transition dynamics, reward/value, planning, memory and evaluation.
-- Chapter 3 establishes the representation-learning problem and the limits of self-supervised proxies. It already derives or explains contrastive objectives, BYOL/SimSiam, DINO, Barlow Twins, VICReg and masked prediction.
-
-**This chapter adds**
-- the JEPA architecture as a specific predictive representation-learning design;
-- image and video JEPA instances;
-- distributional regularization beyond the VICReg recap;
-- a route from action-free video features to action-conditioned latent prediction;
-- one carefully scoped bridge to physical planning and LeCun's broader proposed architecture.
-
-**After this chapter**
-- Chapter 5 can discuss SSMs and persistent temporal memory without having to explain the JEPA loss again.
-- Chapter 6 can formalize latent transition models, uncertainty and imagined rollouts.
-- Chapter 7 can explain planning algorithms, model-predictive control and value estimation.
-- Chapters 8–10 can compare latent prediction with generative reconstruction, diffusion and interactive video simulation.
-
-**Boundary rule:** Chapter 4 explains what a JEPA learns and how an action-conditioned predictor can be used. Chapter 6 owns general dynamics modelling and rollout error. Chapter 7 owns detailed planning algorithms. Chapter 9 owns diffusion mathematics. Chapter 11 owns broad robotics and sim-to-real deployment.
-
----
-
-## 3. Recommended final structure
-
-Keep the publisher's approved TOC spine, with carefully named subsections. Do not replace the chapter's identity with a survey of every paper that contains “JEPA” in its title.
-
-### 4.1 Why predict in latent space? (approximately 4–6 pages)
-
-Open with two futures that are visually different in irrelevant ways but equivalent for the prediction at hand, and a counterexample where two histories look similar but imply different futures. Use these to introduce the central trade-off:
-- pixel reconstruction can spend capacity on stochastic texture and exact appearance;
-- latent prediction asks for the target encoder's representation;
-- the target encoder decides which distinctions the loss treats as relevant;
-- discarding detail can be beneficial or harmful depending on the downstream target.
-
-Introduce the terms context, target, embedding, predictor and joint embedding with one intuitive example. Do not repeat the general history of SSL, the InfoNCE derivation, or the entire representation-sufficiency discussion from Chapter 3.
-
-### 4.2 JEPA (Joint-Embedding Predictive Architecture) (approximately 40–48 pages)
-
-This is the mathematical and architectural center. Recommended sequence:
-
-**4.2.1 The generic architecture**
-- context encoder, target encoder, predictor;
-- context and target masks/positions;
-- target features computed from a less restricted view;
-- prediction loss in feature space;
-- the difference between train-time target branches and inference-time encoder use.
-
-**4.2.2 I-JEPA: spatial prediction from image context**
-- image patch tokens and context/target blocks;
-- multiple target blocks and positional information;
-- EMA target branch as used in the method;
-- why the mask geometry matters;
-- what the image benchmark results do and do not establish.
-
-**4.2.3 V-JEPA: prediction across space and time**
-- video token grids with temporal and spatial coordinates;
-- spatiotemporal target masks;
-- temporal continuity and motion-sensitive targets;
-- action-free pretraining, frozen evaluation and limitations of recognition benchmarks.
-
-**4.2.4 The target branch is not one universal recipe**
-- stop-gradient vs parameter update;
-- EMA teacher vs symmetric training;
-- predictor placement and target normalization;
-- masks, target layers and output granularity;
-- why method-specific implementation details must be preserved.
-
-**4.2.5 V-JEPA 2: from internet video to physical prediction**
-- the action-free V-JEPA 2 encoder pretraining stage;
-- the separate action-conditioned post-training of V-JEPA 2-AC using robot trajectory data;
-- the role of action tokens/conditioning and the latent predictor;
-- image-goal planning and deployment in environments without task-specific robot data collection;
-- do not attribute the planning result to the action-free encoder in isolation.
-
-**4.2.6 V-JEPA 2.1: dense predictive features**
-- dense rather than only pooled/global representations;
-- loss on visible and masked tokens;
-- deep self-supervision across intermediate layers;
-- image/video tokenizers and spatial-temporal grounding;
-- explain why dense feature quality matters for correspondence, localization and manipulation;
-- keep it distinct from V-JEPA 2-AC: 2.1 is a representation recipe, not simply a new action-conditioned planner.
-
-### 4.2.7 Regularizing predictive embeddings: from VICReg to LeJEPA and VISReg (approximately 12–16 pages)
-
-Although the current TOC nests this in 4.2, the prose can use a clearly marked subsection to keep the chapter readable. If TOC changes are permitted later, consider a named subheading “The geometry of predictive embeddings.”
-
-**VICReg recap (1–2 pages maximum):** Chapter 3 already derives invariance, variance and covariance. State the design question that remains: matching low-order moments does not specify a full probability distribution.
-
-**LeJEPA and SIGReg (5–7 pages):**
-- downstream-risk motivation and the specific assumptions under which an isotropic Gaussian target is derived;
-- characteristic functions and one-dimensional projections;
-- Cramér–Wold: exact equality requires all directions, whereas training uses a finite stochastic sketch;
-- Epps–Pulley-style normality discrepancy and its numerical approximation;
-- how the predictive term and SIGReg term are combined in LeJEPA;
-- what the paper claims about reducing reliance on EMA/stop-gradient heuristics;
-- practical limits, batch effects and finite-sketch variability.
-
-**VISReg (5–7 pages):**
-- why scale and distribution shape should be discussed separately;
-- variance as scale control and sliced-Wasserstein as a shape discrepancy;
-- one-dimensional optimal transport and sorting;
-- random directional projections;
-- stop-gradient boundaries and gradient behaviour as reported by the authors;
-- computational scaling in terms of batch size, dimension and number of projections;
-- compare VICReg/SIGReg/VISReg without calling any one method a universal solution.
-
-**4.2.8 Related modalities and variational formulations (3–4 pages, concise)**
-
-- A-JEPA and Audio-JEPA as audio-oriented masked feature prediction.
-- VL-JEPA as visual prediction of text embeddings with optional decoding.
-- Var-JEPA (Gögl and Yau) and VJEPA (Huang) as distinct probabilistic/variational formulations.
-- Treat these as a comparative extension, not as if all share the same loss or target update.
-
-### 4.3 Action-conditioned predictive representations (approximately 8–10 pages)
-
-Use the transition from observation-only prediction to intervention:
+A latent prediction discrepancy may be interpreted as one possible energy:
 \[
-\hat z_{t+1}=g_\phi(z_t,a_t)
+E_\theta(x,y,z)=D(s_y,\operatorname{Pred}_\phi(s_x,z)),
 \]
-as the simplest illustration, then explain why real models may predict multiple tokens, patches, time steps or distributions.
+where \(s_x,s_y\) are context/target embeddings and \(z\) is a latent configuration. Minimizing over \(z\) is not the same as probabilistic marginalization. Do not imply all JEPA recipes use one EBM objective.
 
-Cover:
-- passive video: what tends to happen next;
-- action-conditioned video: what tends to happen after a specified action;
-- observational correlations vs action-dependent consequences;
-- demonstrations, robot data, action encodings and temporal alignment;
-- what is identifiable from passive data and what requires interventions or action labels;
-- uncertainty and multimodal futures;
-- a simple imagined-trajectory cost, but defer MPC algorithms and trajectory optimization details.
+Keep this conceptual bridge to about 2–3 pages. Chapter 7 develops cost-based planning; Chapter 8 should carry EBM foundations. EB-JEPA is a useful small-scale library/workshop-paper example, not the whole EBM field. Its paper reports CIFAR-10 representation learning, Moving-MNIST prediction and 97% success on its specific Two Rooms benchmark. Two Rooms is simulated/procedural, not physical robotics. The reported planner uses a simple latent-distance cost; learned task-specific costs and hierarchical models are listed as future directions. Attribute these results only to the exact paper and evaluation.
 
-Introduce JEPA-WMs and EB-JEPA here or in a short subsection. Distinguish the energy used to score a predicted latent from a complete control policy.
+## 4. Proposed internal structure and pages
 
-### 4.4 Implementing a miniature JEPA system (approximately 5–7 pages)
+### 4.1 Why predict in latent space — 3–4 pp
+Contrast reconstruction with latent prediction. Show that unpredictable appearance may be irrelevant for one task but crucial for another. The target encoder defines which distinctions the loss rewards; latent prediction is not universally superior.
 
-Build a source-grounded reader walkthrough around the smallest faithful concept that can be understood on modest compute. Do not pretend this is a reproduction of I-JEPA or V-JEPA at paper scale.
+### 4.2 JEPA — 34–39 pp
+1. **Generic architecture/objective (5–6):** define context, target, encoders, predictor, positions and feature loss. Specify visibility and information flow. Label the equation generic, not universal.
+2. **I-JEPA (3–4):** patches, context, multiple target blocks, position, target update and mask geometry. Distinguish frozen-feature evaluation from fine-tuning.
+3. **V-JEPA (3–4):** spatiotemporal tokens/masks and feature prediction. Action-free video training does not identify the effects of chosen actions automatically.
+4. **Target branches/MSE (2–3):** distinguish EMA, stop-gradient and other updates. Derive conditional mean under squared error; a multimodal mean may fall between plausible futures.
+5. **V-JEPA 2 and 2-AC (4–5):** separate action-free video pretraining, robot-trajectory post-training with actions, and planning. Attribute planning to the complete model/planner/environment, not the visual encoder alone.
+6. **V-JEPA 2.1 (2–3):** dense feature targets, token losses and intermediate-layer supervision, according to the paper. Distinguish this from action conditioning.
+7. **Regularizers (13–16):**
+   - VICReg recap at most one page: invariance, variance, covariance. Do not repeat Chapter 3's derivation.
+   - LeJEPA (3–4): linear-probe bias/variance motivation; nonlinear radius-based k-NN/kernel probes; integrated-square-bias criterion; scalar covariance/total-variance constraint; theorem assumptions. State only the theorem's exact Gaussian optimum within its admissible distribution class and specified probe risk. Not universal optimality for every task.
+   - SIGReg (3–4): characteristic functions, one-dimensional projections, Epps–Pulley discrepancy, numerical quadrature, minibatch effects and projection count. Cramér–Wold is all-directions; finite projections are sketches. Distinguish formal max-over-directions test from averaged training objective. Keep projection rates attached to smoothness assumptions.
+   - VISReg (4–5): separate regularizer components: centering, per-dimension scale and shape. Prediction/invariance is a separate term combined with regularization. Explain detached standard-deviation denominator in shape normalization; this is not EMA/teacher. Explain sliced-Wasserstein via sorting and Gaussian quantiles. Derive sorting identity only for equal-weight/equal-size samples. Distinguish scalar scale derivative from full network parameter-gradient guarantees. Complexity: report projection cost in B,d,K and sorting separately.
+   - Compare methods and limitations; no universal winner.
+8. **VL-JEPA/other directions (2–2.5 total):** after regularization. VL-JEPA 1.5–2 pp: visual input plus text query predicts continuous text embedding; optional lightweight decoder generates text when needed. Contrast with autoregressive token prediction; one or two sourced results only. It is not an action-conditioned physical dynamics model. Optional original architecture figure. All other modalities/variational lines get only one paragraph/row.
 
-Recommended teaching progression:
-1. Prepare two views or a context/target mask from a small image batch.
-2. Compute context features.
-3. Compute target features under the correct target-branch update rule.
-4. Predict target positions/features.
-5. Compute the latent loss with the correct reduction and stop-gradient behaviour.
-6. Add one regularizer as a separately explained extension.
-7. Report diagnostics that separate prediction loss, collapse and downstream accessibility.
+### 4.3 Action conditioning and LeCun proposal — 17–20 pp
+1. Passive video versus intervention (2–3): \(\hat z_{t+1}=g_\phi(z_t,a_t)\), action/observation alignment, demonstrations and why passive correlations do not identify action effects.
+2. V-JEPA 2-AC, JEPA-WMs and EB-JEPA (3–4): distinguish data, action inputs, predictor, planner and evaluation. Do not mix simulated and physical evidence.
+3. LeCun's architecture (5–6): explain its **six** top-level modules:
+   - Perception: maps observations to a state representation.
+   - World Model: predicts futures under imagined action sequences.
+   - Cost: scalar energy/discomfort module containing Intrinsic Cost (imposed/non-trainable immediate intrinsic quantities) and Critic/Trainable Cost (predicts future intrinsic cost).
+   - Actor: proposes/optimizes action sequences.
+   - Short-Term Memory: stores current/predicted states and intrinsic costs.
+   - Configurator: configures perception, model, cost and actor for the task.
+   Intrinsic Cost and Critic are inside Cost, not extra top-level peers. Explain flow: percept→Perception; state→World Model/Actor/Cost; Actor proposals→World Model; predictions→Cost; Cost signal→Actor; selected first action→environment; new percept closes loop; STM read/write; Configurator modulation. Internal modules may be differentiable; the physical environment is not generally differentiable.
+4. Mode 1/Mode 2 (2–3): Mode 1 reactive policy without rollout optimization at every decision; Mode 2 proposes action sequences, imagines futures, scores with Cost, optimizes/searches, executes first action(s), observes and replans (MPC-like). These are proposed modes, not validated cognitive science.
+5. Mode-2-to-Mode-1 distillation (1): amortized inference from expensive plans to cheaper reactive skills.
+6. Intrinsic cost, critic and STM (2–3): example memory tuple (time,state,intrinsic energy); critic predicts future intrinsic cost. Compare associative STM with SSM recurrence without teaching full memory mathematics here.
+7. Multiple futures and H-JEPA (2–3): latent variables for possible outcomes; lower short-horizon/detail levels, higher abstract/long-horizon levels, and high-level subgoals refined into lower-level action sequences. Label hierarchy as proposal.
 
-The only code excerpts in the printed chapter should come from official paper repositories, or be clearly labeled as pseudocode. The reader-facing chapter must not silently convert pseudocode into a purported faithful reproduction. Use perhaps 3–5 short excerpts, each chosen to explain one non-obvious operation. All full commands, environment setup and file paths belong in the repository companion notes or appendix.
+### 4.4 Implementation — 4–5 pp
+Reframe the approved heading as official implementation reading, not author-run reproduction:
+- generic pseudocode explicitly labelled;
+- one official I-JEPA mask/target excerpt;
+- one compact official EB-JEPA example;
+- optionally one regularizer excerpt if exact source, paper correspondence and commercial-book license are verified;
+- explain limitations of code inspection and checkpoints.
+At most 3–4 snippets. No new experiments or benchmark claims.
 
-### 4.5 Summary, exercises and references (approximately 4–5 pages)
+### 4.5 Summary/exercises/references — 3–4 pp
+Synthesize target choice, mask, regularization limits, VL-JEPA, action conditioning, energy/cost and the modules needed around prediction. State that LeCun's integrated architecture is a proposal.
 
-End with a synthesis:
-- JEPA changes the target space, not the requirement to choose a useful target.
-- Video adds time, but time alone does not make a model action-aware.
-- Action conditioning requires actions and a model that can use them.
-- Distributional regularization shapes embeddings but does not certify their semantic or predictive sufficiency.
-- A world model is an evaluated predictive system, not a representation loss in isolation.
+## 5. LeCun concept coverage across the book
+| Concept | Chapter 4 | Full development |
+|---|---|---|
+| Learning by observation, differentiable reasoning, hierarchy | Motivate architecture | Ch. 12 open problems |
+| Perception/state | Module/flow | Ch. 2; Ch. 11 |
+| Configurator | Purpose and open issue | Ch. 12 |
+| World model/futures | JEPA bridge | Ch. 6; Ch. 10 |
+| EBM/energy | Compatibility, energy vs probability | Ch. 8; planning cost in Ch. 7 |
+| Cost, intrinsic cost, critic | Roles and hierarchy | Ch. 7 |
+| Actor/action proposal | Proposal vs execution | Ch. 7 |
+| Mode 1/Mode 2 and distillation | Explain concepts | Ch. 7 |
+| Associative STM | What is stored/retrieved | Ch. 5 |
+| Multiple futures | Motivation | Ch. 6 |
+| H-JEPA and hierarchical planning | Proposed abstraction/subgoals | Ch. 6–7 |
 
----
+Do not count a concept as covered merely because its name appears in a caption.
 
-## 4. Page budget and expansion policy
+## 6. Figure plan
+Aim for 18–21 original figures:
+1. Reconstruction versus latent prediction.
+2. Generic JEPA graph.
+3. I-JEPA spatial masks.
+4. V-JEPA spatiotemporal masks.
+5. V-JEPA 2 pretraining versus 2-AC post-training.
+6. V-JEPA 2.1 dense objective.
+7. EMA/stop-gradient/update paths.
+8. MSE conditional mean between target modes.
+9. Same moments, different distributions.
+10. LeJEPA theorem scope: probes, risk, scalar constraint, assumptions and optimum.
+11. Cramér–Wold all directions versus finite sketch.
+12. SIGReg: projections, characteristic functions, Epps–Pulley discrepancy and quadrature.
+13. VISReg: centering, scale, shape and detached denominator.
+14. One-dimensional sliced-Wasserstein sorted samples/quantiles.
+15. Action-conditioned latent prediction.
+16. Evidence map for V-JEPA 2-AC, JEPA-WMs and EB-JEPA.
+17. **Mandatory LeCun brain/agent architecture.**
+18. Mode 1 versus Mode 2.
+19. Mode-2-to-Mode-1 distillation.
+20. H-JEPA/hierarchical planning.
+21. Optional VL-JEPA diagram only if it adds value.
 
-| Section | Core pages | Optional expansion |
-|---|---:|---:|
-| Opening and motivation | 4–6 | 1 |
-| Generic JEPA objective and architecture | 6–7 | 2 |
-| I-JEPA | 4–5 | 1 |
-| V-JEPA | 4–5 | 1 |
-| V-JEPA 2 and V-JEPA 2.1 | 6–7 | 2 |
-| Target dynamics and collapse caveats | 2–3 | 2 |
-| VICReg bridge, LeJEPA and SIGReg | 6–8 | 4 |
-| VISReg | 5–6 | 3 |
-| Other modalities and variational lines | 3–4 | 4 |
-| Action-conditioned models and planning bridge | 6–8 | 3 |
-| Path to autonomy | 2–3 | 2 |
-| Implementation | 5–6 | 1 |
-| Summary, exercises, references | 4–5 | 1 |
-| **Total** | **57–74** | **27** |
+**Brain/agent figure:** exactly six top-level modules: Perception, World Model, Cost, Actor, Short-Term Memory, Configurator. Draw Intrinsic Cost and Critic/Trainable Cost inside Cost. Show environment percept/feedback; Actor candidate actions→World Model; predicted states→Cost; cost/evaluation→Actor; selected action→environment; STM read/write; Configurator modulation. Use distinct arrows/legend for observation, state, action, prediction, scalar cost/gradient, memory and configuration. Do not show gradients through the physical environment. Brain silhouette may be an understated frame only. Create original artwork; do not trace/recolour the paper diagram.
 
-**Minimum:** do not cut below 50 printed pages.  
-**Preferred:** 65–72 pages.  
-**90–100 page edition:** add the optional theory notebooks, primary-paper method comparisons, uncertainty discussion and implementation/source audit. Do not reach 100 pages by expanding every method into a repetitive survey card.
+Use Chapter 3 visual system: white, charcoal, restrained #3B6FB6, grayscale-safe, consistent linework, print-legible labels, landscape architecture canvas, no decorative effects, no figure number/title inside artwork. Captions about four printed lines or fewer.
 
-Page counts are editorial estimates, not a promise that every manuscript page maps one-to-one into the final Manning layout. Measure after the first AsciiDoc build.
+## 7. Tables and code
+Four or five tables: core image/video JEPA comparison; target-update mechanisms; VICReg/SIGReg/VISReg; passive video vs action-conditioned model vs full agent; LeCun's six modules. VL-JEPA/other modalities should not become a full survey table.
 
----
+At most 3–4 code excerpts: generic pseudocode; official I-JEPA operation; official EB-JEPA example; optionally verified regularizer operation. Record exact commit/path/lines/license/edits/paper version. If commercial reproduction is not licensed, write original pseudocode. No full training loops.
 
-## 5. Teaching arc
+## 8. Mathematical acceptance requirements
+**Conditional mean:** for \(\mu(c)=E[H|C=c]\),
+\[
+E[\|H-a\|^2|c]=E[\|H-\mu\|^2|c]+\|a-\mu\|^2.
+\]
+The cross term vanishes. Require finite conditional second moment. Illustrate a multimodal target whose mean is between modes.
 
-The chapter should feel like one argument, not a list of acronyms:
+**LeJEPA:** read exact paper and appendices before stating Theorem 1. Transcribe the probes, integrated-square-bias functional, scalar covariance/total-variance constraint, admissible class, regularity assumptions, dimensions/constants and asymptotic regime. The theorem's Gaussian optimum is scoped to that criterion/class, not arbitrary downstream tasks. Do not write “Gaussian is universally optimal.”
 
-1. Pixel targets ask for exact appearance.
-2. A latent target asks for a chosen representation of the hidden region.
-3. A predictor must infer that target from restricted context.
-4. The target architecture and mask policy decide what information is rewarded.
-5. The embedding can still be trivial or badly shaped, so the training recipe needs a suitable anti-collapse mechanism.
-6. VICReg makes scale and redundancy constraints explicit; LeJEPA/SIGReg and VISReg study stronger distributional constraints.
-7. Video extends prediction across time, but action-conditioned prediction is a different problem.
-8. V-JEPA 2-AC and JEPA-WM work show how latent prediction can enter physical planning, while also exposing the gap between representation quality and a working controller.
-9. LeCun's proposed architecture places JEPA-like predictive models inside a broader system with goals, costs, memory, actors and critics.
+**Cramér–Wold:** all one-dimensional projections in every direction identify the distribution. Finite sampled directions are only a sketch. Keep approximation rates attached to smoothness assumptions; distinguish formal max statistic from practical average.
 
-Every new section should answer: **what limitation of the previous formulation motivates this next design choice?**
+**SIGReg:** verify the exact Epps–Pulley weight, bandwidth, quadrature, directions and reductions in the paper. Explain finite minibatch bias. A failure to reject is not proof of equality; a scalar test derivative is not a universal encoder-gradient guarantee.
 
----
+**VISReg:** verify exact notation/reductions. Three regularizer terms are centering, scale and shape; prediction/invariance is separate. Show detach only at shape-normalization denominator. Sorted transport formula requires equal weights and equal sample counts. Give projection and sorting complexity separately. Do not infer full-network nonzero gradient from scalar derivative.
 
-## 6. The figure plan
+Audit dimensions, edge cases, gradient paths, loss scaling and all theorem assumptions before final figures. If unsupported, qualify or remove.
 
-Aim for **18–22 original figures**, only where a drawing does more than text. A possible register is specified in 11_figures_tables_exercises.md. The most important figures are:
+## 9. No-new-experiments policy
+No new training, experiments, replications, data collection, fresh tables or author-generated results for this chapter.
 
-1. pixel reconstruction vs latent prediction;
-2. generic JEPA training graph with context encoder, target encoder and predictor;
-3. context and target masks in I-JEPA;
-4. space-time target masks in V-JEPA;
-5. what changes between action-free V-JEPA 2 pretraining and V-JEPA 2-AC post-training;
-6. how V-JEPA 2.1 makes the target dense;
-7. target-branch update paths, comparing representative variants;
-8. deterministic squared-error prediction and the conditional-mean solution;
-9. VICReg, SIGReg and VISReg as distinct statistical constraints;
-10. random projection and characteristic-function sketching;
-11. one-dimensional sorting for sliced-Wasserstein distance;
-12. action-conditioned latent prediction;
-13. a model-predictive planning loop at the level of a conceptual bridge;
-14. JEPA-WMs evaluation: model, planner and environment must be assessed together;
-15. LeCun's configurable predictive architecture.
+Allowed: paper-reported results with exact attribution; official source inspection; short official snippets if license permits; original pseudocode; explanation of published experiments.
 
-Do not create one giant “JEPA family tree” that implies every method is the same architecture. A small method map can classify by target modality, prediction support, regularizer and action conditioning.
+Not allowed: claim “we reproduced,” “our benchmark,” or “we trained”; treat code reading/checkpoint loading as reproduction; invent or interpolate results.
 
----
+Use official I-JEPA for masks/updates, V-JEPA 2 for model/action interfaces, EB-JEPA for compact code-reading, LeJEPA for SIGReg. Old HaiyuWu/visreg now redirects to altos-labs/visreg; current canonical source was not accessible in this audit, so do not claim its code was inspected. JEPA-WMs is marked non-commercial in the current audit; do not copy its code into a commercial book without permission. Recheck all licenses at exact commit. For each excerpt record repo, commit, path, lines, license, changes, paper version and whether executed (planned: no).
 
-## 7. Tables and code listings
+## 10. Production and release gates
+Follow Chapter 3 AsciiDoc numbering, anchors, equations and captions. Define symbols near first use; PyTorch only; no raw link appendix; no em dashes. Evidence order: primary paper, appendix, official code/config, official project page, later studies, then notes for intuition only.
 
-Target **4–6 tables** and **3–5 short code listings**.
+The remote manuscript branch currently has no PDFs inside rough-draft/chapter4. The primary papers were checked through authoritative arXiv/OpenReview sources. Additional local but unpushed PDFs are not visible in the remote branch.
 
-Tables:
-- method comparison for I-JEPA / V-JEPA / V-JEPA 2 / V-JEPA 2.1;
-- target-branch update and predictor comparison;
-- VICReg / SIGReg / VISReg comparison;
-- action-free vs action-conditioned world models;
-- adjacent modality/variational methods;
-- evidence matrix distinguishing representation benchmarks, dynamics prediction and planning success.
-
-Code listings:
-- one small generic context/target forward path, clearly identified as algorithmic pseudocode unless copied from an official implementation;
-- one official I-JEPA or V-JEPA mask/predictor operation;
-- one official SIGReg/VISReg regularization operation only after source and license check;
-- one short V-JEPA 2 frozen encoder loading example or config fragment;
-- possibly one planner-side latent prediction call from official JEPA-WMs, only if it explains a central concept.
-
-No full training loop, no giant model definition, no fake reproduction of internet-scale pretraining, and no listing copied from unofficial forks.
-
----
-
-## 8. Proof and derivation programme
-
-Keep proofs in the main chapter only when they clarify a design choice. Use boxed “Derivation” elements or a short appendix/dossier link for the longer details.
-
-Main-text derivations:
-1. generic JEPA regression objective and the role of stop-gradient;
-2. conditional-mean optimum of squared-error prediction;
-3. EMA as an exponentially weighted parameter history;
-4. VICReg's covariance penalty vs full distributional constraints;
-5. characteristic function of a standard normal and the projection argument;
-6. one-dimensional empirical \(W_2^2\) as squared distance between sorted samples / quantiles;
-7. action-conditioned predictive sufficiency with the action held fixed.
-
-Optional extended derivations:
-- a precise version of LeJEPA's downstream-risk assumptions and theorem;
-- Epps–Pulley statistic and the selected quadrature;
-- random direction estimator variance and projection-count trade-offs;
-- gradients of the exact VISReg scale and shape losses as implemented;
-- deterministic predictor failure under multimodal future distributions;
-- why a planner cannot recover information that the encoder discarded.
-
-Do not present a derivation from the author's notes as a theorem from the primary paper unless the statements and assumptions match. The proof ledger is in 10_claims_audit_and_proofs.md.
-
----
-
-## 9. Manning production and style rules
-
-Follow the current Chapter 3 manuscript style and the Manning AsciiDoc template in the must-read folder:
-
-- Chapter-level heading and numbering attributes should match Chapter 3, with chapter number 4 and unique IDs. Preserve the established counters and stable cross-references.
-- Use latexmath blocks for displayed equations and define every symbol before or immediately after first use.
-- Use numbered figure, listing and table anchors with meaningful captions. Reference each major figure in the prose before or after placement.
-- Captions should explain the visual argument in approximately four lines or less (the current Chapter 3 editorial budget is about 340 characters). Do not duplicate the caption in an adjacent paragraph.
-- Put original schematics in the established images directory only after the brief is approved. Artwork should not contain a printed figure number, title or caption.
-- Sidebars should make one specific distinction or give one compact intuition. Do not turn each method into a sidebar.
-- Include a single concise comparison table where a reader needs to compare architectures, not multiple redundant taxonomies.
-- Code lines in ordinary listings should remain at or below 76 characters; annotated lines at or below 55 characters; sidebar code at or below 70 characters. Wrap long statements and use concise variable names only where they are unambiguous.
-- Use original diagrams; no copied paper screenshots or figures. Check figure, table and code licenses independently. The fact that a paper is open access does not automatically license its artwork, repository or weights.
-- Use calm textbook prose, no unsupported superlatives, no generic “breakthrough” language, no rhetorical overclaiming.
-- Keep citations in one consolidated bibliography, with author–year attributions in prose as in Chapter 3. Do not add a separate links section.
-- Use PyTorch examples only, consistent with the book's current code policy.
-- Build and validate with the repository's existing manuscript scripts. A PDF build is an author-side preview, not Manning's final production typesetting.
-
-**Style access limitation:** the PDFs for Chapters 1 and 2 and the Manning Manual of Style are present in agent_memory_mustread, but the repository connector exposed their binary contents in a form that could not be rendered or text-extracted in this pass. The present plan therefore uses the TOC, the complete Chapter 3 AsciiDoc, the current manuscript README and figure register, and the checked-in Manning AsciiDoc template/style comments. Before typesetting, verify any publisher-specific details against the local PDF manual.
-
----
-
-## 10. Scientific and editorial rules
-
-1. Never say “JEPA predicts the future” without specifying the target, context, horizon, modality and whether actions are inputs.
-2. Never claim that pixel-level unpredictability is always irrelevant. Some tasks require texture, force cues, small objects or contact state.
-3. Never claim that Gaussian embeddings are universally optimal. Attribute the result to the exact risk analysis and assumptions of LeJEPA.
-4. A finite set of random projections is an estimator, not a proof of exact distribution matching.
-5. A regularizer that penalizes collapse does not guarantee semantic information, causal state, Markov sufficiency or controllability.
-6. EMA and stop-gradient are not interchangeable and not universally required in all JEPA variants.
-7. Separate V-JEPA 2's action-free pretraining from V-JEPA 2-AC's action-conditioned post-training.
-8. Separate V-JEPA 2.1's dense-feature recipe from the control/planning stack.
-9. Label A-JEPA, Audio-JEPA, VL-JEPA, Var-JEPA and VJEPA as related lines, not as if they all share the same training recipe.
-10. Distinguish the JEPA-WMs paper's reported planning results from a general proof that latent-space planning always works.
-11. Present A Path Towards Autonomous Machine Intelligence as a position paper and architectural proposal, not as a validated deployed system.
-12. Use current source versions and date-sensitive benchmark numbers. Avoid leaderboard claims unless the benchmark, split, metric and publication date are stated.
-
----
-
-## 11. Drafting workflow and release gates
-
-**Gate A  -  source verification**
-- Read the primary paper for every method in the core table.
-- Check the exact loss, target construction, masking and update rules against official code/config.
-- Record paper version, date, commit or tag, license and limitations.
-
-**Gate B  -  narrative**
-- Draft the generic architecture before discussing specific architectures.
-- Place each paper in the teaching argument and identify the limitation it addresses.
-- Remove any explanation already taught in Chapter 3 unless the chapter needs a one-paragraph recap.
-
-**Gate C  -  scientific audit**
-- Check all theorem assumptions, objective normalizations and complexity claims.
-- Label empirical claims by source and benchmark.
-- Use a “claim not supported” register for all overstatements found in notes.
-
-**Gate D  -  visual and production**
-- Approve figure briefs before generating artwork.
-- Inspect all labels at printed book-column width.
-- Verify all cross-references, equation numbers, listing line widths, captions and bibliography.
-- Run manuscript structural verification, build the PDF and inspect every page.
-
-**Gate E  -  reader test**
-A reader should be able to explain why latent target prediction differs from reconstruction, why V-JEPA 2-AC is a different stage from V-JEPA 2 pretraining, why SIGReg/VISReg do not prove sufficiency, and which additional elements are needed for an agent to plan. If they cannot, revise the explanation before adding more papers.
+Release gates: freeze sources; verify every objective/update; audit LeJEPA theorem and SIGReg/VISReg equations; draft narrative within chapter boundaries; inspect official code/license only; approve brain diagram topology; check every regularizer figure against equations; build the PDF and inspect all pages.
