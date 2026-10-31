@@ -4,7 +4,7 @@
 **Chapter:** 4, “JEPA and Predictive Representation Learning”  
 **Target branch:** manuscript  
 **Prepared:** 31 October 2026  
-**Status:** research dossier and chapter design; not final reader-facing prose.
+**Status:** full section-level first draft assembled; undergoing technical and editorial review.
 
 ## Purpose
 
