@@ -23,6 +23,7 @@ This file is the guardrail for turning the author's research notes into a techni
 | Latent planning with JEPAs is guaranteed to outperform input-space planning | False | Treat as an empirical research question; report planner, data and environment |
 | A JEPA latent is automatically causal, controllable or Markov | False | Require task-relative predictive tests and action-conditioned evidence |
 | A Path to Autonomous Machine Intelligence is a validated end-to-end system | False | Identify it as a position paper and proposed architecture |
+| V-JEPA 2.1 improves grasp success by 20 percentage points under matched planning settings | Misleading | Table 6 reports 60% for V-JEPA 2 and 70% for V-JEPA 2.1 with the same 800 samples, 10 iterations, one-step horizon and 3-second planning budget (+10 percentage points). The 80% result uses 300 samples, 15 iterations, an eight-step horizon and 14 seconds; keep it separate from the matched comparison. |
 
 ## 2. Proof 1: conditional mean for squared-error prediction
 
