@@ -1,27 +1,42 @@
-# Chapter 3 manuscript and PDF build
+# Manuscript sources and PDF previews
 
-This folder contains the composed AsciiDoc source, the author-side PDF preview, and the build/verification workflow on `manuscript-theory`. The chapter distinguishes the training target and loss from evidence about downstream representation quality. Paper-reported results are separated from results independently reproduced for this book; the short code excerpt is attributed to the official PyTorch implementation.
+This directory contains author-side manuscript sources and PDF previews. The PDFs are working previews, not Manning's final production typesetting.
 
-## Build and validate
+## Chapter 3
 
-Use Linux or WSL2 with Ruby 3.1+, the native dependencies required by `asciidoctor-mathematical`, and Poppler. From the repository root, the GitHub Actions workflow performs the same checks:
+The Chapter 3 manuscript and preview are:
+
+- `CH03_Dadwal_World_Models_in_Action.adoc`
+- `CH03_Dadwal_World_Models_in_Action.pdf`
+
+Its artwork is stored in the repository's `images/` directory. The Chapter 3 source/build workflow is maintained separately from Chapter 4.
+
+## Chapter 4
+
+The canonical reader-facing source is the section-by-section Markdown in `rough-draft/chapter4/draft/`. The consolidated AsciiDoc and PDF in this directory are generated outputs:
+
+- `CH04_Dadwal_World_Models_in_Action.adoc`
+- `CH04_Dadwal_World_Models_in_Action.pdf`
+
+Do not edit the generated AsciiDoc as the primary source. Edit the appropriate Markdown section, then run the assembler and checks.
+
+Chapter 4 currently uses 21 figure descriptions/placeholders. The figure artwork has intentionally not been created or embedded yet. Its detailed figure briefs are part of the section Markdown.
+
+## Build Chapter 4
+
+Use Linux or WSL2 with Python 3, Ruby 3.1+, Pandoc, Poppler, the native dependencies required by `asciidoctor-mathematical`, and Bundler. From the repository root:
 
 ```bash
-python3 manuscript/verify-manuscript.py
+python3 manuscript/assemble-ch04.py
+python3 manuscript/verify-ch04-manuscript.py
 cd manuscript
 gem install bundler
-./build-pdf.sh
+bundle install
+bash ./build-ch04-pdf.sh
 ```
 
-The build produces `CH03_Dadwal_World_Models_in_Action.pdf`. This is an author-side preview, not Manning's final production typesetting. The workflow checks the PDF text, first-page geometry, embedded serif font, US Letter size, and the presence of all 17 figure captions.
+The Chapter 4 GitHub Actions workflow runs the same assembly and verification steps when its source files change on the `manuscript` branch. On a successful build, it uploads the PDF artifact and commits the generated AsciiDoc/PDF to that branch. It checks the first page, math rendering, figure descriptions, embedded serif font, Letter page size and other PDF properties.
 
-## Figure artwork
+## Editorial and code boundaries
 
-Figure captions combine a short identifying phrase with a concise explanation of the visual argument. They are kept within a 340-character editorial budget, intended to fit within four printed lines; the first paragraph after each artwork is therefore not repeated as body text. The full caption is also recorded in the figure register and production crosswalk.
-
-
-All 17 current figures are inserted in printed order. The artwork files are `images/CH03_F01_Dadwal.png` through `images/CH03_F17_Dadwal.png`. The Markdown production briefs use retained legacy identifiers; `images/README.md` maps each brief to its printed figure and actual PNG file. Figure number and caption remain manuscript metadata and are not baked into the artwork.
-
-## Code and official implementations
-
-The chapter contains one short source-attributed excerpt from the official PyTorch VICReg implementation. It is not a complete trainer, an alternate reimplementation, or evidence of independent reproduction. The manuscript intentionally contains no outbound hyperlinks; methods are attributed in prose and identified in the consolidated bibliography.
+Keep reader-facing prose free of raw URLs; use author–year citations and a consolidated reference list. Separate paper-reported results from any experiments independently reproduced for the book. Short code excerpts must be attributed to the official implementation and checked against its license. The Chapter 4 pseudocode is explanatory, not a claim of reproducing large-scale training or published robot results.
