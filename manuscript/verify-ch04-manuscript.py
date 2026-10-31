@@ -58,10 +58,12 @@ for f in draft.glob("*.md"):
     if f.name in {"README.md","references.md"}: continue
     text=f.read_text(encoding="utf-8")
     for line_number, line in enumerate(text.splitlines(), start=1):
-        if line.count(r"\\(") != line.count(r"\\)"):
+        inline_open = line.count(r"\(")
+        inline_close = line.count(r"\)")
+        if inline_open != inline_close:
             errors.append(
                 f"{f.name}:{line_number}: unbalanced inline-math delimiters "
-                f"(\\( count {line.count(r'\\(')}, \\) count {line.count(r'\\)')})."
+                f"({inline_open} opening, {inline_close} closing)."
             )
     for m in re.finditer(r"\*\*Figure 4\.\d+[^*]*\*\*",text):
         if "Figure description." not in text[m.end():m.end()+700]:
