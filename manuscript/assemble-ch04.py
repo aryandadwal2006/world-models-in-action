@@ -36,7 +36,18 @@ def transform(name):
 def pandoc(markdown):
     r=subprocess.run(["pandoc","--from=markdown+tex_math_dollars+tex_math_single_backslash",
                       "--to=asciidoc","--wrap=none"],input=markdown,text=True,capture_output=True,check=True)
-    return r.stdout.strip()
+    # Pandoc emits AsciiDoc STEM blocks with raw TeX still wrapped in \\[ ... \\].
+    # The Asciidoctor Mathematical extension expects the equation body alone;
+    # retaining those delimiters prints literal square brackets in the PDF.
+    text = r.stdout.strip()
+    text = re.sub(
+        r"(\\[latexmath\\]\\s*\\n\\+{4}\\s*\\n)\\\\\\[\\s*\\n([\\s\\S]*?)\\n\\\\\\]\\s*\\n(\\+{4})",
+        lambda m: m.group(1) + m.group(2) + "\\n" + m.group(3),
+        text,
+    )
+    if re.search(r"\\[latexmath\\]\\s*\\n\\+{4}\\s*\\n\\\\\\[", text):
+        raise SystemExit("Unstripped TeX display delimiters remain in an AsciiDoc STEM block.")
+    return text
 def add_anchors(adoc):
     out=[]; n=0
     for line in adoc.splitlines():

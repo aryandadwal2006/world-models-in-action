@@ -8,6 +8,10 @@ for required in "World Models in Action" "Predicting in representation space" "T
   grep -Fq "$required" <<<"$first_page" || { echo "ERROR: first page missing: $required" >&2; exit 1; }
 done
 all_text="$(pdftotext -layout "$pdf" -)"
+if grep -Eqi 'stem [0-9a-f]{24,}' <<<"$all_text"; then
+  echo "ERROR: an unsupported inline STEM command rendered as a placeholder." >&2
+  exit 1
+fi
 for n in $(seq 1 21); do
   grep -Eq "Figure 4\\."$n"([[:space:]]|$|[-–])" <<<"$all_text" || {
     echo "ERROR: missing figure description 4."$n >&2; exit 1;
