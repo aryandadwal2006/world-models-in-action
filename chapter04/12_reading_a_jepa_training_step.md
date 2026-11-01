@@ -55,7 +55,7 @@ The context pathway does not need to run attention over the missing patches. Thi
 
 ## 12.3 The target encoder and target selection
 
-The target branch defines the feature vectors that the predictor must match. It is not enough to say that the target branch “encodes the target crop.” In the official I-JEPA implementation, the target encoder processes the full image and produces a spatial feature map. The target positions are then selected from this feature map. The target encoder can therefore use image context outside an individual target block when constructing its reference features. This is a specific information path, not an implementation detail that can be omitted from an architecture diagram. (Assran et al., 2023; official I-JEPA implementation) (Assran et al., 2023)
+The target branch defines the feature vectors that the predictor must match. It is not enough to say that the target branch “encodes the target crop.” In the official I-JEPA implementation, the target encoder processes the full image and produces a spatial feature map. The target positions are then selected from this feature map. The target encoder can therefore use image context outside an individual target block when constructing its reference features. This is a specific information path, not an implementation detail that can be omitted from an architecture diagram. (Assran et al., 2023; official I-JEPA implementation)
 
 Write the target encoder as
 
