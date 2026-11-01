@@ -1,10 +1,10 @@
-# 7. Distribution matching by projection: SIGReg
+# 9. Distribution matching by projection: SIGReg
 
 The previous section identified a target distribution through downstream prediction risk. Under the assumptions analysed there, the embedding distribution that minimizes the relevant risk criteria is an isotropic Gaussian. A training objective must now answer a computational question: how can a neural encoder be encouraged to match a high-dimensional distribution without estimating its density explicitly?
 
 SIGReg, introduced in LeJEPA, replaces a multivariate goodness-of-fit problem with a collection of one-dimensional tests. The mathematical link is the Cramér–Wold theorem. The practical statistic is based on empirical characteristic functions and the Epps–Pulley test.
 
-## 7.1 Why moments do not define the distribution
+## 9.1 Why moments do not define the distribution
 
 Suppose two embedding distributions have the same mean and covariance. They need not have the same shape. In one dimension, a standard normal random variable and a variable taking values \(-1\) and \(+1\) with equal probability both have mean zero and variance one. Their characteristic functions differ:
 
@@ -18,7 +18,7 @@ The first two moments therefore do not identify the distribution. Matching a fin
 
 This is the limitation of covariance-based regularization when the theoretical target is a Gaussian density. Covariance controls second-order structure. It does not control all higher-order shape.
 
-## 7.2 The characteristic function
+## 9.2 The characteristic function
 
 For a scalar random variable \(U\), its characteristic function is
 
@@ -47,7 +47,7 @@ It is a finite average of complex exponentials. Unlike high-order moments, it do
 
 A characteristic-function statistic still requires a frequency weighting and numerical integration. The choice of weight determines how discrepancies at different frequencies contribute to the result.
 
-## 7.3 Cramér–Wold: why projections can identify a distribution
+## 9.3 Cramér–Wold: why projections can identify a distribution
 
 Let \(Z\in\mathbb R^K\) be an embedding vector and let \(a\in\mathbb S^{K-1}\) be a unit direction. The one-dimensional projection is
 
@@ -78,7 +78,7 @@ The all-directions qualification is essential. Matching a finite set of projecti
 
 The practical advantage is that a scalar test can be evaluated without estimating a full \(K\)-dimensional density. The projection matrix is the computational bridge between the embedding batch and these one-dimensional statistics.
 
-## 7.4 A directional statistical test
+## 9.4 A directional statistical test
 
 Let \(P_\theta\) denote the distribution of learned embeddings and \(Q=\mathcal N(0,I_K)\) the target. For a unit direction \(a\), the projected distributions are
 
@@ -121,7 +121,7 @@ T\!\left(
 
 The average distributes gradient contributions across sampled directions. A maximum can concentrate the optimization signal on the current worst direction, leaving the other directions with no direct contribution at that step. The maximum and the average therefore serve different roles: the former is a test statistic, the latter a practical training objective. (Balestriero and LeCun, 2025)
 
-## 7.5 The Epps–Pulley statistic
+## 9.5 The Epps–Pulley statistic
 
 LeJEPA uses the Epps–Pulley test to compare empirical and target characteristic functions. For a projected sample \(u_1,\ldots,u_N\), define
 
@@ -157,7 +157,7 @@ The statistic compares the empirical characteristic function with the target ove
 
 The implementation approximates the integral numerically. The reference algorithm uses trapezoidal quadrature over 17 points on the interval \([-5,5]\), and exploits the symmetry of the integrand to reduce the effective evaluation work. This is an implementation choice supported by the paper's ablations, not a mathematical requirement of the Epps–Pulley test. Changing the frequency range, quadrature grid or weight changes the finite numerical approximation. (Balestriero and LeCun, 2025)
 
-## 7.6 From one projection to a minibatch objective
+## 9.6 From one projection to a minibatch objective
 
 For a batch of embeddings \(z_1,\ldots,z_N\), sample unit directions by drawing Gaussian vectors and normalizing them:
 
@@ -190,7 +190,7 @@ The projection and characteristic-function operations can be written as matrix m
 
 For distributed training, each worker computes local sums of complex exponentials and combines them with an all-reduce operation. This makes the empirical characteristic function compatible with data-parallel training without gathering all projected samples on one device.
 
-## 7.7 Stability and finite-batch effects
+## 9.7 Stability and finite-batch effects
 
 The empirical characteristic function is an average of bounded complex values. The Epps–Pulley construction therefore avoids the polynomial growth of high-order moments. LeJEPA derives bounds on the statistic's gradient and curvature with respect to projected samples. By the chain rule, this supplies a controlled contribution to the encoder gradient for the statistic under analysis.
 
@@ -200,7 +200,7 @@ A finite minibatch also introduces bias in the statistic and its gradient. The p
 
 There is a related statistical caution. In classical hypothesis testing, failing to reject a null hypothesis does not prove that the null is true. It says only that the observed sample did not supply sufficient evidence against it at the selected test level. Training minimizes a regularizer rather than making a one-shot accept/reject decision, but the logical distinction remains: a small finite-sample projection statistic is evidence of approximate matching under the sampled directions and frequencies, not a certificate of exact population Gaussianity.
 
-## 7.8 Embedding SIGReg inside a predictive objective
+## 9.8 Embedding SIGReg inside a predictive objective
 
 SIGReg specifies a distributional constraint. It does not replace the task that tells the encoder which views should be related. LeJEPA combines the two.
 
@@ -237,7 +237,7 @@ where \(\alpha\) is the single trade-off parameter between view agreement and di
 
 This construction differs from an EMA teacher-predictor system. In the base LeJEPA recipe, the mean of the global-view embeddings provides the centre toward which all global and local views are drawn. The method does not require an EMA target encoder, a stop-gradient target branch or a separate predictor network. The SIGReg term is averaged over the view embeddings. This is consistent with the information structure discussed earlier: a predictor is useful when the target contains asymmetric information that must be inferred from the context, but is not mandatory for symmetric view agreement. (Balestriero and LeCun, 2025)
 
-## 7.9 What SIGReg makes possible
+## 9.9 What SIGReg makes possible
 
 The logical contribution of SIGReg is a practical route from a high-dimensional distributional target to differentiable one-dimensional tests:
 

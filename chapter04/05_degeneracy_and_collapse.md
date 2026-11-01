@@ -1,10 +1,10 @@
-# 3. Why agreement alone is not enough
+# 5. Why agreement alone is not enough
 
 An objective that asks two representations to agree does not necessarily require either representation to contain information. The distinction is elementary, but it determines the design of non-contrastive self-supervised learning and joint-embedding prediction.
 
 The collapse problem should be derived from the objective itself. It is not useful to describe it merely as an optimization instability or a nuisance that a particular architecture happens to avoid.
 
-## 3.1 The constant solution
+## 5.1 The constant solution
 
 Let \(X\) and \(X'\) be two views of the same observation. Consider an encoder \(f_\theta\) and a simple agreement loss,
 
@@ -47,7 +47,7 @@ The feature prediction is perfect in the narrow sense measured by the objective.
 
 This is an identifiability problem: the training criterion does not distinguish an informative solution from a constant one. An optimizer cannot infer a requirement that the loss does not express.
 
-## 3.2 Agreement and information are separate properties
+## 5.2 Agreement and information are separate properties
 
 The constant solution exposes two logically different requirements.
 
@@ -73,7 +73,7 @@ where \(s\) measures agreement between corresponding views and \(r\) constrains 
 
 This separation is the central motivation behind variance and distributional regularization. The cross-view term says which pairs should agree. The per-branch term says which embedding distributions are admissible.
 
-## 3.3 Complete collapse and dimensional collapse
+## 5.3 Complete collapse and dimensional collapse
 
 Complete collapse occurs when every input is mapped to the same vector. If a batch of centred embeddings is represented by a matrix \(Z\in\mathbb R^{B\times D}\), then its covariance matrix is zero:
 
@@ -92,7 +92,7 @@ This is often called dimensional collapse or rank collapse. It does not mean eve
 
 A coordinate-wise variance floor can prevent individual dimensions from becoming constant, yet still allow correlated or low-rank structure. Conversely, penalizing covariance alone does not guarantee that every dimension has sufficient spread. The two requirements address different degeneracies. (Bardes et al., 2022; Zbontar et al., 2021)
 
-## 3.4 The information-theoretic view
+## 5.4 The information-theoretic view
 
 For a deterministic encoder \(Z=f_\theta(X)\), complete collapse implies that \(Z\) is independent of \(X\):
 
@@ -106,7 +106,7 @@ It is tempting to say that the goal should be to maximize \(I(X;Z)\) without qua
 
 This is why the target encoder matters. If it maps two observations to the same target feature, the predictive loss gives no reason to distinguish them. The objective cannot recover a distinction that the target representation has deliberately removed. That removal may be desirable for one task and destructive for another.
 
-## 3.5 Why different anti-collapse mechanisms exist
+## 5.5 Why different anti-collapse mechanisms exist
 
 Several families of methods modify the optimization problem so that the constant solution is no longer an attractive optimum or is avoided by the training dynamics.
 
@@ -122,7 +122,7 @@ Several families of methods modify the optimization problem so that the constant
 
 These families should not be treated as interchangeable tricks. They make different mathematical objects part of the objective. Negative samples constrain relations among examples; balanced assignments constrain prototype usage; EMA changes the target dynamics; variance, covariance and distributional penalties constrain statistics of the embedding batch. (Chen et al., 2020; Caron et al., 2020; Grill et al., 2020; Assran et al., 2023; Balestriero and LeCun, 2025)
 
-## 3.6 A moving target is not a proof of non-collapse
+## 5.6 A moving target is not a proof of non-collapse
 
 Consider an online parameter vector \(\theta_t\) and an EMA target parameter vector \(\xi_t\):
 
@@ -149,7 +149,7 @@ The same care is needed with stop-gradient. It specifies which computational pat
 
 LeJEPA provides a useful counterexample to the idea that every JEPA needs an EMA teacher and predictor. Its basic multi-view objective directly compares embeddings to the mean of global views while regularizing their distribution. Conversely, action-conditioned prediction can require a predictor because the target depends on actions or future information unavailable in the context. The presence or absence of a predictor should follow from the information structure of the problem.
 
-## 3.7 Non-collapse is necessary, not sufficient
+## 5.7 Non-collapse is necessary, not sufficient
 
 A representation with nonzero variance can still omit object position, velocity, contact state or another variable needed by an agent. A representation with full-rank covariance can still be arranged so that the task-relevant variable is difficult for a downstream estimator to access. A Gaussian distribution can have the desired statistics without being a sufficient state for physical prediction.
 

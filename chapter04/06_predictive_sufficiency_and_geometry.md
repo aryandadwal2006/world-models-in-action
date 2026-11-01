@@ -1,8 +1,8 @@
-# 4. Predictive sufficiency and the geometry of a representation
+# 6. Predictive sufficiency and the geometry of a representation
 
 Avoiding a constant representation does not establish that the model has learned a useful state. A representation can vary across observations and still merge two situations that have different consequences. The question is therefore not whether the embedding contains variation. It is whether it preserves the distinctions needed for the predictions and decisions under consideration.
 
-## 4.1 A task-relative definition of a useful state
+## 6.1 A task-relative definition of a useful state
 
 Let \(X\) denote the available history of observations, \(A\) an action or action sequence, \(Y\) a future quantity relevant to a task, and
 
@@ -20,7 +20,7 @@ This equality is task-relative. The target \(Y\), action domain, time horizon an
 
 The action appears on both sides of the equality for a reason. A state representation used for control should retain enough information that the future distribution can be predicted when the action is known. If two histories map to the same \(Z\) but respond differently to the same action, the representation has merged states that the controller must distinguish.
 
-## 4.2 Predictive equivalence between histories
+## 6.2 Predictive equivalence between histories
 
 The condition can be understood through an equivalence relation on histories. Fix a family of targets and a set of admissible actions. Define two histories \(x_1\) and \(x_2\) to be predictively equivalent when
 
@@ -38,7 +38,7 @@ A minimal sufficient predictive state would assign the same representation to hi
 
 This perspective clarifies why a representation should not be called a physical state simply because it is temporally predictive. A learned feature may support some future predictions without preserving every hidden variable, and the relevant variables can change with the action space and objective. (LeCun, 2022)
 
-## 4.3 The target encoder defines which distinctions count
+## 6.3 The target encoder defines which distinctions count
 
 Suppose the target encoder maps two possible target observations to the same feature:
 
@@ -52,7 +52,7 @@ The target representation is thus not a neutral measurement instrument. It defin
 
 The same applies to dense and pooled representations. A globally pooled vector can be adequate for a scene-level classification target while discarding precise spatial correspondence. A dense token representation can preserve spatial structure, but its predictive objective may still fail to encode the variable required for a particular control task. Dense prediction changes the information being supervised; it does not certify control sufficiency.
 
-## 4.4 Probes measure accessibility under a chosen decoder
+## 6.4 Probes measure accessibility under a chosen decoder
 
 A frozen representation is often evaluated by training a downstream predictor on top of it. The choice of predictor determines which notion of accessibility is measured.
 
@@ -62,7 +62,7 @@ These tests answer different questions. A strong linear probe indicates that cer
 
 A useful evaluation therefore matches the readout to the claim. Representation quality, target-feature prediction, action-conditioned prediction and closed-loop control should not be collapsed into one leaderboard or one metric. (Balestriero and LeCun, 2025; Assran et al., 2025)
 
-## 4.5 Covariance as a first view of embedding geometry
+## 6.5 Covariance as a first view of embedding geometry
 
 Let a batch of \(B\) embeddings in \(D\) dimensions be arranged as rows of a matrix
 
@@ -98,7 +98,7 @@ Covariance is useful because it provides a tractable description of second-order
 
 This limitation motivates the distinction between moment regularization and distributional regularization. Before introducing the latter, however, it is useful to understand why covariance geometry matters even for a simple downstream estimator.
 
-## 4.6 Why the spectrum matters
+## 6.6 Why the spectrum matters
 
 Consider two embedding distributions with the same total variance,
 

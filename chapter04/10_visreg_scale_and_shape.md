@@ -1,10 +1,10 @@
-# 8. Separating scale and shape: VISReg
+# 10. Separating scale and shape: VISReg
 
 SIGReg compares projected distributions with a Gaussian target through characteristic functions. VISReg addresses the same distributional problem with a different decomposition. It separates the scale of the embedding coordinates from the shape of the normalized batch, and it allows the three regularization components to be reweighted independently.
 
 The purpose of this construction is not merely to add another anti-collapse penalty. It gives the optimizer two distinct jobs: maintain usable coordinate scale, and shape the normalized embedding distribution toward an isotropic Gaussian.
 
-## 8.1 Three different properties of a batch
+## 10.1 Three different properties of a batch
 
 Let the embeddings of a batch be \(Z\in\mathbb R^{N\times D}\), with \(N\) samples and \(D\) feature dimensions. Define the batch mean and centered embeddings:
 
@@ -24,7 +24,7 @@ Three distinct properties can now be considered.
 
 These properties should not be treated as one statistic. A variance term does not identify the full distribution. A distributional shape test that normalizes away scale does not, by itself, require the unnormalized embedding cloud to have unit variance.
 
-## 8.2 The scale term
+## 10.2 The scale term
 
 Let \(\sigma_j(\widehat Z)\) denote the batch standard deviation of coordinate \(j\). VISReg uses the scale objective
 
@@ -49,7 +49,7 @@ The scalar derivative for coordinate \(j\) is
 
 At zero standard deviation, this derivative remains finite and nonzero. The paper contrasts this scale signal with SIGReg's characteristic-function gradient near collapsed embeddings, which diminishes in the collapse regime. The authors report controlled gradient comparisons in which the VISReg scale term supplies a corrective signal under the tested setup. This is not a universal lower bound on every encoder-parameter gradient: the chain rule through the batch standard deviation and the network still depends on the representation, architecture and numerical implementation. (Wu et al., 2026)
 
-## 8.3 Removing scale from the shape comparison
+## 10.3 Removing scale from the shape comparison
 
 VISReg normalizes the centered batch coordinate-wise:
 
@@ -68,7 +68,7 @@ This gradient boundary is not the same as an EMA target update. An EMA makes a t
 
 The normalization also does not imply that the scale and shape objectives are interchangeable. The scale term acts on the unnormalized centered coordinates. The shape term acts on the normalized batch. Their separate coefficients allow the training objective to assign different importance to the two requirements.
 
-## 8.4 Sliced Wasserstein distance
+## 10.4 Sliced Wasserstein distance
 
 The shape term compares projected normalized embeddings with projections of a standard Gaussian. For a unit direction \(w_k\in\mathbb S^{D-1}\), form the scalar samples
 
@@ -113,7 +113,7 @@ Here \(K_s\) is the number of slices, not the embedding dimension. The published
 
 The difference between SIGReg and VISReg lies in the one-dimensional statistic. SIGReg compares empirical characteristic functions with the target characteristic function. VISReg sorts projected samples and compares their empirical quantiles with Gaussian quantiles. Both use random projections, but they do not compute the same discrepancy. (Wu et al., 2026)
 
-## 8.5 Centre, scale and shape in one objective
+## 10.5 Centre, scale and shape in one objective
 
 The centering term is
 
@@ -165,7 +165,7 @@ The complete loss is
 
 There are therefore four loss weights in the formulation: the outer \(\lambda\), and the three component weights inside \(\mathcal L_{\mathrm{reg}}\). The default component weights are one in the stated baseline; the authors ablate and reweight them, finding that increasing the shape weight can help on low-quality datasets. They also report different useful outer \(\lambda\) values for small and large datasets. These are optimization choices, not new terms in the objective. (Wu et al., 2026)
 
-## 8.6 Computational scaling and distributed slices
+## 10.6 Computational scaling and distributed slices
 
 The regularization computation projects the \(N\times D\) batch onto \(K_s\) random directions and sorts the \(N\) scalar values in each slice. Its two dominant operations are
 
@@ -177,7 +177,7 @@ Because \(\log N\ll D\) at the scales considered, the paper treats the effective
 
 The number of slices needed for a good approximation can, however, grow with embedding dimension. The authors show empirically that a single-GPU setting often needs \(K_s=C D\) for some factor \(C>1\), which makes the effective projection cost approximately \(O(CND^2)\). They address this by generating independent slices across GPUs. With \(M\) devices, each device can process a fraction of the total slice set, and the partial losses can be aggregated. Their experiments show that increasing the number of devices can compensate for a smaller number of slices per device. The paper therefore argues that \(K_s\) can remain fixed per device while scaling the training setup. This is an empirical scaling strategy, not a theorem that a fixed finite set of directions identifies every distribution. (Wu et al., 2026)
 
-## 8.7 What the experiments support
+## 10.7 What the experiments support
 
 VISReg evaluates its regularizer through ablations, low-quality and long-tailed data, low-rank data, linear evaluation, transfer learning, out-of-distribution performance, dense prediction and image-generation guidance. The paper reports that the shape weight can be increased for low-quality datasets, that VISReg remains comparatively robust at lower slice counts, and that distributing slices across multiple GPUs can compensate for an insufficient per-device projection count.
 
@@ -185,7 +185,7 @@ For downstream evaluation, the authors report that an ImageNet-22K-pretrained VI
 
 These experiments support the proposed decomposition under the paper's architectures, data and optimization settings. They are not a theorem that every parameterization recovers from every collapsed initialization. A controlled gradient comparison does not prove that every network can recover from every degenerate state. An OOD score on a particular benchmark set does not establish universal superiority or task sufficiency.
 
-## 8.8 The broader design principle
+## 10.8 The broader design principle
 
 The sequence from covariance penalties to SIGReg and VISReg is not simply a progression of increasingly elaborate anti-collapse tricks.
 

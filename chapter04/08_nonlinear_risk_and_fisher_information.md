@@ -1,4 +1,4 @@
-# 6. Nonlinear downstream risk and Fisher information
+# 8. Nonlinear downstream risk and Fisher information
 
 The covariance spectrum is only a second-order description of an embedding distribution. It does not determine how samples are arranged locally. This matters for nonlinear predictors that estimate a target by examining nearby embeddings. Their predictions depend not only on the target function, but also on where training samples are concentrated.
 
@@ -22,7 +22,7 @@ J(p)
 
 LeJEPA calls \(J(p)\) the Fisher-information functional of the embedding density. It appears naturally when the bias of local nonparametric estimators is expanded and integrated over query points. The derivation explains why matching only mean and covariance leaves a gap.
 
-## 6.1 A local estimator sees both the target and the sample density
+## 8.1 A local estimator sees both the target and the sample density
 
 Let \(Z\in\mathbb R^K\) be a frozen embedding with density \(p(z)\). Let the downstream regression function be
 
@@ -65,7 +65,7 @@ The kernel assigns higher weight to nearby samples. The bandwidth \(h\) controls
 
 Both estimators average labels around the query, but they do so with different weighting profiles. Their bias depends on the shape of the target function and on how training points are distributed around the query.
 
-## 6.2 Deriving the density-gradient term
+## 8.2 Deriving the density-gradient term
 
 Consider the large-sample conditional expectation of the kernel estimator:
 
@@ -157,7 +157,7 @@ o(r_0^2).
 
 The coefficients differ because a uniform ball and a smooth kernel have different second moments. The dependence on the local score \\(\\nabla\\log p(q)\\) is common to both estimators. The k-NN expansion assumes a smooth embedding density with bounded derivatives through order three, finite covariance and finite Fisher information, together with a twice continuously differentiable target function. [Balestriero and LeCun, 2025]
 
-## 6.3 From a pointwise bias to Fisher information
+## 8.3 From a pointwise bias to Fisher information
 
 A downstream representation is evaluated over a distribution of query points, not at one fixed \(q\). Let queries follow the embedding density \(p\). The integrated squared bias is
 
@@ -281,7 +281,7 @@ Under this evaluation measure, the leading integrated variance is independent of
 
 The Fisher-information functional appears because the local estimators are biased by nonuniform sample density. The representation controls that density. For the estimator families considered, the density score is therefore part of the downstream prediction error.
 
-## 6.4 Why an isotropic Gaussian minimizes the functional
+## 8.4 Why an isotropic Gaussian minimizes the functional
 
 The next step is a variational statement about probability densities. Let \(p\) be a mean-zero density on \(\mathbb R^K\), with positive-definite covariance matrix
 
@@ -381,7 +381,7 @@ p^*(z)
 
 LeJEPA also considers other scalar covariance constraints, including determinant, Frobenius norm and spectral radius. For the specific constraints analysed in the paper, the minimizer remains an isotropic Gaussian with the scale selected to satisfy the constraint.
 
-## 6.5 What the result does and does not say
+## 8.5 What the result does and does not say
 
 The argument has a clear chain:
 

@@ -1,10 +1,10 @@
-# 5. Linear downstream risk and the covariance spectrum
+# 7. Linear downstream risk and the covariance spectrum
 
 A representation is often evaluated by freezing its encoder and fitting a small predictor on top of the resulting embeddings. This procedure isolates one question: how accessible is the information in the representation to a restricted downstream estimator? The simplest case is linear regression. Its mathematics makes the effect of embedding geometry explicit.
 
 The aim of this section is not to prove that linear probes characterize every downstream task. It is to derive one concrete reason why a representation's covariance spectrum matters.
 
-## 5.1 The frozen-feature problem
+## 7.1 The frozen-feature problem
 
 Suppose a frozen encoder maps observations to \(K\)-dimensional features. For a downstream dataset, arrange \(N\) feature vectors as rows of
 
@@ -47,7 +47,7 @@ Therefore
 
 The learned coefficient vector depends on the geometry of the feature matrix through \(X^\top X\). If the features are centred, this matrix is proportional to their empirical covariance. Its eigenvalues determine how much sample variation is available along each principal direction.
 
-## 5.2 Ridge bias depends on the weak directions
+## 7.2 Ridge bias depends on the weak directions
 
 Assume a linear downstream relationship
 
@@ -128,7 +128,7 @@ Because \(\lambda_{\min}<\bar\lambda\),
 
 The result is a worst-case statement. For any anisotropic covariance with the same total variance, there exists a downstream linear task aligned with its weakest eigen-direction for which ridge incurs greater bias than under the isotropic covariance. It does not say that every task aligned with every direction is worse. [Balestriero and LeCun, 2025]
 
-## 5.3 OLS variance and the inverse spectrum
+## 7.3 OLS variance and the inverse spectrum
 
 Ridge introduces bias by shrinking coefficients. To isolate estimator variance, set \(\lambda=0\). The resulting ordinary least-squares estimator is
 
@@ -194,7 +194,7 @@ with equality if and only if all eigenvalues are equal. Under the fixed-trace an
 
 This derivation explains why anisotropy can increase estimator variance even if the total amount of feature variance is unchanged. Concentrating variance into a few directions forces the remaining directions to become narrower. The inverse spectrum penalizes those narrow directions heavily.
 
-## 5.4 What the linear result establishes
+## 7.4 What the linear result establishes
 
 The two calculations isolate complementary effects:
 
