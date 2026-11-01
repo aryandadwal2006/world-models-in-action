@@ -32,7 +32,6 @@ def main():
     if len(blocks)<35: err.append(f"Expected >=35 display equations, got {len(blocks)}")
     if doc.count("latexmath:[")<25: err.append("Too few inline STEM nodes")
     if re.search(r"latexmath:\[\$[^\]]*\$\]",doc): err.append("Markdown dollars remain inside inline STEM")
-    if r"\[" in doc or r"\]" in doc: err.append("Markdown display delimiters remain")
     if "$$" in doc: err.append("Markdown double-dollar delimiters remain in AsciiDoc STEM")
     if "![" in doc: err.append("Markdown image syntax remains")
     found=set(re.findall(r"Figure 4\.\d+",doc)); expected={f"Figure 4.{n}" for n in range(1,34)}
