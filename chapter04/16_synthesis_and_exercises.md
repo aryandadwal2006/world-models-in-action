@@ -149,3 +149,5 @@ Give an example in which a state that is not visible in the current observation 
 ### 18. Evidence design
 
 Design an evaluation that separates frozen representation quality, action-conditioned prediction, multi-step rollout and physical planning. For each stage, state the metric, data split and failure mode it is intended to detect.
+
+**Figure 16.1. The complete predictive-agent argument.** Connect representation learning, target prediction, distributional regularization, action-conditioned dynamics, task cost, planning, memory and feedback. Use separate interfaces for learning a representation, predicting under an action and selecting a desirable action; do not merge them into one loss.

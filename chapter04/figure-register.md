@@ -103,3 +103,44 @@ The figure descriptions embedded in the section drafts map to the production reg
 | Figure 11.3 | F30 | Original representation-to-planning system diagram |
 
 Entries F31-F34 are original explanatory figures even where they are informed by a source paper's method illustration. They should not trace or reproduce the source artwork. F22 remains an official-figure candidate, not approved artwork. Before production, confirm that its caption and visual preserve the distinct pretraining and robot post-training stages.
+
+## Section-caption crosswalk
+
+| Section caption | Register entry | Production note |
+|---|---|---|
+| Figure 2.1 | F03 | Original context/target/query information-flow diagram |
+| Figure 2.2 | F04 | Original comparison of spatial, spatiotemporal, future and action-conditioned targets |
+| Figure 2.3 | F05 | Original conditional-mean counterexample |
+| Figure 3.1 | F31 | Original I-JEPA information-flow diagram |
+| Figure 3.2 | F32 | Original context/target-mask comparison |
+| Figure 4.1 | F33 | Original video-token and spatiotemporal-mask diagram |
+| Figure 4.2 | F34 | Original distinction between masked video and action-conditioned prediction |
+| Figure 5.1 | F06 | Original constant-collapse derivation |
+| Figure 5.2 | F07 | Original complete versus dimensional collapse |
+| Figure 6.1 | F08 | Original equal-trace covariance geometry comparison |
+| Figure 7.1 | F09 | Original ridge shrinkage by covariance eigen-direction |
+| Figure 7.2 | F10 | Original OLS inverse-spectrum variance illustration |
+| Figure 8.1 | F11 | Original local-regression density-gradient illustration |
+| Figure 8.2 | F12 | Original score-field and Fisher-information illustration |
+| Figure 8.3 | F13 | Original two-step Gaussian/isotropy minimization |
+| Figure 9.1 | F14 | Original all-directions versus sampled-projection illustration |
+| Figure 9.2 | F15 | Original same-moments/different-shapes counterexample |
+| Figure 9.3 | F16 | Original Epps–Pulley characteristic-function illustration |
+| Figure 9.4 | F17 | Original finite-batch SIGReg computation diagram |
+| Figure 10.1 | F18 | Original centre/scale/shape decomposition |
+| Figure 10.2 | F19 | Original one-dimensional sliced-Wasserstein transport |
+| Figure 10.3 | F20 | Original stop-gradient and scale-loss graph |
+| Figure 11.1 | F22 | V-JEPA 2 two-stage architecture; official-figure candidate subject to rights review |
+| Figure 11.2 | F23 | Original V-JEPA 2.1 dense-supervision diagram |
+| Figure 11.3 | F30 | Original representation-to-planning system diagram |
+| Figure 12.1 | F21 | Original observational/interventional distinction |
+| Figure 13.1 | F24 | Original receding-horizon candidate-rollout diagram |
+| Figure 13.2 | F25 | Original model-exploitation failure illustration |
+| Figure 13.3 | F29 | Original multiple-futures representation |
+| Figure 14.1 | F26 | Original six-module diagram based on LeCun's proposal |
+| Figure 14.2 | F27 | Original Mode 1/Mode 2 and distillation diagram |
+| Figure 14.3 | F28 | Original hierarchical prediction diagram |
+| Figure 16.1 | F35 | Original closing synthesis of the chapter's system interfaces |
+
+The captions in the section drafts are art briefs, not completed illustrations. F22 remains only an official-figure candidate; use an independent diagram if reuse rights, attribution or third-party credits are unclear. Every original diagram must communicate the stated distinction without tracing source artwork.
+

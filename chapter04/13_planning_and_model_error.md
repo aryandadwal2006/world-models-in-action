@@ -192,3 +192,9 @@ The V-JEPA 2-AC experiments are an example of this system-level evidence. The vi
 A responsible evaluation should distinguish simulated from physical results, familiar from unfamiliar environments, one-step from multi-step training, and matched from unmatched planner budgets. Success rates should be read with the number of trials, task definition and uncertainty across trials. A single aggregate score cannot certify safety or generalization to all objects, robots and environments.
 
 A predictive model becomes useful for action only when it can be queried with interventions and integrated into an objective, search procedure and feedback loop. The final section examines the larger architecture proposed to organize these capabilities, including memory, multiple levels of prediction and the distinction between fast reactive behaviour and deliberative planning.
+
+**Figure 13.1. A planner evaluates candidate rollouts but executes only the first action.** Draw several action sequences propagated through the learned model, their predicted terminal states and costs, and the selected first action entering the environment. A new observation closes the receding-horizon loop.
+
+**Figure 13.2. Search can exploit a small model error.** Compare a candidate trajectory with low predicted cost against its actual environment outcome. Show how optimization selects the erroneous trajectory because it appears attractive under the learned model; keep predicted and observed paths visually distinct.
+
+**Figure 13.3. A deterministic prediction can hide alternative futures.** Branch several plausible outcomes from the same context and action, then show a latent or probabilistic representation retaining those alternatives. A separate cost ranks them; uncertainty must not be represented as a single averaged state.
