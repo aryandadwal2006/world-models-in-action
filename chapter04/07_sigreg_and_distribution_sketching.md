@@ -245,7 +245,7 @@ SIGReg is applied to the embedding distribution of the views. The total objectiv
 
 where \(\alpha\) controls the trade-off between view agreement and distribution matching.
 
-This construction differs from an EMA teacher-predictor system. In the base LeJEPA recipe, the multi-view centre provides the prediction target; the method does not require an EMA target encoder, a stop-gradient target branch or a separate predictor network. This is consistent with the information structure discussed earlier: a predictor is useful when the target contains asymmetric information that must be inferred from the context, but is not mandatory for symmetric view agreement.
+This construction differs from an EMA teacher-predictor system. In the base LeJEPA recipe, the mean of the global-view embeddings provides the centre toward which all global and local views are drawn; the method does not require an EMA target encoder, a stop-gradient target branch or a separate predictor network. The total loss averages SIGReg over views and combines it with this prediction term using one trade-off parameter. This is consistent with the information structure discussed earlier: a predictor is useful when the target contains asymmetric information that must be inferred from the context, but is not mandatory for symmetric view agreement. [Balestriero and LeCun, 2025]
 
 ## 7.9 What SIGReg makes possible
 

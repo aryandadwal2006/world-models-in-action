@@ -183,7 +183,7 @@ It is therefore incomplete to describe the practical computation as simply linea
 
 ## 8.7 What the experiments support
 
-VISReg reports experiments designed to test the separate roles of scale and shape, including controlled comparisons of gradients near collapsed configurations, low-quality or long-tailed training data, and out-of-distribution transfer. These experiments provide evidence for the proposed decomposition under the paper's architectures, data and optimization settings.
+VISReg reports controlled comparisons of regularizer gradients near collapse, tests on long-tailed and low-rank datasets, out-of-distribution linear evaluation, transfer learning, dense prediction and generation guidance. These experiments provide evidence for the proposed decomposition under the paper's architectures, data and optimization settings. They are empirical results, not a theorem that every parameterization recovers from every collapsed initialization. [Wu et al., 2026]
 
 They should not be turned into stronger claims. A controlled gradient comparison does not prove that every implementation of SIGReg has vanishing gradients near every collapse point. A scalar derivative of the scale penalty does not prove that every parameterization can recover from every collapsed initialization. A better out-of-distribution score on a particular benchmark set does not establish universal superiority or task sufficiency.
 
