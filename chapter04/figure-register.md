@@ -1,146 +1,52 @@
-# Figure register and production plan
+# Chapter 4 figure register
 
-The figures should explain the mathematical argument, not decorate a literature survey. A paper figure is preferred when it communicates a method faithfully and is suitable for the specific teaching point. Original diagrams are preferred when the book needs a derivation, a comparison or an explanatory transformation that is absent from the source paper.
+All 33 figures are original, editable SVG diagrams stored in `images/chapter04/` and embedded in the reader-facing Markdown section sources. They explain mathematical derivations and information paths and are informed by cited papers, but are not copied or traced reproductions of paper artwork.
 
-No artwork is embedded in the Markdown sources at this stage. For every official figure candidate, verify the exact paper version, caption, figure number, author attribution and reuse terms before placing the image in a commercial book. A paper's citation or arXiv availability does not by itself establish artwork reuse permission. If permission or a compatible license is not clear, create an original diagram that explains the same concept without tracing the source artwork.
+The diagrams were drawn rather than importing official paper figures because the supplied papers have different reuse terms, some figures contain third-party material, and the exact repository PDFs could not be materialized for local inspection in this environment. No paper figure is presumed reusable merely because it is publicly accessible. Any later publisher-selected official figure needs an independent check of its exact version, caption, authorship, third-party credits and commercial reuse terms.
 
-## Figure principles
+## Figure sequence
 
-- Every figure must teach one precise point that the text has already introduced.
-- Prefer source-paper figures for method-specific architecture and experiment setup when the original visual is unusually clear.
-- Prefer original figures for first-principles derivations, counterexamples, gradient paths, conceptual contrasts and planning failure mechanisms.
-- If an official figure is used, preserve its scientific meaning. Do not silently crop away a limitation, change a label, or make a result look stronger than the paper reports.
-- Original diagrams should be visually consistent: white background, dark neutral labels, restrained blue accent, grayscale-safe contrast, readable labels and simple linework. No title text or figure number inside the artwork.
-- Captions should explain the argument, not merely identify the objects. The figure description is an art brief; the printed caption should remain concise.
-- The figure register can change as the text develops. A figure that adds no independent explanatory value should be removed rather than retained to meet a count.
-
-## Planned figures
-
-| ID | Teaching purpose | Preferred source | Production decision |
+| Figure | SVG asset | Teaching purpose | Source section |
 |---|---|---|---|
-| F01 | A compatibility energy over candidate targets, including multiple low-energy modes | Original | Draw a context, candidate-target space and an energy surface. Distinguish a score from a normalized density. |
-| F02 | Energy score, Gibbs density and task cost are different objects | Original | Three panels with separate symbols and normalization/cost semantics. |
-| F03 | Information flow through a JEPA: visible context, target encoder, target selection and predictor query | Original, informed by I-JEPA | I-JEPA's arXiv version is under the arXiv perpetual non-exclusive license, not an explicit CC BY license. Produce an independent information-flow diagram unless the publisher obtains permission. |
-| F04 | Spatial, spatiotemporal, future and action-conditioned targets are different conditional problems | Original | Four aligned panels. Make explicit that a masked video target is not necessarily a future target. |
-| F05 | Squared-error prediction of a multimodal target returns the conditional mean | Original | Two target modes with the mean between them. Include a feature-space version to avoid implying that latent means are always physically meaningful. |
-| F06 | Constant collapse exactly satisfies an unconstrained agreement objective | Original | Two distinct inputs mapped to one constant vector; show zero agreement loss and zero input information. |
-| F07 | Complete collapse versus low-rank/dimensional collapse | Original | Compare a point, a narrow subspace cloud and a full-rank cloud. Avoid using a visual as a substitute for the covariance derivation. |
-| F08 | Same total covariance trace, isotropic versus anisotropic geometry | LeJEPA, Fig. 3 / corresponding appendix illustration as candidate | LeJEPA v3 is marked CC BY-SA 4.0. Reuse requires attribution and ShareAlike handling; otherwise create an independent geometry illustration. Do not state a same-feature-span assumption. |
-| F09 | Ridge shrinkage in covariance eigen-directions | Original | Show a weak and strong eigen-direction with the corresponding ridge shrinkage factor. |
-| F10 | OLS coefficient variance grows with inverse covariance eigenvalues | Original | Plot the reciprocal eigenvalue contribution and the fixed-trace Jensen argument. |
-| F11 | Local regression neighbourhoods are pulled by the embedding-density gradient | Original | Show a query, a locally asymmetric sample density and a target function with its gradient. |
-| F12 | The score field and Fisher-information functional | Original | Show \(\nabla\log p(z)\) as a vector field and relate average squared score magnitude to \(J(p)\). |
-| F13 | Gaussian minimization of the Fisher-information functional at fixed covariance | Original | Two-step visual: fixed covariance selects a Gaussian; fixed scalar covariance constraint selects isotropic covariance. |
-| F14 | All-direction Cramér–Wold identification versus finite random-direction sketching | LeJEPA, Fig. 2 as candidate | LeJEPA v3 is marked CC BY-SA 4.0. If reused, preserve attribution and ShareAlike requirements; otherwise create an independent projection diagram. |
-| F15 | Same first two moments, different projected distribution shapes | LeJEPA, Fig. 5 as candidate | The paper's constructed distribution is relevant. Reuse only with permission; otherwise create an independent two-dimensional counterexample. |
-| F16 | Empirical characteristic function and Epps–Pulley discrepancy | Original, informed by LeJEPA, Sec. 4.2.3 | Plot target and empirical characteristic functions, weight function and integrated squared discrepancy. Label the quadrature as numerical approximation. |
-| F17 | Projection count, batch size and numerical quadrature in SIGReg | Original | Separate the roles of \(N\), \(M\) and frequency knots. This is a computation diagram, not a convergence theorem. |
-| F18 | VISReg separates centre, scale and shape | Original | Three subpanels showing mean shift, scale contraction/expansion and non-Gaussian shape. |
-| F19 | One-dimensional sliced-Wasserstein transport by sorting | Original | Projected samples, sorted order statistics and Gaussian target quantiles. State equal-weight/equal-cardinality assumption. |
-| F20 | VISReg stop-gradient boundary separates the scale statistic from the shape normalization | Original | Draw the gradient paths explicitly. Distinguish detaching the standard-deviation denominator from an EMA target update. |
-| F21 | Passive observation versus intervention-conditioned prediction | Original | Same history with two candidate actions and different predicted outcomes. Include the data-collection policy as context. |
-| F22 | V-JEPA 2: passive visual pretraining followed by action-conditioned robot post-training | V-JEPA 2, overview/training figure as candidate | The supplied arXiv v1 page is marked CC BY 4.0. Reuse with attribution and license notice, after checking for third-party content. Preserve the robot post-training stage and action/proprioception inputs. |
-| F23 | V-JEPA 2.1 dense visible/masked-token and deep supervision | Original, informed by V-JEPA 2.1 | No permissive artwork license was established from the supplied arXiv metadata. Create an original explanation unless permission is confirmed. Do not label V-JEPA 2.1 itself as action-conditioned. |
-| F24 | A planner evaluates multiple candidate rollouts and executes only the first action | Original | Draw candidate latent trajectories, goal/cost evaluation, action selection, environment feedback and replanning. |
-| F25 | A planner can exploit model error | Original | Show a candidate sequence with low predicted cost but an unsafe or unsuccessful real outcome. Distinguish model prediction from environment result. |
-| F26 | LeCun's six-module agent architecture | Original, informed by LeCun 2022 | No commercial-reuse license was established for the OpenReview PDF. Draw an independent diagram from the textual module specification. Preserve exactly six top-level modules and show Intrinsic Cost and Trainable Critic inside Cost. |
-| F27 | Mode 1, Mode 2 and planner-to-policy distillation | Original, informed by LeCun 2022 | Direct reactive path, deliberative planning loop and a teacher signal from Mode 2 to Mode 1. |
-| F28 | Hierarchical prediction across time scales | LeCun, H-JEPA figure as candidate | Prefer the official hierarchy illustration if permitted; otherwise draw high-level subgoals being refined into lower-level states and actions. |
-| F29 | A single deterministic future versus multiple latent futures | Original | Branch several plausible outcomes from the same history and action. Show a latent selector and a cost-based ranking step. |
-| F30 | How the chapter's components fit together | Original | One compact closing diagram: representation, target prediction, distributional constraint, action-conditioned dynamics, cost, planning and feedback. |
-| F31 | One I-JEPA training step, including tensor dimensions, mask positions and gradient flow | Original, informed by Assran et al. (2023) | Show patch tokens, context selection, full-image target encoding, target-position selection, positional query tokens, predicted features and the EMA update. Use solid arrows for forward computation and dashed arrows for parameter updates. |\n| F32 | I-JEPA context and target mask geometry | Original | Show a large visible context block and multiple target blocks with overlap removed from context. Make the target-block geometry and selected target features explicit. |\n| F33 | V-JEPA spatiotemporal token and target-mask structure | Original, informed by Bardes et al. (2024) | Draw tubelets across time and space, visible context and withheld target regions. Do not imply that every target is a future frame. |\n| F34 | Masked video prediction versus action-conditioned future prediction | Original | Use the same observed clip with an action-free masked-feature query and a separate action-conditioned query. Label the latter as an extension, not original V-JEPA. |\n| F35 | Chapter synthesis: representation, prediction, cost and planning interfaces | Original | Connect the chapter's main components while keeping the representation objective, transition predictor and agent task cost as separate interfaces. |
+| 4.1 | `F01_energy_landscape.svg` | Compatibility energy over multiple candidate targets | `chapter04/01...` |
+| 4.2 | `F02_scalar_roles.svg` | Prediction discrepancy, compatibility score and task cost | `chapter04/01...` |
+| 4.3 | `F33_general_prediction_flow.svg` | Context, query, predictor and target information paths | `chapter04/02...` |
+| 4.4 | `F03_target_types.svg` | Spatial, spatiotemporal, later-time and action-conditioned targets | `chapter04/02...` |
+| 4.5 | `F04_conditional_mean.svg` | Two-mode conditional distribution and squared-error mean | `chapter04/02...` |
+| 4.6 | `F05_ijepa_information_flow.svg` | I-JEPA context and target encoder pathways | `chapter04/03...` |
+| 4.7 | `F31_ijepa_mask_geometry.svg` | I-JEPA context and target block geometry | `chapter04/03...` |
+| 4.8 | `F06_vjepa_spatiotemporal_mask.svg` | Video target tube across spatial and temporal positions | `chapter04/04...` |
+| 4.9 | `F32_masked_video_vs_action.svg` | Masked video prediction versus action-conditioned prediction | `chapter04/04...` |
+| 4.10 | `F07_collapse_modes.svg` | Complete collapse and rank collapse | `chapter04/05...` |
+| 4.11 | `F08_covariance_geometry.svg` | Equal-trace isotropic and anisotropic embeddings | `chapter04/06...` |
+| 4.12 | `F09_ridge_shrinkage.svg` | Ridge shrinkage across covariance eigen-directions | `chapter04/07...` |
+| 4.13 | `F23_ols_inverse_spectrum.svg` | OLS coefficient variance and inverse eigenvalues | `chapter04/07...` |
+| 4.14 | `F10_local_density_bias.svg` | Local-regression bias under asymmetric density | `chapter04/08...` |
+| 4.15 | `F22_fisher_score_field.svg` | Density score field and Fisher-information functional | `chapter04/08...` |
+| 4.16 | `F29_gaussian_optimum.svg` | Gaussian and isotropic covariance minimization | `chapter04/08...` |
+| 4.17 | `F11_sigreg_projection.svg` | All-directions identification and finite SIGReg sketch | `chapter04/09...` |
+| 4.18 | `F30_same_moments_different_shapes.svg` | Equal first two moments with different distribution shapes | `chapter04/09...` |
+| 4.19 | `F24_epps_pulley.svg` | Empirical and Gaussian characteristic functions | `chapter04/09...` |
+| 4.20 | `F12_visreg_components.svg` | VISReg centre, scale and shape decomposition | `chapter04/10...` |
+| 4.21 | `F25_sliced_wasserstein.svg` | One-dimensional sorted-sample transport | `chapter04/10...` |
+| 4.22 | `F26_visreg_gradient_paths.svg` | VISReg scale and shape gradient paths | `chapter04/10...` |
+| 4.23 | `F13_vjepa2_stages.svg` | V-JEPA 2 passive pretraining, robot post-training and planning | `chapter04/11...` |
+| 4.24 | `F14_vjepa21_dense_supervision.svg` | V-JEPA 2.1 masked and visible-context supervision | `chapter04/11...` |
+| 4.25 | `F15_intervention.svg` | Behaviour-policy observations versus interventions | `chapter04/12...` |
+| 4.26 | `F16_planning_loop.svg` | Receding-horizon planning and feedback | `chapter04/13...` |
+| 4.27 | `F17_model_exploitation.svg` | Planner exploitation of transition-model error | `chapter04/13...` |
+| 4.28 | `F27_multiple_futures.svg` | Alternative futures under one history and action | `chapter04/13...` |
+| 4.29 | `F18_agent_architecture.svg` | The six top-level modules of a predictive agent | `chapter04/14...` |
+| 4.30 | `F19_mode1_mode2.svg` | Reactive Mode 1 and deliberative Mode 2 | `chapter04/14...` |
+| 4.31 | `F20_hierarchy_memory.svg` | Hierarchical prediction, memory and configuration | `chapter04/14...` |
+| 4.32 | `F28_training_step.svg` | I-JEPA training computation and EMA update | `chapter04/15...` |
+| 4.33 | `F21_chapter_synthesis.svg` | Representation, prediction, dynamics and planning interfaces | `chapter04/16...` |
 
-## Figure-source rights notes
-
-The accessible version metadata identifies these source terms:
-
-- I-JEPA v3: arXiv.org perpetual non-exclusive license. This is not an explicit Creative Commons license for figure reuse.
-- Original V-JEPA v1: CC BY 4.0.
-- V-JEPA 2 v1: CC BY 4.0.
-- LeJEPA v3: CC BY-SA 4.0.
-- VL-JEPA v2: CC BY 4.0.
-- V-JEPA 2.1 v3, VISReg v1 and LeCun v0.9.2: no permissive commercial artwork license was established from the accessible metadata during this review.
-
-These metadata do not settle the rights status of every individual figure. Captions, third-party credits, publisher terms and any excluded material must be checked before publication. For the unresolved cases, an original diagram is the default; do not reproduce or trace the source artwork without permission.
-
-## Official-figure candidates and limits
-
-**I-JEPA.** The paper's architecture and mask figures are candidates for the context/target pathway and target geometry. The paper and archived implementation use a particular target-feature selection path. If the figure is reused or adapted, the caption must not imply that the target encoder processes only an isolated target crop when it actually processes the image before target positions are selected.
-
-**V-JEPA.** The paper's spatiotemporal masking and feature-prediction figures are candidates for showing the extension from image tokens to video tokens. The figure must not imply that every masked target is a future frame or that video pretraining is action-conditioned.
-
-**V-JEPA 2.** Its training-stage and robot-planning figures are candidates because the distinction between action-free pretraining and action-conditioned post-training is central. Any reused figure must preserve the robot-data stage, the action/proprioception inputs and the planner boundary.
-
-**V-JEPA 2.1.** Its dense-feature objective is a candidate for the visible-token, masked-token and deep-supervision explanation. Do not reuse a robot-planning result figure without including the separate action-conditioned predictor and planner that produce the physical result.
-
-**LeJEPA.** Its SIGReg projection schematic and linear/nonlinear probe illustrations are particularly useful. The official figure should be used only if its reuse terms are suitable; otherwise create original derivations. A re-drawn version must distinguish the all-directions theorem from the sampled projection sketch.
-
-**VISReg.** The paper's objective schematic and gradient comparisons may be useful, but no reproduction permission is assumed. Original scale/shape diagrams are likely clearer for the derivations in this chapter.
-
-**VL-JEPA.** The paper's architecture figure is a candidate only for the short cross-modal example. Do not let it expand into a separate survey of vision-language methods.
-
-**LeCun.** The proposed six-module architecture and H-JEPA figures are important source diagrams. If reuse is not permitted, an original diagram must preserve the hierarchy and topology accurately. In particular, Cost is one top-level module; Intrinsic Cost and Trainable Critic are inside it. The physical environment must not appear inside the differentiable model graph.
-
-## Production status
-
-All entries above are descriptions and candidates, not completed artwork. No paper figure has been copied into the manuscript. The final figure set should be selected after the text is stable and the publisher's artwork and rights requirements are checked.
-
-
-## Figure-caption crosswalk
-
-The figure descriptions embedded in the section drafts map to the production register as follows:
-
-| Section caption | Register entry | Source/production note |
-|---|---|---|
-| Figure 1.1 | F01 | Original compatibility-energy diagram |
-| Figure 1.2 | F02 | Original comparison of prediction loss, compatibility score and task cost |
-| Figure 3.1 | F31 | Original I-JEPA information-flow diagram; target encoder processes the full image before target selection |
-| Figure 3.2 | F32 | Original context/target-mask comparison; mask geometry defines the conditional task |
-| Figure 4.1 | F33 | Original video-token and spatiotemporal-mask diagram |
-| Figure 4.2 | F34 | Original contrast between masked video prediction and action-conditioned future prediction |
-| Figure 11.1 | F22 | V-JEPA 2 two-stage architecture; use official figure only after rights and third-party-credit checks |
-| Figure 11.2 | F23 | Original V-JEPA 2.1 dense supervision diagram |
-| Figure 11.3 | F30 | Original representation-to-planning system diagram |
-
-Entries F31-F34 are original explanatory figures even where they are informed by a source paper's method illustration. They should not trace or reproduce the source artwork. F22 remains an official-figure candidate, not approved artwork. Before production, confirm that its caption and visual preserve the distinct pretraining and robot post-training stages.
-
-## Section-caption crosswalk
-
-| Section caption | Register entry | Production note |
-|---|---|---|
-| Figure 2.1 | F03 | Original context/target/query information-flow diagram |
-| Figure 2.2 | F04 | Original comparison of spatial, spatiotemporal, future and action-conditioned targets |
-| Figure 2.3 | F05 | Original conditional-mean counterexample |
-| Figure 3.1 | F03 | Original I-JEPA information-flow diagram |
-| Figure 3.2 | F32 | Original context/target-mask comparison |
-| Figure 4.1 | F33 | Original video-token and spatiotemporal-mask diagram |
-| Figure 4.2 | F34 | Original distinction between masked video and action-conditioned prediction |
-| Figure 5.1 | F06 | Original constant-collapse derivation |
-| Figure 5.2 | F07 | Original complete versus dimensional collapse |
-| Figure 6.1 | F08 | Original equal-trace covariance geometry comparison |
-| Figure 7.1 | F09 | Original ridge shrinkage by covariance eigen-direction |
-| Figure 7.2 | F10 | Original OLS inverse-spectrum variance illustration |
-| Figure 8.1 | F11 | Original local-regression density-gradient illustration |
-| Figure 8.2 | F12 | Original score-field and Fisher-information illustration |
-| Figure 8.3 | F13 | Original two-step Gaussian/isotropy minimization |
-| Figure 9.1 | F14 | Original all-directions versus sampled-projection illustration |
-| Figure 9.2 | F15 | Original same-moments/different-shapes counterexample |
-| Figure 9.3 | F16 | Original Epps–Pulley characteristic-function illustration |
-| Figure 9.4 | F17 | Original finite-batch SIGReg computation diagram |
-| Figure 10.1 | F18 | Original centre/scale/shape decomposition |
-| Figure 10.2 | F19 | Original one-dimensional sliced-Wasserstein transport |
-| Figure 10.3 | F20 | Original stop-gradient and scale-loss graph |
-| Figure 11.1 | F22 | V-JEPA 2 two-stage architecture; official-figure candidate subject to rights review |
-| Figure 11.2 | F23 | Original V-JEPA 2.1 dense-supervision diagram |
-| Figure 11.3 | F30 | Original representation-to-planning system diagram |
-| Figure 12.1 | F21 | Original observational/interventional distinction |
-| Figure 13.1 | F24 | Original receding-horizon candidate-rollout diagram |
-| Figure 13.2 | F25 | Original model-exploitation failure illustration |
-| Figure 13.3 | F29 | Original multiple-futures representation |
-| Figure 14.1 | F26 | Original six-module diagram based on LeCun's proposal |
-| Figure 14.2 | F27 | Original Mode 1/Mode 2 and distillation diagram |
-| Figure 14.3 | F28 | Original hierarchical prediction diagram |
-| Figure 15.1 | F31 | Original step-by-step I-JEPA training graph with tensor shapes and gradient paths |\n| Figure 16.1 | F35 | Original closing synthesis of the chapter's system interfaces |
-
-The captions in the section drafts are art briefs, not completed illustrations. F22 remains only an official-figure candidate; use an independent diagram if reuse rights, attribution or third-party credits are unclear. Every original diagram must communicate the stated distinction without tracing source artwork.
-
+## Production rules
+- Preserve the distinction between a masked target and a future conditioned on an action.
+- Do not imply the standard original V-JEPA mask is causal or past-only.
+- Keep target-feature selection separate from target-encoder input.
+- Keep prediction discrepancy, compatibility energy and task cost visually distinct.
+- Show LeCun's six modules exactly; Intrinsic Cost and Trainable Critic belong inside Cost.
+- Use restrained blue accent `#3B6FB6`, grayscale-safe labels and white backgrounds.
+- Keep equations, titles and figure numbers in manuscript text, not baked into SVG artwork.

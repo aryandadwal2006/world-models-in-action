@@ -1,125 +1,77 @@
 #!/usr/bin/env python3
-"""Assemble Chapter 4 section Markdown into a Manning-style AsciiDoc source."""
+"""Assemble the canonical root chapter04 section sources."""
 from __future__ import annotations
 import re, subprocess
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
-DRAFT=ROOT/"rough-draft"/"chapter4"/"draft"
+SRC=ROOT/"chapter04"
 OUT=Path(__file__).resolve().parent/"CH04_Dadwal_World_Models_in_Action.adoc"
-ORDER=["00-introduction.md","4.1-why-predict-in-latent-space.md","4.2-jepa-objective.md",
-"4.2.1-i-jepa.md","4.2.2-v-jepa.md","4.2.3-v-jepa-2-and-2.1.md",
-"4.2.4-regularization-before-distributional-tests.md","4.2.5-lejepa-sigreg.md",
-"4.2.6-visreg.md","4.2.7-adjacent-modal-and-variational-jepas.md",
-"4.3-action-conditioned-prediction-and-planning.md",
-"4.3.1-path-towards-autonomous-intelligence.md",
-"4.3.2-mode-one-mode-two-and-hierarchical-planning.md",
-"4.4-reading-a-miniature-jepa-system.md","4.5-summary-and-exercises.md"]
-def transform(name):
-    lines=(DRAFT/name).read_text(encoding="utf-8").splitlines()
-    if name=="00-introduction.md":
-        if lines and lines[0].startswith("# "): lines=lines[1:]
-        lines=[("**"+line[3:].strip()+"**") if line.startswith("## ") else line for line in lines]
-        return "\n".join(lines).strip()+"\n"
-    first=next((i for i,x in enumerate(lines) if x.startswith("# ")),None)
-    if first is None: raise SystemExit(f"{name}: missing section heading")
-    m=re.match(r"^(4(?:\.\d+){1,2})\s+(.+)$",lines[first][2:].strip())
-    if not m: raise SystemExit(f"{name}: invalid numbered heading")
-    number,title=m.groups()
-    shift=number.count(".")-1
-    for i,line in enumerate(lines):
-        hm=re.match(r"^(#{1,6})\s+(.+)$",line)
-        if hm:
-            marks,content=hm.groups()
-            if i==first: content=title
-            lines[i]="#"*min(6,len(marks)+shift)+" "+content
-    return "\n".join(lines).strip()+"\n"
-def normalize_math(markdown):
-    output = []
-    in_display = False
-    for line in markdown.splitlines():
-        stripped = line.strip()
-        if stripped == r"\[":
-            if in_display:
-                raise SystemExit("nested display math")
-            in_display = True
-            output.append("$$")
-        elif stripped == r"\]":
-            if not in_display:
-                raise SystemExit("unmatched display math closer")
-            in_display = False
-            output.append("$$")
-        elif not in_display:
-            line = line.replace(r"\(", "$").replace(r"\)", "$")
-            output.append(line)
-        else:
-            output.append(line)
-    if in_display:
-        raise SystemExit("unclosed display math")
-    return "\n".join(output)
-
-def strip_inline_delimiters(asciidoc):
-    # Pandoc wraps math inside the AsciiDoc STEM macro but retains Markdown
-    # dollar signs. Asciidoctor Mathematical expects only the TeX body. Strip
-    # one or more boundary dollars while preserving dollars inside the formula.
-    return re.sub(
-        r"latexmath:\[\$+(.*?)\$+\]",
-        lambda match: "latexmath:[" + match.group(1) + "]",
-        asciidoc,
-        flags=re.DOTALL,
-    )
-
-def strip_display_delimiters(asciidoc):
-    lines = asciidoc.splitlines()
-    output = []
-    waiting_for_block = False
-    inside_math_block = False
+ORDER=["01_compatibility_and_energy.md","02_the_prediction_problem.md","03_ijepa_spatial_prediction.md","04_vjepa_spatiotemporal_prediction.md","05_degeneracy_and_collapse.md","06_predictive_sufficiency_and_geometry.md","07_linear_downstream_risk.md","08_nonlinear_risk_and_fisher_information.md","09_sigreg_and_distribution_sketching.md","10_visreg_scale_and_shape.md","11_vjepa2_action_conditioning_and_dense_features.md","12_action_conditioned_prediction.md","13_planning_and_model_error.md","14_hierarchy_memory_and_agent_architecture.md","15_reading_a_jepa_training_step.md","16_synthesis_and_exercises.md"]
+def clean_headings(md):
+    out=[]; fence=None
+    for line in md.splitlines():
+        s=line.lstrip()
+        if s.startswith("```") or s.startswith("~~~"):
+            mark=s[:3]
+            if fence is None: fence=mark
+            elif fence==mark: fence=None
+            out.append(line); continue
+        if fence is None and re.match(r"^\s*#{1,6}\s+",line):
+            line=re.sub(r"^(\s*#{1,6}\s+)\d+(?:\.\d+)*\.?\s+",r"\1",line)
+        out.append(line)
+    return "\n".join(out).strip()+"\n"
+def math(md):
+    out=[]; active=False
+    for line in md.splitlines():
+        s=line.strip()
+        if s==r"\[":
+            if active: raise SystemExit("nested display math")
+            active=True; out.append("$$")
+        elif s==r"\]":
+            if not active: raise SystemExit("unmatched display math closer")
+            active=False; out.append("$$")
+        elif not active: out.append(line.replace(r"\(","$").replace(r"\)","$"))
+        else: out.append(line)
+    if active: raise SystemExit("unclosed display math")
+    return "\n".join(out)
+def convert(md):
+    r=subprocess.run(["pandoc","--from=markdown+tex_math_dollars","--to=asciidoc","--wrap=none"],input=math(md),text=True,capture_output=True,check=True)
+    s=re.sub(r"latexmath:\[\$+(.*?)\$+\]",lambda m:"latexmath:["+m.group(1)+"]",r.stdout.strip(),flags=re.S)
+    lines=s.splitlines(); out=[]; waiting=False; inside=False
     for line in lines:
-        stripped = line.strip()
-        if stripped == "[latexmath]":
-            waiting_for_block = True
-            output.append(line)
-            continue
-        if stripped == "++++":
-            if waiting_for_block:
-                inside_math_block = True
-                waiting_for_block = False
-            elif inside_math_block:
-                inside_math_block = False
-            output.append(line)
-            continue
-        if inside_math_block and stripped in (r"\[", r"\]"):
-            continue
-        output.append(line)
-    return "\n".join(output)
-
-def pandoc(markdown):
-    normalized = normalize_math(markdown)
-    r = subprocess.run(
-        ["pandoc", "--from=markdown+tex_math_dollars", "--to=asciidoc", "--wrap=none"],
-        input=normalized, text=True, capture_output=True, check=True
-    )
-    return strip_inline_delimiters(strip_display_delimiters(r.stdout.strip()))
-
-def add_anchors(adoc):
+        t=line.strip()
+        if t=="[latexmath]": waiting=True; out.append(line); continue
+        if t=="++++":
+            if waiting: inside=True; waiting=False
+            elif inside: inside=False
+            out.append(line); continue
+        if inside and t in (r"\[",r"\]"): continue
+        out.append(line)
+    s="\n".join(out).replace("image::../images/chapter04/","image::chapter04/")
+    return re.sub(r"(image::chapter04/[^\[]+)\[([^\]]*)\]",lambda m:m.group(1)+"["+m.group(2)+",width=100%]",s)
+def anchors(s):
     out=[]; n=0
-    for line in adoc.splitlines():
+    for line in s.splitlines():
         if re.match(r"^={2,4}\s+\S",line):
             title=re.sub(r"^=+\s+","",line).strip()
             if title.casefold()!="references":
-                n+=1
-                slug=re.sub(r"[^a-z0-9]+","_",title.casefold()).strip("_")[:44]
+                n+=1; slug=re.sub(r"[^a-z0-9]+","_",title.casefold()).strip("_")[:44]
                 out.append(f"[#unique_section_ch4_{n:03d}_{slug}]")
         out.append(line)
     return "\n".join(out).strip()+"\n"
 def main():
-    missing=[n for n in ORDER if not (DRAFT/n).is_file()]
-    if missing: raise SystemExit("Missing draft files: "+", ".join(missing))
-    intro=pandoc(transform(ORDER[0]))
-    sections="\n\n".join(pandoc(transform(n)) for n in ORDER[1:])
-    ref=(DRAFT/"references.md").read_text(encoding="utf-8").splitlines()
-    if ref and ref[0].startswith("# "): ref=ref[1:]
-    ref=[("**"+x[3:].strip()+"**") if x.startswith("## ") else x for x in ref]
-    references=pandoc("\n".join(ref))
+    missing=[x for x in ORDER if not (SRC/x).is_file()]
+    if missing: raise SystemExit("Missing section sources: "+", ".join(missing))
+    parts=[]
+    for name in ORDER:
+        md=(SRC/name).read_text(encoding="utf-8")
+        if not re.search(r"^#\s+\d+(?:\.\d+)*\.?\s+\S",md,re.M):
+            raise SystemExit(f"{name}: missing numbered top-level heading")
+        parts.append(convert(clean_headings(md)))
+    refs=(SRC/"references.md").read_text(encoding="utf-8").split("## Source-review record and access limitation",1)[0]
+    ref_lines=[x for x in refs.splitlines() if not x.startswith("# ")]
+    refs="\n".join("**"+x[3:].strip()+"**" if x.startswith("## ") else x for x in ref_lines)
+    refs=convert(refs)
     front="""= World Models in Action
 :chapter: 4
 :sectnums:
@@ -148,13 +100,13 @@ World Models in Action
 
 This chapter covers
 
-* The JEPA objective and the transition from image to video prediction
-* I-JEPA, V-JEPA, V-JEPA 2, and action-conditioned latent world models
-* Collapse prevention, LeJEPA/SIGReg, and VISReg
-* LeCun's proposed architecture for autonomous machine intelligence
+* Spatial and spatiotemporal JEPA prediction, from I-JEPA to V-JEPA
+* Collapse, predictive sufficiency, and the statistical geometry of embeddings
+* LeJEPA/SIGReg and VISReg as distributional regularizers
+* Action-conditioned prediction, planning, memory, hierarchy, and predictive-agent design
 
 """
-    result=front+intro+"\n\n"+add_anchors(sections)+"\n== References\n\n"+references+"\n"
-    OUT.write_text(result,encoding="utf-8")
+    result=front+"\n\n".join(parts)+"\n\n== References\n\n"+refs+"\n"
+    OUT.write_text(anchors(result),encoding="utf-8")
     print(f"Assembled {len(ORDER)} sections into {OUT} ({OUT.stat().st_size:,} bytes)")
 if __name__=="__main__": main()
