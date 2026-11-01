@@ -114,4 +114,6 @@ A downstream estimator that relies on a narrow direction may be poorly condition
 
 The next section derives this dependence for ridge regression and ordinary least squares. The derivation is deliberately limited to those estimators and their assumptions. It is not a proof that isotropic covariance is optimal for every nonlinear task or every controller.
 
-**Figure 6.1. Equal variance does not imply equal geometry.** Draw isotropic and anisotropic embedding clouds with the same total covariance trace. Show their eigen-directions and eigenvalues, and identify the weak direction in the anisotropic case. Do not imply that isotropy alone guarantees task sufficiency.
+![Isotropic and anisotropic embedding clouds with equal covariance trace](../images/chapter04/F08_covariance_geometry.svg)
+
+**Figure 4.11. Equal trace does not imply equal embedding geometry.** An isotropic and an anisotropic cloud can have the same covariance trace. The anisotropic representation has weak directions that can make downstream estimation sensitive.

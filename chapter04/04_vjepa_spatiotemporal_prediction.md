@@ -138,8 +138,12 @@ Neither method is required to distinguish outcomes under a specified action. Tha
 
 V-JEPA 2 makes this separation explicit. It first scales action-free video pretraining, then adds a distinct action-conditioned predictor trained on robot trajectory data. V-JEPA 2.1 later strengthens dense feature prediction, but its robot-planning experiments again use a separately trained action-conditioned predictor. These stages will be treated separately rather than combined into one undifferentiated “V-JEPA family”.
 
-**Figure 4.1. A video mask is a spatiotemporal selection.** Draw a short clip as a volume of frame patches. Highlight visible context tokens and a target tube spanning multiple frames. Label token coordinates with time and space, and show target positions entering the predictor as queries. Distinguish temporal masking from action conditioning.
+![V-JEPA spatiotemporal target tube](../images/chapter04/F06_vjepa_spatiotemporal_mask.svg)
 
-**Figure 4.2. A masked feature target is not an action-conditioned future.** Use two panels with the same observed video context. The first predicts a withheld feature region without an action input. The second adds two candidate actions and shows that the conditional prediction problem now differs by action. Do not imply that the original V-JEPA includes the second pathway.
+**Figure 4.8. A spatial mask extended through time.** The same spatial selection can be withheld across several frames. Because visible context may include later frames, this standard multi-block mask is not inherently causal.
+
+![Masked video prediction and action-conditioned prediction](../images/chapter04/F32_masked_video_vs_action.svg)
+
+**Figure 4.9. Masked video prediction versus action-conditioned prediction.** Masked video prediction asks for withheld features without an action input. A controlled predictor instead conditions alternative futures on candidate actions, a separate extension from original V-JEPA.
 
 The next section examines what the target representation is allowed to forget, and how the geometry of the resulting features affects downstream estimation.

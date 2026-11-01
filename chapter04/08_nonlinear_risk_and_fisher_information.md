@@ -399,8 +399,14 @@ It is also important to distinguish isotropy from Gaussianity. A distribution ca
 
 The next section turns this theoretical target into a practical objective. SIGReg does not estimate a full high-dimensional density. It compares one-dimensional projections with the corresponding Gaussian projections. The distinction between the all-directions theorem and the finite stochastic sketch used during training is essential.
 
-**Figure 8.1. Local regression is affected by an asymmetric sample density.** Draw a query point, its neighbourhood and samples concentrated more strongly on one side. Overlay a target function with its local gradient to show why the density gradient contributes to the local averaging bias.
+![Local-regression query in an asymmetric sample density](../images/chapter04/F10_local_density_bias.svg)
 
-**Figure 8.2. Fisher information measures the strength of the density score field.** Show a smooth embedding density with vectors proportional to \(\nabla\log p(z)\), then relate the expected squared vector magnitude to \(J(p)\). Keep the score field distinct from the downstream target gradient.
+**Figure 4.14. Local regression is affected by density asymmetry.** An asymmetric neighbourhood pulls a local estimate toward the denser side. The embedding-density score enters the leading local-regression bias.
 
-**Figure 8.3. Gaussianity and isotropy arise in two separate minimizations.** First compare a Gaussian and non-Gaussian density with the same covariance; then compare anisotropic and isotropic covariance spectra under a fixed scalar constraint. Label the assumptions behind each step.
+![Fisher information score field over a density](../images/chapter04/F22_fisher_score_field.svg)
+
+**Figure 4.15. Fisher information measures the squared score field.** The score vector points toward increasing density. Its expected squared norm defines the Fisher-information functional used in the nonlinear-risk argument.
+
+![Gaussian and isotropic covariance optimality conditions](../images/chapter04/F29_gaussian_optimum.svg)
+
+**Figure 4.16. Gaussianity and isotropy arise from separate minimizations.** At fixed covariance, the Gaussian minimizes Fisher information. Under a fixed scalar covariance constraint, isotropy minimizes the trace of the inverse covariance.

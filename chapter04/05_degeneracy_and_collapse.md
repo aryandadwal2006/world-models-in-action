@@ -157,6 +157,7 @@ The first objective is therefore modest: rule out degenerate solutions admitted 
 
 The answer requires treating the embedding distribution as a geometric and statistical object rather than judging it only by whether it has collapsed.
 
-**Figure 5.1. Constant collapse is a global minimum of agreement alone.** Map two distinct input views to the same constant vector and show the resulting zero discrepancy. Label the lost input information explicitly; the figure should establish why agreement does not imply a useful representation.
+![Complete collapse and rank-deficient representation](../images/chapter04/F07_collapse_modes.svg)
 
-**Figure 5.2. Complete collapse and rank collapse are different.** Compare a single point, a cloud confined to a low-dimensional subspace, and a full-dimensional cloud. Use the covariance spectrum beneath each case to distinguish zero variance from a small number of active directions.
+**Figure 4.10. Complete collapse and dimensional collapse.** A constant representation destroys all input information; a rank-deficient representation varies only along a subset of directions. Both can satisfy weak agreement objectives.
+

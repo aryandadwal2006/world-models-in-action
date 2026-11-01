@@ -144,8 +144,12 @@ I-JEPA is a clean image-representation result and a demonstration of spatial fea
 
 These points delimit the problem I-JEPA was designed to solve; they are not defects in that paper. Video prediction adds time to the target. Action-conditioned models add the intervention that distinguishes one possible future from another.
 
-**Figure 3.1. I-JEPA's information paths.** Show an image patch grid entering two branches. The context encoder receives one large context block; the target encoder processes the full image, after which features at four target blocks are selected. The predictor receives context features and position-marked mask tokens, and returns target-position features. Use separate arrows for target-feature selection and the EMA parameter update.
+![I-JEPA context and target encoder information paths](../images/chapter04/F05_ijepa_information_flow.svg)
 
-**Figure 3.2. The mask defines the conditional task.** Show two context-target arrangements over the same image: one target close to visible context and another farther away. Keep the target encoder fixed and vary only the mask. The diagram should show that mask geometry changes the information needed for prediction, without claiming one geometry is best for every task.
+**Figure 4.6. I-JEPA's two information paths.** The target encoder processes the full image before target features are selected; the context encoder processes visible tokens only. Position-marked queries specify where the predictor must return features.
+
+![I-JEPA large context block and multiple target blocks](../images/chapter04/F31_ijepa_mask_geometry.svg)
+
+**Figure 4.7. I-JEPA's context and target-block geometry.** A large context block and multiple target blocks define the spatial prediction problem. Target positions overlapping the sampled context are removed from the context input.
 
 The next step is to add time. A video representation can be indexed by both spatial and temporal position, so the target sampler can ask the model to predict features withheld from a sequence rather than from one image.

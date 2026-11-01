@@ -207,6 +207,10 @@ The linear analysis does establish a concrete design pressure: if a foundation r
 
 However, matching covariance does not determine the entire feature distribution. Two distributions can have identical covariance and very different local density structure. A nonlinear predictor that estimates a target by averaging nearby embeddings can be affected by that structure. The next section derives how the density gradient enters local prediction bias, and why the Fisher-information functional appears in the LeJEPA analysis.
 
-**Figure 7.1. Ridge regression shrinks weak feature directions more strongly.** Plot the shrinkage factor against covariance eigenvalue for a fixed regularization strength. Highlight a task coefficient aligned with the smallest eigenvalue and compare its bias with the isotropic case at equal trace.
+![Ridge shrinkage as a function of feature eigenvalue](../images/chapter04/F09_ridge_shrinkage.svg)
 
-**Figure 7.2. OLS variance is controlled by the inverse spectrum.** Display the contribution (1/lambda_k) from each covariance eigen-direction and contrast equal eigenvalues with an anisotropic spectrum at fixed total variance. State the full-rank and homoskedastic-noise assumptions.
+**Figure 4.12. Ridge shrinkage depends on the feature eigenvalue.** For fixed regularization, ridge shrinks coefficients more strongly along weak feature directions. The worst-conditioned task can align with the smallest covariance eigenvalue.
+
+![OLS variance contributions from inverse covariance eigenvalues](../images/chapter04/F23_ols_inverse_spectrum.svg)
+
+**Figure 4.13. OLS variance is controlled by the inverse spectrum.** Under full-rank design and homoskedastic noise, coefficient variance is proportional to the inverse covariance spectrum. Small eigenvalues therefore contribute disproportionately.

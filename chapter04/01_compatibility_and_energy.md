@@ -196,8 +196,12 @@ A target is not necessarily a future observation. The word *prediction* refers t
 
 These are different conditional prediction problems. The phrase *predictive representation* includes all of them, but it does not make them equivalent. A masked image objective does not become a physical dynamics model because its target is hidden. A video objective does not become causal because the target occurs later in time. An action-conditioned objective requires the action to be represented in the model input and aligned with the transition being predicted. (Assran et al., 2023; Bardes et al., 2024; Assran et al., 2025; Chen et al., 2025/2026)
 
-**Figure 1.1. A compatibility energy over candidate targets.** Draw a context \(x\) on the left and a space of candidate targets \(y\) on the right. Show an energy surface over candidate targets, with low-energy regions indicating compatibility. Include two low-energy regions to illustrate that more than one target may be compatible with the same context. Label the energy as a score, not as a probability density. A separate annotation should show that normalization is required before the energy defines a Gibbs distribution.
+![Energy landscape with multiple compatible target modes](../images/chapter04/F01_energy_landscape.svg)
 
-**Figure 1.2. Three different scalar objectives.** Use three panels: a predictor output compared with a target embedding; a compatibility score assigned to alternative candidate configurations; and a task cost assigned to predicted trajectories. Use separate symbols and describe the function of each scalar. The figure should prevent a training discrepancy, a model energy and an agent objective from being treated as synonyms.
+**Figure 4.1. Energy across candidate targets.** For a fixed context, several candidate targets may occupy low-energy regions. The energy ranks compatibility; a probability interpretation requires a normalization and base measure.
+
+![Prediction discrepancy, compatibility score and task cost](../images/chapter04/F02_scalar_roles.svg)
+
+**Figure 4.2. Three distinct scalar objectives.** A feature discrepancy is a training signal, an energy scores compatibility, and a task cost evaluates desirability. One system may use all three, but they are not interchangeable.
 
 The next section defines the context, target and query variables more carefully. This is necessary before discussing the optimization objective, the information it can preserve, or the degenerate solutions it admits.

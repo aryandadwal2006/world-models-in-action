@@ -174,8 +174,14 @@ A low value of \(\mathcal L_{\mathrm{pred}}\) establishes that the predictor mat
 
 The next section examines the simplest failure permitted by an unconstrained agreement objective: every input can receive the same representation and achieve zero prediction error.
 
-**Figure 2.1. The information paths define the prediction problem.** Show an observation split into context and target pathways, with the target encoder producing a reference feature and a query specifying the requested location. Distinguish the target encoder's input from the subset of target features selected for the loss.
+![General JEPA context, query, predictor and target information flow](../images/chapter04/F33_general_prediction_flow.svg)
 
-**Figure 2.2. Different masks define different conditional questions.** Arrange spatial, spatiotemporal, future and action-conditioned targets side by side. Keep the observed context fixed where possible, and indicate which variable changes in each panel. Make clear that a later video target is not automatically conditioned on an intervention.
+**Figure 4.3. The context, target and query define the prediction problem.** The predictor receives context and a query, while a target pathway supplies the reference feature. The target branch is not necessarily an input to the predictor.
 
-**Figure 2.3. Squared-error prediction can return an unobserved mean.** Plot a two-mode conditional target distribution with equal mass at two separated values and mark the conditional mean between them. Use the feature-space interpretation and do not imply that every latent mean is physically invalid.
+![Spatial, spatiotemporal, future and action-conditioned targets](../images/chapter04/F03_target_types.svg)
+
+**Figure 4.4. Four different conditional prediction problems.** A target may be spatially hidden, spatiotemporally masked, later in time, or conditioned on an action. The target's relation to the available context defines the prediction task.
+
+![Two-mode target distribution and conditional mean](../images/chapter04/F04_conditional_mean.svg)
+
+**Figure 4.5. The conditional mean can lie between plausible outcomes.** For two equally likely target modes, the squared-error optimum is their conditional mean. That mean need not itself be a plausible physical outcome.
