@@ -96,7 +96,49 @@ This is the essential change from pixel reconstruction. A pixel-level objective 
 
 The representation should not be called semantic simply because it is latent. Its invariances are determined by the data, target encoder, masking distribution, temporal sampling, architecture and objective. The feature space is a model choice. Its quality must be evaluated against the distinctions that downstream tasks require.
 
-## 1.4 Energy, prediction loss and task cost
+## 1.4 Two ways to represent multiple compatible targets
+
+A context need not determine a unique target. A video prefix may be consistent with several plausible continuations. The JEPA formulation can represent this multiplicity without requiring the model to generate every detail of an observation.
+
+The first mechanism is **invariance in the target encoder**. Suppose several target observations (y_1,ldots,y_m) differ in details that are irrelevant to the prediction problem. If the target encoder maps them to the same representation,
+
+[
+f_{ar	heta}(y_1)=cdots=f_{ar	heta}(y_m),
+]
+
+then the model treats them as equivalent targets. The energy can be low for all of them because the representation deliberately removes the differences. This is appropriate only when those differences are irrelevant to the task. If the encoder removes object position or contact state when those variables matter, the resulting invariance is harmful.
+
+The second mechanism is a **latent variable that selects among alternatives**. Let
+
+[
+E_	heta(x,y,z)
+=
+D!left(f_{ar	heta}(y),
+g_phi(f_	heta(x),z)ight).
+]
+
+For fixed context (x), different values of (z) can produce different low-energy predictions. The latent variable represents information needed to choose among compatible futures that is not determined by the context. For example, a video of a vehicle approaching a fork may be compatible with either a left or a right turn. A latent variable can index those alternatives without asking the predictor to average them into a single implausible continuation.
+
+These mechanisms are not interchangeable. Invariance removes a distinction from the target representation. A latent variable preserves a distinction in the predicted representation but allows the model to choose among alternatives. The first says that two outcomes should count as the same for the task. The second says that they remain different, but context alone does not determine which will occur.
+
+## 1.5 The latent variable must not become a copy of the answer
+
+The latent variable creates a shortcut if its information capacity is unconstrained. Suppose (z) can carry a vector with the same information as the target representation (s_y), and the predictor is expressive enough to ignore the context and output (z). Then it can choose (z=s_y), making the prediction discrepancy zero without learning any relation between context and target.
+
+The model would have low prediction energy for the wrong reason. Its energy surface would no longer express which targets are compatible with the context; the latent would transmit the target directly.
+
+LeCun's formulation therefore includes a fourth requirement in addition to informative context and target representations and low prediction error: the latent variable should contain as little information as possible while still representing the irreducible uncertainty in the target. The four conceptual requirements are:
+
+1. The context representation must retain information about the context.
+2. The target representation must retain information about the target that matters to the task.
+3. The target representation should be predictable from context and the permitted latent variable.
+4. The latent variable should not carry information that the context can already explain, and must not bypass prediction by copying the target.
+
+These are architectural and information-theoretic requirements, not a claim that the original position paper specifies one universally applicable mutual-information loss. Practical methods must choose how to limit latent capacity, for example through dimensionality, discreteness, noise or a prior. The exact choice changes the family and number of futures the model can represent.
+
+The energy-minimization view now has a precise interpretation. Low energy indicates compatibility between context and target representations under a restricted latent configuration. The latent can encode alternative futures, but it must not make every target compatible by carrying the answer.
+
+## 1.6 Energy, prediction loss and task cost
 
 Three scalar quantities appear repeatedly in world-model systems:
 
