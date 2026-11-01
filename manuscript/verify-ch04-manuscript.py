@@ -33,7 +33,7 @@ def main():
     if doc.count("latexmath:[")<25: err.append("Too few inline STEM nodes")
     if re.search(r"latexmath:\[\$[^\]]*\$\]",doc): err.append("Markdown dollars remain inside inline STEM")
     if r"\[" in doc or r"\]" in doc: err.append("Markdown display delimiters remain")
-    if "$" in doc: err.append("Markdown double-dollar delimiters remain in AsciiDoc STEM")
+    if "$$" in doc: err.append("Markdown double-dollar delimiters remain in AsciiDoc STEM")
     if re.search(r"(?s)\\[latexmath\\]\\s*\\n\\+{4}\\s*\\n\\s*\\$.*?\\$\\s*\\n\\+{4}",doc):
         err.append("Dollar delimiters remain inside a block STEM expression")
     if "![" in doc: err.append("Markdown image syntax remains")

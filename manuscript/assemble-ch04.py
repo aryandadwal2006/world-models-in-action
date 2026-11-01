@@ -36,7 +36,7 @@ def math(md):
     return "\n".join(out)
 def convert(md):
     r=subprocess.run(["pandoc","--from=markdown+tex_math_dollars","--to=asciidoc","--wrap=none"],input=math(md),text=True,capture_output=True,check=True)
-    s=re.sub(r"latexmath:\[\$+(.*?)\$+\]",lambda m:"latexmath:["+m.group(1)+"]",r.stdout.strip(),flags=re.S)
+        r"latexmath:\[\$(.*?)\$\]",
     lines=s.splitlines(); out=[]; waiting=False; inside=False; block=[]
     def emit_math_block(body):
         body="\n".join(body).strip()
@@ -66,9 +66,9 @@ def convert(md):
     # Some Pandoc AST paths preserve math delimiters inside generated STEM
     # macros. Remove only the outer delimiters; TeX dollar signs are not
     # part of the expression in any source section.
-    s=s.replace("$","")
+    s=s.replace("$$","")
     s=re.sub(
-        r"(?ms)(\\[latexmath\\]\\s*\\n\\+{4}\\s*\\n)\\s*\\$(.*?)\\$\\s*(\\n\\+{4})",
+        r"(?ms)(\[latexmath\]\s*\n\+{4}\s*\n)\s*\$(.*?)\$\s*(\n\+{4})",
         lambda m:m.group(1)+m.group(2).strip()+m.group(3),
         s,
     )
