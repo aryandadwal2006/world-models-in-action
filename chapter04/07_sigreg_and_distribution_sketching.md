@@ -1,14 +1,12 @@
 # 7. Distribution matching by projection: SIGReg
 
-The preceding section identified a target distribution through downstream prediction risk. The representation should not merely have nonzero variance or an isotropic covariance matrix. Under the risk assumptions analysed there, the embedding density should be an isotropic Gaussian.
+The previous section identified a target distribution through downstream prediction risk. Under the assumptions analysed there, the embedding distribution that minimizes the relevant risk criteria is an isotropic Gaussian. A training objective must now answer a computational question: how can a neural encoder be encouraged to match a high-dimensional distribution without estimating its density explicitly?
 
-A training objective must now answer a computational question: how can a neural encoder be encouraged to match a high-dimensional distribution without estimating that distribution explicitly?
-
-The key is to replace one high-dimensional comparison with a collection of one-dimensional comparisons. The mathematical justification comes from the Cramér–Wold theorem. The practical statistic used by LeJEPA is based on empirical characteristic functions.
+SIGReg, introduced in LeJEPA, replaces a multivariate goodness-of-fit problem with a collection of one-dimensional tests. The mathematical link is the Cramér–Wold theorem. The practical statistic is based on empirical characteristic functions and the Epps–Pulley test.
 
 ## 7.1 Why moments do not define the distribution
 
-Suppose two embedding distributions have the same mean and covariance. They need not have the same shape. In one dimension, a standard normal variable and a random variable taking values \(-1\) and \(+1\) with equal probability both have mean zero and variance one. Their characteristic functions differ:
+Suppose two embedding distributions have the same mean and covariance. They need not have the same shape. In one dimension, a standard normal random variable and a variable taking values \(-1\) and \(+1\) with equal probability both have mean zero and variance one. Their characteristic functions differ:
 
 \[
 \varphi_{\mathrm{normal}}(t)=e^{-t^2/2},
@@ -16,9 +14,9 @@ Suppose two embedding distributions have the same mean and covariance. They need
 \varphi_{\mathrm{two\ point}}(t)=\cos(t).
 \]
 
-The first two moments therefore do not identify the distribution. Matching more moments can distinguish more distributions, but matching any fixed finite number of moments still does not determine a general probability distribution. For a particular target family, moment constraints may be useful; they are not a general certificate of distributional equality.
+The first two moments therefore do not identify the distribution. Matching a finite number of additional moments still does not identify a general probability distribution. For a particular target family, moment constraints may be useful; they are not a general certificate of distributional equality.
 
-This is the limitation of using only covariance-based regularization when the theoretical target is a Gaussian density. Covariance controls second-order structure. It does not control all higher-order shape.
+This is the limitation of covariance-based regularization when the theoretical target is a Gaussian density. Covariance controls second-order structure. It does not control all higher-order shape.
 
 ## 7.2 The characteristic function
 
@@ -45,9 +43,9 @@ Given scalar samples \(u_1,\ldots,u_N\), the empirical characteristic function i
 \frac{1}{N}\sum_{n=1}^{N}e^{itu_n}.
 \]
 
-It is a finite average of complex exponentials. Unlike high-order moments, it does not require raising samples to increasingly large powers. It is differentiable with respect to each sample and can be aggregated over distributed workers using sum reductions.
+It is a finite average of complex exponentials. Unlike high-order moments, it does not require raising samples to increasingly large powers. It is differentiable with respect to each sample, and its sums can be aggregated across distributed workers. Its integrand is bounded, which avoids the polynomial growth that can make high-order moment objectives difficult to optimize.
 
-The characteristic function is therefore a useful object for gradient-based distribution matching. Its bounded integrand also avoids some of the unstable growth that can occur in high-order moment statistics. The weighting of frequencies still matters, and the practical statistic remains an approximation to an integral.
+A characteristic-function statistic still requires a frequency weighting and numerical integration. The choice of weight determines how discrepancies at different frequencies contribute to the result.
 
 ## 7.3 Cramér–Wold: why projections can identify a distribution
 
@@ -57,20 +55,14 @@ Let \(Z\in\mathbb R^K\) be an embedding vector and let \(a\in\mathbb S^{K-1}\) b
 U_a=a^\top Z.
 \]
 
-A multivariate distribution is determined by the distributions of all its one-dimensional linear projections. In particular,
+The Cramér–Wold theorem states that two probability distributions on \(\mathbb R^K\) are equal if and only if all their one-dimensional linear projections have the same distribution:
 
 \[
 a^\top X\overset{d}{=}a^\top Y
 \quad\text{for every }a\in\mathbb S^{K-1}
-\]
-
-if and only if
-
-\[
+\quad\Longleftrightarrow\quad
 X\overset{d}{=}Y.
 \]
-
-This is the Cramér–Wold principle. It provides the identification argument for projection-based distribution matching. If every one-dimensional projection of an embedding distribution agrees with the corresponding projection of the target, then the multivariate distributions agree.
 
 For an isotropic Gaussian target,
 
@@ -84,17 +76,7 @@ for every unit vector \(a\). A high-dimensional Gaussian-matching problem can th
 
 The all-directions qualification is essential. Matching a finite set of projections is not, in general, sufficient to identify an arbitrary multivariate distribution exactly. A finite set may miss a structured discrepancy that lies between sampled directions. Increasing the number and diversity of projections improves the sketch, but the finite training objective remains a stochastic approximation to the all-directions condition.
 
-LeJEPA makes a stronger, assumption-dependent argument about how many projections are needed in practice. Its analysis treats the directional discrepancy as a function over the unit sphere and assumes a degree of Sobolev smoothness for the embedding distribution. Under that regularity, the expected discrepancy between the finite-direction test and the all-directions criterion decays at a rate of the form
-
-\[
-O\!\left(M^{-2\alpha/(D-1)}\right),
-\]
-
-where \(M\) is the number of sampled directions, \(D\) is the embedding dimension and \(\alpha\) describes the smoothness of the directional discrepancy. The bound does not hold independently of regularity, and its constants depend on dimension and smoothness. The paper argues that the Gaussian target and modern encoder architectures produce sufficiently smooth embedding distributions for a number of directions proportional to the dimension to give a useful approximation in the regimes studied.
-
-There is also a distinction between the number of directions in one minibatch and the number observed over training. SIGReg resamples directions as optimization proceeds. The union of directions seen across many steps can cover the sphere much more thoroughly than a fixed set of the same per-step size. The paper reports that a small resampled set can outperform a much larger fixed set in its controlled comparisons. This cumulative-coverage argument is part of the practical method, not a replacement for the all-directions theorem.
-
-These results justify the sketch under stated smoothness and sampling assumptions. They do not make one finite minibatch an exact multivariate distribution test.
+The practical advantage is that a scalar test can be evaluated without estimating a full \(K\)-dimensional density. The projection matrix is the computational bridge between the embedding batch and these one-dimensional statistics.
 
 ## 7.4 A directional statistical test
 
@@ -106,7 +88,7 @@ P_\theta^{(a)}=(a^\top)_\#P_\theta,
 Q^{(a)}=(a^\top)_\#Q.
 \]
 
-A one-dimensional goodness-of-fit statistic \(T\) can compare samples from \(P_\theta^{(a)}\) with the standard-normal target. Repeating the comparison over a set of directions
+A one-dimensional goodness-of-fit statistic \(T\) compares samples from \(P_\theta^{(a)}\) with the standard-normal target. Repeating the comparison over a set of directions
 
 \[
 \mathcal A=\{a_1,\ldots,a_M\}
@@ -114,7 +96,7 @@ A one-dimensional goodness-of-fit statistic \(T\) can compare samples from \(P_\
 
 produces directional evidence about the multivariate distribution.
 
-The formal union-intersection construction in LeJEPA aggregates directional test statistics through a maximum:
+The formal union-intersection test in LeJEPA aggregates directional statistics through a maximum:
 
 \[
 T_{\mathcal A}
@@ -125,9 +107,7 @@ T\!\left(
 \right).
 \]
 
-The maximum is natural for a statistical test: a sufficiently large discrepancy in any tested direction is evidence against the null. The paper relates this construction to the Cramér–Wold principle and gives level and power guarantees under its assumptions.
-
-The training regularizer takes a different form. SIGReg averages the directional statistics:
+The maximum is natural for a statistical test: a sufficiently large discrepancy in any tested direction is evidence against the null. The training regularizer takes a different form. SIGReg averages the directional statistics:
 
 \[
 \mathcal L_{\mathrm{SIGReg}}
@@ -139,11 +119,11 @@ T\!\left(
 \right).
 \]
 
-The average distributes gradient contributions across sampled directions. A maximum can concentrate the optimization signal on the current worst direction, leaving other directions with no direct contribution at that step. The maximum and the average therefore serve different roles: the former is a test statistic, the latter a practical training objective.
+The average distributes gradient contributions across sampled directions. A maximum can concentrate the optimization signal on the current worst direction, leaving the other directions with no direct contribution at that step. The maximum and the average therefore serve different roles: the former is a test statistic, the latter a practical training objective. [Balestriero and LeCun, 2025]
 
 ## 7.5 The Epps–Pulley statistic
 
-LeJEPA uses an Epps–Pulley-style comparison of empirical and target characteristic functions. For a projected sample \(u_1,\ldots,u_N\), define
+LeJEPA uses the Epps–Pulley test to compare empirical and target characteristic functions. For a projected sample \(u_1,\ldots,u_N\), define
 
 \[
 \widehat\varphi_N(t)
@@ -158,16 +138,24 @@ T_{\mathrm{EP}}
 =
 N\int_{-\infty}^{\infty}
 \left|
-\widehat\varphi_N(t)-e^{-t^2/2}
+\widehat\varphi_N(t)-\varphi_0(t)
 \right|^2
 w(t)\,dt,
+\qquad
+\varphi_0(t)=e^{-t^2/2}.
 \]
 
-where \(w(t)\) is a frequency weighting function. The paper describes a Gaussian weight, parameterized as \(w(t)=e^{-t^2/\sigma^2}\), with a commonly used scale of one. Its reference implementation uses the target characteristic function \(e^{-t^2/2}\) as the numerical weighting factor in the quadrature. These conventions should be kept distinct: the target characteristic function and the integration weight are separate objects in the abstract statistic, even when a practical implementation chooses related Gaussian forms.
+The paper describes a Gaussian frequency window, commonly parameterized as
 
-The statistic compares the full empirical characteristic function with the target characteristic function over a range of frequencies. It is not simply a mean-and-variance penalty. Deviations in the shape of the projected distribution can affect the characteristic function even when the first two moments match.
+\[
+w(t)=e^{-t^2/\sigma^2}.
+\]
 
-The implementation approximates the integral numerically. The reference LeJEPA implementation uses trapezoidal quadrature over 17 points on the interval \([-5,5]\), with the target characteristic function also used in the weighting factor of the implemented integrand. This is an implementation choice supported by the paper's ablations, not a mathematical requirement of the Epps–Pulley statistic. Changing the frequency range, quadrature grid or weight changes the finite numerical approximation.
+In the reference implementation, the frequency window is the standard-normal characteristic-function factor \(e^{-t^2/2}\). The target characteristic function specifies the distribution being tested; the window controls how discrepancies across frequencies are weighted. They are conceptually separate, even though the implementation uses the same Gaussian factor for both.
+
+The statistic compares the empirical characteristic function with the target over a range of frequencies. It is not a mean-and-variance penalty. Deviations in the shape of the projected distribution can affect the characteristic function even when the first two moments match.
+
+The implementation approximates the integral numerically. The reference algorithm uses trapezoidal quadrature over 17 points on the interval \([-5,5]\), and exploits the symmetry of the integrand to reduce the effective evaluation work. This is an implementation choice supported by the paper's ablations, not a mathematical requirement of the Epps–Pulley test. Changing the frequency range, quadrature grid or weight changes the finite numerical approximation. [Balestriero and LeCun, 2025]
 
 ## 7.6 From one projection to a minibatch objective
 
@@ -194,19 +182,21 @@ Compute the one-dimensional Epps–Pulley statistic for the \(N\) projected samp
 T_{\mathrm{EP}}(u_{1,m},\ldots,u_{N,m}).
 \]
 
-The directions are resampled during training. The encoder is therefore exposed to different one-dimensional views of the same high-dimensional embedding distribution over successive optimization steps. This resampling is not equivalent to evaluating all possible directions in one batch.
+The directions are resampled during training. The reference implementation seeds the direction sampler from the global training step so that distributed workers use synchronized projections. Each minibatch therefore sees a new sketch of the same embedding distribution. The cumulative number of directions sampled over training can be much larger than the number evaluated in any one minibatch.
 
-The computation is organized around matrix multiplication \(ZA\), followed by characteristic-function evaluations and numerical integration. Its cost depends on batch size \(N\), embedding dimension \(K\), number of directions \(M\), and number of integration points. The paper's linear-complexity description concerns the chosen implementation and fixed sketch parameters; it should not be paraphrased as a claim that computation is independent of the number of projections.
+This resampling has an important consequence. A small number of directions in one step does not mean the model is constrained to those same directions throughout training. LeJEPA reports that resampling as few as 16 directions per minibatch can outperform optimizing against a fixed set containing thousands of directions, because the sampled directions accumulate over training. This is an empirical property of the optimization setup, not an exact finite-step Cramér–Wold guarantee. [Balestriero and LeCun, 2025]
 
-For distributed training, each worker can compute local complex-exponential sums and combine them with an all-reduce operation. This makes the empirical characteristic function compatible with data-parallel training without first gathering every projected sample on one device.
+The projection and characteristic-function operations can be written as matrix multiplication followed by complex-exponential evaluations and numerical integration. With the embedding dimension, number of slices and number of quadrature points fixed, the reference implementation is linear in minibatch size \(N\). More generally, the work depends on \(N\), embedding dimension \(K\), number of directions \(M\), and number of integration points. The paper's \(\mathcal O(N)\) statement refers to scaling in batch size for fixed sketch parameters; it should not be read as independence from projection count or feature dimension.
+
+For distributed training, each worker computes local sums of complex exponentials and combines them with an all-reduce operation. This makes the empirical characteristic function compatible with data-parallel training without gathering all projected samples on one device.
 
 ## 7.7 Stability and finite-batch effects
 
-The empirical characteristic function is an average of bounded complex values. The Epps–Pulley construction therefore avoids the polynomial growth of high-order moments. LeJEPA proves bounds on the statistic's derivatives with respect to the projected samples under the chosen weighting. By the chain rule, this provides a controlled gradient contribution to the encoder for the statistic under analysis.
+The empirical characteristic function is an average of bounded complex values. The Epps–Pulley construction therefore avoids the polynomial growth of high-order moments. LeJEPA derives bounds on the statistic's gradient and curvature with respect to projected samples. By the chain rule, this supplies a controlled contribution to the encoder gradient for the statistic under analysis.
 
-This is a statement about the Epps–Pulley statistic and its inputs. It does not imply that the gradient of the complete neural network objective is bounded independently of network architecture, parameterization or all optimization details.
+This is a statement about the Epps–Pulley statistic and its inputs. It does not imply that the gradient of the complete neural network objective is bounded independently of the network architecture, parameterization or all optimization details.
 
-A finite minibatch also introduces a bias in the empirical statistic and its derivative. The paper derives an \(O(1/N)\) term. It reports this bias as small in the tested settings, including minibatches as small as 16, while noting that U-statistic debiasing or sample splitting could provide unbiased alternatives. The training loss is thus a finite-sample estimate, not an exact population test.
+A finite minibatch also introduces bias in the statistic and its gradient. The paper derives an \(\mathcal O(1/N)\) term and reports that it is small in the tested settings, including minibatches as small as 16. U-statistic debiasing or sample splitting could provide unbiased alternatives, but those are not part of the reference training procedure. The training loss is thus a finite-sample estimate, not an exact population test. [Balestriero and LeCun, 2025]
 
 There is a related statistical caution. In classical hypothesis testing, failing to reject a null hypothesis does not prove that the null is true. It says only that the observed sample did not supply sufficient evidence against it at the selected test level. Training minimizes a regularizer rather than making a one-shot accept/reject decision, but the logical distinction remains: a small finite-sample projection statistic is evidence of approximate matching under the sampled directions and frequencies, not a certificate of exact population Gaussianity.
 
@@ -222,7 +212,7 @@ For each observation, let \(z_{n,v}\) be the embedding of view \(v\). Let the fi
 \frac{1}{V_g}\sum_{v=1}^{V_g}z_{n,v}.
 \]
 
-A view-agreement term draws all view embeddings toward this global-view centre:
+A view-agreement term draws every view embedding toward this global-view centre:
 
 \[
 \mathcal L_{\mathrm{pred}}
@@ -243,9 +233,9 @@ SIGReg is applied to the embedding distribution of the views. The total objectiv
 \alpha\mathcal L_{\mathrm{SIGReg}},
 \]
 
-where \(\alpha\) controls the trade-off between view agreement and distribution matching.
+where \(\alpha\) is the single trade-off parameter between view agreement and distribution matching.
 
-This construction differs from an EMA teacher-predictor system. In the base LeJEPA recipe, the mean of the global-view embeddings provides the centre toward which all global and local views are drawn; the method does not require an EMA target encoder, a stop-gradient target branch or a separate predictor network. The total loss averages SIGReg over views and combines it with this prediction term using one trade-off parameter. This is consistent with the information structure discussed earlier: a predictor is useful when the target contains asymmetric information that must be inferred from the context, but is not mandatory for symmetric view agreement. [Balestriero and LeCun, 2025]
+This construction differs from an EMA teacher-predictor system. In the base LeJEPA recipe, the mean of the global-view embeddings provides the centre toward which all global and local views are drawn. The method does not require an EMA target encoder, a stop-gradient target branch or a separate predictor network. The SIGReg term is averaged over the view embeddings. This is consistent with the information structure discussed earlier: a predictor is useful when the target contains asymmetric information that must be inferred from the context, but is not mandatory for symmetric view agreement. [Balestriero and LeCun, 2025]
 
 ## 7.9 What SIGReg makes possible
 
