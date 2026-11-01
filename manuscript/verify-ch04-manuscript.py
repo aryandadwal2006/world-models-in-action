@@ -40,7 +40,7 @@ def main():
     images=re.findall(r"image::([^\[]+)\[",doc)
     if len(images)!=33: err.append(f"Expected 33 embedded figures, found {len(images)}")
     for rel in images:
-        path=(Path(__file__).resolve().parent/rel).resolve()
+        path=(ROOT/"images"/rel).resolve()
         if not path.is_file(): err.append("Missing image asset: "+rel)
     svgs=list(IMG.glob("*.svg"))
     if len(svgs)!=33: err.append(f"Expected 33 chapter SVGs, found {len(svgs)}")
