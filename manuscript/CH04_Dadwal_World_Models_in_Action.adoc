@@ -46,18 +46,14 @@ Let latexmath:[x] denote information available to a model and latexmath:[y] a ca
 
 [latexmath]
 ++++
-\[
 E_\theta(x,y)\in\mathbb R.
-\]
 ++++
 
 Adopt the convention that lower values indicate greater compatibility. Given latexmath:[x], an inference procedure can select a target by solving
 
 [latexmath]
 ++++
-\[
 \widehat y(x)=\arg\min_{y\in\mathcal Y}E_\theta(x,y).
-\]
 ++++
 
 This is a ranking or optimization rule. It identifies which candidate the model prefers, but it does not specify a probability for that candidate.
@@ -66,7 +62,6 @@ A probability density can be defined from an energy by choosing a Gibbs distribu
 
 [latexmath]
 ++++
-\[
 p_\theta(y\mid x)
 =
 \frac{\exp[-E_\theta(x,y)]}{Z_\theta(x)},
@@ -74,7 +69,6 @@ p_\theta(y\mid x)
 Z_\theta(x)
 =
 \int_{\mathcal Y}\exp[-E_\theta(x,y')]\,d\nu(y'),
-\]
 ++++
 
 where latexmath:[\nu] is a specified base measure on the target space. The normalizer latexmath:[Z_\theta(x)], called the partition function, makes the density integrate to one. For a high-dimensional continuous target, computing this integral can be intractable. An energy-based model may therefore use its score directly for ranking or optimization without evaluating a normalized density.
@@ -88,18 +82,14 @@ A context and target may be compatible for several different reasons. There may 
 
 [latexmath]
 ++++
-\[
 E_\theta(x,y,z).
-\]
 ++++
 
 There are at least two ways to eliminate the latent variable from this expression. The first is to select the lowest-energy configuration,
 
 [latexmath]
 ++++
-\[
 F_{\min}(x,y)=\inf_z E_\theta(x,y,z).
-\]
 ++++
 
 This asks whether there exists a latent configuration that makes the pair compatible. It is a minimization over latexmath:[z].
@@ -108,12 +98,10 @@ The second is to aggregate over latent configurations,
 
 [latexmath]
 ++++
-\[
 F_{\mathrm{marg}}(x,y)
 =
 -\log\int_{\mathcal Z}
 \exp[-E_\theta(x,y,z)]\,d\nu(z).
-\]
 ++++
 
 This is a negative log marginal score, up to any normalization terms needed to define the relevant conditional distribution. It combines contributions from all latent configurations rather than retaining only the minimum. If many configurations have similar energy, their combined volume can matter. The minimum-energy and marginal constructions therefore need not rank two candidate targets in the same way.
@@ -133,20 +121,16 @@ Let
 
 [latexmath]
 ++++
-\[
 s_x=f_\theta(x),
 \qquad
 s_y=f_{\bar\theta}(y)
-\]
 ++++
 
 be representations of the context and target. A predictor maps the context representation, and possibly a query latexmath:[q], to a target representation:
 
 [latexmath]
 ++++
-\[
 \widehat s_y=g_\phi(s_x,q).
-\]
 ++++
 
 The query specifies which target is requested. In an image model it may identify spatial positions. In a video model it may identify spatiotemporal positions. In an action-conditioned model it must also include the action or control sequence whose consequence is being predicted.
@@ -155,23 +139,19 @@ A feature-space compatibility score is
 
 [latexmath]
 ++++
-\[
 E_{\theta,\bar\theta,\phi}(x,y,q)
 =
 d\!\left(
 g_\phi(f_\theta(x),q),
 f_{\bar\theta}(y)
 \right),
-\]
 ++++
 
 where latexmath:[d] measures the discrepancy between predicted and target features. For squared Euclidean distance,
 
 [latexmath]
 ++++
-\[
 d(u,v)=\|u-v\|_2^2.
-\]
 ++++
 
 Training lowers this discrepancy for context-target-query triples sampled from the data distribution. The target representation determines which discrepancies count. A difference removed by latexmath:[f_{\bar\theta}] contributes little or nothing to the objective; a difference retained by the target encoder remains visible to the loss.
@@ -189,13 +169,11 @@ The first is *invariance in the target representation*. Suppose observations lat
 
 [latexmath]
 ++++
-\[
 f_{\bar\theta}(y_1)
 =
 \cdots
 =
 f_{\bar\theta}(y_m),
-\]
 ++++
 
 then the objective treats them as equivalent targets. A predictor can match that shared representation without choosing among the observation-level differences.
@@ -206,9 +184,7 @@ The second operation is a *latent variable that selects among alternatives*. For
 
 [latexmath]
 ++++
-\[
 \widehat s_y=g_\phi(f_\theta(x),z).
-\]
 ++++
 
 For a fixed context latexmath:[x], different values of latexmath:[z] can produce different predicted representations. The latent preserves distinctions between possible outcomes but allows the model to select among them. A vehicle approaching a fork may turn left or right. The two futures remain different, but the current image does not determine which one will occur.
@@ -222,9 +198,7 @@ Suppose the latent latexmath:[z] can carry a vector with the same information as
 
 [latexmath]
 ++++
-\[
 d\!\left(g_\phi(s_x,z),s_y\right)=0
-\]
 ++++
 
 without learning how the context relates to the target.
@@ -244,7 +218,6 @@ Three scalar quantities appear repeatedly in predictive agent systems.
 
 [latexmath]
 ++++
-\[
 \mathcal L_{\mathrm{pred}}
 =
 \mathbb E_{(x,y,q)\sim p_{\mathrm{data}}}
@@ -254,7 +227,6 @@ g_\phi(f_\theta(x),q),
 f_{\bar\theta}(y)
 \right)
 \right].
-\]
 ++++
 
 It is defined by the chosen representation, target sampling distribution and discrepancy function. It answers whether the predictor matches the selected target features.
@@ -308,18 +280,15 @@ A general representation-prediction system can be written as
 
 [latexmath]
 ++++
-\[
 S_X=f_\theta(X),\qquad
 S_Y=f_{\bar\theta}(Y),\qquad
 \widehat S_Y=g_\phi(S_X,Q).
-\]
 ++++
 
 The training objective is an expectation over the joint distribution of context, target and query:
 
 [latexmath]
 ++++
-\[
 \mathcal L_{\mathrm{pred}}(\theta,\bar\theta,\phi)
 =
 \mathbb E_{(X,Y,Q)\sim p_{\mathrm{data}}}
@@ -329,7 +298,6 @@ g_\phi(f_\theta(X),Q),
 f_{\bar\theta}(Y)
 \right)
 \right].
-\]
 ++++
 
 The distribution latexmath:[p_{\mathrm{data}}(X,Y,Q)] is as important as the function latexmath:[d]. It determines which contexts occur, which targets are sampled, and which information the model must use to make a prediction. Changing the mask sampler changes the conditional distribution the predictor faces. Changing temporal stride changes the prediction horizon. Changing the action distribution changes the interventions represented in the training data.
@@ -352,9 +320,7 @@ The target sampler determines what is unknown. Suppose latexmath:[M] denotes a r
 
 [latexmath]
 ++++
-\[
 p(Y_M\mid X_{\neg M},M),
-\]
 ++++
 
 where latexmath:[X_{\neg M}] denotes the visible context. A mask selecting a small region near visible content may make the target predictable from local texture or continuity. A large, distant target may require broader context. A target spanning later times may require temporal information. If the context removes a variable essential to the target, uncertainty remains even for an ideal predictor.
@@ -370,30 +336,25 @@ A simple predictor minimizes squared distance in the target representation space
 
 [latexmath]
 ++++
-\[
 a^*(x,q)
 =
 \arg\min_a
 \mathbb E\!\left[
 \|H-a\|_2^2\mid X=x,Q=q
 \right].
-\]
 ++++
 
 Assume the conditional second moment exists and define
 
 [latexmath]
 ++++
-\[
 \mu(x,q)=\mathbb E[H\mid X=x,Q=q].
-\]
 ++++
 
 Add and subtract latexmath:[\mu(x,q)]:
 
 [latexmath]
 ++++
-\[
 \begin{aligned}
 \mathbb E[\|H-a\|_2^2\mid x,q]
 &=
@@ -404,28 +365,23 @@ Add and subtract latexmath:[\mu(x,q)]:
 &\quad+
 2\,\mathbb E[(H-\mu)^\top(\mu-a)\mid x,q].
 \end{aligned}
-\]
 ++++
 
 The cross term is zero because latexmath:[\mathbb E[H-\mu\mid x,q]=0]. Hence
 
 [latexmath]
 ++++
-\[
 \mathbb E[\|H-a\|_2^2\mid x,q]
 =
 \mathbb E[\|H-\mu\|_2^2\mid x,q]
 +\|a-\mu\|_2^2.
-\]
 ++++
 
 The first term does not depend on latexmath:[a], so the unique minimizer is
 
 [latexmath]
 ++++
-\[
 a^*(x,q)=\mathbb E[H\mid X=x,Q=q].
-\]
 ++++
 
 This is a property of squared-error regression. It is not a pathology unique to JEPA.
@@ -480,11 +436,9 @@ For an EMA target,
 
 [latexmath]
 ++++
-\[
 \bar\theta_{t+1}
 =
 m_t\bar\theta_t+(1-m_t)\theta_{t+1}.
-\]
 ++++
 
 This update makes the target a smoothed history of the online parameters. It does not define the meaning of JEPA and is not a general proof that every collapse solution is impossible. The target-update rule, the loss, the mask sampler and the architecture form a method-specific training system.
@@ -535,28 +489,22 @@ Let an image be latexmath:[x\in\mathbb R^{H\times W\times 3}]. A patch embedding
 
 [latexmath]
 ++++
-\[
 N_h=H/P,\qquad N_w=W/P,\qquad N=N_hN_w
-\]
 ++++
 
 positions, assuming divisibility. The patch embedding produces tokens
 
 [latexmath]
 ++++
-\[
 e(x)=(e_1,\ldots,e_N),\qquad e_i\in\mathbb R^d.
-\]
 ++++
 
 Positional encodings identify where each token came from. A context encoder transforms selected visible tokens. A target encoder transforms the full image. If latexmath:[C] is the context-position set and latexmath:[Y] the target-position set, write
 
 [latexmath]
 ++++
-\[
 Z_C=f_\theta(e(x)_C,C),\qquad
 H_Y=f_{\bar\theta}(e(x))_Y.
-\]
 ++++
 
 The subscript latexmath:[Y] means that target features are selected from the target encoder’s output at those positions. It does not mean that the target encoder only saw the target crop. The feature at a target position may incorporate information from a larger spatial neighbourhood through the target encoder.
@@ -583,11 +531,9 @@ For each target block, the predictor receives context features together with lea
 
 [latexmath]
 ++++
-\[
 \widehat H_{Y_m}
 =
 g_\phi(Z_C,\operatorname{pos}(Y_m)).
-\]
 ++++
 
 The learned mask token provides a common starting vector for a missing position. The positional embedding distinguishes one requested location from another. Without the position, identical mask tokens would not tell the predictor which target feature it is being asked to estimate.
@@ -603,7 +549,6 @@ Let latexmath:[Y_1,\ldots,Y_M] denote the sampled target blocks, with latexmath:
 
 [latexmath]
 ++++
-\[
 \mathcal L_{\mathrm{I\text{-}JEPA}}
 =
 \frac{1}{M}
@@ -614,7 +559,6 @@ D(\widehat H_{Y_m},H_{Y_m})
 \sum_{m=1}^{M}
 \sum_{j\in Y_m}
 \|\widehat h_j-h_j\|_2^2.
-\]
 ++++
 
 Here latexmath:[D] is the sum of squared Euclidean discrepancies over the target tokens in one block. The outer average gives equal weight to the sampled target blocks. Within each block, the displayed paper equation sums over target positions; it does not show an additional division by the number of positions or feature dimensions. This matters when comparing numerical loss magnitudes across implementations, because sum-versus-mean reductions change the scale of the objective even if they use identical predictions and targets. (Assran et al., 2023)
@@ -632,24 +576,20 @@ The context encoder and predictor are updated by gradient descent. The target en
 
 [latexmath]
 ++++
-\[
 \bar\theta_{t+1}
 =
 m_t\bar\theta_t+(1-m_t)\theta_{t+1}.
-\]
 ++++
 
 For fixed latexmath:[m], repeated substitution gives
 
 [latexmath]
 ++++
-\[
 \bar\theta_t
 =
 m^t\bar\theta_0
 +
 (1-m)\sum_{k=0}^{t-1}m^k\theta_{t-k}.
-\]
 ++++
 
 The target parameters are a smoothed history of the online parameters. This reduces how quickly the regression target changes as the online encoder is optimized.
@@ -723,18 +663,14 @@ Let a clip contain latexmath:[T] frames:
 
 [latexmath]
 ++++
-\[
 X=(x_1,x_2,\ldots,x_T).
-\]
 ++++
 
 A video tokenizer converts the clip into spatiotemporal tokens. A token location can be indexed by
 
 [latexmath]
 ++++
-\[
 r=(t,h,w),
-\]
 ++++
 
 where latexmath:[t] denotes temporal position and latexmath:[h,w] spatial position. In the original V-JEPA configuration, the video tokenizer uses tubelets spanning two consecutive frames and a latexmath:[16\times16] spatial patch. A token is therefore a small spatiotemporal volume, not simply a patch from one independently processed frame.
@@ -743,17 +679,13 @@ The context encoder receives a selected subset of tokens. The target encoder com
 
 [latexmath]
 ++++
-\[
 Z_C=f_\theta(X_C,C),\qquad
 H_Y=f_{\bar\theta}(X)_Y,
-\]
 ++++
 
 [latexmath]
 ++++
-\[
 \widehat H_Y=g_\phi(Z_C,Q_Y),
-\]
 ++++
 
 where latexmath:[C] is the visible set and latexmath:[Q_Y] describes the requested target positions. The query includes time as well as space. A model can be asked to predict a feature at a later time, at a different spatial location, or both.
@@ -780,7 +712,6 @@ Let latexmath:[H_Y] be target features at selected spatiotemporal positions and 
 
 [latexmath]
 ++++
-\[
 \mathcal L_{\mathrm{V\text{-}JEPA}}
 =
 \frac{1}{|Y|d}
@@ -788,7 +719,6 @@ Let latexmath:[H_Y] be target features at selected spatiotemporal positions and 
 \left\|
 \widehat h_r-h_r
 \right\|_1.
-\]
 ++++
 
 This differs from the squared-error form often used to introduce generic feature prediction. The discrepancy function changes the statistical estimator approached by an ideal deterministic predictor.
@@ -797,9 +727,7 @@ For a scalar random target latexmath:[H], the constant latexmath:[a] minimizing 
 
 [latexmath]
 ++++
-\[
 a^*=\arg\min_a\mathbb E[|H-a|\mid C=c],
-\]
 ++++
 
 is a conditional median of latexmath:[H] given the context. The constant minimizing expected squared error is the conditional mean. In multiple dimensions, an latexmath:[L_1] vector loss is typically applied coordinate-wise; its minimizers are coordinate-wise conditional medians, subject to possible non-uniqueness. This property should not be used to claim that V-JEPA explicitly models a full multimodal distribution. It describes the pointwise estimator favoured by the chosen loss under its assumptions.
@@ -860,9 +788,7 @@ To be action-conditioned, the predictor must receive a variable representing the
 
 [latexmath]
 ++++
-\[
 \widehat s_{t+1}=g_\phi(s_{\leq t},a_t),
-\]
 ++++
 
 where latexmath:[a_t] identifies the action whose consequence is being predicted. If the action is absent, the model estimates what tends to occur under the trajectory distribution in its data. It may infer likely actions from visual motion, but that is not the same as conditioning on a chosen action.
@@ -906,34 +832,28 @@ Let latexmath:[X] and latexmath:[X'] be two views of the same observation. Consi
 
 [latexmath]
 ++++
-\[
 \mathcal L(\theta)
 =
 \mathbb E\left[
 \|f_\theta(X)-f_\theta(X')\|_2^2
 \right].
-\]
 ++++
 
 Suppose the encoder ignores its input and returns the same vector latexmath:[c] for every possible observation:
 
 [latexmath]
 ++++
-\[
 f_\theta(x)=c\qquad\text{for all }x.
-\]
 ++++
 
 Then
 
 [latexmath]
 ++++
-\[
 \mathcal L(\theta)
 =
 \mathbb E[\|c-c\|_2^2]
 =0.
-\]
 ++++
 
 Because a squared distance cannot be negative, zero is a global minimum. The model has satisfied the objective perfectly while discarding all information about the input.
@@ -944,11 +864,9 @@ The same problem occurs in feature prediction. If the context and target encoder
 
 [latexmath]
 ++++
-\[
 \|g_\phi(f_\theta(x),q)-f_{\bar\theta}(y)\|_2^2
 =
 \|c-c\|_2^2=0.
-\]
 ++++
 
 The feature prediction is perfect in the narrow sense measured by the objective. It is useless as a representation.
@@ -970,7 +888,6 @@ A useful objective therefore needs both kinds of pressure. In an abstract two-br
 
 [latexmath]
 ++++
-\[
 \mathcal L(Z,Z')
 =
 \lambda\,s(Z,Z')
@@ -978,7 +895,6 @@ A useful objective therefore needs both kinds of pressure. In an abstract two-br
 r(Z)
 +
 r(Z'),
-\]
 ++++
 
 where latexmath:[s] measures agreement between corresponding views and latexmath:[r] constrains the geometry of one branch independently. The expression is a decomposition of responsibilities, not a claim that one particular choice of latexmath:[r] is universally sufficient.
@@ -992,12 +908,10 @@ Complete collapse occurs when every input is mapped to the same vector. If a bat
 
 [latexmath]
 ++++
-\[
 \widehat\Sigma_Z
 =
 \frac{1}{B-1}Z^\top Z
 =0
-\]
 ++++
 
 when the rows of latexmath:[Z] are centred and identical before centring.
@@ -1015,9 +929,7 @@ For a deterministic encoder latexmath:[Z=f_\theta(X)], complete collapse implies
 
 [latexmath]
 ++++
-\[
 I(X;Z)=0.
-\]
 ++++
 
 Here latexmath:[I(X;Z)] denotes mutual information. A constant representation contains no information about which input was observed. A low-rank representation may still contain information, but it can discard distinctions that matter to a downstream prediction problem.
@@ -1050,25 +962,21 @@ Consider an online parameter vector latexmath:[\theta_t] and an EMA target param
 
 [latexmath]
 ++++
-\[
 \xi_{t+1}
 =
 m\xi_t+(1-m)\theta_{t+1},
 \qquad 0\le m<1.
-\]
 ++++
 
 Repeated substitution shows that the target is an exponentially weighted history of online parameters:
 
 [latexmath]
 ++++
-\[
 \xi_t
 =
 m^t\xi_0
 +
 (1-m)\sum_{j=0}^{t-1}m^j\theta_{t-j}.
-\]
 ++++
 
 The target therefore changes more slowly than the online network, depending on the momentum schedule. This can stabilize a teacher-student optimization process. It does not, by itself, remove every constant solution from the mathematical objective. Whether the training system avoids collapse depends on the full objective, network, data, normalization and optimization dynamics.
@@ -1103,18 +1011,14 @@ Let latexmath:[X] denote the available history of observations, latexmath:[A] an
 
 [latexmath]
 ++++
-\[
 Z=f_\theta(X)
-\]
 ++++
 
 the learned representation. The representation is sufficient for the chosen prediction problem when conditioning on latexmath:[Z] and latexmath:[A] preserves the conditional distribution of latexmath:[Y] that was available from latexmath:[X] and latexmath:[A]:
 
 [latexmath]
 ++++
-\[
 P(Y\mid X,A)=P(Y\mid Z,A).
-\]
 ++++
 
 This equality is task-relative. The target latexmath:[Y], action domain, time horizon and data distribution must be specified. A representation sufficient for classifying an image need not be sufficient for predicting the motion of an object. A representation sufficient for short-horizon prediction may fail at a longer horizon. A representation that predicts passive video may fail to predict the effect of a control input.
@@ -1128,13 +1032,11 @@ The condition can be understood through an equivalence relation on histories. Fi
 
 [latexmath]
 ++++
-\[
 x_1\sim x_2
 \quad\Longleftrightarrow\quad
 P(Y\mid X=x_1,A=a)
 =
 P(Y\mid X=x_2,A=a)
-\]
 ++++
 
 for every relevant action latexmath:[a] and target latexmath:[Y] in the task specification.
@@ -1150,9 +1052,7 @@ Suppose the target encoder maps two possible target observations to the same fea
 
 [latexmath]
 ++++
-\[
 f_{\bar\theta}(y_1)=f_{\bar\theta}(y_2).
-\]
 ++++
 
 A predictor matching this target representation has no direct loss-based reason to distinguish latexmath:[y_1] from latexmath:[y_2]. The two targets are equivalent under the feature space used for training. This can be an intentional invariance, for example when a change in illumination should not affect the representation. It can also be a failure if the difference corresponds to object position, contact, velocity or another variable that matters downstream.
@@ -1179,7 +1079,6 @@ Let a batch of latexmath:[B] embeddings in latexmath:[D] dimensions be arranged 
 
 [latexmath]
 ++++
-\[
 Z=
 \begin{bmatrix}
 z_1^\top\\
@@ -1187,18 +1086,15 @@ z_1^\top\\
 z_B^\top
 \end{bmatrix}
 \in\mathbb R^{B\times D}.
-\]
 ++++
 
 Let latexmath:[\bar z] be the batch mean and latexmath:[Z_c] the centred matrix. The empirical covariance is
 
 [latexmath]
 ++++
-\[
 \widehat\Sigma
 =
 \frac{1}{B-1}Z_c^\top Z_c.
-\]
 ++++
 
 The covariance matrix describes coordinate-wise variance and pairwise linear dependence. Its eigenvectors give principal directions of variation; its eigenvalues quantify the variance along those directions.
@@ -1207,9 +1103,7 @@ If the eigenvalues are all equal, the covariance is isotropic:
 
 [latexmath]
 ++++
-\[
 \widehat\Sigma=\sigma^2 I_D.
-\]
 ++++
 
 If a small number of eigenvalues dominate while others are close to zero, the embedding cloud is anisotropic or approximately low rank. The model may use only a small set of directions, even when every coordinate has some nonzero marginal variance.
@@ -1225,11 +1119,9 @@ Consider two embedding distributions with the same total variance,
 
 [latexmath]
 ++++
-\[
 \operatorname{tr}(\Sigma)
 =
 \sum_{k=1}^{D}\lambda_k.
-\]
 ++++
 
 An isotropic distribution spreads this variance equally across directions. An anisotropic distribution concentrates it unevenly. The total amount of variation can be identical while the weakest direction is much narrower in the anisotropic case.
@@ -1257,25 +1149,20 @@ Suppose a frozen encoder maps observations to latexmath:[K]-dimensional features
 
 [latexmath]
 ++++
-\[
 X\in\mathbb R^{N\times K},
-\]
 ++++
 
 and collect the scalar targets in latexmath:[y\in\mathbb R^N]. A linear probe predicts
 
 [latexmath]
 ++++
-\[
 \widehat y=X\beta.
-\]
 ++++
 
 With a quadratic penalty on the coefficient vector, ridge regression solves
 
 [latexmath]
 ++++
-\[
 \widehat\beta_\lambda
 =
 \arg\min_{\beta\in\mathbb R^K}
@@ -1283,28 +1170,23 @@ With a quadratic penalty on the coefficient vector, ridge regression solves
 \|y-X\beta\|_2^2+\lambda\|\beta\|_2^2
 \right\},
 \qquad \lambda>0.
-\]
 ++++
 
 Differentiating with respect to latexmath:[\beta] and setting the gradient to zero gives
 
 [latexmath]
 ++++
-\[
 -2X^\top(y-X\widehat\beta_\lambda)
 +2\lambda\widehat\beta_\lambda=0.
-\]
 ++++
 
 Therefore
 
 [latexmath]
 ++++
-\[
 \widehat\beta_\lambda
 =
 (X^\top X+\lambda I)^{-1}X^\top y.
-\]
 ++++
 
 The learned coefficient vector depends on the geometry of the feature matrix through latexmath:[X^\top X]. If the features are centred, this matrix is proportional to their empirical covariance. Its eigenvalues determine how much sample variation is available along each principal direction.
@@ -1316,65 +1198,53 @@ Assume a linear downstream relationship
 
 [latexmath]
 ++++
-\[
 y=X\beta_{\mathrm{true}}+\varepsilon,
 \qquad
 \mathbb E[\varepsilon\mid X]=0.
-\]
 ++++
 
 Conditioning on latexmath:[X],
 
 [latexmath]
 ++++
-\[
 \begin{aligned}
 \mathbb E[\widehat\beta_\lambda\mid X]
 &=(X^\top X+\lambda I)^{-1}X^\top
 \mathbb E[y\mid X]\\
 &=(X^\top X+\lambda I)^{-1}X^\top X\beta_{\mathrm{true}}.
 \end{aligned}
-\]
 ++++
 
 Subtracting the true coefficient vector gives
 
 [latexmath]
 ++++
-\[
 \operatorname{Bias}(\widehat\beta_\lambda\mid X)
 =
 -\lambda(X^\top X+\lambda I)^{-1}\beta_{\mathrm{true}}.
-\]
 ++++
 
 Let the eigendecomposition of latexmath:[X^\top X] be
 
 [latexmath]
 ++++
-\[
 X^\top X=Q\Lambda Q^\top,
 \qquad
 \Lambda=\operatorname{diag}(\lambda_1,\ldots,\lambda_K),
-\]
 ++++
 
 with positive eigenvalues. In this basis, ridge shrinks the coefficient in direction latexmath:[q_k] by the factor
 
 [latexmath]
 ++++
-\[
 \frac{\lambda_k}{\lambda_k+\lambda}.
-\]
 ++++
 
 Equivalently, the magnitude of the bias component in that direction is multiplied by
 
 [latexmath]
 ++++
-\[
 \frac{\lambda}{\lambda_k+\lambda}.
-\]
 ++++
 
 A direction with a large eigenvalue is well represented in the sample: the features vary substantially along it. Ridge therefore shrinks that coefficient less. A direction with a small eigenvalue is weakly supported by the data. Ridge shrinks its coefficient more strongly.
@@ -1385,35 +1255,29 @@ Choose a downstream task whose true coefficient vector aligns with the eigenvect
 
 [latexmath]
 ++++
-\[
 \|\operatorname{Bias}_{\mathrm{aniso}}\|
 =
 \frac{\lambda}{\lambda_{\min}+\lambda}
 \|\beta_{\mathrm{true}}\|,
-\]
 ++++
 
 whereas for the isotropic geometry,
 
 [latexmath]
 ++++
-\[
 \|\operatorname{Bias}_{\mathrm{iso}}\|
 =
 \frac{\lambda}{\bar\lambda+\lambda}
 \|\beta_{\mathrm{true}}\|.
-\]
 ++++
 
 Because latexmath:[\lambda_{\min}<\bar\lambda],
 
 [latexmath]
 ++++
-\[
 \|\operatorname{Bias}_{\mathrm{aniso}}\|
 >
 \|\operatorname{Bias}_{\mathrm{iso}}\|.
-\]
 ++++
 
 The result is a worst-case statement. For any anisotropic covariance with the same total variance, there exists a downstream linear task aligned with its weakest eigen-direction for which ridge incurs greater bias than under the isotropic covariance. It does not say that every task aligned with every direction is worse. [Balestriero and LeCun, 2025]
@@ -1425,44 +1289,36 @@ Ridge introduces bias by shrinking coefficients. To isolate estimator variance, 
 
 [latexmath]
 ++++
-\[
 \widehat\beta_{\mathrm{OLS}}
 =
 (X^\top X)^{-1}X^\top y,
-\]
 ++++
 
 assuming latexmath:[X] has full column rank. Under the classical homoskedastic linear model with
 
 [latexmath]
 ++++
-\[
 \operatorname{Cov}(\varepsilon\mid X)=\sigma^2 I,
-\]
 ++++
 
 its conditional covariance is
 
 [latexmath]
 ++++
-\[
 \operatorname{Cov}(\widehat\beta_{\mathrm{OLS}}\mid X)
 =
 \sigma^2(X^\top X)^{-1}.
-\]
 ++++
 
 The trace summarizes the total variance across coefficient directions:
 
 [latexmath]
 ++++
-\[
 \operatorname{tr}\operatorname{Cov}(\widehat\beta_{\mathrm{OLS}}\mid X)
 =
 \sigma^2\operatorname{tr}\left((X^\top X)^{-1}\right)
 =
 \sigma^2\sum_{k=1}^{K}\frac{1}{\lambda_k}.
-\]
 ++++
 
 A small eigenvalue becomes a large reciprocal. Consequently, a weak feature direction makes the fitted coefficient sensitive to changes in the sampled data.
@@ -1471,16 +1327,13 @@ Now hold total feature energy fixed:
 
 [latexmath]
 ++++
-\[
 \sum_{k=1}^{K}\lambda_k=T.
-\]
 ++++
 
 The function latexmath:[f(u)=1/u] is strictly convex for latexmath:[u>0]. Jensen’s inequality gives
 
 [latexmath]
 ++++
-\[
 \frac{1}{K}\sum_{k=1}^{K}\frac{1}{\lambda_k}
 \ge
 \frac{1}{
@@ -1488,18 +1341,15 @@ The function latexmath:[f(u)=1/u] is strictly convex for latexmath:[u>0]. Jensen
 }
 =
 \frac{K}{T}.
-\]
 ++++
 
 Thus,
 
 [latexmath]
 ++++
-\[
 \sum_{k=1}^{K}\frac{1}{\lambda_k}
 \ge
 \frac{K^2}{T},
-\]
 ++++
 
 with equality if and only if all eigenvalues are equal. Under the fixed-trace and full-rank assumptions, the isotropic covariance spectrum uniquely minimizes the trace of the OLS coefficient covariance. [Balestriero and LeCun, 2025]
@@ -1539,16 +1389,13 @@ The key quantity is the score of the embedding density,
 
 [latexmath]
 ++++
-\[
 s_p(z)=\nabla\log p(z),
-\]
 ++++
 
 and the global statistic that measures its expected squared magnitude,
 
 [latexmath]
 ++++
-\[
 J(p)
 =
 \mathbb E_{Z\sim p}
@@ -1556,7 +1403,6 @@ J(p)
 =
 \int_{\mathbb R^K}
 \|\nabla\log p(z)\|_2^2p(z)\,dz.
-\]
 ++++
 
 LeJEPA calls latexmath:[J(p)] the Fisher-information functional of the embedding density. It appears naturally when the bias of local nonparametric estimators is expanded and integrated over query points. The derivation explains why matching only mean and covariance leaves a gap.
@@ -1568,9 +1414,7 @@ Let latexmath:[Z\in\mathbb R^K] be a frozen embedding with density latexmath:[p(
 
 [latexmath]
 ++++
-\[
 \eta(z)=\mathbb E[Y\mid Z=z].
-\]
 ++++
 
 A local estimator predicts latexmath:[\eta(q)] at a query point latexmath:[q] by averaging labels from training embeddings near latexmath:[q]. Two examples are radius-based k-nearest-neighbour regression and Nadaraya–Watson kernel regression.
@@ -1579,7 +1423,6 @@ For a fixed radius latexmath:[r_0], the radius-based estimator is
 
 [latexmath]
 ++++
-\[
 \widehat\eta_{\mathrm{kNN}}(q)
 =
 \frac{1}{|\mathcal N_{r_0}(q)|}
@@ -1588,7 +1431,6 @@ For a fixed radius latexmath:[r_0], the radius-based estimator is
 \mathcal N_{r_0}(q)
 =
 \{i:\|Z_i-q\|_2\le r_0\}.
-\]
 ++++
 
 The number of neighbours is not fixed. It depends on the local density of embeddings. In a dense region, many training points fall inside the ball; in a sparse region, fewer do.
@@ -1597,7 +1439,6 @@ The Nadaraya–Watson estimator uses a smooth kernel:
 
 [latexmath]
 ++++
-\[
 \widehat\eta_h(q)
 =
 \frac{
@@ -1607,7 +1448,6 @@ The Nadaraya–Watson estimator uses a smooth kernel:
 },
 \qquad
 K_h(u)=h^{-K}K(u/h).
-\]
 ++++
 
 The kernel assigns higher weight to nearby samples. The bandwidth latexmath:[h] controls the size of the neighbourhood. The denominator normalizes the empirical weights.
@@ -1621,7 +1461,6 @@ Consider the large-sample conditional expectation of the kernel estimator:
 
 [latexmath]
 ++++
-\[
 \mathbb E[\widehat\eta_h(q)]
 \approx
 \frac{
@@ -1629,7 +1468,6 @@ Consider the large-sample conditional expectation of the kernel estimator:
 }{
 \int p(q+u)K_h(u)\,du
 }.
-\]
 ++++
 
 The numerator contains the product latexmath:[\eta(q+u)p(q+u)]. The denominator contains latexmath:[p(q+u)]. To understand the ratio for small bandwidth, expand both functions around latexmath:[q].
@@ -1638,7 +1476,6 @@ For the regression function,
 
 [latexmath]
 ++++
-\[
 \eta(q+u)
 =
 \eta(q)
@@ -1648,14 +1485,12 @@ For the regression function,
 \frac12u^\top\nabla^2\eta(q)u
 +
 o(\|u\|^2).
-\]
 ++++
 
 For the embedding density,
 
 [latexmath]
 ++++
-\[
 p(q+u)
 =
 p(q)
@@ -1665,25 +1500,21 @@ p(q)
 \frac12u^\top\nabla^2p(q)u
 +
 o(\|u\|^2).
-\]
 ++++
 
 Assume a normalized, symmetric, radially structured kernel with zero first moment and isotropic second moment:
 
 [latexmath]
 ++++
-\[
 \int K(v)\,dv=1,\qquad
 \int vK(v)\,dv=0,\qquad
 \int vv^\top K(v)\,dv=\mu_2(K)I_K.
-\]
 ++++
 
 The symmetry makes the first-order terms vanish after integration. The second-order terms contribute traces of the Hessians. Multiplying the expansions in the numerator also produces a cross term between the target gradient and the density gradient. After dividing by the denominator and retaining the leading order in latexmath:[h], the pointwise bias is
 
 [latexmath]
 ++++
-\[
 \operatorname{Bias}\big[\widehat\eta_h(q)\big]
 =
 \frac{h^2\mu_2(K)}{2}
@@ -1694,7 +1525,6 @@ The symmetry makes the first-order terms vanish after integration. The second-or
 \right]
 +
 o(h^2).
-\]
 ++++
 
 Here latexmath:[\Delta\eta(q)=\operatorname{tr}(\nabla^2\eta(q))] is the Laplacian of the downstream regression function.
@@ -1709,7 +1539,6 @@ The same density-gradient coupling appears for radius-based k-NN. Its leading bi
 
 [latexmath]
 ++++
-\[
 \operatorname{Bias}\big[\widehat\eta_{\mathrm{kNN}}(q)\big]
 =
 \frac{r_0^2}{2(K+2)}
@@ -1720,7 +1549,6 @@ The same density-gradient coupling appears for radius-based k-NN. Its leading bi
 \right]
 +
 o(r_0^2).
-\]
 ++++
 
 The coefficients differ because a uniform ball and a smooth kernel have different second moments. The dependence on the local score latexmath:[\nabla\log p(q)] is common to both estimators. The k-NN expansion assumes a smooth embedding density with bounded derivatives through order three, finite covariance and finite Fisher information, together with a twice continuously differentiable target function. [Balestriero and LeCun, 2025]
@@ -1732,28 +1560,23 @@ A downstream representation is evaluated over a distribution of query points, no
 
 [latexmath]
 ++++
-\[
 \operatorname{ISB}
 =
 \int
 \operatorname{Bias}(q)^2p(q)\,dq.
-\]
 ++++
 
 The density-dependent part of the pointwise bias contains
 
 [latexmath]
 ++++
-\[
 \nabla\eta(q)^\top\nabla\log p(q).
-\]
 ++++
 
 To expose its contribution, consider the assumptions used in the k-NN analysis of LeJEPA. The density is sufficiently smooth, has bounded derivatives through the required order, finite covariance and finite Fisher information. The regression function is twice continuously differentiable. In addition, the downstream gradient is assumed to have mean zero and an isotropic second-moment matrix:
 
 [latexmath]
 ++++
-\[
 \mathbb E[\nabla\eta(Z)]=0,
 \qquad
 \mathbb E[
@@ -1761,7 +1584,6 @@ To expose its contribution, consider the assumptions used in the k-NN analysis o
 ]
 =
 \tau_g^2 I_K,
-\]
 ++++
 
 with latexmath:[\tau_g^2>0]. Queries are drawn from latexmath:[p], and the embedding covariance is subject to a fixed scalar constraint.
@@ -1770,7 +1592,6 @@ Under these conditions, averaging the squared gradient coupling over downstream 
 
 [latexmath]
 ++++
-\[
 \begin{aligned}
 \mathbb E_\eta
 \mathbb E_{Z\sim p}
@@ -1786,20 +1607,17 @@ Under these conditions, averaging the squared gradient coupling over downstream 
 &=
 \tau_g^2 J(p).
 \end{aligned}
-\]
 ++++
 
 The functional
 
 [latexmath]
 ++++
-\[
 \boxed{
 J(p)=
 \int
 \|\nabla\log p(z)\|_2^2p(z)\,dz
 }
-\]
 ++++
 
 is the expected squared score of the embedding density. It is a property of the density itself, not of one coordinate variance or one covariance entry.
@@ -1808,7 +1626,6 @@ The full k-NN expansion also contains a curvature term and a cross term involvin
 
 [latexmath]
 ++++
-\[
 \mathbb E_{\eta}[\operatorname{ISB}_{\mathrm{kNN}}]
 =
 \left(\frac{r_0^2}{K+2}\right)^2
@@ -1816,7 +1633,6 @@ The full k-NN expansion also contains a curvature term and a cross term involvin
 \tau_g^2J(p)+O(1)
 \right\}
 +o(r_0^4).
-\]
 ++++
 
 The expression isolates the part that varies with the embedding density. It does not say that the entire integrated bias equals the Fisher-information term for every downstream-function prior. The minimization over latexmath:[p] follows because the remaining terms are bounded and do not provide a competing density-dependent contribution under the paper’s assumptions. (Balestriero and LeCun, 2025)
@@ -1825,18 +1641,15 @@ For Nadaraya–Watson regression, the paper considers a smoothness class with bo
 
 [latexmath]
 ++++
-\[
 \|\nabla\eta(q)\|_2\le L,
 \qquad
 |\Delta\eta(q)|\le B,
-\]
 ++++
 
 then the integrated squared bias is bounded by
 
 [latexmath]
 ++++
-\[
 \operatorname{ISB}_{\mathrm{kernel}}
 \le
 \left(
@@ -1847,7 +1660,6 @@ then the integrated squared bias is bounded by
 \right]
 +
 o(h^4).
-\]
 ++++
 
 The kernel result additionally assumes a normalized, symmetric and isotropic kernel with finite second moment and finite roughness, a sufficiently light-tailed embedding density, and the usual small-bandwidth asymptotic regime. In particular, the pointwise expansion is stated where latexmath:[p(q)>0], with latexmath:[h\to0] and latexmath:[Nh^K\to\infty]. The theorem bounds worst-case integrated squared bias over a smoothness class of target functions. These conditions delimit the result. [Balestriero and LeCun, 2025]
@@ -1856,27 +1668,23 @@ The pointwise variance also depends on the density:
 
 [latexmath]
 ++++
-\[
 \operatorname{Var}[\widehat\eta_h(q)]
 \approx
 \frac{R(K)}{Nh^K}\frac{v(q)}{p(q)},
 \qquad
 R(K)=\int K(u)^2\,du,
-\]
 ++++
 
 where latexmath:[v(q)=\operatorname{Var}(Y\mid Z=q)]. A query in a sparse part of the embedding distribution has fewer nearby training samples and therefore higher pointwise variance. But the paper evaluates the integrated variance under the same density used to sample queries. Multiplying by latexmath:[p(q)] and integrating cancels the density:
 
 [latexmath]
 ++++
-\[
 \begin{aligned}
 \mathcal V(h;p)
 &=\int \operatorname{Var}[\widehat\eta_h(q)]p(q)\,dq\\
 &\approx
 \frac{R(K)}{Nh^K}\int v(q)\,dq.
 \end{aligned}
-\]
 ++++
 
 Under this evaluation measure, the leading integrated variance is independent of \(p\). The density-dependent optimization therefore enters through the integrated squared bias bound, while the leading integrated variance does not distinguish candidate embedding densities. This is a more precise statement than saying that every pointwise variance term is independent of the density.
@@ -1890,80 +1698,64 @@ The next step is a variational statement about probability densities. Let latexm
 
 [latexmath]
 ++++
-\[
 \Sigma=\mathbb E[ZZ^\top].
-\]
 ++++
 
 Under the regularity conditions needed for integration by parts and finite Fisher information, define the score
 
 [latexmath]
 ++++
-\[
 s_p(z)=\nabla\log p(z).
-\]
 ++++
 
 Because latexmath:[s_p(z)p(z)=\nabla p(z)], integration by parts gives
 
 [latexmath]
 ++++
-\[
 \mathbb E[Zs_p(Z)^\top]
 =
 \int z\,\nabla p(z)^\top dz
 =
 -I_K.
-\]
 ++++
 
 Now consider the positive-semidefinite matrix
 
 [latexmath]
 ++++
-\[
 \mathbb E\left[
 \left(s_p(Z)+\Sigma^{-1}Z\right)
 \left(s_p(Z)+\Sigma^{-1}Z\right)^\top
 \right].
-\]
 ++++
 
 Expanding the expectation and using latexmath:[\mathbb E[s_p(Z)s_p(Z)^\top]] for the Fisher-information matrix, together with latexmath:[\mathbb E[ZZ^\top]=\Sigma], yields
 
 [latexmath]
 ++++
-\[
 \mathbb E[s_p(Z)s_p(Z)^\top]-\Sigma^{-1}
 \succeq 0.
-\]
 ++++
 
 Taking traces gives
 
 [latexmath]
 ++++
-\[
 J(p)\ge\operatorname{tr}(\Sigma^{-1}).
-\]
 ++++
 
 Equality requires
 
 [latexmath]
 ++++
-\[
 s_p(z)=-\Sigma^{-1}z
-\]
 ++++
 
 almost everywhere. Integrating this score identity gives a Gaussian density with covariance latexmath:[\Sigma]:
 
 [latexmath]
 ++++
-\[
 p(z)=\mathcal N(0,\Sigma).
-\]
 ++++
 
 Thus, for a fixed covariance matrix, the Gaussian uniquely minimizes the Fisher-information functional.
@@ -1972,51 +1764,41 @@ A second optimization determines the covariance shape. Write the positive eigenv
 
 [latexmath]
 ++++
-\[
 \operatorname{tr}(\Sigma^{-1})
 =
 \sum_{k=1}^{K}\frac{1}{\lambda_k}.
-\]
 ++++
 
 Under a fixed trace constraint
 
 [latexmath]
 ++++
-\[
 \sum_{k=1}^{K}\lambda_k=c,
-\]
 ++++
 
 strict convexity of latexmath:[u\mapsto1/u] gives
 
 [latexmath]
 ++++
-\[
 \sum_{k=1}^{K}\frac{1}{\lambda_k}
 \ge
 \frac{K^2}{c},
-\]
 ++++
 
 with equality only when latexmath:[\lambda_k=c/K] for every latexmath:[k]. The covariance must therefore be isotropic:
 
 [latexmath]
 ++++
-\[
 \Sigma=\frac{c}{K}I_K.
-\]
 ++++
 
 Combining the two steps gives the unique minimizer under fixed total variance:
 
 [latexmath]
 ++++
-\[
 p^*(z)
 =
 \mathcal N\!\left(0,\frac{c}{K}I_K\right).
-\]
 ++++
 
 LeJEPA also considers other scalar covariance constraints, including determinant, Frobenius norm and spectral radius. For the specific constraints analysed in the paper, the minimizer remains an isotropic Gaussian with the scale selected to satisfy the constraint.
@@ -2067,11 +1849,9 @@ Suppose two embedding distributions have the same mean and covariance. They need
 
 [latexmath]
 ++++
-\[
 \varphi_{\mathrm{normal}}(t)=e^{-t^2/2},
 \qquad
 \varphi_{\mathrm{two\ point}}(t)=\cos(t).
-\]
 ++++
 
 The first two moments therefore do not identify the distribution. Matching a finite number of additional moments still does not identify a general probability distribution. For a particular target family, moment constraints may be useful; they are not a general certificate of distributional equality.
@@ -2085,10 +1865,8 @@ For a scalar random variable latexmath:[U], its characteristic function is
 
 [latexmath]
 ++++
-\[
 \varphi_U(t)=\mathbb E[e^{itU}],
 \qquad t\in\mathbb R.
-\]
 ++++
 
 The characteristic function exists for every probability distribution because the complex exponential has unit magnitude. It uniquely determines the distribution of latexmath:[U].
@@ -2097,20 +1875,16 @@ For a standard normal random variable,
 
 [latexmath]
 ++++
-\[
 \varphi_0(t)=e^{-t^2/2}.
-\]
 ++++
 
 Given scalar samples latexmath:[u_1,\ldots,u_N], the empirical characteristic function is
 
 [latexmath]
 ++++
-\[
 \widehat\varphi_N(t)
 =
 \frac{1}{N}\sum_{n=1}^{N}e^{itu_n}.
-\]
 ++++
 
 It is a finite average of complex exponentials. Unlike high-order moments, it does not require raising samples to increasingly large powers. It is differentiable with respect to each sample, and its sums can be aggregated across distributed workers. Its integrand is bounded, which avoids the polynomial growth that can make high-order moment objectives difficult to optimize.
@@ -2124,32 +1898,26 @@ Let latexmath:[Z\in\mathbb R^K] be an embedding vector and let latexmath:[a\in\m
 
 [latexmath]
 ++++
-\[
 U_a=a^\top Z.
-\]
 ++++
 
 The Cramér–Wold theorem states that two probability distributions on latexmath:[\mathbb R^K] are equal if and only if all their one-dimensional linear projections have the same distribution:
 
 [latexmath]
 ++++
-\[
 a^\top X\overset{d}{=}a^\top Y
 \quad\text{for every }a\in\mathbb S^{K-1}
 \quad\Longleftrightarrow\quad
 X\overset{d}{=}Y.
-\]
 ++++
 
 For an isotropic Gaussian target,
 
 [latexmath]
 ++++
-\[
 Z\sim\mathcal N(0,I_K)
 \quad\Longrightarrow\quad
 a^\top Z\sim\mathcal N(0,1)
-\]
 ++++
 
 for every unit vector latexmath:[a]. A high-dimensional Gaussian-matching problem can therefore be examined through scalar normality tests along directions.
@@ -2165,20 +1933,16 @@ Let latexmath:[P_\theta] denote the distribution of learned embeddings and latex
 
 [latexmath]
 ++++
-\[
 P_\theta^{(a)}=(a^\top)_\#P_\theta,
 \qquad
 Q^{(a)}=(a^\top)_\#Q.
-\]
 ++++
 
 A one-dimensional goodness-of-fit statistic latexmath:[T] compares samples from latexmath:[P_\theta^{(a)}] with the standard-normal target. Repeating the comparison over a set of directions
 
 [latexmath]
 ++++
-\[
 \mathcal A=\{a_1,\ldots,a_M\}
-\]
 ++++
 
 produces directional evidence about the multivariate distribution.
@@ -2187,21 +1951,18 @@ The formal union-intersection test in LeJEPA aggregates directional statistics t
 
 [latexmath]
 ++++
-\[
 T_{\mathcal A}
 =
 \max_{a\in\mathcal A}
 T\!\left(
 \{a^\top z_n\}_{n=1}^{N}
 \right).
-\]
 ++++
 
 The maximum is natural for a statistical test: a sufficiently large discrepancy in any tested direction is evidence against the null. The training regularizer takes a different form. SIGReg averages the directional statistics:
 
 [latexmath]
 ++++
-\[
 \mathcal L_{\mathrm{SIGReg}}
 =
 \frac{1}{M}
@@ -2209,7 +1970,6 @@ The maximum is natural for a statistical test: a sufficiently large discrepancy 
 T\!\left(
 \{a_m^\top z_n\}_{n=1}^{N}
 \right).
-\]
 ++++
 
 The average distributes gradient contributions across sampled directions. A maximum can concentrate the optimization signal on the current worst direction, leaving the other directions with no direct contribution at that step. The maximum and the average therefore serve different roles: the former is a test statistic, the latter a practical training objective. (Balestriero and LeCun, 2025)
@@ -2221,18 +1981,15 @@ LeJEPA uses the Epps–Pulley test to compare empirical and target characteristi
 
 [latexmath]
 ++++
-\[
 \widehat\varphi_N(t)
 =
 \frac{1}{N}\sum_{n=1}^{N}e^{itu_n}.
-\]
 ++++
 
 The Epps–Pulley statistic is
 
 [latexmath]
 ++++
-\[
 T_{\mathrm{EP}}
 =
 N\int_{-\infty}^{\infty}
@@ -2242,16 +1999,13 @@ N\int_{-\infty}^{\infty}
 w(t)\,dt,
 \qquad
 \varphi_0(t)=e^{-t^2/2}.
-\]
 ++++
 
 The paper writes the frequency window as
 
 [latexmath]
 ++++
-\[
 w(t)=e^{-t^2/\sigma^2}.
-\]
 ++++
 
 Its displayed Algorithm 1 evaluates the integral on 17 points over latexmath:[[-5,5]], constructs the standard-normal characteristic function using latexmath:[\exp(-t^2/2)], and uses that same sampled Gaussian vector to weight the squared empirical-to-target discrepancy. The mathematical roles remain distinct: the target characteristic function specifies the null distribution, while latexmath:[w(t)] specifies frequency weighting. The paper’s equation and algorithm should therefore be quoted at their respective levels rather than inferring a bandwidth setting that is not explicit in the implementation listing.
@@ -2267,32 +2021,26 @@ For a batch of embeddings latexmath:[z_1,\ldots,z_N], sample unit directions by 
 
 [latexmath]
 ++++
-\[
 a_m=\frac{g_m}{\|g_m\|_2},
 \qquad
 g_m\sim\mathcal N(0,I_K).
-\]
 ++++
 
 For each direction, project every embedding:
 
 [latexmath]
 ++++
-\[
 u_{n,m}=a_m^\top z_n.
-\]
 ++++
 
 Compute the one-dimensional Epps–Pulley statistic for the latexmath:[N] projected samples, then average over directions:
 
 [latexmath]
 ++++
-\[
 \mathcal L_{\mathrm{SIGReg}}(Z)
 =
 \frac{1}{M}\sum_{m=1}^{M}
 T_{\mathrm{EP}}(u_{1,m},\ldots,u_{N,m}).
-\]
 ++++
 
 The directions are resampled during training. The reference implementation seeds the direction sampler from the global training step so that distributed workers use synchronized projections. Each minibatch therefore sees a new sketch of the same embedding distribution. The cumulative number of directions sampled over training can be much larger than the number evaluated in any one minibatch.
@@ -2323,38 +2071,32 @@ For each observation, let latexmath:[z_{n,v}] be the embedding of view latexmath
 
 [latexmath]
 ++++
-\[
 \mu_n
 =
 \frac{1}{V_g}\sum_{v=1}^{V_g}z_{n,v}.
-\]
 ++++
 
 A view-agreement term draws every view embedding toward this global-view centre:
 
 [latexmath]
 ++++
-\[
 \mathcal L_{\mathrm{pred}}
 =
 \frac{1}{NV}
 \sum_{n=1}^{N}
 \sum_{v=1}^{V}
 \|\mu_n-z_{n,v}\|_2^2.
-\]
 ++++
 
 SIGReg is applied to the embedding distribution of the views. The total objective is
 
 [latexmath]
 ++++
-\[
 \mathcal L_{\mathrm{LeJEPA}}
 =
 (1-\alpha)\mathcal L_{\mathrm{pred}}
 +
 \alpha\mathcal L_{\mathrm{SIGReg}},
-\]
 ++++
 
 where latexmath:[\alpha] is the single trade-off parameter between view agreement and distribution matching.
@@ -2363,7 +2105,6 @@ This construction differs from an EMA teacher-predictor system. In the base LeJE
 
 [latexmath]
 ++++
-\[
 \mathcal L_{\mathrm{LeJEPA}}
 =
 (1-\alpha)\mathcal L_{\mathrm{pred}}
@@ -2374,7 +2115,6 @@ This construction differs from an EMA teacher-predictor system. In the base LeJE
 \left(
 \{z_{n,v}\}_{n=1}^{N}
 \right).
-\]
 ++++
 
 Here latexmath:[\mathcal L_{\mathrm{pred}}] averages the squared distance between every view and the per-sample mean of the global-view embeddings. The outer coefficient latexmath:[\alpha] is the single trade-off hyperparameter in the method’s stated objective. SIGReg does not regularize one pooled collection formed by mixing all views into a single batch; each view distribution is tested separately. This distinction is relevant because crop scales and augmentation distributions can differ between global and local views. (Balestriero and LeCun, 2025)
@@ -2425,11 +2165,9 @@ Let the embeddings of a batch be latexmath:[Z\in\mathbb R^{N\times D}], with lat
 
 [latexmath]
 ++++
-\[
 \mu=\frac{1}{N}\sum_{n=1}^{N}z_n,
 \qquad
 \widehat Z=Z-\mu.
-\]
 ++++
 
 Three distinct properties can now be considered.
@@ -2449,13 +2187,11 @@ Let latexmath:[\sigma_j(\widehat Z)] denote the batch standard deviation of coor
 
 [latexmath]
 ++++
-\[
 \mathcal L_{\mathrm{scale}}
 =
 \frac{1}{D}
 \sum_{j=1}^{D}
 \left(1-\sigma_j(\widehat Z)\right)^2.
-\]
 ++++
 
 The target standard deviation is one in each coordinate. The term penalizes both contraction below unit scale and expansion above it. Its minimum is attained when every coordinate has unit batch standard deviation.
@@ -2464,12 +2200,10 @@ The scalar derivative for coordinate latexmath:[j] is
 
 [latexmath]
 ++++
-\[
 \frac{\partial\mathcal L_{\mathrm{scale}}}
 {\partial\sigma_j}
 =
 -\frac{2}{D}(1-\sigma_j).
-\]
 ++++
 
 At zero standard deviation, this derivative remains finite and nonzero. The paper contrasts this scale signal with SIGReg’s characteristic-function gradient near collapsed embeddings, which diminishes in the collapse regime. The authors report controlled gradient comparisons in which the VISReg scale term supplies a corrective signal under the tested setup. This is not a universal lower bound on every encoder-parameter gradient: the chain rule through the batch standard deviation and the network still depends on the representation, architecture and numerical implementation. (Wu et al., 2026)
@@ -2481,12 +2215,10 @@ VISReg normalizes the centered batch coordinate-wise:
 
 [latexmath]
 ++++
-\[
 \widetilde Z
 =
 \frac{\widehat Z}
 {\operatorname{sg}(\sigma(\widehat Z))+\epsilon},
-\]
 ++++
 
 where latexmath:[\epsilon>0] stabilizes the denominator and latexmath:[\operatorname{sg}] denotes stop-gradient.
@@ -2504,21 +2236,17 @@ The shape term compares projected normalized embeddings with projections of a st
 
 [latexmath]
 ++++
-\[
 u_k=\widetilde Z w_k\in\mathbb R^N.
-\]
 ++++
 
 Let latexmath:[u_{k,(1)}\le\cdots\le u_{k,(N)}] denote the sorted projected values. Define the standard-normal reference quantiles by
 
 [latexmath]
 ++++
-\[
 r_i=\frac{i}{N+1},
 \qquad
 q_i=\Phi^{-1}(r_i),
 \qquad i=1,\ldots,N,
-\]
 ++++
 
 where latexmath:[\Phi] is the standard-normal cumulative distribution function.
@@ -2527,20 +2255,17 @@ For two equally weighted empirical distributions on the real line with the same 
 
 [latexmath]
 ++++
-\[
 W_2^2(\widehat P,\widehat Q)
 =
 \frac{1}{N}
 \sum_{i=1}^{N}
 \left(u_{(i)}-q_i\right)^2.
-\]
 ++++
 
 The factor latexmath:[1/N] is part of the empirical one-dimensional Wasserstein distance. The paper’s displayed shape objective is
 
 [latexmath]
 ++++
-\[
 \mathcal L_{\mathrm{shape}}
 =
 \frac{1}{K_s}
@@ -2548,7 +2273,6 @@ The factor latexmath:[1/N] is part of the empirical one-dimensional Wasserstein 
 \left\|
 \operatorname{sort}(\widetilde Z w_k)-q
 \right\|_2^2,
-\]
 ++++
 
 where latexmath:[K_s] is the number of slices. The accompanying Algorithm 1, however, computes `(p_sorted - target).pow(2).mean()`, which averages over both the latexmath:[N] samples and the latexmath:[K_s] slices. The code therefore includes a factor latexmath:[1/N] relative to the displayed squared-norm expression. This is a normalization discrepancy between the printed objective and the pseudocode, not a difference in the intended transport coupling. It changes the numerical scale of the regularizer with batch size and must be resolved against the exact implementation when reproducing loss weights or comparing reported coefficients.
@@ -2564,16 +2288,13 @@ The centering term is
 
 [latexmath]
 ++++
-\[
 \mathcal L_{\mathrm{center}}=\|\mu\|_2^2.
-\]
 ++++
 
 VISReg assigns separate weights to its three regularization components:
 
 [latexmath]
 ++++
-\[
 \mathcal L_{\mathrm{reg}}
 =
 \lambda_{\mathrm{scale}}\mathcal L_{\mathrm{scale}}
@@ -2581,46 +2302,39 @@ VISReg assigns separate weights to its three regularization components:
 \lambda_{\mathrm{shape}}\mathcal L_{\mathrm{shape}}
 +
 \lambda_{\mathrm{center}}\mathcal L_{\mathrm{center}}.
-\]
 ++++
 
 The method also retains a view-agreement signal. Let latexmath:[z_{n,v}] denote the embedding of sample latexmath:[n] in view latexmath:[v], with latexmath:[V_g] global views among latexmath:[V] total views. Define the centre of the global-view embeddings as
 
 [latexmath]
 ++++
-\[
 \mu_{g,n}
 =
 \frac{1}{V_g}
 \sum_{v=1}^{V_g}z_{n,v}.
-\]
 ++++
 
 A view-invariance term draws each view embedding toward that global-view mean:
 
 [latexmath]
 ++++
-\[
 \mathcal L_{\mathrm{pred}}
 =
 \frac{1}{NV}
 \sum_{n=1}^{N}
 \sum_{v=1}^{V}
 \|\mu_{g,n}-z_{n,v}\|_2^2.
-\]
 ++++
 
 The complete loss is
 
 [latexmath]
 ++++
-\[
 \mathcal L_{\mathrm{VISReg}}
 =
 (1-\lambda)\mathcal L_{\mathrm{pred}}
 +
 \lambda\mathcal L_{\mathrm{reg}}.
-\]
 ++++
 
 There are therefore four loss weights in the formulation: the outer latexmath:[\lambda], and the three component weights inside latexmath:[\mathcal L_{\mathrm{reg}}]. The default component weights are one in the stated baseline; the authors ablate and reweight them, finding that increasing the shape weight can help on low-quality datasets. They also report different useful outer latexmath:[\lambda] values for small and large datasets. These are optimization choices, not new terms in the objective. (Wu et al., 2026)
@@ -2632,9 +2346,7 @@ The regularization computation projects the latexmath:[N\times D] batch onto lat
 
 [latexmath]
 ++++
-\[
 O(NDK_s)+O(K_sN\log N).
-\]
 ++++
 
 Because latexmath:[\log N\ll D] at the scales considered, the paper treats the effective regularization complexity as latexmath:[O(NDK_s)]. This is linear in batch size, embedding dimension and number of slices when those are treated as separate scaling parameters.
@@ -2692,11 +2404,9 @@ A minimal mathematical description is
 
 [latexmath]
 ++++
-\[
 S_V=f_\theta\(X_V\),\qquad
 S_Y=e_\psi\(Y\),\qquad
 \widehat S_Y=p_\phi(S_V,X_Q).
-\]
 ++++
 
 The visual encoder latexmath:[f_\theta] converts an image or video into visual features. The target encoder latexmath:[e_\psi] maps the answer text to a continuous representation. The predictor latexmath:[p_\phi] combines the visual features with the query and estimates a vector in the target encoder’s space.
@@ -2714,7 +2424,6 @@ For normalized predicted and target embeddings (ar\{hat s}_i) and (ar s_i), a 
 
 [latexmath]
 ++++
-\[
 \mathcal L_{\widehat S\rightarrow S}
 =
 -\frac{1}{B}\sum_{i=1}^{B}
@@ -2725,7 +2434,6 @@ For normalized predicted and target embeddings (ar\{hat s}_i) and (ar s_i), a 
 \sum_{j=1}^{B}
 \exp(\bar{\hat s}_i^\top\bar s_j/\tau)
 },
-\]
 ++++
 
 where latexmath:[B] is the batch size and ( au) is a temperature. The reverse direction exchanges predicted and target embeddings. VL-JEPA averages the two directions, combining an alignment signal for paired examples with a uniformity pressure that discourages all examples from occupying the same representation.
@@ -2765,11 +2473,9 @@ The distinction can be expressed by comparing the two conditional computations:
 
 [latexmath]
 ++++
-\[
 \widehat S_Y=p_\phi(f_\theta\(X_V\),X_Q),
 \qquad
 \widehat S_{t+1}=F_\omega(S_t,A_t).
-\]
 ++++
 
 The first predicts a language-derived representation from visual evidence and a query. The second predicts a future state under a specified action. A prompt such as ``What would happen if the switch were pushed?'' asks for a hypothetical semantic answer, but the presence of hypothetical wording does not establish an intervention model. That requires action-conditioned data, an explicit control interface, appropriate action coverage, and evaluation of predicted state changes.
@@ -2794,7 +2500,6 @@ The high-level objective retains the structure of V-JEPA:
 
 [latexmath]
 ++++
-\[
 \mathcal L_{\mathrm{masked}}
 =
 \frac{1}{|M|}
@@ -2804,7 +2509,6 @@ P_\phi(E_\theta(x),\Delta_y)_i
 -
 \operatorname{sg}(E_{\bar\theta}(y)_i)
 \right\|_1,
-\]
 ++++
 
 where latexmath:[M] is the set of masked positions, latexmath:[x] is the masked context view, latexmath:[y] is the unmasked target view, and latexmath:[\Delta_y] contains the positions of the missing tokens. The stop-gradient operator detaches target features in the loss; the EMA rule updates the target encoder’s parameters. The formula is deliberately written at the level of the masked-token operation. The complete recipe also specifies data mixtures, temporal sampling, augmentations, architecture, optimization and model scale.
@@ -2820,18 +2524,14 @@ Suppose a model observes a sequence latexmath:[x_{1:t}] and predicts a future fe
 
 [latexmath]
 ++++
-\[
 p(z_{t+1}\mid x_{1:t}).
-\]
 ++++
 
 The distribution includes the actions that happened to be taken in the recorded trajectories, whether those actions are visible or not. It is not the same object as
 
 [latexmath]
 ++++
-\[
 p(z_{t+1}\mid x_{1:t},a_t),
-\]
 ++++
 
 where latexmath:[a_t] is a specified action whose consequence is being evaluated.
@@ -2855,16 +2555,13 @@ Let latexmath:[z_k=E(x_k)] be the frozen visual feature map at time latexmath:[k
 
 [latexmath]
 ++++
-\[
 (a_t,s_t,z_t)_{t\leq k}
-\]
 ++++
 
 and predicts the next visual feature map. A teacher-forcing loss compares the prediction at each step with the encoded feature of the observed next frame:
 
 [latexmath]
 ++++
-\[
 \mathcal L_{\mathrm{TF}}
 =
 \frac{1}{T}
@@ -2873,7 +2570,6 @@ and predicts the next visual feature map. A teacher-forcing loss compares the pr
 P_\phi\!\left((a_t,s_t,z_t)_{t\leq k}\right)
 -z_{k+1}
 \right\|_1.
-\]
 ++++
 
 Teacher forcing supplies the observed preceding feature at every training step. At inference time, however, the model must consume its own predicted features when rolling forward. This creates a training-inference mismatch: a predictor trained only with observed histories can accumulate error when its own estimates become part of the next input.
@@ -2882,24 +2578,20 @@ V-JEPA 2-AC therefore adds a short rollout loss. The predictor is run autoregres
 
 [latexmath]
 ++++
-\[
 \mathcal L_{\mathrm{rollout}}
 =
 \left\|
 P_\phi(a_{1:2};s_1,z_1)-z_3
 \right\|_1.
-\]
 ++++
 
 The complete objective is the sum of teacher-forcing and rollout terms:
 
 [latexmath]
 ++++
-\[
 \mathcal L_{\mathrm{AC}}
 =
 \mathcal L_{\mathrm{TF}}+\mathcal L_{\mathrm{rollout}}.
-\]
 ++++
 
 The two-step rollout is not a guarantee of long-horizon accuracy. It trains the predictor through one recurrent step beyond the teacher-forced transition, making the model experience a limited version of its own prediction errors. Longer rollouts would increase both the difficulty of optimization and the chance that errors in early predictions distort later inputs.
@@ -2911,13 +2603,11 @@ Once the model predicts future feature maps under proposed actions, a planner ca
 
 [latexmath]
 ++++
-\[
 \mathcal E(\hat a_{1:T};z_k,s_k,z_g)
 =
 \left\|
 P_\phi(\hat a_{1:T};s_k,z_k)-z_g
 \right\|_1.
-\]
 ++++
 
 The planner searches for an action sequence that reduces the discrepancy between the imagined future and the encoded goal. V-JEPA 2 uses the Cross-Entropy Method (CEM) to optimize the action sequence. At each iteration it samples candidate trajectories from a distribution over actions, evaluates their predicted feature-space outcomes, retains high-scoring candidates and updates the sampling distribution around them.
@@ -2957,29 +2647,24 @@ V-JEPA 2.1 adds a context loss to the original masked-token prediction loss. The
 
 [latexmath]
 ++++
-\[
 \lambda_i=\frac{\lambda}{\sqrt{d_{\min}(i,M)}}.
-\]
 ++++
 
 Visible tokens nearest to a masked region therefore receive the strongest context supervision. This choice encourages local continuity across the boundary between visible and masked regions, rather than imposing an equal identity-like target on every context token. The total dense prediction objective can be written schematically as
 
 [latexmath]
 ++++
-\[
 \mathcal L_{\mathrm{dense}}
 =
 \mathcal L_{\mathrm{predict}}
 +
 \mathcal L_{\mathrm{context}},
-\]
 ++++
 
 with
 
 [latexmath]
 ++++
-\[
 \mathcal L_{\mathrm{context}}
 =
 \frac{1}{|C|}
@@ -2990,7 +2675,6 @@ P_\phi(E_\theta(x),\Delta_y)_i
 -
 \operatorname{sg}(E_{\bar\theta}(y)_i)
 \right\|_1.
-\]
 ++++
 
 Here latexmath:[C] is the set of context positions and latexmath:[\lambda_i] is a position-dependent weight. The target encoder processes the unmasked input. The original masked-token loss remains in place; the new term extends self-supervision to visible positions. The weighting is intended to encourage local consistency without making the context objective equivalent to an unconstrained identity mapping over all visible tokens.
@@ -3058,22 +2742,18 @@ Let latexmath:[H_t] denote the available observation history up to time latexmat
 
 [latexmath]
 ++++
-\[
 P(O_{t+1}\mid H_t).
-\]
 ++++
 
 This distribution averages over the actions, policies and external influences present in the collected data. If the video was generated by a behaviour policy latexmath:[\pi], then schematically
 
 [latexmath]
 ++++
-\[
 P(O_{t+1}\mid H_t)
 =
 \int
 P(O_{t+1}\mid H_t,A_t=a)
 \,P_\pi(A_t=a\mid H_t)\,da.
-\]
 ++++
 
 The conditional future is therefore tied to the action distribution of the data-collection process. It does not directly specify what would happen under an arbitrary alternative action.
@@ -3089,40 +2769,32 @@ An action-conditioned model receives an explicit action variable. Its observatio
 
 [latexmath]
 ++++
-\[
 P(O_{t+1}\mid H_t,A_t).
-\]
 ++++
 
 This conditional is not automatically an interventional distribution. The quantity needed to answer what would happen if the system deliberately set the action to latexmath:[a] is
 
 [latexmath]
 ++++
-\[
 P(O_{t+1}\mid H_t,\operatorname{do}(A_t=a)).
-\]
 ++++
 
 The two distributions coincide only under additional assumptions about the state, data-collection policy and action support. In particular, the recorded history must contain the variables that jointly influence action selection and the next observation, and the dataset must include adequate support for the actions being evaluated. A latent predictive model can be written as
 
 [latexmath]
 ++++
-\[
 \widehat Z_{t+1}
 =
 g_\phi(Z_{\le t},A_t,U_t),
-\]
 ++++
 
 where latexmath:[Z_{\le t}] is a history of visual representations, latexmath:[A_t] is the action, and latexmath:[U_t] denotes additional state information such as joint positions or end-effector configuration. For a sequence of controls,
 
 [latexmath]
 ++++
-\[
 \widehat Z_{t+1:t+H}
 =
 g_\phi(Z_{\le t},A_{t:t+H-1},U_{\le t}).
-\]
 ++++
 
 The action is not a label attached to the predicted future after the fact. It is an input that distinguishes the candidate intervention whose consequence is being estimated.
@@ -3131,11 +2803,9 @@ The difference can be written directly:
 
 [latexmath]
 ++++
-\[
 P(Z_{t+1}\mid Z_{\le t})
 \qquad\text{versus}\qquad
 P(Z_{t+1}\mid Z_{\le t},A_t).
-\]
 ++++
 
 The second conditional is the model’s observational target when actions are recorded. It can support an estimate of the interventional quantity only when the data and modelling assumptions justify that identification. The first conditional marginalizes over the action distribution induced by the data-collection policy. Neither expression alone guarantees counterfactual validity.
@@ -3173,18 +2843,14 @@ Suppose two physical states latexmath:[x_1] and latexmath:[x_2] map to the same 
 
 [latexmath]
 ++++
-\[
 f_\theta(x_1)=f_\theta(x_2).
-\]
 ++++
 
 If the same action latexmath:[a] leads to different future distributions,
 
 [latexmath]
 ++++
-\[
 P(Y\mid x_1,a)\ne P(Y\mid x_2,a),
-\]
 ++++
 
 then no predictor receiving only this latent and the action can distinguish the two cases. The encoder has merged histories that the controlled prediction problem requires to remain separate.
@@ -3230,32 +2896,26 @@ Let latexmath:[z_t] denote the current latent state, latexmath:[a_t] a control i
 
 [latexmath]
 ++++
-\[
 \widehat z_{t+1}=g_\phi(z_t,a_t).
-\]
 ++++
 
 A model with observation history or proprioception can include those variables as additional inputs. For a candidate action sequence
 
 [latexmath]
 ++++
-\[
 \mathbf a_{t:t+H-1}
 =
 (a_t,a_{t+1},\ldots,a_{t+H-1}),
-\]
 ++++
 
 the model is iterated to produce a predicted latent trajectory:
 
 [latexmath]
 ++++
-\[
 \widehat z_{t+k+1}
 =
 g_\phi(\widehat z_{t+k},a_{t+k}),
 \qquad k=0,\ldots,H-1.
-\]
 ++++
 
 This is a model rollout. It is not a prediction of the real environment at every intermediate step. It is the trajectory implied by repeated application of the learned transition function.
@@ -3264,20 +2924,17 @@ A planner evaluates the candidate sequence using a cost. A simple goal-condition
 
 [latexmath]
 ++++
-\[
 J(\mathbf a_{t:t+H-1})
 =
 d(\widehat z_{t+H},z_g)
 +
 \sum_{k=0}^{H-1}c_a(a_{t+k}),
-\]
 ++++
 
 where latexmath:[z_g] is a goal representation, latexmath:[d] measures terminal mismatch, and latexmath:[c_a] penalizes action magnitude or another control preference. A more general objective can accumulate state costs:
 
 [latexmath]
 ++++
-\[
 J(\mathbf a)
 =
 \sum_{k=1}^{H}c_z(\widehat z_{t+k})
@@ -3285,7 +2942,6 @@ J(\mathbf a)
 \sum_{k=0}^{H-1}c_a(a_{t+k})
 +
 c_T(\widehat z_{t+H}).
-\]
 ++++
 
 The components have different meanings. The transition model predicts latent states. The goal or cost function evaluates them. The action penalty expresses a control preference. The planner searches over the sequence.
@@ -3299,20 +2955,16 @@ A common goal-conditioned setup supplies a target image latexmath:[o_g]. The cur
 
 [latexmath]
 ++++
-\[
 z_t=f_\theta(o_t),
 \qquad
 z_g=f_\theta(o_g).
-\]
 ++++
 
 For each candidate action sequence, the transition model predicts a future representation latexmath:[\widehat z_{t+H}]. The planner can then minimize a goal discrepancy such as
 
 [latexmath]
 ++++
-\[
 d(\widehat z_{t+H},z_g).
-\]
 ++++
 
 This avoids requiring the model to decode every predicted state into an image before the planner can compare it with the goal. It can also make the objective insensitive to appearance variation that the encoder has learned to ignore.
@@ -3330,9 +2982,7 @@ One option is gradient-based optimization. If the transition model and cost are 
 
 [latexmath]
 ++++
-\[
 \nabla_{\mathbf a}J(\mathbf a).
-\]
 ++++
 
 The optimizer changes the action sequence to reduce predicted cost. This is possible because the learned model is a differentiable computation graph. It does not imply that gradients pass through the physical environment. The agent optimizes actions inside its model, executes a selected action in the environment, and then obtains a new observation.
@@ -3341,10 +2991,8 @@ A derivative-free alternative is the cross-entropy method (CEM). It maintains a 
 
 [latexmath]
 ++++
-\[
 \mathbf a^{(i)}\sim q_\psi(\mathbf a),
 \qquad i=1,\ldots,N.
-\]
 ++++
 
 Each sampled sequence is rolled through the learned model and assigned a cost. The method selects an elite set with low predicted cost and refits the sampling distribution to those candidates. Repeating this procedure concentrates samples around sequences that the model predicts to be promising.
@@ -3362,12 +3010,10 @@ At time latexmath:[t], solve
 
 [latexmath]
 ++++
-\[
 \mathbf a^*_{t:t+H-1}
 =
 \arg\min_{\mathbf a_{t:t+H-1}}
 J_t(\mathbf a_{t:t+H-1}).
-\]
 ++++
 
 Execute latexmath:[a_t^*], observe the environment at latexmath:[t+1], update the representation and solve a new optimization problem. This is the receding-horizon principle used in model-predictive control.
@@ -3405,9 +3051,7 @@ A more complete model represents a conditional distribution,
 
 [latexmath]
 ++++
-\[
 p_\phi(z_{t+1:t+H}\mid z_{\le t},\mathbf a_{t:t+H-1}),
-\]
 ++++
 
 or a set of alternative hypotheses. A latent variable can index possible futures, but it must be structured so that it selects meaningful alternatives rather than simply copying the target.
@@ -3416,12 +3060,10 @@ A planner using uncertain predictions has to decide how to evaluate risk. It mig
 
 [latexmath]
 ++++
-\[
 J_{\mathrm{mean}}(\mathbf a)
 =
 \mathbb E_{Z\sim p_\phi(\cdot\mid\mathbf a)}
 [C(Z)],
-\]
 ++++
 
 or it might penalize high-cost tails, worst-case outcomes or violations of a chance constraint. These choices produce different behaviour. Expected cost can prefer a sequence with a small probability of catastrophic failure if most outcomes are cheap. A risk-sensitive objective can prefer a more conservative action.
@@ -3521,9 +3163,7 @@ Mode 1 selects an action directly from the current state, possibly using STM:
 
 [latexmath]
 ++++
-\[
 a_t=A_\psi(s_t,m_t),
-\]
 ++++
 
 where latexmath:[s_t] is the perceived state and latexmath:[m_t] denotes retrieved memory. The policy does not deliberately search through multi-step imagined action sequences for every decision.
@@ -3550,13 +3190,11 @@ For a deterministic model and an additive cost, the sequence objective can be wr
 
 [latexmath]
 ++++
-\[
 J(\mathbf a)
 =
 \sum_{k=1}^{H}C(\widehat s_{t+k})
 +
 \sum_{k=0}^{H-1}c_a(a_{t+k}).
-\]
 ++++
 
 When the learned model and cost are differentiable, the system can optimize candidate actions by gradients through the imagined rollout. For discrete actions or non-differentiable objectives, it can use other search or planning procedures. The model is used to evaluate candidates internally; only a selected action is executed in the world.
@@ -3574,14 +3212,12 @@ Let latexmath:[\widetilde a_t] be an action selected by Mode-2 planning for stat
 
 [latexmath]
 ++++
-\[
 \mathcal L_{\mathrm{distill}}(\psi)
 =
 \mathbb E_{s_t}
 \left[
 D\!\left(\widetilde a_t,A_\psi(s_t)\right)
 \right],
-\]
 ++++
 
 where latexmath:[D] is an action-space loss appropriate to the action representation. The resulting policy approximates the planner’s decision with a direct state-to-action mapping.
@@ -3612,11 +3248,9 @@ Let latexmath:[s_t^{(0)}] denote a fine-scale state representation. Higher level
 
 [latexmath]
 ++++
-\[
 \widehat s_{t+\Delta_k}^{(k)}
 =
 F_k(s_{\le t}^{(k)},u_{t:t+\Delta_k}).
-\]
 ++++
 
 The variable latexmath:[u] at a high level need not be a physical motor command. It can encode a subgoal or a constraint that a lower-level model must satisfy. A high-level predictor may specify that an object should be moved to a region. A lower-level predictor then determines which sequence of intermediate states and physical actions can realize that subgoal.
@@ -3634,11 +3268,9 @@ A latent variable latexmath:[z] can index alternative futures:
 
 [latexmath]
 ++++
-\[
 \widehat s_{t+1:t+H}
 =
 g_\phi(s_{\le t},\mathbf a,z).
-\]
 ++++
 
 Different values of latexmath:[z] can select different plausible continuations. In an energy-based formulation, the latent variable can select a configuration that reduces incompatibility between context and target. The latent should represent a restricted alternative, not an unrestricted copy of the target. Otherwise the model can transmit the answer through latexmath:[z] and make prediction trivial.
@@ -3696,19 +3328,15 @@ Let an image batch have shape
 
 [latexmath]
 ++++
-\[
 X\in\mathbb R^{B\times C\times H\times W}.
-\]
 ++++
 
 A patch embedding layer divides each image into latexmath:[N] patches and maps every patch to a latexmath:[D]-dimensional token:
 
 [latexmath]
 ++++
-\[
 T=\operatorname{PatchEmbed}(X)
 \in\mathbb R^{B\times N\times D}.
-\]
 ++++
 
 The transformer encoder operates on these tokens together with positional information. Before any masking, the image can therefore be viewed as a grid of feature locations. A mask does not simply delete arbitrary values from an already-computed feature vector. It defines which image patches are supplied to the context pathway and which positions are requested as targets.
@@ -3730,27 +3358,21 @@ For one image, the context encoder receives the visible context positions:
 
 [latexmath]
 ++++
-\[
 T_c=T[M_c].
-\]
 ++++
 
 The notation latexmath:[T[M]] denotes selection of the tokens indexed by mask latexmath:[M], not multiplication by a binary matrix. The context encoder processes only these visible tokens:
 
 [latexmath]
 ++++
-\[
 S_c=f_\theta(T_c).
-\]
 ++++
 
 If the context contains latexmath:[N_c] patches, then
 
 [latexmath]
 ++++
-\[
 S_c\in\mathbb R^{B\times N_c\times D}.
-\]
 ++++
 
 The context pathway does not need to run attention over the missing patches. This is one reason representation prediction can be less computationally expensive than a full-resolution reconstruction objective.
@@ -3764,31 +3386,25 @@ Write the target encoder as
 
 [latexmath]
 ++++
-\[
 S_t=f_{\bar\theta}(T)
 \in\mathbb R^{B\times N\times D}.
-\]
 ++++
 
 For target block latexmath:[i], select its target locations:
 
 [latexmath]
 ++++
-\[
 S_t^{(i)}=S_t[M_i]
 \in\mathbb R^{B\times N_i\times D}.
-\]
 ++++
 
 The target encoder parameters latexmath:[\bar\theta] do not receive the prediction-loss gradient. They are updated by an exponential moving average of the online/context encoder:
 
 [latexmath]
 ++++
-\[
 \bar\theta_{t+1}
 =
 m_t\bar\theta_t+(1-m_t)\theta_{t+1}.
-\]
 ++++
 
 The target branch is thus a slowly moving reference. It is neither a fixed pretrained network nor an independent network optimized by the same gradient as the context encoder.
@@ -3804,30 +3420,24 @@ For target block latexmath:[i], let
 
 [latexmath]
 ++++
-\[
 Q_i=\{q_j:j\in M_i\}
-\]
 ++++
 
 be the sequence of query tokens. Each token contains information about the position it represents. The predictor receives both the context features and the query:
 
 [latexmath]
 ++++
-\[
 \widehat S_t^{(i)}
 =
 g_\phi(S_c,Q_i).
-\]
 ++++
 
 Its output has the same shape as the selected target:
 
 [latexmath]
 ++++
-\[
 \widehat S_t^{(i)}
 \in\mathbb R^{B\times N_i\times D}.
-\]
 ++++
 
 This is not an ordinary decoder that reconstructs pixels. The query asks for features at specified positions, and the predictor returns vectors in the target encoder’s feature space.
@@ -3841,7 +3451,6 @@ For latexmath:[M] target blocks, I-JEPA averages a squared feature discrepancy o
 
 [latexmath]
 ++++
-\[
 \mathcal L_{\mathrm{I\text{-}JEPA}}
 =
 \frac{1}{M}
@@ -3849,7 +3458,6 @@ For latexmath:[M] target blocks, I-JEPA averages a squared feature discrepancy o
 D\!\left(
 \widehat S_t^{(i)},S_t^{(i)}
 \right),
-\]
 ++++
 
 where the paper equation averages over target blocks and sums squared Euclidean discrepancies over target positions. An implementation may add batch averaging or another explicit normalization; those choices change the loss scale and should be reported separately from the displayed paper equation.
@@ -3950,18 +3558,14 @@ An unconstrained agreement objective admits a constant representation as a globa
 
 [latexmath]
 ++++
-\[
 P(Y\mid X,A)=P(Y\mid Z,A).
-\]
 ++++
 
 The distribution of embeddings also matters to downstream estimation. Under the assumptions of the linear-probe analysis, covariance anisotropy can increase ridge bias for a task aligned with a weak feature direction and increase OLS coefficient variance at fixed total variance. For local nonlinear probes, the score of the embedding density enters the leading bias. Under the paper’s smoothness, gradient and covariance assumptions, the integrated bias depends on the Fisher-information functional
 
 [latexmath]
 ++++
-\[
 J(p)=\int\|\nabla\log p(z)\|_2^2p(z)\,dz.
-\]
 ++++
 
 For the estimator families and scalar covariance constraints analysed by LeJEPA, an isotropic Gaussian uniquely minimizes the relevant risk criteria. This is a conditional mathematical result, not a universal claim about every downstream task.
@@ -4009,11 +3613,9 @@ Compare
 
 [latexmath]
 ++++
-\[
 \inf_z E(x,y,z)
 \quad\text{and}\quad
 -\log\int e^{-E(x,y,z)}\,dz.
-\]
 ++++
 
 Construct a case with two equal low-energy latent configurations and a second case with one low-energy configuration. Explain how minimization and marginalization treat these cases differently.
@@ -4035,10 +3637,8 @@ For the objective
 
 [latexmath]
 ++++
-\[
 \mathcal L=
 \mathbb E\|f_\theta(X)-f_\theta(X')\|_2^2,
-\]
 ++++
 
 show that a constant representation is a global minimizer. Does adding an EMA target encoder change this algebraic fact about a constant solution? Explain the difference between a property of the objective and a statement about optimization dynamics.
@@ -4070,18 +3670,14 @@ Let latexmath:[p] be a mean-zero density with covariance latexmath:[\Sigma\succ0
 
 [latexmath]
 ++++
-\[
 \mathbb E[Z\nabla\log p(Z)^\top]=-I.
-\]
 ++++
 
 Then use positive semidefiniteness of an outer-product expectation to derive
 
 [latexmath]
 ++++
-\[
 J(p)\ge\operatorname{tr}(\Sigma^{-1}).
-\]
 ++++
 
 State the equality condition and identify the density that achieves it.
