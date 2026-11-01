@@ -6,7 +6,7 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 SRC=ROOT/"chapter04"
 OUT=Path(__file__).resolve().parent/"CH04_Dadwal_World_Models_in_Action.adoc"
-ORDER=["01_compatibility_and_energy.md","02_the_prediction_problem.md","03_ijepa_spatial_prediction.md","04_vjepa_spatiotemporal_prediction.md","05_degeneracy_and_collapse.md","06_predictive_sufficiency_and_geometry.md","07_linear_downstream_risk.md","08_nonlinear_risk_and_fisher_information.md","09_sigreg_and_distribution_sketching.md","10_visreg_scale_and_shape.md","11_vjepa2_action_conditioning_and_dense_features.md","12_action_conditioned_prediction.md","13_planning_and_model_error.md","14_hierarchy_memory_and_agent_architecture.md","15_reading_a_jepa_training_step.md","16_synthesis_and_exercises.md"]
+ORDER=["01_compatibility_and_energy.md","02_the_prediction_problem.md","03_ijepa_spatial_prediction.md","04_vjepa_spatiotemporal_prediction.md","05_degeneracy_and_collapse.md","06_predictive_sufficiency_and_geometry.md","07_linear_downstream_risk.md","08_nonlinear_risk_and_fisher_information.md","09_sigreg_and_distribution_sketching.md","10_visreg_scale_and_shape.md","11_vl_jepa_cross_modal_prediction.md","12_vjepa2_action_conditioning_and_dense_features.md","13_action_conditioned_prediction.md","14_planning_and_model_error.md","15_hierarchy_memory_and_agent_architecture.md","16_reading_a_jepa_training_step.md","17_synthesis_and_exercises.md"]
 def clean_headings(md):
     out=[]; fence=None
     for line in md.splitlines():

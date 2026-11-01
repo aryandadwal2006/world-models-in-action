@@ -3,8 +3,6 @@
 This directory contains the canonical, section-by-section reader-facing source of Chapter 4. Each numbered section is a separate Markdown file. The consolidated AsciiDoc and PDF are generated only after the sources and figures are checked.
 
 ## Governing argument
-A predictive representation is trained to make a selected target feature predictable from an allowed context. That objective does not by itself specify a sufficient physical state, identify action effects, or supply a planning objective. The chapter derives these distinctions from first principles rather than organizing itself as a survey.
-
 1. Compatibility, energy, probability and task cost.
 2. Context, target, query, target distribution and squared-error prediction.
 3. I-JEPA spatial context-to-target prediction.
@@ -15,18 +13,18 @@ A predictive representation is trained to make a selected target feature predict
 8. Nonlinear local-regression risk and Fisher information.
 9. Characteristic functions, Cramér–Wold and SIGReg.
 10. VISReg's separation of centre, scale and shape.
-11. V-JEPA 2's two-stage system and V-JEPA 2.1 dense-feature supervision.
-12. Action-conditioned prediction and intervention assumptions.
-13. Planning, feedback and model exploitation.
-14. Memory, hierarchy, Mode 1/Mode 2 and predictive-agent architecture.
-15. A tensor-level walkthrough of one JEPA training step.
-16. Synthesis and exercises.
-
+11. VL-JEPA and prediction of text embeddings from visual context.
+12. V-JEPA 2's two-stage system and V-JEPA 2.1 dense-feature supervision.
+13. Action-conditioned prediction and intervention assumptions.
+14. Planning, feedback and model exploitation.
+15. Memory, hierarchy, Mode 1/Mode 2 and predictive-agent architecture.
+16. A tensor-level walkthrough of one JEPA training step.
+17. Synthesis and exercises.
 ## Source files
-The 16 section files are named `01_...` through `16_...`. `references.md` is the reader-facing bibliography source, `figure-register.md` maps all embedded figures to their assets, and `source-audit.md` records the primary-source review and access limitations.
+The 17 section files are named `01_...` through `17_...`. `references.md` is the reader-facing bibliography source, `figure-register.md` maps all embedded figures to their assets, and `source-audit.md` records the primary-source review and access limitations.
 
 ## Figures
-The chapter embeds 33 original explanatory SVG diagrams from `../images/chapter04/`. They explain the derivations and information paths, are not copies or tracings of paper artwork, and remain editable vector assets.
+The chapter embeds 34 original explanatory SVG diagrams from `../images/chapter04/`. They explain the derivations and information paths, are not copies or tracings of paper artwork, and remain editable vector assets.
 
 ## Editorial and technical rules
 - Define mathematical objects before using them; derive central equations.

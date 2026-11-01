@@ -198,4 +198,4 @@ The worked example provides the operational interpretation of the central equati
 
 ![I JEPA training step and EMA target update](../images/chapter04/F28_training_step.svg)
 
-**Figure 4.32. One I-JEPA training step from patch tokens to target update.** The context and target branches process different inputs; position queries enter the predictor, and the loss compares predicted features with selected target features. The EMA update changes target parameters after the online optimizer step.
+**Figure 4.33. One I-JEPA training step from patch tokens to target update.** The context and target branches process different inputs; position queries enter the predictor, and the loss compares predicted features with selected target features. The EMA update changes target parameters after the online optimizer step.

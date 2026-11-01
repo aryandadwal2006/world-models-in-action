@@ -212,11 +212,11 @@ Changing the encoder addresses the first question. Adding an action-conditioned 
 
 ![Passive visual pretraining followed by action conditioned robot post training](../images/chapter04/F13_vjepa2_stages.svg)
 
-**Figure 4.23. V-JEPA 2 separates passive pretraining from robot post-training.** The visual encoder is pretrained on passive image and video data, then a separate action-conditioned predictor is trained on robot observations, actions and state. Planning evaluates candidate controls using the resulting model.
+**Figure 4.24. V-JEPA 2 separates passive pretraining from robot post-training.** The visual encoder is pretrained on passive image and video data, then a separate action-conditioned predictor is trained on robot observations, actions and state. Planning evaluates candidate controls using the resulting model.
 
 ![Masked only prediction and dense visible context supervision](../images/chapter04/F14_vjepa21_dense_supervision.svg)
 
-**Figure 4.24. V-JEPA 2.1 adds direct supervision to visible context tokens.** The base objective supervises masked tokens; V-JEPA 2.1 adds distance-weighted targets on visible tokens and uses multi-level supervision. This improves dense features without making the visual encoder action-conditioned.
+**Figure 4.25. V-JEPA 2.1 adds direct supervision to visible context tokens.** The base objective supervises masked tokens; V-JEPA 2.1 adds distance-weighted targets on visible tokens and uses multi-level supervision. This improves dense features without making the visual encoder action-conditioned.
 
 
 

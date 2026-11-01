@@ -152,4 +152,4 @@ Design an evaluation that separates frozen representation quality, action-condit
 
 ![Representation prediction dynamics and planning interfaces](../images/chapter04/F21_chapter_synthesis.svg)
 
-**Figure 4.33. Representation, prediction, dynamics and planning are separate interfaces.** The representation determines what information is retained, the prediction objective specifies a target, the transition model estimates consequences under actions, and the planner selects desirable actions. No single feature loss supplies the complete agent.
+**Figure 4.34. Representation, prediction, dynamics and planning are separate interfaces.** The representation determines what information is retained, the prediction objective specifies a target, the transition model estimates consequences under actions, and the planner selects desirable actions. No single feature loss supplies the complete agent.

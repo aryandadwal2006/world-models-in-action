@@ -195,12 +195,12 @@ A predictive model becomes useful for action only when it can be queried with in
 
 ![Receding horizon planning loop](../images/chapter04/F16_planning_loop.svg)
 
-**Figure 4.26. A planner executes the first action and replans.** Candidate action sequences are evaluated through imagined rollouts, but only the first action is executed. A fresh observation closes the feedback loop and starts the next optimization.
+**Figure 4.27. A planner executes the first action and replans.** Candidate action sequences are evaluated through imagined rollouts, but only the first action is executed. A fresh observation closes the feedback loop and starts the next optimization.
 
 ![Predicted trajectory versus real environment failure](../images/chapter04/F17_model_exploitation.svg)
 
-**Figure 4.27. Search can exploit prediction error.** An optimizer may find a sequence with deceptively low model-predicted cost that fails in the real environment. More search can intensify this failure by selecting optimistic model errors.
+**Figure 4.28. Search can exploit prediction error.** An optimizer may find a sequence with deceptively low model-predicted cost that fails in the real environment. More search can intensify this failure by selecting optimistic model errors.
 
 ![Multiple future outcomes from one context and action](../images/chapter04/F27_multiple_futures.svg)
 
-**Figure 4.28. A single deterministic prediction can hide multiple futures.** One context and action can admit several plausible outcomes. A distribution or latent selector can preserve these alternatives instead of collapsing them into one averaged feature.
+**Figure 4.29. A single deterministic prediction can hide multiple futures.** One context and action can admit several plausible outcomes. A distribution or latent selector can preserve these alternatives instead of collapsing them into one averaged feature.

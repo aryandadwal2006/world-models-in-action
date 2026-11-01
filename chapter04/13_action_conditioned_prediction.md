@@ -134,4 +134,4 @@ The transition from passive video to action-conditioned prediction is therefore 
 
 ![Observed behavior policy outcomes versus intervention](../images/chapter04/F15_intervention.svg)
 
-**Figure 4.25. Observed action conditioning is not automatically an intervention.** A behaviour policy produces observed actions and outcomes, while an intervention fixes an action to query a different future distribution. Identifying the latter requires alignment, action support and assumptions about confounding.
+**Figure 4.26. Observed action conditioning is not automatically an intervention.** A behaviour policy produces observed actions and outcomes, while an intervention fixes an action to query a different future distribution. Identifying the latter requires alignment, action support and assumptions about confounding.

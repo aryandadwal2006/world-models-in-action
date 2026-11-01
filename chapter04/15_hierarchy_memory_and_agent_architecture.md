@@ -167,12 +167,12 @@ No single feature-prediction loss provides all of these functions. The useful qu
 
 ![Six module predictive agent architecture](../images/chapter04/F18_agent_architecture.svg)
 
-**Figure 4.29. The proposed agent has six top-level modules.** Perception, World Model, Cost, Actor, Short-Term Memory and Configurator are the six top-level modules. Intrinsic Cost and Trainable Critic are subcomponents of Cost; the physical environment remains outside the model graph.
+**Figure 4.30. The proposed agent has six top-level modules.** Perception, World Model, Cost, Actor, Short-Term Memory and Configurator are the six top-level modules. Intrinsic Cost and Trainable Critic are subcomponents of Cost; the physical environment remains outside the model graph.
 
 ![Reactive Mode 1 and deliberative Mode 2](../images/chapter04/F19_mode1_mode2.svg)
 
-**Figure 4.30. Mode 1 is reactive; Mode 2 searches imagined futures.** Mode 1 maps state directly to action, while Mode 2 uses the world model and cost to evaluate candidate trajectories. Planner-generated actions can serve as training targets for a cheaper reactive policy.
+**Figure 4.31. Mode 1 is reactive; Mode 2 searches imagined futures.** Mode 1 maps state directly to action, while Mode 2 uses the world model and cost to evaluate candidate trajectories. Planner-generated actions can serve as training targets for a cheaper reactive policy.
 
 ![High level and low level predictive hierarchy](../images/chapter04/F20_hierarchy_memory.svg)
 
-**Figure 4.31. Hierarchical prediction separates time scales.** A high-level predictor proposes an abstract subgoal and a lower-level predictor refines it into intermediate states and actions. Memory and configuration can carry relevant context across the hierarchy.
+**Figure 4.32. Hierarchical prediction separates time scales.** A high-level predictor proposes an abstract subgoal and a lower-level predictor refines it into intermediate states and actions. Memory and configuration can carry relevant context across the hierarchy.
