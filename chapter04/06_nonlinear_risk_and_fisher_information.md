@@ -256,6 +256,29 @@ o(h^4).
 
 The kernel result additionally assumes a normalized, symmetric and isotropic kernel with finite roughness, a sufficiently light-tailed embedding density, and the usual small-bandwidth asymptotic regime. In particular, the pointwise expansion is stated where \(p(q)>0\), with \(h\to0\) and \(Nh^K\to\infty\). These conditions are not decorative details. They delimit the result.
 
+The pointwise variance also depends on the density:
+
+\[
+\operatorname{Var}[\widehat\eta_h(q)]
+\approx
+\frac{R(K)}{Nh^K}\frac{v(q)}{p(q)},
+\qquad
+R(K)=\int K(u)^2\,du,
+\]
+
+where \(v(q)=\operatorname{Var}(Y\mid Z=q)\). A query in a sparse part of the embedding distribution has fewer nearby training samples and therefore higher pointwise variance. But the paper evaluates the integrated variance under the same density used to sample queries. Multiplying by \(p(q)\) and integrating cancels the density:
+
+\[
+\begin{aligned}
+\mathcal V(h;p)
+&=\int \operatorname{Var}[\widehat\eta_h(q)]p(q)\,dq\\
+&\approx
+\frac{R(K)}{Nh^K}\int v(q)\,dq.
+\end{aligned}
+\]
+
+Under this evaluation measure, the leading integrated variance is independent of \(p\). The density-dependent optimization therefore enters through the integrated squared bias bound, while the leading integrated variance does not distinguish candidate embedding densities. This is a more precise statement than saying that every pointwise variance term is independent of the density.
+
 The Fisher-information functional appears because the local estimators are biased by nonuniform sample density. The representation controls that density. For the estimator families considered, the density score is therefore part of the downstream prediction error.
 
 ## 6.4 Why an isotropic Gaussian minimizes the functional
