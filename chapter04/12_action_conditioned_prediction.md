@@ -1,10 +1,10 @@
-# 9. From passive prediction to action-conditioned prediction
+# 12. From passive prediction to action-conditioned prediction
 
 A video contains changes in the world, but it does not necessarily reveal which changes would follow from a particular action. A model may predict what tends to happen after an observed history and still be unable to answer what would happen if an agent deliberately chose a different control input.
 
 The distinction is the difference between predicting an observation sequence and predicting the consequences of an intervention.
 
-## 9.1 The observational prediction problem
+## 12.1 The observational prediction problem
 
 Let \(H_t\) denote the available observation history up to time \(t\). A model trained only on passive video can learn a conditional distribution of the form
 
@@ -28,7 +28,7 @@ For example, a video may show a cup moving to the right. The movement could have
 
 This is not a criticism of passive video learning. It is a statement about the information available in the training problem. Passive video can teach appearance, motion regularities, object persistence and many other useful features. It cannot be assumed to identify the consequences of controls that were not represented or recorded.
 
-## 9.2 The controlled prediction problem
+## 12.2 The controlled prediction problem
 
 An action-conditioned model receives an explicit intervention variable. A one-step form is
 
@@ -64,7 +64,7 @@ P(Z_{t+1}\mid Z_{\le t},A_t).
 
 The second conditional can, in principle, answer how the predicted future changes with the action. The first cannot answer that question unless action effects are already identifiable from the observations and assumptions of the data-generating process.
 
-## 9.3 Recording an action is necessary but not sufficient
+## 12.3 Recording an action is necessary but not sufficient
 
 Adding an action vector to a neural network does not automatically make the learned predictor causal or reliable. The action must correspond to the transition it is meant to explain. This creates several requirements.
 
@@ -80,68 +80,16 @@ Adding an action vector to a neural network does not automatically make the lear
 
 The correct claim is therefore narrower than “adding actions produces a causal world model.” Action conditioning makes the intervention explicit in the model's input and training objective. Whether the resulting predictor identifies and generalizes action effects is an empirical and statistical question. (Assran et al., 2025)
 
-## 9.4 A staged example: V-JEPA 2 and V-JEPA 2-AC
+## 12.4 A concrete training pipeline
 
-V-JEPA 2 provides a concrete illustration of why passive representation learning and controlled prediction should be separated.
+The separation between passive representation learning and controlled prediction is not only conceptual. It determines how a training pipeline is organized. A visual encoder can first be trained on large image and video collections, where action labels are absent or unnecessary. The encoder can then be frozen while a second predictor is trained on aligned observation, action and state trajectories. The two stages optimize different conditional problems and should be evaluated separately.
 
-The first stage trains a large visual model on image and video data without requiring an action annotation for every visual sequence. Its objective is masked latent feature prediction. The paper reports more than one million hours of internet video and image pretraining and evaluates the frozen representation on motion-centric and appearance-centric tasks. This stage builds a broad visual encoder from passive observation. (Assran et al., 2025)
+V-JEPA 2 provides a detailed instance of this design. Its action-conditioned post-training, training data, prediction losses and image-goal planning interface are developed in Section 11. The general lesson is that a broad visual representation can supply the observation features, while a smaller action-conditioned model learns how those features change under a particular control interface. The second stage does not retroactively make the first-stage objective action-conditioned.
 
-The action-conditioned stage changes the prediction problem. V-JEPA 2-AC is an autoregressive model trained to predict future video representations conditioned on control actions and proprioceptive observations. The visual encoder is frozen during this post-training stage. Each frame is encoded independently into a spatial feature map; in the reported ViT-g setup, a map has (16\times16\times1408) entries. The predictor receives an interleaved history of visual features, end-effector states and actions.
+This modular design is useful when a large visual encoder is expensive to retrain or when the available robot data are much smaller than the passive video corpus. It also introduces an interface constraint: the action-conditioned predictor can only exploit information retained by the frozen encoder and the additional state inputs supplied to it. If an essential variable is absent from both, post-training cannot recover it from the input representation alone.
 
-The robot state is represented by seven values: three Cartesian position coordinates, three extrinsic Euler angles and one gripper-state value. Each action is a seven-dimensional change in end-effector state between adjacent frames. This is a particular action parameterization, not a generic representation of every robot command. The training data comprise about 23,000 DROID trajectories and less than 62 hours of robot video. (Assran et al., 2025)
 
-The training objective combines two losses. Teacher forcing predicts the next visual feature map from the preceding interleaved history:
-
-\[
-\mathcal L_{\mathrm{TF}}
-=
-\frac{1}{T}
-\sum_{k=1}^{T}
-\left\|
-P_\phi\big((a_t,s_t,z_t)_{t\le k}\big)-z_{k+1}
-\right\|_1.
-\]
-
-This term supplies a supervised transition target at each step, using the observed preceding states and features as inputs. A separate rollout term tests the predictor after it has begun consuming its own predicted state:
-
-\[
-\mathcal L_{\mathrm{rollout}}
-=
-\left\|
-P_\phi(a_{1:T},s_1,z_1)-z_{T+1}
-\right\|_1,
-\qquad T=2.
-\]
-
-The rollout term is short: the paper uses a two-step horizon and differentiates through one recurrent prediction step. The combined post-training loss is
-
-\[
-\mathcal L_{\mathrm{AC}}
-=
-\mathcal L_{\mathrm{TF}}
-+
-\mathcal L_{\mathrm{rollout}}.
-\]
-
-The distinction between the losses matters. Teacher forcing measures next-step prediction when the history is supplied from the observed trajectory. Rollout training begins to expose the predictor to the state-distribution shift created by feeding back its own predictions. It does not prove long-horizon accuracy, but it directly addresses a failure that a purely teacher-forced one-step objective would leave untested. (Assran et al., 2025)
-
-This sequence is not equivalent to passing an action token into the original action-free predictor at deployment. It adds a new learning stage with data that connect control inputs to subsequent visual outcomes. The distinction is central to the model's physical planning experiments.
-
-The reported image-goal planning demonstrations use Franka arms in two laboratories. The paper describes deployment in those test environments without collecting environment-specific robot data or requiring task-specific training or calibration for the evaluated tasks. The model nevertheless uses robot trajectory data during action-conditioned post-training. “Zero-shot” here does not mean that the system was trained without robot data or without a planner. It describes the relationship between the training environments and the evaluated deployment tasks.
-
-## 9.5 Prediction targets can also become denser
-
-Action conditioning is not the only way to change what a representation preserves. V-JEPA 2.1 changes the density and depth of feature supervision.
-
-The method applies its predictive loss to every token in the input, including both visible context tokens and masked tokens. This is a meaningful change from a loss applied only to masked targets. With masked-only supervision, the visible tokens can act as global aggregators: the model can use them to collect information useful for predicting the hidden region without being required to retain a locally grounded representation at each visible position. Applying the loss to visible and masked tokens constrains the representation across the full spatiotemporal grid.
-
-V-JEPA 2.1 also applies the self-supervised objective at multiple intermediate encoder layers. This deep self-supervision provides training signals throughout the encoder rather than only at its final representation. The model uses modality-specific tokenizers for images and videos within a shared encoder, allowing both modalities to contribute to training. These changes target dense spatial and temporal structure; they do not add control actions to the training objective. (Mur-Labadia et al., 2026)
-
-It does not make the representation action-conditioned. The V-JEPA 2.1 paper's robot-planning comparison uses an action-conditioned predictor and planner as part of the evaluation system. Its matched planning comparison reports 70% grasp success for the V-JEPA 2.1 visual representation and 60% for V-JEPA 2 under the same reported 800-sample, 10-iteration, one-step, 3-second planning setting. The paper also reports 80% grasp success with a longer, eight-step horizon and a larger planning budget of 300 samples and 15 iterations, taking 14 seconds rather than 3 seconds. Its abstract describes a 20-percentage-point improvement using this stronger configuration. The matched 800-sample, 10-iteration, one-step comparison is a 10-point improvement, from 60% to 70%. Both numbers are valid, but they answer different comparisons; each skill was evaluated over ten tasks. (Mur-Labadia et al., 2026)
-
-The distinction is useful: representation quality can affect the performance of an action-conditioned system without the representation-learning objective itself learning the action-conditioned transition.
-
-## 9.6 The target representation is part of the control interface
+## 12.6 The target representation is part of the control interface
 
 Suppose two physical states \(x_1\) and \(x_2\) map to the same latent representation,
 
@@ -161,7 +109,7 @@ This is the action-conditioned version of predictive sufficiency. A representati
 
 A target encoder trained for broad visual invariance may discard exactly the small detail that makes a manipulation action succeed or fail. This is why a strong frozen representation benchmark is not enough to establish a reliable action-conditioned world model.
 
-## 9.7 The transition model must be tested under interventions
+## 12.7 The transition model must be tested under interventions
 
 A controlled predictive model should be evaluated on more than feature similarity along recorded trajectories. The tests should distinguish whether it predicts the consequences of different actions from the same or comparable starting states.
 
