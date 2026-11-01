@@ -52,7 +52,7 @@ def convert(md):
                 j += 1
             if j == len(lines):
                 raise SystemExit("unclosed Pandoc latexmath block")
-            body = "\\n".join(lines[i + 2:j]).strip()
+            body = "\n".join(lines[i + 2:j]).strip()
             # Strip delimiters only when they enclose the entire TeX block.
             if body.startswith("$$"):
                 body = body[2:].lstrip()
@@ -68,7 +68,7 @@ def convert(md):
         # Pandoc normally emits inline math without dollar wrappers. Handle
         # the wrapped form too, then clear any remaining display delimiters.
         line = re.sub(
-            r"latexmath:\\[\\$+(.*?)\\$+\\]",
+            r"latexmath:\[\$+(.*?)\$+\]",
             lambda m: "latexmath:[" + m.group(1) + "]",
             line,
         )
@@ -76,12 +76,12 @@ def convert(md):
         output.append(line)
         i += 1
 
-    asciidoc = "\\n".join(output).replace(
+    asciidoc = "\n".join(output).replace(
         "image::../images/chapter04/",
         "image::chapter04/",
     )
     return re.sub(
-        r"(image::chapter04/[^\\[]+)\\[([^\\]]*)\\]",
+        r"(image::chapter04/[^\[]+)\[([^\]]*)\]",
         lambda m: m.group(1) + "[" + m.group(2) + ",width=100%]",
         asciidoc,
     )
