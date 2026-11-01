@@ -20,24 +20,10 @@ def clean_headings(md):
             line=re.sub(r"^(\s*#{1,6}\s+)\d+(?:\.\d+)*\.?\s+",r"\1",line)
         out.append(line)
     return "\n".join(out).strip()+"\n"
-def math(md):
-    out=[]; active=False
-    for line in md.splitlines():
-        s=line.strip()
-        if s==r"\[":
-            if active: raise SystemExit("nested display math")
-            active=True; out.append("$$")
-        elif s==r"\]":
-            if not active: raise SystemExit("unmatched display math closer")
-            active=False; out.append("$$")
-        elif not active: out.append(line.replace(r"\(","$").replace(r"\)","$"))
-        else: out.append(line)
-    if active: raise SystemExit("unclosed display math")
-    return "\n".join(out)
 def convert(md):
     result = subprocess.run(
-        ["pandoc", "--from=markdown+tex_math_dollars", "--to=asciidoc", "--wrap=none"],
-        input=math(md),
+        ["pandoc", "--from=markdown+tex_math_dollars+tex_math_single_backslash", "--to=asciidoc", "--wrap=none"],
+        input=md,
         text=True,
         capture_output=True,
         check=True,
