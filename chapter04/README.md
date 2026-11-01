@@ -23,20 +23,20 @@ The named systems are evidence and examples within this argument. They are not t
 
 | File | Purpose |
 |---|---|
-| \`01_compatibility_and_energy.md\` | Energy, compatibility, latent prediction and the distinction between scoring and probability |
-| \`02_the_prediction_problem.md\` | Context, target, query, target distribution, predictor and conditional-mean derivation |
-| \`03_degeneracy_and_collapse.md\` | Exact collapse solution and the limits of architectural stabilization |
-| \`04_predictive_sufficiency_and_geometry.md\` | Task-relative predictive sufficiency and the geometry of an embedding distribution |
-| \`05_linear_downstream_risk.md\` | Ridge bias, least-squares variance and covariance eigenvalues |
-| \`06_nonlinear_risk_and_fisher_information.md\` | Local estimators, score functions and Fisher information |
-| \`07_sigreg_and_distribution_sketching.md\` | Cramér–Wold, characteristic functions and SIGReg |
-| \`08_visreg_scale_and_shape.md\` | Centering, scale, sliced-Wasserstein shape and optimization |
-| \`09_action_conditioned_prediction.md\` | Interventions, action-conditioned latent dynamics and V-JEPA 2-AC |
-| \`10_planning_and_model_error.md\` | Goal costs, search, receding-horizon control and model exploitation |
-| \`11_hierarchy_memory_and_agent_architecture.md\` | Multiple futures, H-JEPA, Mode 1/Mode 2, STM and Configurator |
-| \`12_synthesis_and_exercises.md\` | Synthesis, limitations and derivation/design exercises |
-| \`references.md\` | Primary papers and implementation sources |
-| \`figure-register.md\` | Proposed figures, official-source candidates and reuse notes |
+| `01_compatibility_and_energy.md` | Energy, compatibility, latent prediction and the distinction between scoring and probability |
+| `02_the_prediction_problem.md` | Context, target, query, target distribution, predictor and conditional-mean derivation |
+| `03_degeneracy_and_collapse.md` | Exact collapse solution and the limits of architectural stabilization |
+| `04_predictive_sufficiency_and_geometry.md` | Task-relative predictive sufficiency and the geometry of an embedding distribution |
+| `05_linear_downstream_risk.md` | Ridge bias, least-squares variance and covariance eigenvalues |
+| `06_nonlinear_risk_and_fisher_information.md` | Local estimators, score functions and Fisher information |
+| `07_sigreg_and_distribution_sketching.md` | Cramér–Wold, characteristic functions and SIGReg |
+| `08_visreg_scale_and_shape.md` | Centering, scale, sliced-Wasserstein shape and optimization |
+| `09_action_conditioned_prediction.md` | Interventions, action-conditioned latent dynamics and V-JEPA 2-AC |
+| `10_planning_and_model_error.md` | Goal costs, search, receding-horizon control and model exploitation |
+| `11_hierarchy_memory_and_agent_architecture.md` | Multiple futures, H-JEPA, Mode 1/Mode 2, STM and Configurator |
+| `12_synthesis_and_exercises.md` | Synthesis, limitations and derivation/design exercises |
+| `references.md` | Primary papers and implementation sources |
+| `figure-register.md` | Proposed figures, official-source candidates and reuse notes |
 
 ## Editorial and technical rules
 
@@ -55,6 +55,6 @@ The named systems are evidence and examples within this argument. They are not t
 
 ## Source inventory
 
-The primary-source PDFs supplied for this chapter remain in \`rough-draft/chapter4/papers_pdfs/\`. The filenames and exact paper identities are mapped in \`references.md\`. The author's first-principles research notes remain in \`rough-draft/chapter4/jepa-notes.md\`. These inputs are source material, not reader-facing chapter sections. They are not modified by this chapter work.
+The primary-source PDFs supplied for this chapter remain in `rough-draft/chapter4/papers_pdfs/`. The filenames and exact paper identities are mapped in `references.md`. The author's first-principles research notes remain in `rough-draft/chapter4/jepa-notes.md`. These inputs are source material, not reader-facing chapter sections. They are not modified by this chapter work.
 
 The binary PDF files are present in the repository. The GitHub file connector can report their exact paths, sizes and blob identifiers but does not expose their binary bytes for extraction in this environment. Accordingly, the source review uses the matching versioned full-text papers and PDF page renders where available. Any PDF whose binary could not be retrieved is identified in the source-review record rather than falsely described as having been downloaded.
