@@ -27,6 +27,8 @@ def main():
             if j==len(lines): err.append(f"Unclosed math block at {i+1}"); break
             body="\n".join(lines[i+2:j]).strip()
             if not body: err.append(f"Empty math block at {i+1}")
+            if body.startswith(r"\\[") or body.endswith(r"\\]"):
+                err.append(f"Markdown display delimiters remain inside STEM block at {i+1}")
             blocks.append(body); i=j+1
         else: i+=1
     if len(blocks)<35: err.append(f"Expected >=35 display equations, got {len(blocks)}")
