@@ -96,6 +96,17 @@ Primary source: https://openreview.net/forum?id=BZ5a1r-kVsf
 
 Use in this chapter: energy-based compatibility, latent variables for alternative futures, the six-module agent proposal, Mode 1 and Mode 2, Mode-2-to-Mode-1 distillation, associative short-term memory, hierarchical prediction and the Configurator. The document is identified as a position paper and research proposal.
 
+## Additional background citations used in Chapter 4
+
+These papers are cited briefly for mechanisms already introduced in Chapter 3. The Chapter 4 discussion is limited to the role each mechanism plays in the collapse argument.
+
+- Chen, T., Kornblith, S., Norouzi, M., and Hinton, G. (2020). “A Simple Framework for Contrastive Learning of Visual Representations.” *Proceedings of the 37th International Conference on Machine Learning (ICML)*. arXiv:2002.05709.
+- Caron, M., Misra, I., Mairal, J., Goyal, P., Bojanowski, P., and Joulin, A. (2020). “Unsupervised Learning of Visual Features by Contrasting Cluster Assignments.” *Advances in Neural Information Processing Systems (NeurIPS)*. arXiv:2006.09882.
+- Grill, J.-B. et al. (2020). “Bootstrap Your Own Latent: A New Approach to Self-Supervised Learning.” *Advances in Neural Information Processing Systems (NeurIPS)*. arXiv:2006.07733.
+- Chen, X. and He, K. (2021). “Exploring Simple Siamese Representation Learning.” *Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)*. arXiv:2011.10566.
+- Zbontar, J. et al. (2021). “Barlow Twins: Self-Supervised Learning via Redundancy Reduction.” *Proceedings of the 38th International Conference on Machine Learning (ICML)*. arXiv:2103.03230.
+- Bardes, A., Ponce, J., and LeCun, Y. (2022). “VICReg: Variance-Invariance-Covariance Regularization for Self-Supervised Learning.” *International Conference on Learning Representations (ICLR)*. arXiv:2105.04906.
+
 ## Source-review record and access limitation
 
 The eight supplied filenames were mapped to paper identities by matching their arXiv identifiers, version labels and title-page metadata. The original PDF files remain in `rough-draft/chapter4/papers_pdfs/` and have not been modified.

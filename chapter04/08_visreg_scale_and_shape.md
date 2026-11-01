@@ -47,7 +47,7 @@ The scalar derivative for coordinate \(j\) is
 -\frac{2}{D}(1-\sigma_j).
 \]
 
-At zero standard deviation, this derivative remains finite and nonzero. The paper contrasts this scale signal with SIGReg's characteristic-function gradient near collapsed embeddings, which diminishes in the collapse regime. The authors report controlled gradient comparisons in which the VISReg scale term supplies a corrective signal under the tested setup. This is not a universal lower bound on every encoder-parameter gradient: the chain rule through the batch standard deviation and the network still depends on the representation, architecture and numerical implementation. [Wu, Balestriero, and Levine, 2026]
+At zero standard deviation, this derivative remains finite and nonzero. The paper contrasts this scale signal with SIGReg's characteristic-function gradient near collapsed embeddings, which diminishes in the collapse regime. The authors report controlled gradient comparisons in which the VISReg scale term supplies a corrective signal under the tested setup. This is not a universal lower bound on every encoder-parameter gradient: the chain rule through the batch standard deviation and the network still depends on the representation, architecture and numerical implementation. (Wu et al., 2026)
 
 ## 8.3 Removing scale from the shape comparison
 
@@ -111,7 +111,7 @@ The factor \(1/N\) is the one-dimensional empirical Wasserstein distance. In the
 
 Here \(K_s\) is the number of slices, not the embedding dimension. The published shape loss does not include an additional division by \(N\) outside the squared vector norm. This normalization convention matters when comparing the magnitudes of the scale, shape and center terms.
 
-The difference between SIGReg and VISReg lies in the one-dimensional statistic. SIGReg compares empirical characteristic functions with the target characteristic function. VISReg sorts projected samples and compares their empirical quantiles with Gaussian quantiles. Both use random projections, but they do not compute the same discrepancy. [Wu, Balestriero, and Levine, 2026]
+The difference between SIGReg and VISReg lies in the one-dimensional statistic. SIGReg compares empirical characteristic functions with the target characteristic function. VISReg sorts projected samples and compares their empirical quantiles with Gaussian quantiles. Both use random projections, but they do not compute the same discrepancy. (Wu et al., 2026)
 
 ## 8.5 Centre, scale and shape in one objective
 
@@ -163,7 +163,7 @@ The complete loss is
 \lambda\mathcal L_{\mathrm{reg}}.
 \]
 
-There are therefore four loss weights in the formulation: the outer \(\lambda\), and the three component weights inside \(\mathcal L_{\mathrm{reg}}\). The default component weights are one in the stated baseline; the authors ablate and reweight them, finding that increasing the shape weight can help on low-quality datasets. They also report different useful outer \(\lambda\) values for small and large datasets. These are optimization choices, not new terms in the objective. [Wu, Balestriero, and Levine, 2026]
+There are therefore four loss weights in the formulation: the outer \(\lambda\), and the three component weights inside \(\mathcal L_{\mathrm{reg}}\). The default component weights are one in the stated baseline; the authors ablate and reweight them, finding that increasing the shape weight can help on low-quality datasets. They also report different useful outer \(\lambda\) values for small and large datasets. These are optimization choices, not new terms in the objective. (Wu et al., 2026)
 
 ## 8.6 Computational scaling and distributed slices
 
@@ -175,13 +175,13 @@ O(NDK_s)+O(K_sN\log N).
 
 Because \(\log N\ll D\) at the scales considered, the paper treats the effective regularization complexity as \(O(NDK_s)\). This is linear in batch size, embedding dimension and number of slices when those are treated as separate scaling parameters.
 
-The number of slices needed for a good approximation can, however, grow with embedding dimension. The authors show empirically that a single-GPU setting often needs \(K_s=C D\) for some factor \(C>1\), which makes the effective projection cost approximately \(O(CND^2)\). They address this by generating independent slices across GPUs. With \(M\) devices, each device can process a fraction of the total slice set, and the partial losses can be aggregated. Their experiments show that increasing the number of devices can compensate for a smaller number of slices per device. The paper therefore argues that \(K_s\) can remain fixed per device while scaling the training setup. This is an empirical scaling strategy, not a theorem that a fixed finite set of directions identifies every distribution. [Wu, Balestriero, and Levine, 2026]
+The number of slices needed for a good approximation can, however, grow with embedding dimension. The authors show empirically that a single-GPU setting often needs \(K_s=C D\) for some factor \(C>1\), which makes the effective projection cost approximately \(O(CND^2)\). They address this by generating independent slices across GPUs. With \(M\) devices, each device can process a fraction of the total slice set, and the partial losses can be aggregated. Their experiments show that increasing the number of devices can compensate for a smaller number of slices per device. The paper therefore argues that \(K_s\) can remain fixed per device while scaling the training setup. This is an empirical scaling strategy, not a theorem that a fixed finite set of directions identifies every distribution. (Wu et al., 2026)
 
 ## 8.7 What the experiments support
 
 VISReg evaluates its regularizer through ablations, low-quality and long-tailed data, low-rank data, linear evaluation, transfer learning, out-of-distribution performance, dense prediction and image-generation guidance. The paper reports that the shape weight can be increased for low-quality datasets, that VISReg remains comparatively robust at lower slice counts, and that distributing slices across multiple GPUs can compensate for an insufficient per-device projection count.
 
-For downstream evaluation, the authors report that an ImageNet-22K-pretrained VISReg ViT-L/14 reaches an average score of 72.94 across their selected downstream datasets, compared with 72.93 for DINOv2-LVD142M in the reported table. This is a matched aggregate on the listed benchmarks, not evidence that the two methods are equivalent on every task. The paper also reports competitive OOD performance from ImageNet-1K pretraining and strong robustness in long-tailed and low-rank settings. [Wu, Balestriero, and Levine, 2026]
+For downstream evaluation, the authors report that an ImageNet-22K-pretrained VISReg ViT-L/14 reaches an average score of 72.94 across their selected downstream datasets, compared with 72.93 for DINOv2-LVD142M in the reported table. This is a matched aggregate on the listed benchmarks, not evidence that the two methods are equivalent on every task. The paper also reports competitive OOD performance from ImageNet-1K pretraining and strong robustness in long-tailed and low-rank settings. (Wu et al., 2026)
 
 These experiments support the proposed decomposition under the paper's architectures, data and optimization settings. They are not a theorem that every parameterization recovers from every collapsed initialization. A controlled gradient comparison does not prove that every network can recover from every degenerate state. An OOD score on a particular benchmark set does not establish universal superiority or task sufficiency.
 

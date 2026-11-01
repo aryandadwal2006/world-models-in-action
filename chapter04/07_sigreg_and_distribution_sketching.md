@@ -119,7 +119,7 @@ T\!\left(
 \right).
 \]
 
-The average distributes gradient contributions across sampled directions. A maximum can concentrate the optimization signal on the current worst direction, leaving the other directions with no direct contribution at that step. The maximum and the average therefore serve different roles: the former is a test statistic, the latter a practical training objective. [Balestriero and LeCun, 2025]
+The average distributes gradient contributions across sampled directions. A maximum can concentrate the optimization signal on the current worst direction, leaving the other directions with no direct contribution at that step. The maximum and the average therefore serve different roles: the former is a test statistic, the latter a practical training objective. (Balestriero and LeCun, 2025)
 
 ## 7.5 The Epps–Pulley statistic
 
@@ -155,7 +155,7 @@ In the reference implementation, the frequency window is the standard-normal cha
 
 The statistic compares the empirical characteristic function with the target over a range of frequencies. It is not a mean-and-variance penalty. Deviations in the shape of the projected distribution can affect the characteristic function even when the first two moments match.
 
-The implementation approximates the integral numerically. The reference algorithm uses trapezoidal quadrature over 17 points on the interval \([-5,5]\), and exploits the symmetry of the integrand to reduce the effective evaluation work. This is an implementation choice supported by the paper's ablations, not a mathematical requirement of the Epps–Pulley test. Changing the frequency range, quadrature grid or weight changes the finite numerical approximation. [Balestriero and LeCun, 2025]
+The implementation approximates the integral numerically. The reference algorithm uses trapezoidal quadrature over 17 points on the interval \([-5,5]\), and exploits the symmetry of the integrand to reduce the effective evaluation work. This is an implementation choice supported by the paper's ablations, not a mathematical requirement of the Epps–Pulley test. Changing the frequency range, quadrature grid or weight changes the finite numerical approximation. (Balestriero and LeCun, 2025)
 
 ## 7.6 From one projection to a minibatch objective
 
@@ -184,7 +184,7 @@ T_{\mathrm{EP}}(u_{1,m},\ldots,u_{N,m}).
 
 The directions are resampled during training. The reference implementation seeds the direction sampler from the global training step so that distributed workers use synchronized projections. Each minibatch therefore sees a new sketch of the same embedding distribution. The cumulative number of directions sampled over training can be much larger than the number evaluated in any one minibatch.
 
-This resampling has an important consequence. A small number of directions in one step does not mean the model is constrained to those same directions throughout training. LeJEPA reports that resampling as few as 16 directions per minibatch can outperform optimizing against a fixed set containing thousands of directions, because the sampled directions accumulate over training. This is an empirical property of the optimization setup, not an exact finite-step Cramér–Wold guarantee. [Balestriero and LeCun, 2025]
+This resampling has an important consequence. A small number of directions in one step does not mean the model is constrained to those same directions throughout training. LeJEPA reports that resampling as few as 16 directions per minibatch can outperform optimizing against a fixed set containing thousands of directions, because the sampled directions accumulate over training. This is an empirical property of the optimization setup, not an exact finite-step Cramér–Wold guarantee. (Balestriero and LeCun, 2025)
 
 The projection and characteristic-function operations can be written as matrix multiplication followed by complex-exponential evaluations and numerical integration. With the embedding dimension, number of slices and number of quadrature points fixed, the reference implementation is linear in minibatch size \(N\). More generally, the work depends on \(N\), embedding dimension \(K\), number of directions \(M\), and number of integration points. The paper's \(\mathcal O(N)\) statement refers to scaling in batch size for fixed sketch parameters; it should not be read as independence from projection count or feature dimension.
 
@@ -196,7 +196,7 @@ The empirical characteristic function is an average of bounded complex values. T
 
 This is a statement about the Epps–Pulley statistic and its inputs. It does not imply that the gradient of the complete neural network objective is bounded independently of the network architecture, parameterization or all optimization details.
 
-A finite minibatch also introduces bias in the statistic and its gradient. The paper derives an \(\mathcal O(1/N)\) term and reports that it is small in the tested settings, including minibatches as small as 16. U-statistic debiasing or sample splitting could provide unbiased alternatives, but those are not part of the reference training procedure. The training loss is thus a finite-sample estimate, not an exact population test. [Balestriero and LeCun, 2025]
+A finite minibatch also introduces bias in the statistic and its gradient. The paper derives an \(\mathcal O(1/N)\) term and reports that it is small in the tested settings, including minibatches as small as 16. U-statistic debiasing or sample splitting could provide unbiased alternatives, but those are not part of the reference training procedure. The training loss is thus a finite-sample estimate, not an exact population test. (Balestriero and LeCun, 2025)
 
 There is a related statistical caution. In classical hypothesis testing, failing to reject a null hypothesis does not prove that the null is true. It says only that the observed sample did not supply sufficient evidence against it at the selected test level. Training minimizes a regularizer rather than making a one-shot accept/reject decision, but the logical distinction remains: a small finite-sample projection statistic is evidence of approximate matching under the sampled directions and frequencies, not a certificate of exact population Gaussianity.
 
@@ -235,7 +235,7 @@ SIGReg is applied to the embedding distribution of the views. The total objectiv
 
 where \(\alpha\) is the single trade-off parameter between view agreement and distribution matching.
 
-This construction differs from an EMA teacher-predictor system. In the base LeJEPA recipe, the mean of the global-view embeddings provides the centre toward which all global and local views are drawn. The method does not require an EMA target encoder, a stop-gradient target branch or a separate predictor network. The SIGReg term is averaged over the view embeddings. This is consistent with the information structure discussed earlier: a predictor is useful when the target contains asymmetric information that must be inferred from the context, but is not mandatory for symmetric view agreement. [Balestriero and LeCun, 2025]
+This construction differs from an EMA teacher-predictor system. In the base LeJEPA recipe, the mean of the global-view embeddings provides the centre toward which all global and local views are drawn. The method does not require an EMA target encoder, a stop-gradient target branch or a separate predictor network. The SIGReg term is averaged over the view embeddings. This is consistent with the information structure discussed earlier: a predictor is useful when the target contains asymmetric information that must be inferred from the context, but is not mandatory for symmetric view agreement. (Balestriero and LeCun, 2025)
 
 ## 7.9 What SIGReg makes possible
 
