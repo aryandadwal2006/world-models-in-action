@@ -38,12 +38,12 @@ def main():
     err += ["Missing figure caption: "+x for x in sorted(expected-found)]
     err += ["Unexpected figure caption: "+x for x in sorted(found-expected)]
     images=re.findall(r"image::([^\[]+)\[",doc)
-    if len(images)!=34: err.append(f"Expected 33 embedded figures, found {len(images)}")
+    if len(images)!=34: err.append(f"Expected 34 embedded figures, found {len(images)}")
     for rel in images:
         path=(ROOT/"images"/rel).resolve()
         if not path.is_file(): err.append("Missing image asset: "+rel)
     svgs=list(IMG.glob("*.svg"))
-    if len(svgs)!=34: err.append(f"Expected 33 chapter SVGs, found {len(svgs)}")
+    if len(svgs)!=34: err.append(f"Expected 34 chapter SVGs, found {len(svgs)}")
     for p in svgs:
         try: ET.parse(p)
         except (ET.ParseError,OSError) as ex: err.append(f"Invalid SVG {p.name}: {ex}")

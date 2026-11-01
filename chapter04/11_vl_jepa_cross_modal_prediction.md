@@ -53,11 +53,11 @@ The text decoder is not required for the main embedding-prediction loss. It is u
 
 For retrieval, the predicted feature can be compared with embeddings of candidate texts. For classification, candidate label descriptions can be encoded and ranked against it. Neither operation requires generating a sentence token by token. Captioning and open-ended question answering do require readable language, so a decoder is needed for those outputs.
 
-The published VL-JEPA instantiation uses a frozen V-JEPA 2 ViT-L visual encoder. Its predictor is initialized from Transformer layers of Llama 3.2, while the target text encoder is initialized from EmbeddingGemma. Projection heads map predicted and target features into a shared 1,536-dimensional space. Visual tokens and query tokens are jointly attended by the predictor. These are implementation choices in the paper, not defining requirements of cross-modal prediction.
+The published VL-JEPA instantiation uses a frozen V-JEPA 2 ViT-L visual encoder. Its predictor is initialized from Transformer layers of Llama 3.2, while the target text encoder is initialized from EmbeddingGemma. Projection heads map predicted and target features into a shared 1,536-dimensional space. Visual tokens and query tokens are jointly attended by the predictor. These are implementation choices in the paper, not defining requirements of cross-modal prediction (Chen et al., 2026).
 
-Training is staged. An initial large-scale phase learns visual-text alignment from image-text and video-text pairs without task queries. A second, query-conditioned supervised fine-tuning phase introduces tasks such as visual question answering while retaining the pretrained alignment used for classification and retrieval. The two phases expose the model to different query distributions and should not be conflated.
+Training is staged. An initial large-scale phase learns visual-text alignment from image-text and video-text pairs without task queries. A second, query-conditioned supervised fine-tuning phase introduces tasks such as visual question answering while retaining the pretrained alignment used for classification and retrieval. The two phases expose the model to different query distributions and should not be conflated (Chen et al., 2026).
 
-The embedding/decoder separation also permits selective decoding. A system can update a stream of semantic embeddings as video frames arrive and invoke the text decoder only when the representation changes enough to warrant a new description. On the paper's EgoExo4D evaluation, selective decoding at 0.35 Hz matched the reported performance of uniform decoding at 1 Hz, using approximately 2.85 times fewer decoding operations. This is a result for that protocol, not a general latency guarantee.
+The embedding/decoder separation also permits selective decoding. A system can update a stream of semantic embeddings as video frames arrive and invoke the text decoder only when the representation changes enough to warrant a new description. On the paper's EgoExo4D evaluation, selective decoding at 0.35 Hz matched the reported performance of uniform decoding at 1 Hz, using approximately 2.85 times fewer decoding operations. This is a result for that protocol, not a general latency guarantee (Chen et al., 2026).
 
 ![VL-JEPA visual context, query and text-target pathways](../images/chapter04/F34_vljepa_cross_modal_prediction.svg)
 
@@ -67,7 +67,7 @@ The embedding/decoder separation also permits selective decoding. A system can u
 
 ## 11.4 A language query is not a physical action
 
-VL-JEPA evaluates semantic tasks that include action anticipation and next-step forecasting. Their outputs are descriptions or labels inferred from video context. These evaluations show that a visual representation can support useful predictions about likely events or human actions. They do not establish that the model can compare candidate robot commands or predict the physical consequences of a selected control.
+VL-JEPA evaluates semantic tasks that include action anticipation and next-step forecasting. Their outputs are descriptions or labels inferred from video context. These evaluations show that a visual representation can support useful predictions about likely events or human actions (Chen et al., 2026). They do not establish that the model can compare candidate robot commands or predict the physical consequences of a selected control.
 
 The distinction can be expressed by comparing the two conditional computations:
 

@@ -9,11 +9,11 @@ for term in "World Models in Action" "Predicting in representation space" "This 
 done
 all="$(pdftotext -layout "$pdf" -)"
 if grep -Eqi 'stem [0-9a-f]{24,}' <<<"$all"; then echo "ERROR: STEM placeholder rendered." >&2; exit 1; fi
-for n in $(seq 1 33); do
+for n in $(seq 1 34); do
   grep -Eq "Figure 4\\."$n"([[:space:]]|$|[-–])" <<<"$all" || { echo "ERROR: missing figure caption 4.$n" >&2; exit 1; }
 done
 if grep -Fqi "Table of Contents" <<<"$all"; then echo "ERROR: unexpected table of contents." >&2; exit 1; fi
 pdffonts "$pdf" | grep -qi "LiberationSerif" || { echo "ERROR: Liberation Serif not embedded." >&2; exit 1; }
 if pdfinfo "$pdf" | grep -Eqi '^Page size:.*A4'; then echo "ERROR: expected US Letter." >&2; exit 1; fi
-echo "OK: opener, 33 figure captions, embedded serif font and Letter page verified."
+echo "OK: opener, 34 figure captions, embedded serif font and Letter page verified."
 pdfinfo "$pdf" | grep -E '^(Pages|Page size|File size):'

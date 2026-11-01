@@ -125,6 +125,7 @@ World Models in Action
 This chapter covers
 
 * Spatial and spatiotemporal JEPA prediction, from I-JEPA to V-JEPA
+* Cross-modal prediction into language embeddings
 * Collapse, predictive sufficiency, and the statistical geometry of embeddings
 * LeJEPA/SIGReg and VISReg as distributional regularizers
 * Action-conditioned prediction, planning, memory, hierarchy, and predictive-agent design

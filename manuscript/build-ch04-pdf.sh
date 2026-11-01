@@ -9,7 +9,7 @@ python3 ./verify-ch04-manuscript.py
 bundle install
 bundle exec asciidoctor-pdf \
   -r ./sectnumoffset-treeprocessor.rb \
-  -r asciidoctor-mathematical \
+  -r asciidoctor-pdf-mathjax \
   -a doctype=article \
   -a notitle \
   -a toc! \
@@ -17,7 +17,6 @@ bundle exec asciidoctor-pdf \
   -a pdf-theme=manning-preview-theme.yml \
   -a pdf-themesdir=. \
   -a stem=latexmath \
-  -a mathematical-format=svg \
   -a allow-uri-read \
   -o CH04_Dadwal_World_Models_in_Action.pdf \
   CH04_Dadwal_World_Models_in_Action.adoc
