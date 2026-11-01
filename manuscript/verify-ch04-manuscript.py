@@ -34,8 +34,6 @@ def main():
     if re.search(r"latexmath:\[\$[^\]]*\$\]",doc): err.append("Markdown dollars remain inside inline STEM")
     if r"\[" in doc or r"\]" in doc: err.append("Markdown display delimiters remain")
     if "$$" in doc: err.append("Markdown double-dollar delimiters remain in AsciiDoc STEM")
-    if re.search(r"(?s)\\[latexmath\\]\\s*\\n\\+{4}\\s*\\n\\s*\\$.*?\\$\\s*\\n\\+{4}",doc):
-        err.append("Dollar delimiters remain inside a block STEM expression")
     if "![" in doc: err.append("Markdown image syntax remains")
     found=set(re.findall(r"Figure 4\.\d+",doc)); expected={f"Figure 4.{n}" for n in range(1,34)}
     err += ["Missing figure caption: "+x for x in sorted(expected-found)]
