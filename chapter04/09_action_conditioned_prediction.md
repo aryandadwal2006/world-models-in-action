@@ -84,9 +84,46 @@ The correct claim is therefore narrower than “adding actions produces a causal
 
 V-JEPA 2 provides a concrete illustration of why passive representation learning and controlled prediction should be separated.
 
-The first stage trains a large visual model on image and video data without requiring an action annotation for every visual sequence. Its objective is masked latent feature prediction. The paper reports more than one million hours of internet video and image pretraining and evaluates the frozen representation on motion-centric and appearance-centric tasks. This stage builds a broad visual encoder from passive observation. [Assran et al., 2025]
+The first stage trains a large visual model on image and video data without requiring an action annotation for every visual sequence. Its objective is masked latent feature prediction. The paper reports more than one million hours of internet video and image pretraining and evaluates the frozen representation on motion-centric and appearance-centric tasks. This stage builds a broad visual encoder from passive observation. (Assran et al., 2025)
 
-The action-conditioned stage changes the prediction problem. V-JEPA 2-AC is an autoregressive model trained to predict future video representations conditioned on control actions and proprioceptive observations. The training uses robot trajectories from DROID, comprising about 23,000 trajectories and less than 62 hours of robot video. This is a separate post-training stage, not an action input retrofitted at inference time into the action-free pretraining objective. [Assran et al., 2025]
+The action-conditioned stage changes the prediction problem. V-JEPA 2-AC is an autoregressive model trained to predict future video representations conditioned on control actions and proprioceptive observations. The visual encoder is frozen during this post-training stage. Each frame is encoded independently into a spatial feature map; in the reported ViT-g setup, a map has (16\times16\times1408) entries. The predictor receives an interleaved history of visual features, end-effector states and actions.
+
+The robot state is represented by seven values: three Cartesian position coordinates, three extrinsic Euler angles and one gripper-state value. Each action is a seven-dimensional change in end-effector state between adjacent frames. This is a particular action parameterization, not a generic representation of every robot command. The training data comprise about 23,000 DROID trajectories and less than 62 hours of robot video. (Assran et al., 2025)
+
+The training objective combines two losses. Teacher forcing predicts the next visual feature map from the preceding interleaved history:
+
+\[
+\mathcal L_{\mathrm{TF}}
+=
+\frac{1}{T}
+\sum_{k=1}^{T}
+\left\|
+P_\phi\big((a_t,s_t,z_t)_{t\le k}\big)-z_{k+1}
+\right\|_1.
+\]
+
+This term supplies a supervised transition target at each step, using the observed preceding states and features as inputs. A separate rollout term tests the predictor after it has begun consuming its own predicted state:
+
+\[
+\mathcal L_{\mathrm{rollout}}
+=
+\left\|
+P_\phi(a_{1:T},s_1,z_1)-z_{T+1}
+\right\|_1,
+\qquad T=2.
+\]
+
+The rollout term is short: the paper uses a two-step horizon and differentiates through one recurrent prediction step. The combined post-training loss is
+
+\[
+\mathcal L_{\mathrm{AC}}
+=
+\mathcal L_{\mathrm{TF}}
++
+\mathcal L_{\mathrm{rollout}}.
+\]
+
+The distinction between the losses matters. Teacher forcing measures next-step prediction when the history is supplied from the observed trajectory. Rollout training begins to expose the predictor to the state-distribution shift created by feeding back its own predictions. It does not prove long-horizon accuracy, but it directly addresses a failure that a purely teacher-forced one-step objective would leave untested. (Assran et al., 2025)
 
 This sequence is not equivalent to passing an action token into the original action-free predictor at deployment. It adds a new learning stage with data that connect control inputs to subsequent visual outcomes. The distinction is central to the model's physical planning experiments.
 
@@ -96,9 +133,11 @@ The reported image-goal planning demonstrations use Franka arms in two laborator
 
 Action conditioning is not the only way to change what a representation preserves. V-JEPA 2.1 changes the density and depth of feature supervision.
 
-The method applies a dense predictive objective to visible and masked tokens and uses deep self-supervision at multiple encoder layers. This changes the representation-learning problem: features at spatial positions are directly constrained rather than relying only on masked targets or a global summary. Dense supervision can improve features used for localisation, segmentation and spatially structured prediction.
+The method applies its predictive loss to every token in the input, including both visible context tokens and masked tokens. This is a meaningful change from a loss applied only to masked targets. With masked-only supervision, the visible tokens can act as global aggregators: the model can use them to collect information useful for predicting the hidden region without being required to retain a locally grounded representation at each visible position. Applying the loss to visible and masked tokens constrains the representation across the full spatiotemporal grid.
 
-It does not make the representation action-conditioned. The V-JEPA 2.1 paper's robot-planning comparison uses an action-conditioned predictor and planner as part of the evaluation system. Its matched planning comparison reports 70% grasp success for the V-JEPA 2.1 visual representation and 60% for V-JEPA 2 under the same reported 800-sample, 10-iteration, one-step, 3-second planning setting. The paper also reports 80% grasp success with a longer, eight-step horizon and a larger planning budget of 300 samples and 15 iterations, taking 14 seconds rather than 3 seconds. Its abstract describes a 20-percentage-point improvement using this stronger configuration. The matched 800-sample, 10-iteration, one-step comparison is a 10-point improvement, from 60% to 70%. Both numbers are valid, but they answer different comparisons; each skill was evaluated over ten tasks. [Mur-Labadia et al., 2026]
+V-JEPA 2.1 also applies the self-supervised objective at multiple intermediate encoder layers. This deep self-supervision provides training signals throughout the encoder rather than only at its final representation. The model uses modality-specific tokenizers for images and videos within a shared encoder, allowing both modalities to contribute to training. These changes target dense spatial and temporal structure; they do not add control actions to the training objective. (Mur-Labadia et al., 2026)
+
+It does not make the representation action-conditioned. The V-JEPA 2.1 paper's robot-planning comparison uses an action-conditioned predictor and planner as part of the evaluation system. Its matched planning comparison reports 70% grasp success for the V-JEPA 2.1 visual representation and 60% for V-JEPA 2 under the same reported 800-sample, 10-iteration, one-step, 3-second planning setting. The paper also reports 80% grasp success with a longer, eight-step horizon and a larger planning budget of 300 samples and 15 iterations, taking 14 seconds rather than 3 seconds. Its abstract describes a 20-percentage-point improvement using this stronger configuration. The matched 800-sample, 10-iteration, one-step comparison is a 10-point improvement, from 60% to 70%. Both numbers are valid, but they answer different comparisons; each skill was evaluated over ten tasks. (Mur-Labadia et al., 2026)
 
 The distinction is useful: representation quality can affect the performance of an action-conditioned system without the representation-learning objective itself learning the action-conditioned transition.
 
