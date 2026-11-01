@@ -30,13 +30,19 @@ This is not a criticism of passive video learning. It is a statement about the i
 
 ## 12.2 The controlled prediction problem
 
-An action-conditioned model receives an explicit intervention variable. A one-step form is
+An action-conditioned model receives an explicit action variable. Its observational training distribution can be written as
 
 \[
-P(O_{t+1}\mid H_t,A_t),
+P(O_{t+1}\mid H_t,A_t).
 \]
 
-and a latent predictive model can be written as
+This conditional is not automatically an interventional distribution. The quantity needed to answer what would happen if the system deliberately set the action to (a) is
+
+\[
+P(O_{t+1}\mid H_t,\operatorname{do}(A_t=a)).
+\]
+
+The two distributions coincide only under additional assumptions about the state, data-collection policy and action support. In particular, the recorded history must contain the variables that jointly influence action selection and the next observation, and the dataset must include adequate support for the actions being evaluated. A latent predictive model can be written as
 
 \[
 \widehat Z_{t+1}
@@ -62,7 +68,7 @@ P(Z_{t+1}\mid Z_{\le t})
 P(Z_{t+1}\mid Z_{\le t},A_t).
 \]
 
-The second conditional can, in principle, answer how the predicted future changes with the action. The first cannot answer that question unless action effects are already identifiable from the observations and assumptions of the data-generating process.
+The second conditional is the model's observational target when actions are recorded. It can support an estimate of the interventional quantity only when the data and modelling assumptions justify that identification. The first conditional marginalizes over the action distribution induced by the data-collection policy. Neither expression alone guarantees counterfactual validity.
 
 ## 12.3 Recording an action is necessary but not sufficient
 
@@ -78,7 +84,7 @@ Adding an action vector to a neural network does not automatically make the lear
 
 **Unobserved influences.** Even with recorded actions, an unobserved variable may affect both the action selection and the resulting transition. Conditioning on the recorded action does not by itself remove this confounding. The reliability of counterfactual predictions depends on the data-collection process, state variables, action support and modelling assumptions.
 
-The correct claim is therefore narrower than “adding actions produces a causal world model.” Action conditioning makes the intervention explicit in the model's input and training objective. Whether the resulting predictor identifies and generalizes action effects is an empirical and statistical question. (Assran et al., 2025)
+The correct claim is therefore narrower than “adding actions produces a causal world model.” Recording actions makes the conditioning variable explicit. Estimating intervention effects additionally requires suitable state information, temporal alignment, action coverage and assumptions that control confounding. Whether a learned predictor generalizes those effects is an empirical and statistical question. (Assran et al., 2025)
 
 ## 12.4 A concrete training pipeline
 
@@ -89,7 +95,7 @@ V-JEPA 2 provides a detailed instance of this design. Its action-conditioned pos
 This modular design is useful when a large visual encoder is expensive to retrain or when the available robot data are much smaller than the passive video corpus. It also introduces an interface constraint: the action-conditioned predictor can only exploit information retained by the frozen encoder and the additional state inputs supplied to it. If an essential variable is absent from both, post-training cannot recover it from the input representation alone.
 
 
-## 12.6 The target representation is part of the control interface
+## 12.5 The target representation is part of the control interface
 
 Suppose two physical states \(x_1\) and \(x_2\) map to the same latent representation,
 
@@ -109,7 +115,7 @@ This is the action-conditioned version of predictive sufficiency. A representati
 
 A target encoder trained for broad visual invariance may discard exactly the small detail that makes a manipulation action succeed or fail. This is why a strong frozen representation benchmark is not enough to establish a reliable action-conditioned world model.
 
-## 12.7 The transition model must be tested under interventions
+## 12.6 The transition model must be tested under interventions
 
 A controlled predictive model should be evaluated on more than feature similarity along recorded trajectories. The tests should distinguish whether it predicts the consequences of different actions from the same or comparable starting states.
 
