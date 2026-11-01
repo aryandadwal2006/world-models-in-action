@@ -82,7 +82,19 @@ a^\top Z\sim\mathcal N(0,1)
 
 for every unit vector \(a\). A high-dimensional Gaussian-matching problem can therefore be examined through scalar normality tests along directions.
 
-The all-directions qualification is essential. Matching a finite set of projections is not, in general, sufficient to identify an arbitrary multivariate distribution exactly. A finite set may miss a structured discrepancy that lies between sampled directions. Increasing the number and diversity of projections improves the sketch, but the finite training objective remains a stochastic approximation to the all-directions condition. The paper's projection-theoretic guarantees rely on the stated sampling and smoothness conditions; they should not be rewritten as exact equality from one minibatch.
+The all-directions qualification is essential. Matching a finite set of projections is not, in general, sufficient to identify an arbitrary multivariate distribution exactly. A finite set may miss a structured discrepancy that lies between sampled directions. Increasing the number and diversity of projections improves the sketch, but the finite training objective remains a stochastic approximation to the all-directions condition.
+
+LeJEPA makes a stronger, assumption-dependent argument about how many projections are needed in practice. Its analysis treats the directional discrepancy as a function over the unit sphere and assumes a degree of Sobolev smoothness for the embedding distribution. Under that regularity, the expected discrepancy between the finite-direction test and the all-directions criterion decays at a rate of the form
+
+\[
+O\!\left(M^{-2\alpha/(D-1)}\right),
+\]
+
+where \(M\) is the number of sampled directions, \(D\) is the embedding dimension and \(\alpha\) describes the smoothness of the directional discrepancy. The bound does not hold independently of regularity, and its constants depend on dimension and smoothness. The paper argues that the Gaussian target and modern encoder architectures produce sufficiently smooth embedding distributions for a number of directions proportional to the dimension to give a useful approximation in the regimes studied.
+
+There is also a distinction between the number of directions in one minibatch and the number observed over training. SIGReg resamples directions as optimization proceeds. The union of directions seen across many steps can cover the sphere much more thoroughly than a fixed set of the same per-step size. The paper reports that a small resampled set can outperform a much larger fixed set in its controlled comparisons. This cumulative-coverage argument is part of the practical method, not a replacement for the all-directions theorem.
+
+These results justify the sketch under stated smoothness and sampling assumptions. They do not make one finite minibatch an exact multivariate distribution test.
 
 ## 7.4 A directional statistical test
 
@@ -151,17 +163,11 @@ N\int_{-\infty}^{\infty}
 w(t)\,dt,
 \]
 
-where \(w(t)\) is a frequency weighting function. The paper uses a Gaussian weight of the form
-
-\[
-w(t)=e^{-t^2/\sigma^2},
-\]
-
-with \(\sigma\) commonly set to one. The weighting determines how much discrepancies at different frequencies contribute to the statistic.
+where \(w(t)\) is a frequency weighting function. The paper describes a Gaussian weight, parameterized as \(w(t)=e^{-t^2/\sigma^2}\), with a commonly used scale of one. Its reference implementation uses the target characteristic function \(e^{-t^2/2}\) as the numerical weighting factor in the quadrature. These conventions should be kept distinct: the target characteristic function and the integration weight are separate objects in the abstract statistic, even when a practical implementation chooses related Gaussian forms.
 
 The statistic compares the full empirical characteristic function with the target characteristic function over a range of frequencies. It is not simply a mean-and-variance penalty. Deviations in the shape of the projected distribution can affect the characteristic function even when the first two moments match.
 
-The implementation approximates the integral numerically. The reference LeJEPA implementation uses trapezoidal quadrature over 17 points on the interval \([-5,5]\). This is an implementation choice supported by the paper's ablations, not a mathematical requirement of the Epps–Pulley statistic. Changing the frequency range, quadrature grid or weight changes the finite numerical approximation.
+The implementation approximates the integral numerically. The reference LeJEPA implementation uses trapezoidal quadrature over 17 points on the interval \([-5,5]\), with the target characteristic function also used in the weighting factor of the implemented integrand. This is an implementation choice supported by the paper's ablations, not a mathematical requirement of the Epps–Pulley statistic. Changing the frequency range, quadrature grid or weight changes the finite numerical approximation.
 
 ## 7.6 From one projection to a minibatch objective
 
