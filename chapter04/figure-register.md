@@ -48,7 +48,7 @@ No artwork is embedded in the Markdown sources at this stage. For every official
 | F28 | Hierarchical prediction across time scales | LeCun, H-JEPA figure as candidate | Prefer the official hierarchy illustration if permitted; otherwise draw high-level subgoals being refined into lower-level states and actions. |
 | F29 | A single deterministic future versus multiple latent futures | Original | Branch several plausible outcomes from the same history and action. Show a latent selector and a cost-based ranking step. |
 | F30 | How the chapter's components fit together | Original | One compact closing diagram: representation, target prediction, distributional constraint, action-conditioned dynamics, cost, planning and feedback. |
-| F31 | One I-JEPA training step, including tensor dimensions, mask positions and gradient flow | Original, informed by Assran et al. (2023) | Show patch tokens, context selection, full-image target encoding, target-position selection, positional query tokens, predicted features and the EMA update. Use solid arrows for forward computation and dashed arrows for parameter updates. |
+| F31 | One I-JEPA training step, including tensor dimensions, mask positions and gradient flow | Original, informed by Assran et al. (2023) | Show patch tokens, context selection, full-image target encoding, target-position selection, positional query tokens, predicted features and the EMA update. Use solid arrows for forward computation and dashed arrows for parameter updates. |\n| F32 | I-JEPA context and target mask geometry | Original | Show a large visible context block and multiple target blocks with overlap removed from context. Make the target-block geometry and selected target features explicit. |\n| F33 | V-JEPA spatiotemporal token and target-mask structure | Original, informed by Bardes et al. (2024) | Draw tubelets across time and space, visible context and withheld target regions. Do not imply that every target is a future frame. |\n| F34 | Masked video prediction versus action-conditioned future prediction | Original | Use the same observed clip with an action-free masked-feature query and a separate action-conditioned query. Label the latter as an extension, not original V-JEPA. |\n| F35 | Chapter synthesis: representation, prediction, cost and planning interfaces | Original | Connect the chapter's main components while keeping the representation objective, transition predictor and agent task cost as separate interfaces. |
 
 ## Figure-source rights notes
 
@@ -111,7 +111,7 @@ Entries F31-F34 are original explanatory figures even where they are informed by
 | Figure 2.1 | F03 | Original context/target/query information-flow diagram |
 | Figure 2.2 | F04 | Original comparison of spatial, spatiotemporal, future and action-conditioned targets |
 | Figure 2.3 | F05 | Original conditional-mean counterexample |
-| Figure 3.1 | F31 | Original I-JEPA information-flow diagram |
+| Figure 3.1 | F03 | Original I-JEPA information-flow diagram |
 | Figure 3.2 | F32 | Original context/target-mask comparison |
 | Figure 4.1 | F33 | Original video-token and spatiotemporal-mask diagram |
 | Figure 4.2 | F34 | Original distinction between masked video and action-conditioned prediction |
@@ -140,7 +140,7 @@ Entries F31-F34 are original explanatory figures even where they are informed by
 | Figure 14.1 | F26 | Original six-module diagram based on LeCun's proposal |
 | Figure 14.2 | F27 | Original Mode 1/Mode 2 and distillation diagram |
 | Figure 14.3 | F28 | Original hierarchical prediction diagram |
-| Figure 16.1 | F35 | Original closing synthesis of the chapter's system interfaces |
+| Figure 15.1 | F31 | Original step-by-step I-JEPA training graph with tensor shapes and gradient paths |\n| Figure 16.1 | F35 | Original closing synthesis of the chapter's system interfaces |
 
 The captions in the section drafts are art briefs, not completed illustrations. F22 remains only an official-figure candidate; use an independent diagram if reuse rights, attribution or third-party credits are unclear. Every original diagram must communicate the stated distinction without tracing source artwork.
 

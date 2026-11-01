@@ -155,7 +155,7 @@ The same density-gradient coupling appears for radius-based k-NN. Its leading bi
 o(r_0^2).
 \]
 
-The coefficients differ because a uniform ball and a smooth kernel have different second moments. The dependence on the local score \\(\\nabla\\log p(q)\\) is common to both estimators. The k-NN expansion assumes a smooth embedding density with bounded derivatives through order three, finite covariance and finite Fisher information, together with a twice continuously differentiable target function. [Balestriero and LeCun, 2025]
+The coefficients differ because a uniform ball and a smooth kernel have different second moments. The dependence on the local score \(\nabla\log p(q)\) is common to both estimators. The k-NN expansion assumes a smooth embedding density with bounded derivatives through order three, finite covariance and finite Fisher information, together with a twice continuously differentiable target function. [Balestriero and LeCun, 2025]
 
 ## 8.3 From a pointwise bias to Fisher information
 
@@ -254,7 +254,7 @@ then the integrated squared bias is bounded by
 o(h^4).
 \]
 
-The kernel result additionally assumes a normalized, symmetric and isotropic kernel with finite second moment and finite roughness, a sufficiently light-tailed embedding density, and the usual small-bandwidth asymptotic regime. In particular, the pointwise expansion is stated where \\(p(q)>0\\), with \\(h\\to0\\) and \\(Nh^K\\to\\infty\\). The theorem bounds worst-case integrated squared bias over a smoothness class of target functions. These conditions delimit the result. [Balestriero and LeCun, 2025]
+The kernel result additionally assumes a normalized, symmetric and isotropic kernel with finite second moment and finite roughness, a sufficiently light-tailed embedding density, and the usual small-bandwidth asymptotic regime. In particular, the pointwise expansion is stated where \(p(q)>0\), with \(h\to0\) and \(Nh^K\to\infty\). The theorem bounds worst-case integrated squared bias over a smoothness class of target functions. These conditions delimit the result. [Balestriero and LeCun, 2025]
 
 The pointwise variance also depends on the density:
 
