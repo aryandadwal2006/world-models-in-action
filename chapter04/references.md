@@ -98,22 +98,24 @@ Use in this chapter: energy-based compatibility, latent variables for alternativ
 
 ## Source-review record and access limitation
 
-The eight filenames above were mapped to the paper identities by their arXiv identifiers and title pages, rather than by relying on the filenames alone. The supplied PDFs remain in the repository and are not modified.
+The eight supplied filenames were mapped to paper identities by matching their arXiv identifiers, version labels and title-page metadata. The original PDF files remain in `rough-draft/chapter4/papers_pdfs/` and have not been modified.
 
-The GitHub connector used for repository access can enumerate binary PDF files and return their blob identifiers and sizes, but it does not expose their binary bytes to the text retrieval operation in this environment. The source review therefore used the matching versioned primary-paper text, PDF page renders where the exact version was accessible, and the paper's appendices and figures. The following distinctions are retained:
+The GitHub repository connector can enumerate the PDF files and return their sizes and blob identifiers, but its file retrieval interface accepts UTF-8 text only and does not expose the binary bytes of these PDFs. The review therefore used the corresponding versioned primary-source text, including appendices and references where available. The access distinction is recorded below.
 
-| Supplied PDF | Version-matched source review |
-|---|---|
-| I-JEPA v3 | Full paper and page-level PDF review |
-| Original V-JEPA v1 | Full paper and page-level PDF review |
-| V-JEPA 2 v1 | Exact-version full text, methods, results, appendices and references; binary PDF exceeded the viewer/connector transfer limit |
-| LeJEPA v3 | Full 50-page PDF and appendices reviewed |
-| VL-JEPA v2 | Full 15-page PDF and page-level review |
-| V-JEPA 2.1 v3 | Exact-version full text and a complete paper reading record; large PDF binary could not be transferred through the connector |
-| VISReg v1 | Version-matched extracted paper text, including method, objective, algorithm, experiments and references; the repository PDF binary could not be transferred through the connector |
-| LeCun v0.9.2 | Full 48-page PDF and page-level review |
+| Supplied PDF | Exact-version source examined | Limitation |
+|---|---|---|
+| I-JEPA v3 | Full arXiv v3 HTML text, including method, experiments and references; official implementation inspected for target-feature selection and mask handling | Repository PDF binary could not be downloaded through the connector; page images were not inspected |
+| Original V-JEPA v1 | Full arXiv v1 HTML text, including method, masking variants, experiments and references | Repository PDF binary could not be downloaded through the connector; page images were not inspected |
+| V-JEPA 2 v1 | Full arXiv v1 HTML text, including action-conditioned post-training, model architecture, objectives, planning, experiments and appendices | Repository PDF binary could not be downloaded through the connector; page images were not inspected |
+| LeJEPA v3 | Full arXiv v3 HTML text, including theoretical results, proofs, SIGReg, experiments, appendices and references | The repository PDF binary could not be downloaded through the connector; the exact-version text was examined instead |
+| VL-JEPA v2 | Full arXiv v2 HTML text, including architecture, objective, evaluations and references | Repository PDF binary could not be downloaded through the connector; page images were not inspected |
+| V-JEPA 2.1 v3 | Full arXiv v3 HTML text, including dense objective, deep supervision, planning comparisons, experiments and references | Repository PDF binary could not be downloaded through the connector; page images were not inspected |
+| VISReg v1 | Full arXiv HTML text available from the versioned abstract page, including core method equations, objective, complexity, experiments, appendices and references; official project page also checked | Direct PDF bytes were not available through the connector; page images were not inspected |
+| LeCun v0.9.2 | Full text extracted from the OpenReview PDF source, including the six-module architecture, Mode 1/2, planning, memory, H-JEPA, Configurator and references | The repository's PDF bytes were not downloaded; the OpenReview PDF text was examined, but page images were not visually inspected |
 
-The exact binary contents of the V-JEPA 2, V-JEPA 2.1 and VISReg files could not be independently downloaded through the connected GitHub interface. The corresponding version-matched primary texts were reviewed instead. This record does not claim that the inaccessible binary bytes were extracted directly.
+This is a full-text source review where the exact-version text was accessible. It is **not** a claim that all eight repository PDF binaries were downloaded and visually inspected page by page. The distinction matters for checking page layout, figure details and any text or notation that may be missing from an HTML extraction. Those visual checks remain open until the actual PDFs can be rendered in a tool with binary access.
+
+The paper-specific technical claims in the chapter are based on the primary sources listed above. Implementation claims are attributed to the official code or algorithm where relevant. A code path is not treated as an experimental reproduction, and no new experiments are claimed in this chapter.
 
 ## Additional source and attribution notes
 
