@@ -132,6 +132,12 @@ The choice depends on information asymmetry:
 
 The predictor should be justified by the conditional problem, not included merely because a previous JEPA implementation has one.
 
+### A linguistic target: VL-JEPA
+
+The target representation need not be visual. In VL-JEPA, a visual context and a text query are used to predict an embedding of a target text response. The primary predictive objective operates in the continuous text-embedding space rather than requiring autoregressive token generation at every training step. A language decoder can be applied when an explicit text answer is required.
+
+This is another instance of the same conditional structure: the visual context and query define what is available, and the text embedding defines the target. It also makes the limit of the abstraction clear. Predicting a linguistic representation from an image is cross-modal prediction; it is not, by itself, an action-conditioned model of physical dynamics.
+
 ## 2.7 Target updates are a separate design choice
 
 The notation \(f_{\bar\theta}\) does not imply a particular update rule. Several possibilities exist:
