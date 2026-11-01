@@ -8,7 +8,7 @@ This file identifies the exact versions supplied for Chapter 4 and the primary s
 
 Assran, M., Duval, Q., Misra, I., Bojanowski, P., Vincent, P., Rabbat, M., LeCun, Y., and Ballas, N. (2023). “Self-Supervised Learning from Images with a Joint-Embedding Predictive Architecture.” *Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)*. arXiv:2301.08243, version 3.
 
-Supplied file: \`rough-draft/chapter4/papers_pdfs/2301.08243v3.pdf\`.
+Supplied file: `rough-draft/chapter4/papers_pdfs/2301.08243v3.pdf`.
 
 Primary source: https://arxiv.org/abs/2301.08243
 
@@ -20,7 +20,7 @@ Use in this chapter: spatial context-to-target prediction, multiple target block
 
 Bardes, A. et al. (2024). “Revisiting Feature Prediction for Learning Visual Representations from Video.” arXiv:2404.08471, version 1.
 
-Supplied file: \`rough-draft/chapter4/papers_pdfs/2404.08471v1.pdf\`.
+Supplied file: `rough-draft/chapter4/papers_pdfs/2404.08471v1.pdf`.
 
 Primary source: https://arxiv.org/abs/2404.08471
 
@@ -32,7 +32,7 @@ Use in this chapter: spatiotemporal feature masking and prediction, target/conte
 
 Assran, M. et al. (2025). “V-JEPA 2: Self-Supervised Video Models Enable Understanding, Prediction and Planning.” arXiv:2506.09985, version 1.
 
-Supplied file: \`rough-draft/chapter4/papers_pdfs/2506.09985v1.pdf\`.
+Supplied file: `rough-draft/chapter4/papers_pdfs/2506.09985v1.pdf`.
 
 Primary source: https://arxiv.org/abs/2506.09985
 
@@ -44,7 +44,7 @@ Use in this chapter: passive video pretraining, the separate action-conditioned 
 
 Balestriero, R. and LeCun, Y. (2025). “LeJEPA: Provable and Scalable Self-Supervised Learning Without the Heuristics.” arXiv:2511.08544, version 3, 14 November 2025.
 
-Supplied file: \`rough-draft/chapter4/papers_pdfs/2511.08544v3 (1).pdf\`.
+Supplied file: `rough-draft/chapter4/papers_pdfs/2511.08544v3 (1).pdf`.
 
 Primary source: https://arxiv.org/abs/2511.08544
 
@@ -56,7 +56,7 @@ Use in this chapter: the conditions under which a predictor is justified, multi-
 
 Chen, D., Shukor, M., Moutakanni, T., Chung, W., Yu, L., Kasarla, T., Bolourchi, A., LeCun, Y., and Fung, P. (2025/2026). “VL-JEPA: Joint Embedding Predictive Architecture for Vision-Language.” arXiv:2512.10942, version 2.
 
-Supplied file: \`rough-draft/chapter4/papers_pdfs/2512.10942v2.pdf\`.
+Supplied file: `rough-draft/chapter4/papers_pdfs/2512.10942v2.pdf`.
 
 Primary source: https://arxiv.org/abs/2512.10942
 
@@ -66,7 +66,7 @@ Use in this chapter: one cross-modal example showing that the target representat
 
 Mur-Labadia, L. et al. (2026). “V-JEPA 2.1: Unlocking Dense Features in Video Self-Supervised Learning.” arXiv:2603.14482, version 3.
 
-Supplied file: \`rough-draft/chapter4/papers_pdfs/2603.14482v3_compressed.pdf\`.
+Supplied file: `rough-draft/chapter4/papers_pdfs/2603.14482v3_compressed.pdf`.
 
 Primary source: https://arxiv.org/abs/2603.14482
 
@@ -78,7 +78,7 @@ Use in this chapter: dense visible- and masked-token supervision, deep self-supe
 
 Wu, H., Balestriero, R., and Levine, M. (2026). “Variance-Invariance-Sketching Regularization for JEPA Training.” arXiv:2606.02572, version 1.
 
-Supplied file: \`rough-draft/chapter4/papers_pdfs/2606.02572v1 (1).pdf\`.
+Supplied file: `rough-draft/chapter4/papers_pdfs/2606.02572v1 (1).pdf`.
 
 Primary source: https://arxiv.org/abs/2606.02572
 
@@ -90,7 +90,7 @@ Use in this chapter: explicit separation of centre, scale and shape; stop-gradie
 
 LeCun, Y. (2022). *A Path Towards Autonomous Machine Intelligence*. Version 0.9.2, 27 June 2022. OpenReview: BZ5a1r-kVsf.
 
-Supplied file: \`rough-draft/chapter4/papers_pdfs/10356_a_path_towards_autonomous_mach.pdf\`.
+Supplied file: `rough-draft/chapter4/papers_pdfs/10356_a_path_towards_autonomous_mach.pdf`.
 
 Primary source: https://openreview.net/forum?id=BZ5a1r-kVsf
 
@@ -124,9 +124,15 @@ The GitHub repository connector can enumerate the PDF files and return their siz
 | VISReg v1 | Full arXiv HTML text available from the versioned abstract page, including core method equations, objective, complexity, experiments, appendices and references; official project page also checked | Direct PDF bytes were not available through the connector; page images were not inspected |
 | LeCun v0.9.2 | Full text extracted from the OpenReview PDF source, including the six-module architecture, Mode 1/2, planning, memory, H-JEPA, Configurator and references | The repository's PDF bytes were not downloaded; the OpenReview PDF text was examined, but page images were not visually inspected |
 
-This is a full-text source review where the exact-version text was accessible. It is **not** a claim that all eight repository PDF binaries were downloaded and visually inspected page by page. The distinction matters for checking page layout, figure details and any text or notation that may be missing from an HTML extraction. Those visual checks remain open until the actual PDFs can be rendered in a tool with binary access.
+The review consulted the exact-version source text available for each paper and checked the equations, methods, experimental claims and limitations used in this chapter. It is **not** a claim that every word of all eight repository PDF binaries has been read or that every page and figure has been visually inspected. The GitHub connector rejects these binary blobs as non-UTF-8 data, so the PDFs could not be materialized in this environment. Text extraction can omit figure labels, layout-dependent notation, footnotes or other material. A literal page-by-page PDF audit remains open and must be completed when the binary files are available through a PDF-capable file interface.
 
 The paper-specific technical claims in the chapter are based on the primary sources listed above. Implementation claims are attributed to the official code or algorithm where relevant. A code path is not treated as an experimental reproduction, and no new experiments are claimed in this chapter.
+
+## How the sources are used
+
+The chapter follows the dependencies of the argument rather than the publication timeline. I-JEPA and V-JEPA establish what spatial and spatiotemporal feature prediction ask a model to do. LeJEPA supplies a statistical analysis of downstream estimator risk and a distributional regularizer. VISReg gives a distinct scale-and-shape decomposition. V-JEPA 2 separates action-free visual pretraining from action-conditioned robot post-training. V-JEPA 2.1 changes the density of feature supervision without removing the need for a controlled predictor. LeCun's position paper is used to discuss the responsibilities surrounding a world model, not as evidence that a complete six-module agent has been built. VL-JEPA is restricted to a short cross-modal example.
+
+The central derivations are written independently in the chapter and then checked against the cited sources. A source's empirical result is retained only with enough context to distinguish its metric and protocol from the chapter's mathematical claims.
 
 ## Additional source and attribution notes
 

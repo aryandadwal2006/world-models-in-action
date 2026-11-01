@@ -84,3 +84,22 @@ These metadata do not settle the rights status of every individual figure. Capti
 ## Production status
 
 All entries above are descriptions and candidates, not completed artwork. No paper figure has been copied into the manuscript. The final figure set should be selected after the text is stable and the publisher's artwork and rights requirements are checked.
+
+
+## Figure-caption crosswalk
+
+The figure descriptions embedded in the section drafts map to the production register as follows:
+
+| Section caption | Register entry | Source/production note |
+|---|---|---|
+| Figure 1.1 | F01 | Original compatibility-energy diagram |
+| Figure 1.2 | F02 | Original comparison of prediction loss, compatibility score and task cost |
+| Figure 3.1 | F31 | Original I-JEPA information-flow diagram; target encoder processes the full image before target selection |
+| Figure 3.2 | F32 | Original context/target-mask comparison; mask geometry defines the conditional task |
+| Figure 4.1 | F33 | Original video-token and spatiotemporal-mask diagram |
+| Figure 4.2 | F34 | Original contrast between masked video prediction and action-conditioned future prediction |
+| Figure 11.1 | F22 | V-JEPA 2 two-stage architecture; use official figure only after rights and third-party-credit checks |
+| Figure 11.2 | F23 | Original V-JEPA 2.1 dense supervision diagram |
+| Figure 11.3 | F30 | Original representation-to-planning system diagram |
+
+Entries F31-F34 are original explanatory figures even where they are informed by a source paper's method illustration. They should not trace or reproduce the source artwork. F22 remains an official-figure candidate, not approved artwork. Before production, confirm that its caption and visual preserve the distinct pretraining and robot post-training stages.
