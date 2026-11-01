@@ -37,16 +37,31 @@ def math(md):
 def convert(md):
     r=subprocess.run(["pandoc","--from=markdown+tex_math_dollars","--to=asciidoc","--wrap=none"],input=math(md),text=True,capture_output=True,check=True)
     s=re.sub(r"latexmath:\[\$+(.*?)\$+\]",lambda m:"latexmath:["+m.group(1)+"]",r.stdout.strip(),flags=re.S)
-    lines=s.splitlines(); out=[]; waiting=False; inside=False
+    lines=s.splitlines(); out=[]; waiting=False; inside=False; block=[]
+    def emit_math_block(body):
+        body="\n".join(body).strip()
+        # Pandoc may preserve Markdown math delimiters inside a raw
+        # AsciiDoc latexmath block. They are delimiters, not TeX operators.
+        if body.startswith("$$"): body=body[2:].lstrip()
+        if body.endswith("$$"): body=body[:-2].rstrip()
+        # Pandoc may also wrap a one-line inline expression in a raw block.
+        elif body.startswith("$") and body.endswith("$"):
+            body=body[1:-1].strip()
+        out.extend(["++++",body,"++++"])
     for line in lines:
         t=line.strip()
         if t=="[latexmath]": waiting=True; out.append(line); continue
         if t=="++++":
-            if waiting: inside=True; waiting=False
-            elif inside: inside=False
-            out.append(line); continue
-        if inside and t in (r"\[",r"\]"): continue
+            if waiting: inside=True; waiting=False; block=[]
+            elif inside: emit_math_block(block); inside=False; block=[]
+            else: out.append(line)
+            continue
+        if inside:
+            if t in (r"\[",r"\]"): continue
+            block.append(line); continue
         out.append(line)
+    if inside: raise SystemExit("unclosed Pandoc latexmath block")
+    if waiting: raise SystemExit("Pandoc latexmath block missing opening delimiter")
     s="\n".join(out).replace("image::../images/chapter04/","image::chapter04/")
     return re.sub(r"(image::chapter04/[^\[]+)\[([^\]]*)\]",lambda m:m.group(1)+"["+m.group(2)+",width=100%]",s)
 def anchors(s):
