@@ -1,10 +1,10 @@
-# 12. From passive prediction to action-conditioned prediction
+# 13. From passive prediction to action-conditioned prediction
 
 A video contains changes in the world, but it does not necessarily reveal which changes would follow from a particular action. A model may predict what tends to happen after an observed history and still be unable to answer what would happen if an agent deliberately chose a different control input.
 
 The distinction is the difference between predicting an observation sequence and predicting the consequences of an intervention.
 
-## 12.1 The observational prediction problem
+## 13.1 The observational prediction problem
 
 Let \(H_t\) denote the available observation history up to time \(t\). A model trained only on passive video can learn a conditional distribution of the form
 
@@ -28,7 +28,7 @@ For example, a video may show a cup moving to the right. The movement could have
 
 This is not a criticism of passive video learning. It is a statement about the information available in the training problem. Passive video can teach appearance, motion regularities, object persistence and many other useful features. It cannot be assumed to identify the consequences of controls that were not represented or recorded.
 
-## 12.2 The controlled prediction problem
+## 13.2 The controlled prediction problem
 
 An action-conditioned model receives an explicit action variable. Its observational training distribution can be written as
 
@@ -70,7 +70,7 @@ P(Z_{t+1}\mid Z_{\le t},A_t).
 
 The second conditional is the model's observational target when actions are recorded. It can support an estimate of the interventional quantity only when the data and modelling assumptions justify that identification. The first conditional marginalizes over the action distribution induced by the data-collection policy. Neither expression alone guarantees counterfactual validity.
 
-## 12.3 Recording an action is necessary but not sufficient
+## 13.3 Recording an action is necessary but not sufficient
 
 Adding an action vector to a neural network does not automatically make the learned predictor causal or reliable. The action must correspond to the transition it is meant to explain. This creates several requirements.
 
@@ -86,16 +86,16 @@ Adding an action vector to a neural network does not automatically make the lear
 
 The correct claim is therefore narrower than “adding actions produces a causal world model.” Recording actions makes the conditioning variable explicit. Estimating intervention effects additionally requires suitable state information, temporal alignment, action coverage and assumptions that control confounding. Whether a learned predictor generalizes those effects is an empirical and statistical question. (Assran et al., 2025)
 
-## 12.4 A concrete training pipeline
+## 13.4 A concrete training pipeline
 
 The separation between passive representation learning and controlled prediction is not only conceptual. It determines how a training pipeline is organized. A visual encoder can first be trained on large image and video collections, where action labels are absent or unnecessary. The encoder can then be frozen while a second predictor is trained on aligned observation, action and state trajectories. The two stages optimize different conditional problems and should be evaluated separately.
 
-V-JEPA 2 provides a detailed instance of this design. Its action-conditioned post-training, training data, prediction losses and image-goal planning interface are developed in Section 11. The general lesson is that a broad visual representation can supply the observation features, while a smaller action-conditioned model learns how those features change under a particular control interface. The second stage does not retroactively make the first-stage objective action-conditioned.
+V-JEPA 2 provides a detailed instance of this design. Its action-conditioned post-training, training data, prediction losses and image-goal planning interface are developed in Section 12. The general lesson is that a broad visual representation can supply the observation features, while a smaller action-conditioned model learns how those features change under a particular control interface. The second stage does not retroactively make the first-stage objective action-conditioned.
 
 This modular design is useful when a large visual encoder is expensive to retrain or when the available robot data are much smaller than the passive video corpus. It also introduces an interface constraint: the action-conditioned predictor can only exploit information retained by the frozen encoder and the additional state inputs supplied to it. If an essential variable is absent from both, post-training cannot recover it from the input representation alone.
 
 
-## 12.5 The target representation is part of the control interface
+## 13.5 The target representation is part of the control interface
 
 Suppose two physical states \(x_1\) and \(x_2\) map to the same latent representation,
 
@@ -115,7 +115,7 @@ This is the action-conditioned version of predictive sufficiency. A representati
 
 A target encoder trained for broad visual invariance may discard exactly the small detail that makes a manipulation action succeed or fail. This is why a strong frozen representation benchmark is not enough to establish a reliable action-conditioned world model.
 
-## 12.6 The transition model must be tested under interventions
+## 13.6 The transition model must be tested under interventions
 
 A controlled predictive model should be evaluated on more than feature similarity along recorded trajectories. The tests should distinguish whether it predicts the consequences of different actions from the same or comparable starting states.
 

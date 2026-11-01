@@ -1,10 +1,10 @@
-# 11. V-JEPA 2 and V-JEPA 2.1: from video pretraining to controlled prediction
+# 12. V-JEPA 2 and V-JEPA 2.1: from video pretraining to controlled prediction
 
 The move from a video encoder to a model that can be used for action selection is not a single architectural modification. It changes the training data, the predictor's inputs, the target distribution and the evaluation protocol. V-JEPA 2 makes this separation unusually clear: large-scale action-free video pretraining produces a visual representation, after which a new predictor is trained on robot trajectories with explicit action and end-effector-state inputs. V-JEPA 2.1 later changes the representation objective to improve dense spatial features. Its robot-planning experiments still require a separately trained action-conditioned predictor.
 
 These stages should not be compressed into the claim that “V-JEPA 2 learns to control robots” or that dense features automatically create a world model. The useful lesson is how each stage changes the information available to the predictor and what additional evidence is needed before a model can be used for planning. (Assran et al., 2025; Mur-Labadia et al., 2026)
 
-## 11.1 Scaling the action-free representation
+## 12.1 Scaling the action-free representation
 
 V-JEPA 2 begins with an action-free video representation model. Its pretraining data combines large video sources with images. The paper describes the resulting VideoMix22M mixture as 22 million samples and more than one million hours of video, with ImageNet images included to increase visual coverage. An image is converted into a video sample by repeating it across the temporal dimension. This allows images and videos to be processed by a shared video encoder while preserving a consistent input format.
 
@@ -30,7 +30,7 @@ The distinction between masked prediction and action-conditioned prediction rema
 
 The paper reports strong results on visual understanding and temporal anticipation, including 77.3% top-1 accuracy on Something-Something v2 and 39.7 recall-at-5 on Epic-Kitchens-100 for the reported V-JEPA 2 setting. These are task-specific results obtained with the evaluation protocols described in the paper. They do not measure the accuracy of an action-conditioned transition model.
 
-## 11.2 Why video features alone do not identify action effects
+## 12.2 Why video features alone do not identify action effects
 
 Suppose a model observes a sequence \(x_{1:t}\) and predicts a future feature \(z_{t+1}\). From passive data, it can estimate a conditional relation of the form
 
@@ -50,7 +50,7 @@ To see the difference, consider a robot arm approaching a cup. The observed vide
 
 This is not an argument that passive video is useless for learning dynamics. It can provide visual features, motion regularities and strong priors about the physical environment. It is an argument about identification: the training objective must expose the predictor to the variable whose effect it is meant to estimate. If control is the target use, the action must be represented in the model input and aligned with the observed transition.
 
-## 11.3 V-JEPA 2-AC: freeze the encoder, learn a controlled predictor
+## 12.3 V-JEPA 2-AC: freeze the encoder, learn a controlled predictor
 
 V-JEPA 2-AC is a post-training stage built on top of the pretrained V-JEPA 2 encoder. The encoder is frozen. A new autoregressive predictor is trained to estimate future video features conditioned on past video features, control actions and robot end-effector states.
 
@@ -101,7 +101,7 @@ The complete objective is the sum of teacher-forcing and rollout terms:
 
 The two-step rollout is not a guarantee of long-horizon accuracy. It trains the predictor through one recurrent step beyond the teacher-forced transition, making the model experience a limited version of its own prediction errors. Longer rollouts would increase both the difficulty of optimization and the chance that errors in early predictions distort later inputs.
 
-## 11.4 From the predictor to a planning loop
+## 12.4 From the predictor to a planning loop
 
 Once the model predicts future feature maps under proposed actions, a planner can compare candidate action sequences. Let \(z_k\) be the current visual representation, \(s_k\) the current end-effector state, and \(z_g\) the representation of a goal image. For a candidate action sequence \(\hat a_{1:T}\), the model predicts a future representation. The paper uses a goal-conditioned energy of the form
 
@@ -127,7 +127,7 @@ The complete loop therefore contains at least five distinct elements:
 
 The prediction model is not the planner, and the energy is not the prediction loss used to train the encoder. The \(L_1\) feature-prediction loss teaches the predictor to match observed futures during training. The goal-conditioned energy ranks candidate action sequences during planning. The distinction is the same one established at the start of the chapter between prediction discrepancy, compatibility score and task cost.
 
-## 11.5 What the physical planning result demonstrates
+## 12.5 What the physical planning result demonstrates
 
 The V-JEPA 2 paper deploys the system zero-shot on Franka arms in two different laboratories. It evaluates reaching, grasping and pick-and-place tasks using image goals. The reported results are measured over a small number of task trials and several object or initial-position variations. The paper's claim is specifically that the pretrained video representation, when combined with robot-trajectory post-training and model-predictive control, supports these tasks in new environments without collecting environment-specific robot data there or adding task-specific training or reward labels for the deployment tasks.
 
@@ -137,7 +137,7 @@ The paper also identifies limitations. The model is sensitive to camera placemen
 
 These limits are valuable because they reveal where the representation-to-control transition remains incomplete. A model may predict short-horizon features well but become unreliable when rolled forward. A planner may find actions that minimize the learned goal distance while exploiting errors in the predictor. A representation may ignore a visually small detail that determines whether a gripper actually closes around an object. Physical planning must be evaluated at the level of the full closed loop.
 
-## 11.6 V-JEPA 2.1: why masked-token prediction is not enough for dense features
+## 12.6 V-JEPA 2.1: why masked-token prediction is not enough for dense features
 
 The next development addresses a different limitation. V-JEPA 2's masked-token objective supervises the target features at masked positions. The visible context tokens are inputs to the predictor, but they do not receive the same direct prediction loss. The V-JEPA 2.1 paper argues that this can encourage context tokens to aggregate information useful for predicting global masked targets without preserving sufficiently local information at each visible position.
 
@@ -178,7 +178,7 @@ Here \(C\) is the set of context positions and \(\lambda_i\) is a position-depen
 
 This change creates a trade-off. In the paper's ablation, adding context loss improves dense prediction substantially, but initially reduces global recognition performance. On the reported ADE20K segmentation and NYUv2 depth evaluations, the context term improves dense metrics; at the same time, ImageNet and Something-Something classification accuracy fall. The paper's next component addresses that loss.
 
-## 11.7 Deep self-supervision and multiple representation levels
+## 12.7 Deep self-supervision and multiple representation levels
 
 V-JEPA 2.1 takes outputs from three intermediate encoder blocks in addition to the final block. The four normalized representations are concatenated along the channel dimension and passed through a lightweight MLP that fuses them and reduces their dimensionality. The predictor produces four corresponding output levels. Both the masked-token prediction loss and the weighted context loss are applied at all four levels, with the unmasked target encoder providing the multi-level target features.
 
@@ -188,7 +188,7 @@ The ablation is instructive. Context loss alone raises dense-task performance bu
 
 For a reader, the most important point is not to memorize the sequence of recipe modifications. It is to understand the underlying tension. A representation trained to predict a hidden target may learn global context useful for that target. A representation used for dense prediction must also preserve spatially localized information at visible positions. Dense supervision changes the objective so that visible tokens themselves have a target to match.
 
-## 11.8 Dense representations are not action conditioning
+## 12.8 Dense representations are not action conditioning
 
 V-JEPA 2.1 is an image-and-video representation-learning recipe. Its dense prediction loss improves spatially and temporally structured features. It does not, by itself, add candidate actions to the visual prediction objective.
 
@@ -198,7 +198,7 @@ The reported grasp results require careful comparison. Under the matched plannin
 
 The appropriate conclusion is limited but useful: in the reported setup, improved dense visual features can improve the spatial information available to a separately trained action-conditioned predictor and planner. The result does not show that dense feature prediction alone creates a controller, or that the same improvement will hold under all planning budgets, robots or tasks.
 
-## 11.9 Three independent design questions
+## 12.9 Three independent design questions
 
 The progression from V-JEPA 2 to V-JEPA 2.1 separates three questions that are often collapsed.
 
