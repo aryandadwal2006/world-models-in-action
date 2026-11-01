@@ -63,7 +63,7 @@ The embedding/decoder separation also permits selective decoding. A system can u
 
 **Figure 4.23. Cross-modal prediction separates the query from the target.** The predictor combines visual features with a text query to estimate a target-text embedding. During training, that estimate is compared with the encoded target; at inference, decoding is optional when an embedding-level decision is sufficient.
 
-> **Figure description.** The visual pathway supplies image or video features, while a separate text query specifies the requested semantic output. A target-text encoder supplies the training representation. The predicted feature can be decoded when readable language is required, but the decoder is not part of the embedding prediction itself.
+> **Description.** The visual pathway supplies image or video features, while a separate text query specifies the requested semantic output. A target-text encoder supplies the training representation. The predicted feature can be decoded when readable language is required, but the decoder is not part of the embedding prediction itself.
 
 ## 11.4 A language query is not a physical action
 

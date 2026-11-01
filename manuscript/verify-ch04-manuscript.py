@@ -14,7 +14,7 @@ def main():
     source="\n".join(x.read_text(encoding="utf-8") for x in paths)
     for term in REQ:
         if term.casefold() not in source.casefold(): err.append("Missing required content: "+term)
-    if len(paths)!=16: err.append(f"Expected 16 section files, found {len(paths)}")
+    if len(paths)!=17: err.append(f"Expected 17 section files, found {len(paths)}")
     if not DOC.exists(): err.append("Chapter 4 AsciiDoc has not been assembled."); doc=""
     else: doc=DOC.read_text(encoding="utf-8")
     if doc and not doc.startswith("= World Models in Action\n"): err.append("Document title must be first")
