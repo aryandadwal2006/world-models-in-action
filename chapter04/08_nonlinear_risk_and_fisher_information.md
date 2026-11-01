@@ -395,3 +395,10 @@ This explains the Gaussian target in LeJEPA. It is not a theorem that Gaussian l
 It is also important to distinguish isotropy from Gaussianity. A distribution can have covariance proportional to the identity and still be non-Gaussian. Such a distribution matches second-order geometry but may have a different score field and a larger value of \(J(p)\). Covariance regularization alone cannot enforce the density property that appears in the local-estimation risk.
 
 The next section turns this theoretical target into a practical objective. SIGReg does not estimate a full high-dimensional density. It compares one-dimensional projections with the corresponding Gaussian projections. The distinction between the all-directions theorem and the finite stochastic sketch used during training is essential.
+
+**Figure 8.1. Local regression is affected by an asymmetric sample density.** Draw a query point, its neighbourhood and samples concentrated more strongly on one side. Overlay a target function with its local gradient to show why the density gradient contributes to the local averaging bias.
+
+**Figure 8.2. Fisher information measures the strength of the density score field.** Show a smooth embedding density with vectors proportional to (
+ablalog p(z)), then relate the expected squared vector magnitude to (J(p)). Keep the score field distinct from the downstream target gradient.
+
+**Figure 8.3. Gaussianity and isotropy arise in two separate minimizations.** First compare a Gaussian and non-Gaussian density with the same covariance; then compare anisotropic and isotropic covariance spectra under a fixed scalar constraint. Label the assumptions behind each step.

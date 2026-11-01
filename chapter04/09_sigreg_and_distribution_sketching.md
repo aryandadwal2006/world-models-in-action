@@ -251,3 +251,11 @@ The logical contribution of SIGReg is a practical route from a high-dimensional 
 Each step introduces an approximation or assumption. The Gaussian target is justified by the risk analysis, not by Cramér–Wold. Cramér–Wold is an all-directions result, not a finite-sample guarantee. Random projections reduce computation but do not remove the need to examine the number of directions and batch size. Epps–Pulley provides a stable statistic for the projected distributions, but the numerical integral is still approximated.
 
 SIGReg therefore controls more than the first two moments, but it does so by sampling and testing one-dimensional views of the embedding distribution. The next section considers a different decomposition of the same distributional problem: control the centre and scale explicitly, then compare shape after the scale has been removed.
+
+**Figure 9.1. Cramér–Wold requires all one-dimensional directions.** Show a multivariate cloud and its projections across a dense set of directions, followed by a finite random subset used for a minibatch sketch. Mark the all-directions statement as exact and the finite set as an approximation.
+
+**Figure 9.2. Matching the first two moments does not fix distribution shape.** Draw two distributions with the same mean and covariance but different projected densities. Include one scalar projection whose characteristic functions differ, making the limitation of covariance matching visible.
+
+**Figure 9.3. The Epps–Pulley statistic compares characteristic functions over frequency.** Plot the empirical and Gaussian characteristic functions, their squared discrepancy and the frequency weighting. Mark the finite quadrature interval and knots as numerical choices rather than part of the theorem.
+
+**Figure 9.4. SIGReg sketches a batch distribution with sampled directions.** Show embeddings projected along random unit vectors, scalar samples entering the one-dimensional statistic, and the averaged projection losses returning to the batch. Separate the minibatch's finite set of directions from the accumulated directions across training.
