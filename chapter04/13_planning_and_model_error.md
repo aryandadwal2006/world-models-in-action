@@ -193,8 +193,14 @@ A responsible evaluation should distinguish simulated from physical results, fam
 
 A predictive model becomes useful for action only when it can be queried with interventions and integrated into an objective, search procedure and feedback loop. The final section examines the larger architecture proposed to organize these capabilities, including memory, multiple levels of prediction and the distinction between fast reactive behaviour and deliberative planning.
 
-**Figure 13.1. A planner evaluates candidate rollouts but executes only the first action.** Draw several action sequences propagated through the learned model, their predicted terminal states and costs, and the selected first action entering the environment. A new observation closes the receding-horizon loop.
+![Receding horizon planning loop](../images/chapter04/F16_planning_loop.svg)
 
-**Figure 13.2. Search can exploit a small model error.** Compare a candidate trajectory with low predicted cost against its actual environment outcome. Show how optimization selects the erroneous trajectory because it appears attractive under the learned model; keep predicted and observed paths visually distinct.
+**Figure 4.26. A planner executes the first action and replans.** Candidate action sequences are evaluated through imagined rollouts, but only the first action is executed. A fresh observation closes the feedback loop and starts the next optimization.
 
-**Figure 13.3. A deterministic prediction can hide alternative futures.** Branch several plausible outcomes from the same context and action, then show a latent or probabilistic representation retaining those alternatives. A separate cost ranks them; uncertainty must not be represented as a single averaged state.
+![Predicted trajectory versus real environment failure](../images/chapter04/F17_model_exploitation.svg)
+
+**Figure 4.27. Search can exploit prediction error.** An optimizer may find a sequence with deceptively low model-predicted cost that fails in the real environment. More search can intensify this failure by selecting optimistic model errors.
+
+![Multiple future outcomes from one context and action](../images/chapter04/F27_multiple_futures.svg)
+
+**Figure 4.28. A single deterministic prediction can hide multiple futures.** One context and action can admit several plausible outcomes. A distribution or latent selector can preserve these alternatives instead of collapsing them into one averaged feature.

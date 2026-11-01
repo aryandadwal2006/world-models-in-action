@@ -210,10 +210,14 @@ The progression from V-JEPA 2 to V-JEPA 2.1 separates three questions that are o
 
 Changing the encoder addresses the first question. Adding an action-conditioned predictor addresses the second. Choosing a cost and planning algorithm addresses the third. A result at one level does not automatically establish the others.
 
-**Figure 11.1. V-JEPA 2 is a staged system.** Draw two clearly separated stages. Stage A pretrains an action-free video encoder and predictor from images and videos using masked feature targets. Stage B freezes the encoder and trains a new autoregressive predictor on robot observations, end-effector states and actions. Show the teacher-forcing and short rollout objectives only in Stage B.
+![Passive visual pretraining followed by action conditioned robot post training](../images/chapter04/F13_vjepa2_stages.svg)
 
-**Figure 11.2. The V-JEPA 2.1 context loss adds a target for visible tokens.** Draw the same spatiotemporal token grid twice. In the first panel, show prediction loss only on masked tokens. In the second, retain the masked loss and add distance-weighted context loss on visible tokens. The figure should distinguish target coverage from action conditioning.
+**Figure 4.23. V-JEPA 2 separates passive pretraining from robot post-training.** The visual encoder is pretrained on passive image and video data, then a separate action-conditioned predictor is trained on robot observations, actions and state. Planning evaluates candidate controls using the resulting model.
 
-**Figure 11.3. Representation, dynamics and planning are separate interfaces.** Show the encoder producing current and goal features, an action-conditioned predictor mapping candidate controls to future features, and a planner minimizing a goal-conditioned cost before executing the first action and replanning. Keep the model-training loss and planner energy in separate boxes.
+![Masked only prediction and dense visible context supervision](../images/chapter04/F14_vjepa21_dense_supervision.svg)
+
+**Figure 4.24. V-JEPA 2.1 adds direct supervision to visible context tokens.** The base objective supervises masked tokens; V-JEPA 2.1 adds distance-weighted targets on visible tokens and uses multi-level supervision. This improves dense features without making the visual encoder action-conditioned.
+
+
 
 This progression provides a concrete example of how representation learning becomes part of a world-model system. The next section formalizes the distinction between passive prediction and prediction under an intervention, then examines the assumptions required before a learned transition model can be trusted for planning.

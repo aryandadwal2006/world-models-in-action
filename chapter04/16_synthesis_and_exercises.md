@@ -150,4 +150,6 @@ Give an example in which a state that is not visible in the current observation 
 
 Design an evaluation that separates frozen representation quality, action-conditioned prediction, multi-step rollout and physical planning. For each stage, state the metric, data split and failure mode it is intended to detect.
 
-**Figure 16.1. The complete predictive-agent argument.** Connect representation learning, target prediction, distributional regularization, action-conditioned dynamics, task cost, planning, memory and feedback. Use separate interfaces for learning a representation, predicting under an action and selecting a desirable action; do not merge them into one loss.
+![Representation prediction dynamics and planning interfaces](../images/chapter04/F21_chapter_synthesis.svg)
+
+**Figure 4.33. Representation, prediction, dynamics and planning are separate interfaces.** The representation determines what information is retained, the prediction objective specifies a target, the transition model estimates consequences under actions, and the planner selects desirable actions. No single feature loss supplies the complete agent.

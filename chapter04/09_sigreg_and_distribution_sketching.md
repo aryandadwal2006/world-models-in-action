@@ -267,10 +267,15 @@ Each step introduces an approximation or assumption. The Gaussian target is just
 
 SIGReg therefore controls more than the first two moments, but it does so by sampling and testing one-dimensional views of the embedding distribution. The next section considers a different decomposition of the same distributional problem: control the centre and scale explicitly, then compare shape after the scale has been removed.
 
-**Figure 9.1. Cramér–Wold requires all one-dimensional directions.** Show a multivariate cloud and its projections across a dense set of directions, followed by a finite random subset used for a minibatch sketch. Mark the all-directions statement as exact and the finite set as an approximation.
+![Cramér Wold projections and SIGReg sketch](../images/chapter04/F11_sigreg_projection.svg)
 
-**Figure 9.2. Matching the first two moments does not fix distribution shape.** Draw two distributions with the same mean and covariance but different projected densities. Include one scalar projection whose characteristic functions differ, making the limitation of covariance matching visible.
+**Figure 4.17. All directions identify a distribution; sampled directions form a sketch.** Cramér–Wold characterizes a distribution through all one-dimensional projections. SIGReg uses sampled directions in each minibatch and accumulates coverage across training.
 
-**Figure 9.3. The Epps–Pulley statistic compares characteristic functions over frequency.** Plot the empirical and Gaussian characteristic functions, their squared discrepancy and the frequency weighting. Mark the finite quadrature interval and knots as numerical choices rather than part of the theorem.
+![Two distributions with equal mean and covariance but different shapes](../images/chapter04/F30_same_moments_different_shapes.svg)
 
-**Figure 9.4. SIGReg sketches a batch distribution with sampled directions.** Show embeddings projected along random unit vectors, scalar samples entering the one-dimensional statistic, and the averaged projection losses returning to the batch. Separate the minibatch's finite set of directions from the accumulated directions across training.
+**Figure 4.18. Matching the first two moments does not fix distribution shape.** Two distributions can share a mean and covariance yet have different shapes. A projected characteristic function can reveal differences that covariance alone cannot detect.
+
+![Empirical and Gaussian characteristic functions](../images/chapter04/F24_epps_pulley.svg)
+
+**Figure 4.19. The Epps–Pulley statistic compares characteristic functions.** SIGReg compares empirical and Gaussian characteristic functions across frequency and integrates the squared discrepancy with a weight. A finite quadrature grid approximates the integral.
+

@@ -165,8 +165,14 @@ A representation-learning objective defines which views should agree and which t
 
 No single feature-prediction loss provides all of these functions. The useful question is not whether a JEPA is itself an autonomous agent. It is what predictive information it supplies to an agent, and what other structures are required before that information can support reliable action.
 
-**Figure 14.1. The proposed agent has six top-level modules.** Draw Perception, World Model, Cost, Actor, Short-Term Memory and Configurator with their information paths. Place Intrinsic Cost and Trainable Critic inside Cost, and keep the physical environment outside the differentiable model graph.
+![Six module predictive agent architecture](../images/chapter04/F18_agent_architecture.svg)
 
-**Figure 14.2. Mode 1 is reactive; Mode 2 searches imagined futures.** Show a direct state-to-action path for Mode 1 and a World-Model/Cost planning loop for Mode 2. Include the planner-generated action as a distillation target for the reactive policy.
+**Figure 4.29. The proposed agent has six top-level modules.** Perception, World Model, Cost, Actor, Short-Term Memory and Configurator are the six top-level modules. Intrinsic Cost and Trainable Critic are subcomponents of Cost; the physical environment remains outside the model graph.
 
-**Figure 14.3. Hierarchical prediction separates time scales.** Show a high-level model proposing an abstract subgoal and a lower-level model expanding it into intermediate states and physical actions. Retain a task-critical constraint, such as contact state or obstacle clearance, across the interface.
+![Reactive Mode 1 and deliberative Mode 2](../images/chapter04/F19_mode1_mode2.svg)
+
+**Figure 4.30. Mode 1 is reactive; Mode 2 searches imagined futures.** Mode 1 maps state directly to action, while Mode 2 uses the world model and cost to evaluate candidate trajectories. Planner-generated actions can serve as training targets for a cheaper reactive policy.
+
+![High level and low level predictive hierarchy](../images/chapter04/F20_hierarchy_memory.svg)
+
+**Figure 4.31. Hierarchical prediction separates time scales.** A high-level predictor proposes an abstract subgoal and a lower-level predictor refines it into intermediate states and actions. Memory and configuration can carry relevant context across the hierarchy.

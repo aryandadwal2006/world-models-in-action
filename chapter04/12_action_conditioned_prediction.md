@@ -132,4 +132,6 @@ These tests are still not universal certificates of causal correctness. They rev
 
 The transition from passive video to action-conditioned prediction is therefore a change in the learning problem, not merely an architectural option. (Assran et al., 2025) The next section examines what an agent can do once it has such a predictor, and why planning introduces new failure modes even when the model performs well on held-out transitions.
 
-**Figure 12.1. Conditioning on an observed action is not automatically an intervention.** Show a history followed by an action selected by a behaviour policy and the observed next state. Beside it, show the target distribution under (operatorname{do}(A=a)), and annotate the additional assumptions required to identify it from observational data.
+![Observed behavior policy outcomes versus intervention](../images/chapter04/F15_intervention.svg)
+
+**Figure 4.25. Observed action conditioning is not automatically an intervention.** A behaviour policy produces observed actions and outcomes, while an intervention fixes an action to query a different future distribution. Identifying the latter requires alignment, action support and assumptions about confounding.

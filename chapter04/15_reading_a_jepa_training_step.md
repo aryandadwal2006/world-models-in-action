@@ -126,7 +126,7 @@ D\!\left(
 \right),
 \]
 
-where \(D\) sums or averages the squared Euclidean differences over the selected patch features according to the implementation's normalization convention.
+where the paper equation averages over target blocks and sums squared Euclidean discrepancies over target positions. An implementation may add batch averaging or another explicit normalization; those choices change the loss scale and should be reported separately from the displayed paper equation.
 
 The gradient flows through the predictor and the context encoder. It does not flow through the target encoder. The target encoder follows the online encoder through the EMA update after the optimizer step.
 
@@ -196,4 +196,6 @@ A low loss is meaningful only after these checks. Otherwise, the model may be so
 
 The worked example provides the operational interpretation of the central equations: a JEPA predicts features at requested locations in a target representation space. The mask distribution defines what is withheld, the target encoder defines what counts as a correct feature, the predictor maps context to the query, and the gradient path determines which parameters learn from the discrepancy. The next section returns to the complete argument and the limits of what such a training objective establishes.
 
-**Figure 15.1. One I-JEPA training step, from patch tokens to EMA update.** Show the image batch becoming patch tokens, with the context mask selecting tokens for the online encoder and the full image entering the target encoder. Select target positions from the target feature map, combine learned mask tokens with positional embeddings, and pass these queries with context features to the predictor. Show the target-feature comparison and the gradient boundary, then draw the EMA parameter update as a separate dashed arrow. Include representative tensor dimensions, but do not make the figure depend on one specific image resolution.
+![I JEPA training step and EMA target update](../images/chapter04/F28_training_step.svg)
+
+**Figure 4.32. One I-JEPA training step from patch tokens to target update.** The context and target branches process different inputs; position queries enter the predictor, and the loss compares predicted features with selected target features. The EMA update changes target parameters after the online optimizer step.
