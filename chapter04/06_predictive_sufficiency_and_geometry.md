@@ -113,3 +113,5 @@ An isotropic distribution spreads this variance equally across directions. An an
 A downstream estimator that relies on a narrow direction may be poorly conditioned. Regularization can shrink its coefficient strongly because the data provide little variation along that direction. Without regularization, small eigenvalues can amplify estimator variance. These are not merely visual differences between point clouds. They affect the statistical stability of downstream prediction.
 
 The next section derives this dependence for ridge regression and ordinary least squares. The derivation is deliberately limited to those estimators and their assumptions. It is not a proof that isotropic covariance is optimal for every nonlinear task or every controller.
+
+**Figure 6.1. Equal variance does not imply equal geometry.** Draw isotropic and anisotropic embedding clouds with the same total covariance trace. Show their eigen-directions and eigenvalues, and identify the weak direction in the anisotropic case. Do not imply that isotropy alone guarantees task sufficiency.

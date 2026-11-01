@@ -206,3 +206,7 @@ These results rely on the linear model, the specified regularizer, the design as
 The linear analysis does establish a concrete design pressure: if a foundation representation must support unknown linear readouts, severe anisotropy can make some readouts poorly conditioned. Equalizing second-order variation removes this weakest-direction disadvantage under the model just analysed.
 
 However, matching covariance does not determine the entire feature distribution. Two distributions can have identical covariance and very different local density structure. A nonlinear predictor that estimates a target by averaging nearby embeddings can be affected by that structure. The next section derives how the density gradient enters local prediction bias, and why the Fisher-information functional appears in the LeJEPA analysis.
+
+**Figure 7.1. Ridge regression shrinks weak feature directions more strongly.** Plot the shrinkage factor against covariance eigenvalue for a fixed regularization strength. Highlight a task coefficient aligned with the smallest eigenvalue and compare its bias with the isotropic case at equal trace.
+
+**Figure 7.2. OLS variance is controlled by the inverse spectrum.** Display the contribution (1/lambda_k) from each covariance eigen-direction and contrast equal eigenvalues with an anisotropic spectrum at fixed total variance. State the full-rank and homoskedastic-noise assumptions.
