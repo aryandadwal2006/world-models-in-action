@@ -145,13 +145,13 @@ w(t)\,dt,
 \varphi_0(t)=e^{-t^2/2}.
 \]
 
-The paper describes a Gaussian frequency window, commonly parameterized as
+The paper describes a Gaussian frequency window, parameterized as
 
 \[
-w(t)=e^{-t^2/\sigma^2}.
+w(t)=e^{-t^2/\sigma^2},
 \]
 
-In the reference implementation, the frequency window is the standard-normal characteristic-function factor \(e^{-t^2/2}\). The target characteristic function specifies the distribution being tested; the window controls how discrepancies across frequencies are weighted. They are conceptually separate, even though the implementation uses the same Gaussian factor for both.
+with the bandwidth commonly set to one. The reference algorithm evaluates the integral on 17 points over \([-5,5]\), constructs the standard-normal characteristic function as \(\exp(-t^2/2)\), and multiplies the squared empirical-to-target discrepancy by that same Gaussian factor in its displayed implementation. In the mathematical definition, the target characteristic function specifies the null distribution, while \(w(t)\) specifies frequency weighting. Those are distinct roles even when the implementation chooses numerically related Gaussian factors.
 
 The statistic compares the empirical characteristic function with the target over a range of frequencies. It is not a mean-and-variance penalty. Deviations in the shape of the projected distribution can affect the characteristic function even when the first two moments match.
 
