@@ -220,16 +220,19 @@ J(p)=
 
 is the expected squared score of the embedding density. It is a property of the density itself, not of one coordinate variance or one covariance entry.
 
-The full k-NN expansion also contains a curvature term and a cross term involving the target Hessian. Under the paper's derivative prior, the curvature term contributes a finite term independent of the embedding density. Unless an additional orthogonality assumption makes the cross term vanish, it also contributes at order \\(O(r_0^4)\\). The density-dependent contribution singled out by the analysis is therefore
+The full k-NN expansion also contains a curvature term and a cross term involving the target Hessian. The score-gradient term contributes \(\tau_g^2J(p)\). The curvature term is independent of the embedding density under the stated derivative prior. The cross term vanishes only under an additional orthogonality or zero-covariance condition between the Laplacian and gradient of the target function. Without that extra condition, it is a finite term of the same asymptotic order as the Fisher-information term, not a smaller-order remainder. The paper therefore writes the result as
 
 \[
-\operatorname{ISB}_{\mathrm{kNN}}
+\mathbb E_{\eta}[\operatorname{ISB}_{\mathrm{kNN}}]
 =
-\frac{r_0^4}{(K+2)^2}
-\tau_g^2J(p)
-+
-O(r_0^4).
+\left(\frac{r_0^2}{K+2}\right)^2
+\left\{
+\tau_g^2J(p)+O(1)
+\right\}
++o(r_0^4).
 \]
+
+The expression isolates the part that varies with the embedding density. It does not say that the entire integrated bias equals the Fisher-information term for every downstream-function prior. The minimization over \(p\) follows because the remaining terms are bounded and do not provide a competing density-dependent contribution under the paper's assumptions. (Balestriero and LeCun, 2025)
 
 For Nadaraya–Watson regression, the paper considers a smoothness class with bounded target gradient and Laplacian. If
 
@@ -398,7 +401,6 @@ The next section turns this theoretical target into a practical objective. SIGRe
 
 **Figure 8.1. Local regression is affected by an asymmetric sample density.** Draw a query point, its neighbourhood and samples concentrated more strongly on one side. Overlay a target function with its local gradient to show why the density gradient contributes to the local averaging bias.
 
-**Figure 8.2. Fisher information measures the strength of the density score field.** Show a smooth embedding density with vectors proportional to (
-ablalog p(z)), then relate the expected squared vector magnitude to (J(p)). Keep the score field distinct from the downstream target gradient.
+**Figure 8.2. Fisher information measures the strength of the density score field.** Show a smooth embedding density with vectors proportional to \(\nabla\log p(z)\), then relate the expected squared vector magnitude to \(J(p)\). Keep the score field distinct from the downstream target gradient.
 
 **Figure 8.3. Gaussianity and isotropy arise in two separate minimizations.** First compare a Gaussian and non-Gaussian density with the same covariance; then compare anisotropic and isotropic covariance spectra under a fixed scalar constraint. Label the assumptions behind each step.

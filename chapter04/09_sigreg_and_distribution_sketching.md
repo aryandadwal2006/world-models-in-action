@@ -155,7 +155,7 @@ Its displayed Algorithm 1 evaluates the integral on 17 points over \([-5,5]\), c
 
 The statistic compares the empirical characteristic function with the target over a range of frequencies. It is not a mean-and-variance penalty. Deviations in the shape of the projected distribution can affect the characteristic function even when the first two moments match.
 
-The implementation approximates the integral numerically. The reference algorithm uses trapezoidal quadrature over 17 points on the interval \([-5,5]\), and exploits the symmetry of the integrand to reduce the effective evaluation work. This is an implementation choice supported by the paper's ablations, not a mathematical requirement of the Epps–Pulley test. Changing the frequency range, quadrature grid or weight changes the finite numerical approximation. (Balestriero and LeCun, 2025)
+The implementation approximates the integral numerically. Its pseudocode samples 17 points on the interval \([-5,5]\), evaluates the Gaussian characteristic function \(e^{-t^2/2}\), multiplies the squared empirical-to-target discrepancy by that Gaussian vector, and applies trapezoidal quadrature. The paper notes that symmetry of the integrand can be used to double the effective number of knots without an equivalent increase in computation. This is an implementation prescription, not a mathematical requirement of the Epps–Pulley test. The paper's general test definition writes the Gaussian window as \(w(t)=e^{-t^2/\sigma^2}\), commonly with \(\sigma=1\); the displayed code uses \(e^{-t^2/2}\) as its numerical window. The equation and code should therefore be read in their own stated conventions rather than silently identifying their window parameterizations. (Balestriero and LeCun, 2025)
 
 ## 9.6 From one projection to a minibatch objective
 
@@ -235,7 +235,22 @@ SIGReg is applied to the embedding distribution of the views. The total objectiv
 
 where \(\alpha\) is the single trade-off parameter between view agreement and distribution matching.
 
-This construction differs from an EMA teacher-predictor system. In the base LeJEPA recipe, the mean of the global-view embeddings provides the centre toward which all global and local views are drawn. The method does not require an EMA target encoder, a stop-gradient target branch or a separate predictor network. The SIGReg term is averaged over the view embeddings. This is consistent with the information structure discussed earlier: a predictor is useful when the target contains asymmetric information that must be inferred from the context, but is not mandatory for symmetric view agreement. (Balestriero and LeCun, 2025)
+This construction differs from an EMA teacher-predictor system. In the base LeJEPA recipe, the mean of the global-view embeddings provides the centre toward which all views are drawn. The method does not require an EMA target encoder, a stop-gradient target branch or a separate predictor network. SIGReg is applied separately to the batch of embeddings from each view and then averaged over the \(V\) views. The complete objective can therefore be written as
+
+\[
+\mathcal L_{\mathrm{LeJEPA}}
+=
+(1-\alpha)\mathcal L_{\mathrm{pred}}
++
+\frac{\alpha}{V}
+\sum_{v=1}^{V}
+\operatorname{SIGReg}
+\left(
+\{z_{n,v}\}_{n=1}^{N}
+\right).
+\]
+
+Here \(\mathcal L_{\mathrm{pred}}\) averages the squared distance between every view and the per-sample mean of the global-view embeddings. The outer coefficient \(\alpha\) is the single trade-off hyperparameter in the method's stated objective. SIGReg does not regularize one pooled collection formed by mixing all views into a single batch; each view distribution is tested separately. This distinction is relevant because crop scales and augmentation distributions can differ between global and local views. (Balestriero and LeCun, 2025)
 
 ## 9.9 What SIGReg makes possible
 

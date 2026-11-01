@@ -143,7 +143,13 @@ The next development addresses a different limitation. V-JEPA 2's masked-token o
 
 The distinction is between **global information useful for prediction** and **local information accessible at a particular token**. A representation can contain enough information to predict a hidden region while individual visible tokens are not ideal descriptors of the local object part or spatial location they correspond to. This is not necessarily a failure for tasks evaluated on pooled features. It becomes important for dense tasks such as depth estimation, semantic segmentation, object correspondence and localization, where a feature at one position should retain information about the scene at that position.
 
-V-JEPA 2.1 adds a context loss to the original masked-token prediction loss. The context loss supervises visible tokens, with a weight that depends on their spatial-temporal distance from the masked region. The total dense prediction objective can be written schematically as
+V-JEPA 2.1 adds a context loss to the original masked-token prediction loss. The context loss supervises visible tokens, with a weight determined by their nearest masked token in spatiotemporal block coordinates. If \(d_{\min}(i,M)\) is the minimum distance, measured in number of blocks, from visible token \(i\) to the masked set, the paper uses
+
+\[
+\lambda_i=\frac{\lambda}{\sqrt{d_{\min}(i,M)}}.
+\]
+
+Visible tokens nearest to a masked region therefore receive the strongest context supervision. This choice encourages local continuity across the boundary between visible and masked regions, rather than imposing an equal identity-like target on every context token. The total dense prediction objective can be written schematically as
 
 \[
 \mathcal L_{\mathrm{dense}}
@@ -174,7 +180,7 @@ This change creates a trade-off. In the paper's ablation, adding context loss im
 
 ## 11.7 Deep self-supervision and multiple representation levels
 
-V-JEPA 2.1 applies supervision at several intermediate encoder depths, not only at the final output. Representations from multiple blocks are normalized, combined and projected through a lightweight multilayer perceptron. The predictor produces corresponding multi-level outputs, and the masked-token and context-token losses are applied at these levels.
+V-JEPA 2.1 takes outputs from three intermediate encoder blocks in addition to the final block. The four normalized representations are concatenated along the channel dimension and passed through a lightweight MLP that fuses them and reduces their dimensionality. The predictor produces four corresponding output levels. Both the masked-token prediction loss and the weighted context loss are applied at all four levels, with the unmasked target encoder providing the multi-level target features.
 
 The motivation is that a final-layer objective can place most of the learning pressure on the representation after many attention and mixing operations. Earlier blocks may not receive an equally direct signal to retain spatial detail. Applying losses at several depths creates training signals throughout the encoder. It also gives the model a way to balance local structure with global semantics instead of relying on the final representation to satisfy both demands alone.
 

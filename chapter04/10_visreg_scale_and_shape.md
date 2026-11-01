@@ -70,7 +70,7 @@ The normalization also does not imply that the scale and shape objectives are in
 
 ## 10.4 Sliced Wasserstein distance
 
-The shape term compares projected normalized embeddings with projections of a standard Gaussian. For a unit direction \(w_k\in\mathbb S^{D-1}\), form the scalar samples
+The shape term compares projected normalized embeddings with projections of a standard Gaussian. The one-dimensional sorting operation is piecewise differentiable with respect to the projected values except at ties, where the ordering changes; the loss does not require a differentiable relaxation of a high-dimensional sorting operation. For a unit direction \(w_k\in\mathbb S^{D-1}\), form the scalar samples
 
 \[
 u_k=\widetilde Z w_k\in\mathbb R^N.

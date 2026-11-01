@@ -39,7 +39,9 @@ As in I-JEPA, the target features come from the target encoder's output at selec
 
 Adjacent video frames are highly redundant. An object may move only a few pixels between consecutive frames. If the model sees nearly all of a frame or nearby frames, it may infer the target from trivial local continuity. A task that is too easy can reward a shortcut rather than a representation that captures useful temporal relations.
 
-V-JEPA samples spatially contiguous regions and extends them across the temporal dimension of the clip. Its target masks therefore select spatiotemporal regions rather than independent random holes in individual frames. The paper studies different target-mask scales, including smaller and larger regions, so that the predictor encounters both local and more extensive prediction problems. The reported recipe masks a large fraction of video tokens overall.
+V-JEPA samples spatially contiguous regions and extends them across the temporal dimension of the clip. Its target masks therefore select spatiotemporal regions rather than independent random holes in individual frames. The paper uses two families of target masks. A short-range mask is the union of eight randomly sampled target blocks, each covering 15% of a frame; a long-range mask is the union of two blocks, each covering 70% of a frame. The aspect ratio of each sampled block lies between 0.75 and 1.5. The unions produce an average masking ratio of approximately 90%. The values 15% and 70% describe the spatial scale of the sampled blocks, not the fraction of the complete video removed by the final union. Both mask families extend each selected spatial block through the clip's full temporal dimension. (Bardes et al., 2024)
+
+The encoder paths also matter. The visible complement is applied at the input of the context encoder by dropping masked tokens. The target encoder processes the complete clip; target positions are selected from its contextualized output. Thus, the model does not create a target by encoding an isolated RGB crop.
 
 The geometry of a target tube matters. If the same spatial region is hidden across time, the model cannot simply inspect the corresponding patch in another nearby frame. It must use the rest of the clip to predict the target features. If a target is withheld at only one time but visible at neighbouring times, temporal interpolation may be sufficient. Both are valid prediction problems, but they test different conditional information.
 
@@ -113,6 +115,8 @@ The original V-JEPA paper reports strong frozen-feature performance on video und
 ## 4.7 What V-JEPA does not condition on
 
 The phrase *future prediction* is sometimes used loosely in discussions of video models. A masked target can occur later than visible context, but temporal ordering is not enough to establish a controlled transition model.
+
+The original paper explicitly compares three masking regimes: random tubes, causal multi-block masks, and multi-block masks sampled across the entire clip. In the causal variant, the context is restricted to the first six or twelve frames of a sixteen-frame clip before spatiotemporal blocks are removed. The standard multi-block setting, by contrast, can use context from the whole clip, including frames later than a target position. In the reported frozen evaluation, the full-clip multi-block setting outperforms the causal-prefix alternatives on Kinetics-400, Something-Something-v2 and ImageNet-1K. The result is important for interpretation: the principal V-JEPA recipe is a strong masked-video representation objective, not simply a causal next-frame predictor. Temporal ordering exists in the data, but the mask does not impose a past-only information boundary. (Bardes et al., 2024)
 
 To be action-conditioned, the predictor must receive a variable representing the candidate action or intervention. A controlled latent transition might be written as
 

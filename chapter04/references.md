@@ -70,6 +70,8 @@ Supplied file: `rough-draft/chapter4/papers_pdfs/2603.14482v3_compressed.pdf`.
 
 Primary source: https://arxiv.org/abs/2603.14482
 
+Source license: arXiv identifies version 3 as CC BY-NC-ND 4.0. Treat the paper's figures as non-commercial, no-derivatives material; independently drawn explanatory figures are preferable.
+
 Official implementation: https://github.com/facebookresearch/vjepa2
 
 Use in this chapter: dense visible- and masked-token supervision, deep self-supervision and the distinction between dense representation learning and action-conditioned robot prediction. Any planning comparison must retain the predictor and planner settings from the paper.
@@ -81,6 +83,8 @@ Wu, H., Balestriero, R., and Levine, M. (2026). “Variance-Invariance-Sketching
 Supplied file: `rough-draft/chapter4/papers_pdfs/2606.02572v1 (1).pdf`.
 
 Primary source: https://arxiv.org/abs/2606.02572
+
+Source license: arXiv identifies the source with CC BY-NC 4.0 terms. Check the precise reuse conditions before adapting or reproducing any paper material; use original explanatory artwork.
 
 Project/source pointer: https://haiyuwu.github.io/visreg/
 
