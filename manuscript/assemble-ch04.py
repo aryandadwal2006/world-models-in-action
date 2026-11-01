@@ -49,7 +49,7 @@ def convert(md):
             # Pandoc preserves the outer Markdown display delimiters in a
             # latexmath block. They are not part of the TeX expression passed
             # to MathJax in display mode.
-            if body.startswith(r"\\[") and body.endswith(r"\\]"):
+            if body.startswith(r"\[") and body.endswith(r"\]"):
                 body = body[2:-2].strip()
             output.extend(["[latexmath]", "++++", body, "++++"])
             i = j + 1
