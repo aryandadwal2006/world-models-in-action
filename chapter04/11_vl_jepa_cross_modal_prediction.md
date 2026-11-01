@@ -6,17 +6,17 @@ This extension clarifies the generality of prediction in representation space. I
 
 ## 11.1 The visual context, query and target are different variables
 
-Let (X_V) denote the visual input, (X_Q) a text query, and (Y) the target text. The query is not the target. It specifies the question being asked; the target is the answer representation against which the prediction is trained.
+Let \(X_V\) denote the visual input, \(X_Q\) a text query, and \(Y\) the target text. The query is not the target. It specifies the question being asked; the target is the answer representation against which the prediction is trained.
 
 A minimal mathematical description is
 
 \[
-S_V=f_\theta(X_V),\qquad
-S_Y=e_\psi(Y),\qquad
+S_V=f_\theta\(X_V\),\qquad
+S_Y=e_\psi\(Y\),\qquad
 \widehat S_Y=p_\phi(S_V,X_Q).
 \]
 
-The visual encoder (f_\theta) converts an image or video into visual features. The target encoder (e_\psi) maps the answer text to a continuous representation. The predictor (p_\phi) combines the visual features with the query and estimates a vector in the target encoder's space.
+The visual encoder \(f_\theta\) converts an image or video into visual features. The target encoder \(e_\psi\) maps the answer text to a continuous representation. The predictor \(p_\phi\) combines the visual features with the query and estimates a vector in the target encoder's space.
 
 Consider a video showing a person reaching toward a wall. One query asks which object the person is about to touch; another asks what action the person is performing. The frames are identical, but the requested answer changes. The query therefore selects the conditional prediction problem.
 
@@ -41,7 +41,7 @@ For normalized predicted and target embeddings (ar{hat s}_i) and (ar s_i), a o
 },
 \]
 
-where (B) is the batch size and (	au) is a temperature. The reverse direction exchanges predicted and target embeddings. VL-JEPA averages the two directions, combining an alignment signal for paired examples with a uniformity pressure that discourages all examples from occupying the same representation.
+where \(B\) is the batch size and (	au) is a temperature. The reverse direction exchanges predicted and target embeddings. VL-JEPA averages the two directions, combining an alignment signal for paired examples with a uniformity pressure that discourages all examples from occupying the same representation.
 
 The loss is important to identify correctly. VL-JEPA uses bidirectional InfoNCE in the reported formulation. It does not use SIGReg as its regularizer. The paper discusses non-sample-contrastive alternatives, including VICReg and SIGReg, as possibilities for future investigation rather than as part of its method (Chen et al., 2026).
 
@@ -72,7 +72,7 @@ VL-JEPA evaluates semantic tasks that include action anticipation and next-step 
 The distinction can be expressed by comparing the two conditional computations:
 
 \[
-\widehat S_Y=p_\phi(f_\theta(X_V),X_Q),
+\widehat S_Y=p_\phi(f_\theta\(X_V\),X_Q),
 \qquad
 \widehat S_{t+1}=F_\omega(S_t,A_t).
 \]

@@ -37,7 +37,11 @@ jobs:
         with:
           node-version: '22'
       - name: Install MathJax Node
-        run: npm install --global @mathjax/src@4 @mathjax/mathjax-tex-font@4
+        run: |
+          npm install --global @mathjax/src@4 @mathjax/mathjax-tex-font@4
+          global_node_modules="$(npm root -g)"
+          echo "NODE_PATH=${global_node_modules}" >> "$GITHUB_ENV"
+          NODE_PATH="${global_node_modules}" node -e "require.resolve('@mathjax/src'); require.resolve('@mathjax/mathjax-tex-font/package.json')"
       - name: Assemble and verify Chapter 4 sources
         run: |
           python3 manuscript/assemble-ch04.py
