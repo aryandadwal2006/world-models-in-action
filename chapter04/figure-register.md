@@ -48,6 +48,7 @@ No artwork is embedded in the Markdown sources at this stage. For every official
 | F28 | Hierarchical prediction across time scales | LeCun, H-JEPA figure as candidate | Prefer the official hierarchy illustration if permitted; otherwise draw high-level subgoals being refined into lower-level states and actions. |
 | F29 | A single deterministic future versus multiple latent futures | Original | Branch several plausible outcomes from the same history and action. Show a latent selector and a cost-based ranking step. |
 | F30 | How the chapter's components fit together | Original | One compact closing diagram: representation, target prediction, distributional constraint, action-conditioned dynamics, cost, planning and feedback. |
+| F31 | One I-JEPA training step, including tensor dimensions, mask positions and gradient flow | Original, informed by Assran et al. (2023) | Show patch tokens, context selection, full-image target encoding, target-position selection, positional query tokens, predicted features and the EMA update. Use solid arrows for forward computation and dashed arrows for parameter updates. |
 
 ## Official-figure candidates and limits
 

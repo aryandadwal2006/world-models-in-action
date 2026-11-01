@@ -34,7 +34,8 @@ The named systems are evidence and examples within this argument. They are not t
 | `09_action_conditioned_prediction.md` | Interventions, action-conditioned latent dynamics and V-JEPA 2-AC |
 | `10_planning_and_model_error.md` | Goal costs, search, receding-horizon control and model exploitation |
 | `11_hierarchy_memory_and_agent_architecture.md` | Multiple futures, H-JEPA, Mode 1/Mode 2, STM and Configurator |
-| `12_synthesis_and_exercises.md` | Synthesis, limitations and derivation/design exercises |
+| `12_reading_a_jepa_training_step.md` | A worked I-JEPA training step, video comparison and implementation audit |
+| `13_synthesis_and_exercises.md` | Synthesis, limitations and derivation/design exercises |
 | `references.md` | Primary papers and implementation sources |
 | `figure-register.md` | Proposed figures, official-source candidates and reuse notes |
 

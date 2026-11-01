@@ -1,4 +1,4 @@
-# 12. Synthesis and exercises
+# 13. Synthesis and exercises
 
 ## 12.1 The argument of the chapter
 
