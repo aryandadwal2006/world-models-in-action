@@ -155,7 +155,7 @@ The same density-gradient coupling appears for radius-based k-NN. Its leading bi
 o(r_0^2).
 \]
 
-The coefficients differ because a uniform ball and a smooth kernel have different second moments. The dependence on the local score \(\nabla\log p(q)\) is common to both estimators.
+The coefficients differ because a uniform ball and a smooth kernel have different second moments. The dependence on the local score \\(\\nabla\\log p(q)\\) is common to both estimators. The k-NN expansion assumes a smooth embedding density with bounded derivatives through order three, finite covariance and finite Fisher information, together with a twice continuously differentiable target function. [Balestriero and LeCun, 2025]
 
 ## 6.3 From a pointwise bias to Fisher information
 
@@ -220,7 +220,7 @@ J(p)=
 
 is the expected squared score of the embedding density. It is a property of the density itself, not of one coordinate variance or one covariance entry.
 
-For radius-based k-NN, the leading integrated squared bias in the paper's analysis is
+The full k-NN expansion also contains a curvature term and a cross term involving the target Hessian. Under the paper's derivative prior, the curvature term contributes a finite term independent of the embedding density. Unless an additional orthogonality assumption makes the cross term vanish, it also contributes at order \\(O(r_0^4)\\). The density-dependent contribution singled out by the analysis is therefore
 
 \[
 \operatorname{ISB}_{\mathrm{kNN}}
@@ -254,7 +254,7 @@ then the integrated squared bias is bounded by
 o(h^4).
 \]
 
-The kernel result additionally assumes a normalized, symmetric and isotropic kernel with finite roughness, a sufficiently light-tailed embedding density, and the usual small-bandwidth asymptotic regime. In particular, the pointwise expansion is stated where \(p(q)>0\), with \(h\to0\) and \(Nh^K\to\infty\). These conditions are not decorative details. They delimit the result.
+The kernel result additionally assumes a normalized, symmetric and isotropic kernel with finite second moment and finite roughness, a sufficiently light-tailed embedding density, and the usual small-bandwidth asymptotic regime. In particular, the pointwise expansion is stated where \\(p(q)>0\\), with \\(h\\to0\\) and \\(Nh^K\\to\\infty\\). The theorem bounds worst-case integrated squared bias over a smoothness class of target functions. These conditions delimit the result. [Balestriero and LeCun, 2025]
 
 The pointwise variance also depends on the density:
 
@@ -277,7 +277,7 @@ where \(v(q)=\operatorname{Var}(Y\mid Z=q)\). A query in a sparse part of the em
 \end{aligned}
 \]
 
-Under this evaluation measure, the leading integrated variance is independent of \(p\). The density-dependent optimization therefore enters through the integrated squared bias bound, while the leading integrated variance does not distinguish candidate embedding densities. This is a more precise statement than saying that every pointwise variance term is independent of the density.
+Under this evaluation measure, the leading integrated variance is independent of \\(p\\). The density-dependent optimization therefore enters through the integrated squared bias bound, while the leading integrated variance does not distinguish candidate embedding densities. This is a more precise statement than saying that every pointwise variance term is independent of the density.
 
 The Fisher-information functional appears because the local estimators are biased by nonuniform sample density. The representation controls that density. For the estimator families considered, the density score is therefore part of the downstream prediction error.
 

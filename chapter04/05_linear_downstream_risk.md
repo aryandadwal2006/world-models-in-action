@@ -98,7 +98,7 @@ Equivalently, the magnitude of the bias component in that direction is multiplie
 
 A direction with a large eigenvalue is well represented in the sample: the features vary substantially along it. Ridge therefore shrinks that coefficient less. A direction with a small eigenvalue is weakly supported by the data. Ridge shrinks its coefficient more strongly.
 
-This observation permits a controlled comparison of two feature geometries. Suppose they preserve the same intrinsic feature span and the same total variance, but one is isotropic while the other has unequal covariance eigenvalues. Let \(\bar\lambda\) denote the mean eigenvalue. In the isotropic case, every eigenvalue equals \(\bar\lambda\). In the anisotropic case, at least one eigenvalue is smaller than \(\bar\lambda\).
+This observation permits a controlled comparison of two feature geometries. Hold the total covariance trace fixed, but allow its eigenvalues to be distributed differently. Let \(\bar\lambda\) denote the mean eigenvalue. In the isotropic case, every eigenvalue equals \(\bar\lambda\). In the anisotropic case, at least one eigenvalue is smaller than \(\bar\lambda\).
 
 Choose a downstream task whose true coefficient vector aligns with the eigenvector associated with the smallest anisotropic eigenvalue, denoted \(\lambda_{\min}\). For this task,
 
@@ -126,9 +126,7 @@ Because \(\lambda_{\min}<\bar\lambda\),
 \|\operatorname{Bias}_{\mathrm{iso}}\|.
 \]
 
-The result is a worst-case statement. For any anisotropic spectrum with the same trace, there exists a downstream linear task aligned with a weak direction for which ridge incurs greater bias than in the isotropic comparison. It does not say that every task aligned with every direction is worse.
-
-The assumption that the two feature matrices preserve the same column span is important. It isolates the effect of geometry from a change in which linear information is present. The comparison asks what happens when the same linear feature space is stretched differently across its directions.
+The result is a worst-case statement. For any anisotropic covariance with the same total variance, there exists a downstream linear task aligned with its weakest eigen-direction for which ridge incurs greater bias than under the isotropic covariance. It does not say that every task aligned with every direction is worse. [Balestriero and LeCun, 2025]
 
 ## 5.3 OLS variance and the inverse spectrum
 
@@ -192,7 +190,7 @@ Thus,
 \frac{K^2}{T},
 \]
 
-with equality if and only if all eigenvalues are equal. Under the fixed-trace and full-rank assumptions, the isotropic covariance spectrum uniquely minimizes the trace of the OLS coefficient covariance.
+with equality if and only if all eigenvalues are equal. Under the fixed-trace and full-rank assumptions, the isotropic covariance spectrum uniquely minimizes the trace of the OLS coefficient covariance. [Balestriero and LeCun, 2025]
 
 This derivation explains why anisotropy can increase estimator variance even if the total amount of feature variance is unchanged. Concentrating variance into a few directions forces the remaining directions to become narrower. The inverse spectrum penalizes those narrow directions heavily.
 
