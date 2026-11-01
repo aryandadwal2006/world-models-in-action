@@ -78,7 +78,7 @@ Adding an action vector to a neural network does not automatically make the lear
 
 **Unobserved influences.** Even with recorded actions, an unobserved variable may affect both the action selection and the resulting transition. Conditioning on the recorded action does not by itself remove this confounding. The reliability of counterfactual predictions depends on the data-collection process, state variables, action support and modelling assumptions.
 
-The correct claim is therefore narrower than “adding actions produces a causal world model.” Action conditioning makes the intervention explicit in the model's input and training objective. Whether the resulting predictor identifies and generalizes action effects is an empirical and statistical question.
+The correct claim is therefore narrower than “adding actions produces a causal world model.” Action conditioning makes the intervention explicit in the model's input and training objective. Whether the resulting predictor identifies and generalizes action effects is an empirical and statistical question. (Assran et al., 2025)
 
 ## 9.4 A staged example: V-JEPA 2 and V-JEPA 2-AC
 
@@ -176,4 +176,4 @@ Useful evaluations include:
 
 These tests are still not universal certificates of causal correctness. They reveal whether the model supports the specific interventions and environments that the agent is expected to handle.
 
-The transition from passive video to action-conditioned prediction is therefore a change in the learning problem, not merely an architectural option. The next section examines what an agent can do once it has such a predictor, and why planning introduces new failure modes even when the model performs well on held-out transitions.
+The transition from passive video to action-conditioned prediction is therefore a change in the learning problem, not merely an architectural option. (Assran et al., 2025) The next section examines what an agent can do once it has such a predictor, and why planning introduces new failure modes even when the model performs well on held-out transitions.

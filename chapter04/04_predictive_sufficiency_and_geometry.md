@@ -36,7 +36,7 @@ for every relevant action \(a\) and target \(Y\) in the task specification.
 
 A minimal sufficient predictive state would assign the same representation to histories in the same equivalence class and different representations when the relevant conditional future distributions differ. In practice, a neural representation may preserve more than the minimum needed, and the equivalence relation is only defined relative to the selected tasks and data.
 
-This perspective clarifies why a representation should not be called a physical state simply because it is temporally predictive. A learned feature may support some future predictions without preserving every hidden variable, and the relevant variables can change with the action space and objective.
+This perspective clarifies why a representation should not be called a physical state simply because it is temporally predictive. A learned feature may support some future predictions without preserving every hidden variable, and the relevant variables can change with the action space and objective. (LeCun, 2022)
 
 ## 4.3 The target encoder defines which distinctions count
 
@@ -60,7 +60,7 @@ A linear probe asks whether the target can be estimated by a linear function of 
 
 These tests answer different questions. A strong linear probe indicates that certain information is readily accessible to a linear readout. A weak linear probe does not prove that information is absent; a nonlinear readout may recover it. Strong representation benchmarks do not establish that the latent state is Markov, causal or sufficient for control. Planning success is evidence about the complete model-planner-environment system, not an encoder in isolation.
 
-A useful evaluation therefore matches the readout to the claim. Representation quality, target-feature prediction, action-conditioned prediction and closed-loop control should not be collapsed into one leaderboard or one metric.
+A useful evaluation therefore matches the readout to the claim. Representation quality, target-feature prediction, action-conditioned prediction and closed-loop control should not be collapsed into one leaderboard or one metric. (Balestriero and LeCun, 2025; Assran et al., 2025)
 
 ## 4.5 Covariance as a first view of embedding geometry
 
