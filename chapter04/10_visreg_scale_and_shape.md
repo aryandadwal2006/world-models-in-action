@@ -196,3 +196,9 @@ A variance floor constrains marginal spread. A covariance penalty constrains pai
 None of these conditions, in isolation, proves that the representation is sufficient for a physical task. The Gaussian target is motivated by the downstream-risk analysis already developed. The practical objectives approximate distributional constraints on the representation. A separate predictive target is still needed to specify what the representation should preserve.
 
 This distinction becomes decisive when the model is used for interaction. The next section turns from the geometry of passive observations to the information needed to predict the consequences of chosen actions.
+
+**Figure 10.1. VISReg separates centre, scale and shape.** Use three panels: a displaced cloud, a contracted or expanded cloud, and a centred unit-scale cloud with non-Gaussian shape. Identify the regularizer term responsible for each property.
+
+**Figure 10.2. Sliced-Wasserstein matching is one-dimensional sorting.** Project a normalized batch and Gaussian reference onto the same direction, sort both scalar samples, and connect matched order statistics. State that the comparison is repeated over sampled directions.
+
+**Figure 10.3. Stop-gradient separates shape normalization from scale correction.** Draw the centred batch through a detached standard-deviation denominator into the shape loss, while a separate scale loss acts on the unnormalized batch. Distinguish this gradient boundary from an EMA target update.
