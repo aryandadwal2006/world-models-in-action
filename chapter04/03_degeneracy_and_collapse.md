@@ -90,7 +90,7 @@ A less obvious failure occurs when the representation varies but occupies only a
 
 This is often called dimensional collapse or rank collapse. It does not mean every coordinate is constant. Several coordinates may vary, but they may be redundant linear combinations of the same few underlying directions.
 
-A coordinate-wise variance floor can prevent individual dimensions from becoming constant, yet still allow correlated or low-rank structure. Conversely, penalizing covariance alone does not guarantee that every dimension has sufficient spread. The two requirements address different degeneracies.
+A coordinate-wise variance floor can prevent individual dimensions from becoming constant, yet still allow correlated or low-rank structure. Conversely, penalizing covariance alone does not guarantee that every dimension has sufficient spread. The two requirements address different degeneracies. (Bardes et al., 2022; Zbontar et al., 2021)
 
 ## 3.4 The information-theoretic view
 
@@ -120,7 +120,7 @@ Several families of methods modify the optimization problem so that the constant
 
 **Distributional constraints.** Instead of matching only a few moments, a regularizer can compare the projected or full embedding distribution with a target distribution. This constrains a broader set of distributional properties, at the cost of introducing a target geometry and an approximation procedure.
 
-These families should not be treated as interchangeable tricks. They make different mathematical objects part of the objective. Negative samples constrain relations among examples; balanced assignments constrain prototype usage; EMA changes the target dynamics; variance, covariance and distributional penalties constrain statistics of the embedding batch.
+These families should not be treated as interchangeable tricks. They make different mathematical objects part of the objective. Negative samples constrain relations among examples; balanced assignments constrain prototype usage; EMA changes the target dynamics; variance, covariance and distributional penalties constrain statistics of the embedding batch. (Chen et al., 2020; Caron et al., 2020; Grill et al., 2020; Assran et al., 2023; Balestriero and LeCun, 2025)
 
 ## 3.6 A moving target is not a proof of non-collapse
 

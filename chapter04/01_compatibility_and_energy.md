@@ -58,7 +58,7 @@ This operation asks whether there exists a latent configuration that makes the p
 
 The first expression selects a minimum-energy configuration. The second aggregates over configurations and, with appropriate assumptions, corresponds to a negative log marginal likelihood up to a normalization term. They behave differently when several latent configurations are plausible. In particular, minimizing over \(z\) can ignore how many compatible explanations exist, whereas marginalization can depend on the volume of the compatible region.
 
-There is also a failure mode. If \(z\) is expressive enough to encode the target \(y\) itself, the model can make the energy small by transmitting the answer through the latent variable. The latent then ceases to represent a restricted or abstract explanation. A useful architecture must control what information \(z\) can carry, how it is inferred, and how it enters the compatibility function. LeCun's proposed JEPA formulation makes this explicit: a latent variable can represent alternative futures, but its information content must be constrained so that it does not simply copy the target.
+There is also a failure mode. If \(z\) is expressive enough to encode the target \(y\) itself, the model can make the energy small by transmitting the answer through the latent variable. The latent then ceases to represent a restricted or abstract explanation. A useful architecture must control what information \(z\) can carry, how it is inferred, and how it enters the compatibility function. LeCun's proposed JEPA formulation makes this explicit: a latent variable can represent alternative futures, but its information content must be constrained so that it does not simply copy the target. (LeCun, 2022)
 
 ## 1.3 Joint-embedding prediction
 
@@ -173,7 +173,7 @@ The information supplied to the model changes the question:
 - An action-conditioned target asks what is predicted when the model is additionally given a specified intervention.
 - A text target asks which linguistic representation is compatible with a visual or other context.
 
-These are different conditional prediction problems. The phrase *predictive representation* is broad enough to include all of them, but the kind of prediction must be stated precisely.
+These are different conditional prediction problems. The phrase *predictive representation* is broad enough to include all of them, but the kind of prediction must be stated precisely. (Assran et al., 2023; Bardes et al., 2024; Chen et al., 2026)
 
 **Figure 1.1. A compatibility energy over candidate targets.** Draw a context \(x\) on the left and a space of candidate targets \(y\) on the right. Show an energy surface over candidate targets, with low-energy regions indicating compatibility. Include two low-energy regions to illustrate that more than one target may be compatible with the same context. Label the energy as a score, not as a probability density. A separate annotation should show that normalization is required before the energy defines a Gibbs distribution.
 

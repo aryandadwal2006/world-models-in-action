@@ -36,7 +36,7 @@ The distribution \(p_{\mathrm{data}}(X,Y,Q)\) is as important as the function \(
 
 The context and target branches do not necessarily receive symmetric inputs. In I-JEPA, for example, the context encoder processes the selected context tokens, while the target encoder processes the full image before the target positions are selected from its feature map. The model therefore has access to a target feature at a location that is hidden from the context branch. It does not simply encode an isolated target crop through an otherwise identical pathway.
 
-This detail matters because a target encoder defines the features being predicted. The representation may contain spatial context from outside the target block. The target is not equivalent to an independently encoded patch unless the architecture explicitly makes it so.
+This detail matters because a target encoder defines the features being predicted. The representation may contain spatial context from outside the target block. The target is not equivalent to an independently encoded patch unless the architecture explicitly makes it so. (Assran et al., 2023)
 
 The same caution applies to video. A visible-context encoder and an unmasked target encoder create different information paths. The predictor is asked to infer target features from the context pathway, not to copy the target encoder's input. Positional information tells it where the target lies in the image or clip. The masking pattern determines whether the prediction requires local continuity, global scene context, temporal context or some combination.
 
@@ -54,7 +54,7 @@ where \(X_{\neg M}\) denotes the visible context. A mask selecting a small regio
 
 There is no mask geometry that is optimal independently of the intended prediction problem. A method that makes targets too easy can reward shortcuts. A method that makes targets too ambiguous can produce weak or noisy learning signals. The target distribution is part of the inductive bias.
 
-This is why image, video and dense-feature objectives should not be described as though they were the same prediction task at different resolutions. I-JEPA's spatial blocks test relations between visible and withheld image regions. The original V-JEPA uses masked spatiotemporal features, which can be spatially or temporally withheld. V-JEPA 2.1 changes the target supervision again by including dense features from visible as well as masked tokens and by applying supervision at intermediate depths. That choice asks the representation to preserve spatially structured information across the token grid. It is not the same as adding an action input.
+This is why image, video and dense-feature objectives should not be described as though they were the same prediction task at different resolutions. I-JEPA's spatial blocks test relations between visible and withheld image regions. The original V-JEPA uses masked spatiotemporal features, which can be spatially or temporally withheld. V-JEPA 2.1 changes the target supervision again by including dense features from visible as well as masked tokens and by applying supervision at intermediate depths. That choice asks the representation to preserve spatially structured information across the token grid. It is not the same as adding an action input. (Bardes et al., 2024; Assran et al., 2025; Mur-Labadia et al., 2026)
 
 ## 2.4 The deterministic squared-error predictor
 
@@ -121,7 +121,7 @@ This observation will matter when introducing the latent variable \(z\) in energ
 
 A predictor is useful when the target contains information that is not directly available in the context, or when the model must transform context information into a target-specific representation. A future feature conditioned on a history and an action is an obvious example. A masked region whose location is specified by a query is another.
 
-However, a separate predictor network is not a universal requirement of joint-embedding learning. For symmetric views that are intended to represent the same content, a loss can directly bring the view embeddings toward a shared centre. LeJEPA uses a multi-view construction in which a mean of global-view embeddings serves as the centre and local and global view embeddings are drawn toward it. Its basic recipe does not require the EMA teacher and predictor arrangement used by I-JEPA or V-JEPA.
+However, a separate predictor network is not a universal requirement of joint-embedding learning. For symmetric views that are intended to represent the same content, a loss can directly bring the view embeddings toward a shared centre. LeJEPA uses a multi-view construction in which a mean of global-view embeddings serves as the centre and local and global view embeddings are drawn toward it. Its basic recipe does not require the EMA teacher and predictor arrangement used by I-JEPA or V-JEPA. (Balestriero and LeCun, 2025)
 
 The choice depends on information asymmetry:
 
