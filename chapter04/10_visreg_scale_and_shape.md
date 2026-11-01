@@ -97,7 +97,7 @@ W_2^2(\widehat P,\widehat Q)
 \left(u_{(i)}-q_i\right)^2.
 \]
 
-The factor \(1/N\) is the one-dimensional empirical Wasserstein distance. In the VISReg objective, the paper uses the squared Euclidean norm of the full sorted batch vector and averages over projection directions:
+The factor \(1/N\) is part of the empirical one-dimensional Wasserstein distance. The paper's displayed shape objective is
 
 \[
 \mathcal L_{\mathrm{shape}}
@@ -106,10 +106,12 @@ The factor \(1/N\) is the one-dimensional empirical Wasserstein distance. In the
 \sum_{k=1}^{K_s}
 \left\|
 \operatorname{sort}(\widetilde Z w_k)-q
-\right\|_2^2.
+\right\|_2^2,
 \]
 
-Here \(K_s\) is the number of slices, not the embedding dimension. The published shape loss does not include an additional division by \(N\) outside the squared vector norm. This normalization convention matters when comparing the magnitudes of the scale, shape and center terms.
+where \(K_s\) is the number of slices. The accompanying Algorithm 1, however, computes `(p_sorted - target).pow(2).mean()`, which averages over both the \(N\) samples and the \(K_s\) slices. The code therefore includes a factor \(1/N\) relative to the displayed squared-norm expression. This is a normalization discrepancy between the printed objective and the pseudocode, not a difference in the intended transport coupling. It changes the numerical scale of the regularizer with batch size and must be resolved against the exact implementation when reproducing loss weights or comparing reported coefficients.
+
+The paper's normalization equation also shows an \(\epsilon\) in the denominator, whereas the printed algorithm excerpt divides by the detached standard deviation directly. Implementations should use the stabilizer appropriate to the precision and numerical regime, and document that choice. The conceptual construction is unchanged: standardize each coordinate using a detached scale statistic, then compare the sorted one-dimensional projections with Gaussian quantiles.
 
 The difference between SIGReg and VISReg lies in the one-dimensional statistic. SIGReg compares empirical characteristic functions with the target characteristic function. VISReg sorts projected samples and compares their empirical quantiles with Gaussian quantiles. Both use random projections, but they do not compute the same discrepancy. (Wu et al., 2026)
 

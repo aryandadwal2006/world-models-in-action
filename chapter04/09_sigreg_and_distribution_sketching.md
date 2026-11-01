@@ -145,13 +145,13 @@ w(t)\,dt,
 \varphi_0(t)=e^{-t^2/2}.
 \]
 
-The paper describes a Gaussian frequency window, parameterized as
+The paper writes the frequency window as
 
 \[
-w(t)=e^{-t^2/\sigma^2},
+w(t)=e^{-t^2/\sigma^2}.
 \]
 
-with the bandwidth commonly set to one. The reference algorithm evaluates the integral on 17 points over \([-5,5]\), constructs the standard-normal characteristic function as \(\exp(-t^2/2)\), and multiplies the squared empirical-to-target discrepancy by that same Gaussian factor in its displayed implementation. In the mathematical definition, the target characteristic function specifies the null distribution, while \(w(t)\) specifies frequency weighting. Those are distinct roles even when the implementation chooses numerically related Gaussian factors.
+Its displayed Algorithm 1 evaluates the integral on 17 points over \([-5,5]\), constructs the standard-normal characteristic function using \(\exp(-t^2/2)\), and uses that same sampled Gaussian vector to weight the squared empirical-to-target discrepancy. The mathematical roles remain distinct: the target characteristic function specifies the null distribution, while \(w(t)\) specifies frequency weighting. The paper's equation and algorithm should therefore be quoted at their respective levels rather than inferring a bandwidth setting that is not explicit in the implementation listing.
 
 The statistic compares the empirical characteristic function with the target over a range of frequencies. It is not a mean-and-variance penalty. Deviations in the shape of the projected distribution can affect the characteristic function even when the first two moments match.
 

@@ -36,7 +36,7 @@ An action-conditioned model receives an explicit action variable. Its observatio
 P(O_{t+1}\mid H_t,A_t).
 \]
 
-This conditional is not automatically an interventional distribution. The quantity needed to answer what would happen if the system deliberately set the action to (a) is
+This conditional is not automatically an interventional distribution. The quantity needed to answer what would happen if the system deliberately set the action to \(a\) is
 
 \[
 P(O_{t+1}\mid H_t,\operatorname{do}(A_t=a)).
