@@ -187,7 +187,7 @@ A successful physical planning experiment demonstrates that a complete system wo
 6. an execution interface and feedback loop;
 7. an environment and a measured success criterion.
 
-The V-JEPA 2-AC experiments are an example of this system-level evidence. The visual encoder is pretrained from passive data, the action-conditioned predictor is post-trained on robot trajectories, and an image-goal planner searches candidate action sequences. The reported physical outcome belongs to that complete configuration. It should not be attributed to the visual encoder alone.
+The V-JEPA 2-AC experiments are an example of this system-level evidence. The visual encoder is pretrained from passive data, the action-conditioned predictor is post-trained on robot trajectories, and an image-goal planner searches candidate action sequences. The reported physical outcome belongs to that complete configuration. (Assran et al., 2025) It should not be attributed to the visual encoder alone.
 
 A responsible evaluation should distinguish simulated from physical results, familiar from unfamiliar environments, one-step from multi-step training, and matched from unmatched planner budgets. Success rates should be read with the number of trials, task definition and uncertainty across trials. A single aggregate score cannot certify safety or generalization to all objects, robots and environments.
 

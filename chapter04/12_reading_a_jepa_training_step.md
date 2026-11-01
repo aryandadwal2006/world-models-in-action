@@ -55,7 +55,7 @@ The context pathway does not need to run attention over the missing patches. Thi
 
 ## 12.3 The target encoder and target selection
 
-The target branch defines the feature vectors that the predictor must match. It is not enough to say that the target branch “encodes the target crop.” In the official I-JEPA implementation, the target encoder processes the full image and produces a spatial feature map. The target positions are then selected from this feature map. The target encoder can therefore use image context outside an individual target block when constructing its reference features. This is a specific information path, not an implementation detail that can be omitted from an architecture diagram. (Assran et al., 2023)
+The target branch defines the feature vectors that the predictor must match. It is not enough to say that the target branch “encodes the target crop.” In the official I-JEPA implementation, the target encoder processes the full image and produces a spatial feature map. The target positions are then selected from this feature map. The target encoder can therefore use image context outside an individual target block when constructing its reference features. This is a specific information path, not an implementation detail that can be omitted from an architecture diagram. (Assran et al., 2023; official I-JEPA implementation) (Assran et al., 2023)
 
 Write the target encoder as
 
@@ -158,7 +158,7 @@ V-JEPA retains the feature-prediction principle but replaces spatial image patch
 
 The original V-JEPA objective uses an \(\ell_1\) feature regression loss and an EMA target encoder with stop-gradient. This differs from the squared \(\ell_2\) discrepancy used in the I-JEPA formulation. The predictor is conditioned on the requested target locations, and the masking strategy determines whether the target is a spatially hidden region, a temporally withheld region or a combination. (Bardes et al., 2024)
 
-The original V-JEPA paper studies several masking regimes, including random tubes, causal multi-block masks that restrict context to a video prefix, and multi-block masks that can draw context and targets across the clip. The causal-prefix setup asks a different question from a non-causal mask over the entire video. The latter can use visible frames both before and after a target time, so it is not equivalent to predicting a future from the past. A reader should never infer temporal causality from the fact that a model was trained on video.
+The original V-JEPA paper studies several masking regimes, including random tubes, causal multi-block masks that restrict context to a video prefix, and multi-block masks that can draw context and targets across the clip. (Bardes et al., 2024) The causal-prefix setup asks a different question from a non-causal mask over the entire video. The latter can use visible frames both before and after a target time, so it is not equivalent to predicting a future from the past. A reader should never infer temporal causality from the fact that a model was trained on video.
 
 V-JEPA 2 retains masked feature prediction for visual pretraining and then introduces a separate action-conditioned post-training stage. That stage changes the input information and the transition problem, as discussed in the following sections. (Assran et al., 2025)
 

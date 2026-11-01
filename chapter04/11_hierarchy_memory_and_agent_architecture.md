@@ -2,7 +2,7 @@
 
 An action-conditioned predictor supplies a model of how candidate actions may change a represented state. It still does not specify which actions should be tried, what outcomes count as desirable, how information from earlier observations should be recovered, or how behaviour should change when the task changes.
 
-These responsibilities belong to the agent that uses the world model. LeCun's *A Path Towards Autonomous Machine Intelligence* proposes an architecture that makes them explicit. The paper is a research position and design proposal, not a report of a fully validated system implementing every component. Its value here is to clarify what must surround a predictive model if it is to support autonomous behaviour.
+These responsibilities belong to the agent that uses the world model. LeCun's *A Path Towards Autonomous Machine Intelligence* proposes an architecture that makes them explicit. (LeCun, 2022) The paper is a research position and design proposal, not a report of a fully validated system implementing every component. Its value here is to clarify what must surround a predictive model if it is to support autonomous behaviour.
 
 ## 11.1 Six modules, six different responsibilities
 
@@ -127,7 +127,7 @@ The variable \(u\) at a high level need not be a physical motor command. It can 
 
 This changes the planning problem. A high-level model can reason over a smaller number of abstract transitions, while lower-level models expand a subgoal into detailed predictions and actions. It can reduce the effective horizon and search complexity. However, abstraction is only useful if it preserves the constraints needed for execution. If a high-level representation discards a contact condition or obstacle, a lower-level controller may be unable to realize the proposed subgoal.
 
-LeCun's H-JEPA discussion is a proposed direction for organizing prediction across levels and time scales. It should not be described as a single canonical architecture with a settled training algorithm. The specific representations, interfaces, temporal resolutions and methods for training levels remain design questions.
+LeCun's H-JEPA discussion is a proposed direction for organizing prediction across levels and time scales. (LeCun, 2022) It should not be described as a single canonical architecture with a settled training algorithm. The specific representations, interfaces, temporal resolutions and methods for training levels remain design questions.
 
 ## 11.8 Multiple futures and latent variables
 
