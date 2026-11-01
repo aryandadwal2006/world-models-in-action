@@ -59,21 +59,22 @@ The target blocks are prediction queries. A useful diagram should show one conte
 
 ## 3.4 The training objective
 
-Let \(Y_1,\ldots,Y_M\) denote the sampled target blocks, with \(M=4\) in the default recipe. Let \(H_{Y_m}\) be target features and \(\widehat H_{Y_m}\) their predictions. A schematic feature-regression objective is
+Let \(Y_1,\ldots,Y_M\) denote the sampled target blocks, with \(M=4\) in the default recipe. Let \(H_{Y_m}\) be target features and \(\widehat H_{Y_m}\) their predictions. The paper defines the loss as the average discrepancy over target blocks:
 
 \[
 \mathcal L_{\mathrm{I\text{-}JEPA}}
 =
 \frac{1}{M}
 \sum_{m=1}^{M}
-\frac{1}{|Y_m|d}
+D(\widehat H_{Y_m},H_{Y_m})
+=
+\frac{1}{M}
+\sum_{m=1}^{M}
 \sum_{j\in Y_m}
-\left\|
-\widehat h_j-h_j
-\right\|_2^2.
+\|\widehat h_j-h_j\|_2^2.
 \]
 
-The expression captures the essential operation: compare predicted and target feature vectors at selected positions. Exact normalization and feature-normalization details belong to the paper version and implementation being described; this equation is a teaching form, not a substitute for the complete training configuration.
+Here \(D\) is the sum of squared Euclidean discrepancies over the target tokens in one block. The outer average gives equal weight to the sampled target blocks. Within each block, the displayed paper equation sums over target positions; it does not show an additional division by the number of positions or feature dimensions. This matters when comparing numerical loss magnitudes across implementations, because sum-versus-mean reductions change the scale of the objective even if they use identical predictions and targets. (Assran et al., 2023)
 
 There is no pixel-level reconstruction term. A prediction is correct when it matches the target encoder's feature, even if no RGB patch is produced. The target encoder therefore determines which visual differences matter. If its features are insensitive to illumination, predicting the target does not require reproducing illumination changes. If the target features retain object boundaries or spatial arrangement, those properties remain visible to the loss.
 
