@@ -37,7 +37,7 @@ jobs:
         with:
           node-version: '22'
       - name: Install MathJax Node
-        run: npm install --global mathjax-node
+        run: npm install --global @mathjax/src@4 @mathjax/mathjax-tex-font@4
       - name: Assemble and verify Chapter 4 sources
         run: |
           python3 manuscript/assemble-ch04.py

@@ -1,4 +1,4 @@
 source 'https://rubygems.org'
 
 gem 'asciidoctor-pdf', '>= 2.2', '< 3.0'
-gem 'asciidoctor-pdf-mathjax', '>= 0.5.0', '< 1.0'
+gem 'asciidoctor-pdf-mathjax', '>= 0.7.0', '< 1.0'
