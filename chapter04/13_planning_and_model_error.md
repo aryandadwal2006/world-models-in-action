@@ -1,10 +1,10 @@
-# 10. Planning with a learned predictive model
+# 13. Planning with a learned predictive model
 
 An action-conditioned predictor estimates how a representation may change under a specified control input. Planning adds another problem: choose a sequence of controls so that the predicted outcome satisfies an objective.
 
 The predictor and the planner therefore have different responsibilities. The predictor estimates consequences. The planner compares those consequences and searches over possible actions. Their interaction creates capabilities that neither component has alone, but it also creates failure modes that are absent from ordinary representation evaluation.
 
-## 10.1 From a one-step prediction to a candidate trajectory
+## 13.1 From a one-step prediction to a candidate trajectory
 
 Let \(z_t\) denote the current latent state, \(a_t\) a control input, and \(g_\phi\) an action-conditioned transition predictor. A deterministic one-step model has the form
 
@@ -57,7 +57,7 @@ The components have different meanings. The transition model predicts latent sta
 
 A low training prediction loss does not specify any of these planning choices. A latent predictor cannot decide by itself whether a future is desirable.
 
-## 10.2 Image goals and latent distance
+## 13.2 Image goals and latent distance
 
 A common goal-conditioned setup supplies a target image \(o_g\). The current observation and goal image are encoded into representations,
 
@@ -79,7 +79,7 @@ But latent distance is only a proxy for physical success. If the encoder discard
 
 A visual goal can also be ambiguous. The same image may be reached through different object configurations, contact conditions or robot postures. Whether those states are interchangeable depends on the task. A goal encoder does not automatically resolve this ambiguity.
 
-## 10.3 Searching over action sequences
+## 13.3 Searching over action sequences
 
 The action space may be continuous and the sequence horizon long. Directly evaluating every possible sequence is usually infeasible. Planning therefore relies on an optimization or search procedure.
 
@@ -104,7 +104,7 @@ CEM does not require gradients through the predictor, though it still depends on
 
 Neither gradient descent nor CEM is intrinsically a guarantee of good physical behaviour. They optimize the objective supplied to them under the model they are given. If that objective or model is wrong, a more effective optimizer may find a more convincing failure.
 
-## 10.4 Receding-horizon feedback
+## 13.4 Receding-horizon feedback
 
 A planner normally does not execute an entire optimized sequence open loop. It executes the first action or a short prefix, obtains a new observation, estimates the current state again, and replans.
 
@@ -123,7 +123,7 @@ Replanning limits how long the system commits to a single predicted trajectory. 
 
 Feedback is therefore a robustness mechanism, not a proof of safety.
 
-## 10.5 Why planning can fail when prediction looks good
+## 13.5 Why planning can fail when prediction looks good
 
 Prediction error is usually measured on trajectories sampled from a data distribution. A planner does not sample actions according to that same distribution. It actively searches for sequences that minimize the model's estimated cost. This creates a form of distribution shift.
 
@@ -142,7 +142,7 @@ Several effects make this more likely:
 
 A planning result must therefore report the model, training data, action representation, horizon, planner, objective, search budget, environment and execution protocol. Reporting only a representation benchmark or a one-step prediction score is insufficient.
 
-## 10.6 Multiple futures and uncertainty
+## 13.6 Multiple futures and uncertainty
 
 A deterministic transition model maps one context and action to one predicted future. Real environments may have multiple possible outcomes because of stochastic dynamics, partial observability, other agents or model uncertainty.
 
@@ -167,7 +167,7 @@ or it might penalize high-cost tails, worst-case outcomes or violations of a cha
 
 The uncertainty estimate itself must be evaluated. A stochastic predictor does not guarantee calibrated probabilities. An ensemble does not automatically capture all uncertainty. A multi-hypothesis model can still omit a mode. The planner's risk criterion is only as reliable as the predictive distribution it receives.
 
-## 10.7 Safety is not a latent distance
+## 13.7 Safety is not a latent distance
 
 Suppose a planner minimizes only the distance between a predicted latent and a goal latent. Unless the representation and objective explicitly preserve and penalize unsafe states, the optimizer has no reason to avoid them.
 
@@ -175,7 +175,7 @@ A manipulation system may need explicit constraints on collision, force, velocit
 
 The role of a world model is to predict consequences that the planner can evaluate. It does not decide by itself which consequences are acceptable. Nor does a low energy or a low feature distance imply a safe state.
 
-## 10.8 What a physical planning result demonstrates
+## 13.8 What a physical planning result demonstrates
 
 A successful physical planning experiment demonstrates that a complete system worked under the reported conditions. The system includes at least:
 

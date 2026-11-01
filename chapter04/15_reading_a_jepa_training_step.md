@@ -1,10 +1,10 @@
-# 12. Reading a JEPA training step
+# 15. Reading a JEPA training step
 
 The equations of a predictive objective become easier to reason about when each variable is connected to an operation on tensors. This section traces one training step through an image-based JEPA. The purpose is not to prescribe a complete training recipe for every domain. It is to make the data paths, gradient paths and mask semantics explicit.
 
 I-JEPA provides a useful example because its architecture separates a context encoder, a target encoder and a predictor, and because it predicts several target blocks from one context block. The same structure can then be compared with video feature prediction and with predictor-free multi-view matching.
 
-## 12.1 From an image to patch representations
+## 15.1 From an image to patch representations
 
 Let an image batch have shape
 
@@ -25,7 +25,7 @@ Let \(M_c\) be the context mask and \(M_1,\ldots,M_M\) the target masks. For an 
 
 A basic shape check is useful. If an image is divided into a grid of \(h_p\times w_p\) patches, then \(N=h_pw_p\). A target block containing \(n_i\) patch locations should produce a target tensor with \(n_i\) tokens per image. The predictor must return exactly the same target locations and feature dimension. A model that predicts the right number of tokens in the wrong spatial order has not solved the intended task.
 
-## 12.2 Constructing context and target blocks
+## 15.2 Constructing context and target blocks
 
 I-JEPA samples one relatively large context block and several target blocks. The target blocks are sampled independently of the context. They can overlap the context before masking is resolved, so any overlapping target locations are removed from the context block. The remaining context is spatially distributed and informative, but does not reveal the target tokens directly.
 
@@ -53,7 +53,7 @@ S_c\in\mathbb R^{B\times N_c\times D}.
 
 The context pathway does not need to run attention over the missing patches. This is one reason representation prediction can be less computationally expensive than a full-resolution reconstruction objective.
 
-## 12.3 The target encoder and target selection
+## 15.3 The target encoder and target selection
 
 The target branch defines the feature vectors that the predictor must match. It is not enough to say that the target branch “encodes the target crop.” In the official I-JEPA implementation, the target encoder processes the full image and produces a spatial feature map. The target positions are then selected from this feature map. The target encoder can therefore use image context outside an individual target block when constructing its reference features. This is a specific information path, not an implementation detail that can be omitted from an architecture diagram. (Assran et al., 2023; official I-JEPA implementation)
 
@@ -83,7 +83,7 @@ The target branch is thus a slowly moving reference. It is neither a fixed pretr
 
 The implementation may apply a normalization layer to the target features before or after selecting the requested positions, depending on the exact method and code version. The order matters because normalization statistics can couple tokens or dimensions. When describing a particular implementation, state the actual order rather than drawing a generic target crop through the encoder.
 
-## 12.4 A target position is a query
+## 15.4 A target position is a query
 
 The predictor cannot infer which output locations are requested from the context features alone. It receives a query describing the target positions. I-JEPA constructs this query with learned mask tokens and positional embeddings.
 
@@ -112,7 +112,7 @@ This is not an ordinary decoder that reconstructs pixels. The query asks for fea
 
 Positional information is essential. Without it, the predictor would be asked to produce a set of target features without knowing which location each feature belongs to. A permutation-invariant set of outputs would not preserve the intended spatial correspondence. The target mask is therefore both a sampling device and a query specification.
 
-## 12.5 The loss and its gradient paths
+## 15.5 The loss and its gradient paths
 
 For \(M\) target blocks, I-JEPA averages a squared feature discrepancy over the requested target positions:
 
@@ -152,7 +152,7 @@ This pseudocode omits batching details and the implementation's exact normalizat
 
 A figure showing only an encoder, a predictor and a target encoder hides the most important part of the method. The reader should be able to trace which pixels reach each branch, which positions are selected, where positional queries enter, which tensors are compared and which parameters receive gradients.
 
-## 12.6 What changes for video
+## 15.6 What changes for video
 
 V-JEPA retains the feature-prediction principle but replaces spatial image patches with spatiotemporal tubelets or tokens. A video is patchified across time, height and width. Its context mask can remove tubes or spatiotemporal blocks, and its target can include positions distributed across the clip.
 
@@ -162,7 +162,7 @@ The original V-JEPA paper studies several masking regimes, including random tube
 
 V-JEPA 2 retains masked feature prediction for visual pretraining and then introduces a separate action-conditioned post-training stage. That stage changes the input information and the transition problem, as discussed in the following sections. (Assran et al., 2025)
 
-## 12.7 What changes for predictor-free view matching
+## 15.7 What changes for predictor-free view matching
 
 LeJEPA illustrates a different case. It constructs global and local views of an observation and moves their embeddings toward the mean of the global-view embeddings. The mean acts as a shared centre. SIGReg regularizes the distribution of the embeddings.
 
@@ -170,7 +170,7 @@ There is no separate predictor that receives a spatial or temporal query and pro
 
 This is not an exception to the JEPA principle. It demonstrates why the predictor should be tied to the information structure of the task. When a target requires a location-specific or action-conditioned prediction, a predictor is useful. When the task is symmetric agreement across related views, a direct loss may suffice.
 
-## 12.8 An implementation audit
+## 15.8 An implementation audit
 
 Before trusting a feature-prediction training run, check the data and gradient paths rather than looking only at the scalar loss.
 

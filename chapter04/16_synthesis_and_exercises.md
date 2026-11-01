@@ -1,6 +1,6 @@
-# 13. Synthesis and exercises
+# 16. Synthesis and exercises
 
-## 13.1 The argument of the chapter
+## 16.1 The argument of the chapter
 
 A joint-embedding predictive architecture learns a relation between a context and a target in a representation space. Its apparent simplicity hides several questions. What information is available to the predictor? Which target is being requested? What differences does the target encoder preserve? Which representations can minimize the loss? What statistical properties make the resulting features useful to downstream predictors? What additional model and decision machinery is required before the predictions can guide action?
 
@@ -32,7 +32,7 @@ Finally, a world model operates inside a larger agent. Perception estimates stat
 
 The chapter's central claim is therefore limited but useful: predicting representations can supply a compact internal model of selected relations in the world. Whether those relations support action depends on what the representation preserves, what the predictor is conditioned on, and how an agent uses its predictions.
 
-## 13.2 What has and has not been established
+## 16.2 What has and has not been established
 
 The main mathematical conclusions can be separated from the engineering and empirical claims.
 
@@ -49,7 +49,7 @@ The main mathematical conclusions can be separated from the engineering and empi
 | Planning success in an experiment | A complete model-planner-environment system worked under a reported protocol | General reliability or safety in arbitrary environments |
 | LeCun's architecture | A proposed organization of agent capabilities | A validated end-to-end autonomous system |
 
-## 13.3 Exercises
+## 16.3 Exercises
 
 ### 1. Energy and probability
 
