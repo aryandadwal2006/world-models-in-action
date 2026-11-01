@@ -10,7 +10,7 @@ done
 all="$(pdftotext -layout "$pdf" -)"
 if grep -Eqi 'stem [0-9a-f]{24,}' <<<"$all"; then echo "ERROR: STEM placeholder rendered." >&2; exit 1; fi
 for n in $(seq 1 34); do
-  grep -Eq "Figure 4\\."$n"([[:space:]]|$|[-–])" <<<"$all" || { echo "ERROR: missing figure caption 4.$n" >&2; exit 1; }
+  grep -Eq "Figure 4\\."$n"([.]|[[:space:]]|$|[-–])" <<<"$all" || { echo "ERROR: missing figure caption 4.$n" >&2; exit 1; }
 done
 if grep -Fqi "Table of Contents" <<<"$all"; then echo "ERROR: unexpected table of contents." >&2; exit 1; fi
 pdffonts "$pdf" | grep -qi "LiberationSerif" || { echo "ERROR: Liberation Serif not embedded." >&2; exit 1; }
