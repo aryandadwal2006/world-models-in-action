@@ -151,7 +151,7 @@ The proposal does not prescribe one complete solution to uncertainty. Latent-var
 
 ## 11.9 The Configurator remains an open problem
 
-The Configurator receives information from the other modules and changes how the system is organized for a task. It may adjust Perception, World Model, Cost and Actor, determining which variables are relevant, which predictions are required, which outcomes are costly and which behaviours are appropriate.
+The Configurator receives information from the other modules and changes how the system is organized for a task. LeCun describes it as executive control: it pre-configures Perception, World Model, Cost and Actor for the task, modulating the parameters and attention circuits of the modules it feeds. It can prime Perception to extract task-relevant information, configure the World Model for the current situation, and configure Cost to express the current goal. The Actor's policy is also described as configurable. The paper does not provide a finished algorithm for learning the Configurator.
 
 This role is broader than selecting a task-specific output head. It is intended to configure how several components function together. Yet the proposal does not provide a finished learning algorithm for discovering these configurations or prove that such modulation will be stable. The design raises difficult questions about what a task description must contain, how modules should communicate, and how configuration should change as the environment changes.
 

@@ -20,18 +20,18 @@ No artwork is embedded in the Markdown sources at this stage. For every official
 |---|---|---|---|
 | F01 | A compatibility energy over candidate targets, including multiple low-energy modes | Original | Draw a context, candidate-target space and an energy surface. Distinguish a score from a normalized density. |
 | F02 | Energy score, Gibbs density and task cost are different objects | Original | Three panels with separate symbols and normalization/cost semantics. |
-| F03 | Information flow through a JEPA: visible context, target encoder, target selection and predictor query | I-JEPA, Assran et al., Fig. 2 as candidate | Use the official architecture only if reuse terms permit; otherwise redraw the information paths from the method, with citation. |
+| F03 | Information flow through a JEPA: visible context, target encoder, target selection and predictor query | Original, informed by I-JEPA | I-JEPA's arXiv version is under the arXiv perpetual non-exclusive license, not an explicit CC BY license. Produce an independent information-flow diagram unless the publisher obtains permission. |
 | F04 | Spatial, spatiotemporal, future and action-conditioned targets are different conditional problems | Original | Four aligned panels. Make explicit that a masked video target is not necessarily a future target. |
 | F05 | Squared-error prediction of a multimodal target returns the conditional mean | Original | Two target modes with the mean between them. Include a feature-space version to avoid implying that latent means are always physically meaningful. |
 | F06 | Constant collapse exactly satisfies an unconstrained agreement objective | Original | Two distinct inputs mapped to one constant vector; show zero agreement loss and zero input information. |
 | F07 | Complete collapse versus low-rank/dimensional collapse | Original | Compare a point, a narrow subspace cloud and a full-rank cloud. Avoid using a visual as a substitute for the covariance derivation. |
-| F08 | Same feature span and total energy, isotropic versus anisotropic geometry | LeJEPA, Fig. 3 / corresponding appendix illustration as candidate | The paper figure is useful for the linear-probe argument. Confirm licensing; otherwise create an independent geometry illustration. |
+| F08 | Same total covariance trace, isotropic versus anisotropic geometry | LeJEPA, Fig. 3 / corresponding appendix illustration as candidate | LeJEPA v3 is marked CC BY-SA 4.0. Reuse requires attribution and ShareAlike handling; otherwise create an independent geometry illustration. Do not state a same-feature-span assumption. |
 | F09 | Ridge shrinkage in covariance eigen-directions | Original | Show a weak and strong eigen-direction with the corresponding ridge shrinkage factor. |
 | F10 | OLS coefficient variance grows with inverse covariance eigenvalues | Original | Plot the reciprocal eigenvalue contribution and the fixed-trace Jensen argument. |
 | F11 | Local regression neighbourhoods are pulled by the embedding-density gradient | Original | Show a query, a locally asymmetric sample density and a target function with its gradient. |
 | F12 | The score field and Fisher-information functional | Original | Show \(\nabla\log p(z)\) as a vector field and relate average squared score magnitude to \(J(p)\). |
 | F13 | Gaussian minimization of the Fisher-information functional at fixed covariance | Original | Two-step visual: fixed covariance selects a Gaussian; fixed scalar covariance constraint selects isotropic covariance. |
-| F14 | All-direction Cramér–Wold identification versus finite random-direction sketching | LeJEPA, Fig. 2 as candidate | Prefer the official SIGReg projection schematic if licensing permits. Otherwise redraw a high-dimensional cloud and finite projections without tracing it. |
+| F14 | All-direction Cramér–Wold identification versus finite random-direction sketching | LeJEPA, Fig. 2 as candidate | LeJEPA v3 is marked CC BY-SA 4.0. If reused, preserve attribution and ShareAlike requirements; otherwise create an independent projection diagram. |
 | F15 | Same first two moments, different projected distribution shapes | LeJEPA, Fig. 5 as candidate | The paper's constructed distribution is relevant. Reuse only with permission; otherwise create an independent two-dimensional counterexample. |
 | F16 | Empirical characteristic function and Epps–Pulley discrepancy | Original, informed by LeJEPA, Sec. 4.2.3 | Plot target and empirical characteristic functions, weight function and integrated squared discrepancy. Label the quadrature as numerical approximation. |
 | F17 | Projection count, batch size and numerical quadrature in SIGReg | Original | Separate the roles of \(N\), \(M\) and frequency knots. This is a computation diagram, not a convergence theorem. |
@@ -39,16 +39,29 @@ No artwork is embedded in the Markdown sources at this stage. For every official
 | F19 | One-dimensional sliced-Wasserstein transport by sorting | Original | Projected samples, sorted order statistics and Gaussian target quantiles. State equal-weight/equal-cardinality assumption. |
 | F20 | VISReg stop-gradient boundary separates the scale statistic from the shape normalization | Original | Draw the gradient paths explicitly. Distinguish detaching the standard-deviation denominator from an EMA target update. |
 | F21 | Passive observation versus intervention-conditioned prediction | Original | Same history with two candidate actions and different predicted outcomes. Include the data-collection policy as context. |
-| F22 | V-JEPA 2: passive visual pretraining followed by action-conditioned robot post-training | V-JEPA 2, overview/training figure as candidate | Prefer the official staged-system figure if reuse is permitted. Ensure the diagram makes the second training stage and robot data explicit. |
-| F23 | V-JEPA 2.1 dense visible/masked-token and deep supervision | V-JEPA 2.1, main method figure as candidate | Use the official objective diagram if licensed. The figure must not label V-JEPA 2.1 itself as action-conditioned. |
+| F22 | V-JEPA 2: passive visual pretraining followed by action-conditioned robot post-training | V-JEPA 2, overview/training figure as candidate | The supplied arXiv v1 page is marked CC BY 4.0. Reuse with attribution and license notice, after checking for third-party content. Preserve the robot post-training stage and action/proprioception inputs. |
+| F23 | V-JEPA 2.1 dense visible/masked-token and deep supervision | Original, informed by V-JEPA 2.1 | No permissive artwork license was established from the supplied arXiv metadata. Create an original explanation unless permission is confirmed. Do not label V-JEPA 2.1 itself as action-conditioned. |
 | F24 | A planner evaluates multiple candidate rollouts and executes only the first action | Original | Draw candidate latent trajectories, goal/cost evaluation, action selection, environment feedback and replanning. |
 | F25 | A planner can exploit model error | Original | Show a candidate sequence with low predicted cost but an unsafe or unsuccessful real outcome. Distinguish model prediction from environment result. |
-| F26 | LeCun's six-module agent architecture | LeCun, *A Path Towards Autonomous Machine Intelligence*, architecture figure as candidate | Prefer the official topology if reuse is permitted. Preserve exactly six top-level modules and show Intrinsic Cost and Trainable Critic inside Cost. |
+| F26 | LeCun's six-module agent architecture | Original, informed by LeCun 2022 | No commercial-reuse license was established for the OpenReview PDF. Draw an independent diagram from the textual module specification. Preserve exactly six top-level modules and show Intrinsic Cost and Trainable Critic inside Cost. |
 | F27 | Mode 1, Mode 2 and planner-to-policy distillation | Original, informed by LeCun 2022 | Direct reactive path, deliberative planning loop and a teacher signal from Mode 2 to Mode 1. |
 | F28 | Hierarchical prediction across time scales | LeCun, H-JEPA figure as candidate | Prefer the official hierarchy illustration if permitted; otherwise draw high-level subgoals being refined into lower-level states and actions. |
 | F29 | A single deterministic future versus multiple latent futures | Original | Branch several plausible outcomes from the same history and action. Show a latent selector and a cost-based ranking step. |
 | F30 | How the chapter's components fit together | Original | One compact closing diagram: representation, target prediction, distributional constraint, action-conditioned dynamics, cost, planning and feedback. |
 | F31 | One I-JEPA training step, including tensor dimensions, mask positions and gradient flow | Original, informed by Assran et al. (2023) | Show patch tokens, context selection, full-image target encoding, target-position selection, positional query tokens, predicted features and the EMA update. Use solid arrows for forward computation and dashed arrows for parameter updates. |
+
+## Figure-source rights notes
+
+The accessible version metadata identifies these source terms:
+
+- I-JEPA v3: arXiv.org perpetual non-exclusive license. This is not an explicit Creative Commons license for figure reuse.
+- Original V-JEPA v1: CC BY 4.0.
+- V-JEPA 2 v1: CC BY 4.0.
+- LeJEPA v3: CC BY-SA 4.0.
+- VL-JEPA v2: CC BY 4.0.
+- V-JEPA 2.1 v3, VISReg v1 and LeCun v0.9.2: no permissive commercial artwork license was established from the accessible metadata during this review.
+
+These metadata do not settle the rights status of every individual figure. Captions, third-party credits, publisher terms and any excluded material must be checked before publication. For the unresolved cases, an original diagram is the default; do not reproduce or trace the source artwork without permission.
 
 ## Official-figure candidates and limits
 
