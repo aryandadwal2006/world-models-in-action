@@ -63,7 +63,22 @@ def convert(md):
     if inside: raise SystemExit("unclosed Pandoc latexmath block")
     if waiting: raise SystemExit("Pandoc latexmath block missing opening delimiter")
     s="\n".join(out).replace("image::../images/chapter04/","image::chapter04/")
-    return re.sub(r"(image::chapter04/[^\[]+)\[([^\]]*)\]",lambda m:m.group(1)+"["+m.group(2)+",width=100%]",s)
+    # Some Pandoc AST paths preserve math delimiters inside generated STEM
+    # macros. Remove only the outer delimiters; TeX dollar signs are not
+    # part of the expression in any source section.
+    s=s.replace("$","")
+    s=re.sub(
+        r"(?ms)(\\[latexmath\\]\\s*\\n\\+{4}\\s*\\n)\\s*\\$(.*?)\\$\\s*(\\n\\+{4})",
+        lambda m:m.group(1)+m.group(2).strip()+m.group(3),
+        s,
+    )
+    s=re.sub(
+        r"latexmath:\\[\\$(.*?)\\$\\]",
+        lambda m:"latexmath:["+m.group(1)+"]",
+        s,
+        flags=re.S,
+    )
+    return re.sub(r"(image::chapter04/[^\\[]+)\\[([^\\]]*)\\]",lambda m:m.group(1)+"["+m.group(2)+",width=100%]",s)
 def anchors(s):
     out=[]; n=0
     for line in s.splitlines():
