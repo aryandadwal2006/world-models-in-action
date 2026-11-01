@@ -1,61 +1,67 @@
 # Chapter 4: Predicting in representation space
 
-This directory is the working source of Chapter 4 of *World Models in Action*. Each numbered Markdown file develops one part of the chapter. No consolidated manuscript or PDF is maintained here. The book-layout source and preview, if required, will be produced only after the chapter text and figure plan have passed review.
+This directory contains the section-by-section working source of Chapter 4. Drafts remain separate Markdown files here; the consolidated AsciiDoc and PDF are produced only after the section sequence, mathematical claims, figures and references have been reviewed.
 
 ## Governing argument
 
-A world model is useful when its internal state allows an agent to distinguish situations that lead to different outcomes under relevant actions. Predictive representation learning addresses part of this problem by training an encoder to make an unobserved target predictable from an available context. The difficult question is not simply how to minimize a feature distance. It is what information the target representation preserves, what distribution of representations the objective permits, and what the resulting representation allows a downstream predictor or planner to infer.
+A predictive representation is trained to make a selected target feature predictable from an allowed context. That objective does not by itself specify a sufficient physical state, identify action effects, or supply a planning objective. The chapter develops this distinction from first principles.
 
-The chapter follows that argument from first principles:
+1. Compatibility and energy: distinguish a compatibility score, a normalized probability and an agent's task cost.
+2. The prediction problem: define context, target, query, target distribution and predictor.
+3. I-JEPA: derive masked image-feature prediction, target-block sampling and spatial queries.
+4. V-JEPA: extend prediction to space-time tokens and distinguish temporal masking from action conditioning.
+5. Degenerate solutions: derive constant and rank-deficient representations and separate agreement from information.
+6. Predictive sufficiency and geometry: define task-relative state quality and relate embedding geometry to downstream prediction.
+7. Linear downstream risk: derive the role of covariance eigenvalues in ridge bias and least-squares variance.
+8. Nonlinear risk: derive the density-score term and Fisher-information bound under the assumptions used by LeJEPA.
+9. SIGReg: derive projected distribution matching from characteristic functions and Cramér–Wold.
+10. VISReg: separate centering, scale and distribution shape.
+11. V-JEPA 2 and V-JEPA 2.1: distinguish action-free pretraining, action-conditioned post-training and dense prediction.
+12. Action-conditioned prediction: formulate controlled latent dynamics and intervention-aligned data.
+13. Planning and model error: connect predicted outcomes to search, task cost and feedback.
+14. An agent around the predictor: examine memory, hierarchy, Mode 1/Mode 2 and the proposed cognitive architecture.
+15. Reading a JEPA training step: inspect data flow, losses, gradient paths and implementation choices.
+16. Synthesis and exercises.
 
-1. **Compatibility and energy.** Express prediction as assigning low incompatibility to a context and a candidate target. Separate a compatibility score from a normalized probability and from an agent's task cost.
-2. **The prediction problem.** Define context, target, query, representation, predictor and target distribution. Establish when a predictor is needed and what a feature-space loss actually measures.
-3. **Degenerate solutions.** Derive why an unconstrained agreement or feature-prediction objective admits a constant representation. Distinguish complete collapse from loss of task-relevant distinctions.
-4. **Predictive sufficiency and geometry.** State the task-relative condition a useful representation should satisfy, then connect the geometry of an embedding distribution to the performance of downstream estimators.
-5. **Downstream risk.** Derive the covariance-spectrum results for linear prediction and the density-gradient term that appears in local non-linear prediction. State the assumptions under which isotropic Gaussian embeddings are optimal.
-6. **Practical distribution matching.** Derive the projected characteristic-function objective and the separate scale/shape construction. Explain what finite projections can and cannot establish.
-7. **Actions and planning.** Separate passive video regularities from predictions conditioned on interventions. Trace the additional model, objective, optimizer and feedback loop required for planning.
-8. **An agent around the predictor.** Use the proposed architecture in *A Path Towards Autonomous Machine Intelligence* to connect prediction, costs, memory, action selection and hierarchy.
-
-The named systems are evidence and examples within this argument. They are not the organizing principle of the chapter. I-JEPA and V-JEPA establish concrete forms of feature prediction; V-JEPA 2-AC illustrates the addition of actions; V-JEPA 2.1 illustrates dense prediction targets; LeJEPA and VISReg motivate different ways to constrain the embedding distribution; VL-JEPA shows that the target representation can be linguistic. These methods will be introduced only where they clarify a mathematical or architectural decision.
+Named methods serve the mathematical argument. The chapter is not organized as a survey of every paper using a JEPA-like architecture. Audio, language and variational extensions are included only where they clarify a general design choice.
 
 ## Draft files
 
 | File | Purpose |
 |---|---|
-| `01_compatibility_and_energy.md` | Energy, compatibility, latent prediction and the distinction between scoring and probability |
+| `01_compatibility_and_energy.md` | Energy, compatibility, latent prediction and scoring versus probability |
 | `02_the_prediction_problem.md` | Context, target, query, target distribution, predictor and conditional-mean derivation |
-| `03_degeneracy_and_collapse.md` | Exact collapse solution and the limits of architectural stabilization |
-| `04_predictive_sufficiency_and_geometry.md` | Task-relative predictive sufficiency and the geometry of an embedding distribution |
-| `05_linear_downstream_risk.md` | Ridge bias, least-squares variance and covariance eigenvalues |
-| `06_nonlinear_risk_and_fisher_information.md` | Local estimators, score functions and Fisher information |
-| `07_sigreg_and_distribution_sketching.md` | Cramér–Wold, characteristic functions and SIGReg |
-| `08_visreg_scale_and_shape.md` | Centering, scale, sliced-Wasserstein shape and optimization |
-| `09_action_conditioned_prediction.md` | Interventions, action-conditioned latent dynamics and V-JEPA 2-AC |
-| `10_planning_and_model_error.md` | Goal costs, search, receding-horizon control and model exploitation |
-| `11_hierarchy_memory_and_agent_architecture.md` | Multiple futures, H-JEPA, Mode 1/Mode 2, STM and Configurator |
-| `12_reading_a_jepa_training_step.md` | A worked I-JEPA training step, video comparison and implementation audit |
-| `13_synthesis_and_exercises.md` | Synthesis, limitations and derivation/design exercises |
+| `03_ijepa_spatial_prediction.md` | Spatial masks, target-encoder information flow and I-JEPA |
+| `04_vjepa_spatiotemporal_prediction.md` | Video tokens, spatiotemporal masks, L1 prediction and V-JEPA |
+| `05_degeneracy_and_collapse.md` | Constant solutions and collapse modes |
+| `06_predictive_sufficiency_and_geometry.md` | Task-relative predictive sufficiency and embedding geometry |
+| `07_linear_downstream_risk.md` | Ridge bias, least-squares variance and covariance eigenvalues |
+| `08_nonlinear_risk_and_fisher_information.md` | Local estimators, score functions and Fisher information |
+| `09_sigreg_and_distribution_sketching.md` | Cramér–Wold, characteristic functions and SIGReg |
+| `10_visreg_scale_and_shape.md` | Centering, scale, sliced-Wasserstein shape and optimization |
+| `11_vjepa2_action_conditioning_and_dense_features.md` | V-JEPA 2, 2-AC and V-JEPA 2.1 |
+| `12_action_conditioned_prediction.md` | Interventions and controlled latent dynamics |
+| `13_planning_and_model_error.md` | Goal costs, search, receding-horizon control and model exploitation |
+| `14_hierarchy_memory_and_agent_architecture.md` | H-JEPA, Mode 1/Mode 2, memory and Configurator |
+| `15_reading_a_jepa_training_step.md` | Training graph and implementation audit |
+| `16_synthesis_and_exercises.md` | Synthesis, limits and exercises |
 | `references.md` | Primary papers and implementation sources |
-| `figure-register.md` | Proposed figures, official-source candidates and reuse notes |
+| `figure-register.md` | Figure plan, primary-source candidates and attribution notes |
 
 ## Editorial and technical rules
 
-- Write for a technically curious reader who is learning the subject, not for a specialist who only wants a literature summary. Define every mathematical object before using it.
-- Derive the central equations in the text. Do not replace derivations with a sequence of paper-specific objective summaries.
-- Separate a mathematical identity, a theorem under assumptions, an empirical result, and an architectural proposal.
+- Define mathematical objects before using them. Derive central equations in the text rather than replacing derivations with a sequence of paper summaries.
+- Distinguish identities, theorems under assumptions, empirical results and architectural proposals.
 - Never infer action-conditioned dynamics from an action-free video objective.
-- Never infer physical sufficiency, causality, calibrated uncertainty or planning competence from a low representation loss or a linear-probe score.
-- The Gaussian-optimality result must be scoped to the downstream estimators, risk functionals, covariance constraints and regularity assumptions analysed in LeJEPA. It is not universal optimality for every task.
-- Cramér–Wold concerns all one-dimensional projections. A finite, stochastic set of projections is an approximation.
-- A scalar derivative with respect to a scale statistic is not a guarantee about every encoder-parameter gradient.
-- An energy is not a probability density unless a normalization and base measure are specified. A training discrepancy, an energy score and an agent's task cost are distinct objects.
-- Do not call code inspection or checkpoint loading a reproduction. No new experiments are claimed in this chapter.
-- Use no em dashes. Keep prose academic and direct. Do not address the author or include process commentary in reader-facing text.
-- Prefer an original explanation when a paper figure is too specialized or does not teach the point required here. Use an official figure only after checking the paper version, figure identity, attribution and reuse terms. Do not assume a paper's arXiv license grants rights to its artwork or repository code.
+- Never infer physical sufficiency, causality, calibrated uncertainty or planning competence from a low representation loss or a probe score.
+- Scope LeJEPA's Gaussian-optimality result to its downstream estimators, risk functionals, covariance constraints and regularity assumptions. It is not universal optimality for every task.
+- Cramér–Wold concerns all one-dimensional projections. Finite stochastic projections are an approximation.
+- A derivative with respect to a scale statistic is not a guarantee about every encoder-parameter gradient.
+- An energy is not a probability density without a normalization and base measure. A prediction discrepancy, compatibility energy and task cost are distinct.
+- Do not claim experiments were reproduced when only papers or code were inspected.
+- Use academic, direct prose. No author-facing process commentary and no em dashes.
+- Prefer original explanatory figures when an official figure does not teach the required idea. Check paper version, artwork attribution and reuse terms before reproducing any figure. Do not assume source-code licenses permit commercial book reproduction.
 
-## Source inventory
+## Source inventory and access
 
-The primary-source PDFs supplied for this chapter remain in `rough-draft/chapter4/papers_pdfs/`. The filenames and exact paper identities are mapped in `references.md`. The author's first-principles research notes remain in `rough-draft/chapter4/jepa-notes.md`. These inputs are source material, not reader-facing chapter sections. They are not modified by this chapter work.
-
-The binary PDF files are present in the repository. The GitHub file connector can report their exact paths, sizes and blob identifiers but does not expose their binary bytes for extraction in this environment. The review therefore uses the matching versioned full-text papers, including appendices and references where available, and the OpenReview PDF text for LeCun's proposal. The supplied PDF binaries have not been rendered page by page here; this limitation is recorded in `references.md`. Do not interpret the source review as a visual inspection of all PDF pages.
+The supplied PDFs and the author's first-principles notes remain in `rough-draft/chapter4/papers_pdfs/` and `rough-draft/chapter4/jepa-notes.md`. The source mapping and access record are in `references.md`. The PDFs are tracked binary files. The GitHub file connector exposes their names, sizes and blob identifiers but not their binary bytes for local extraction in this environment. The review uses the matching versioned full-text papers, including appendices and references where available, plus extracted OpenReview text for LeCun's position paper. This supports a text/equation review but is not a page-by-page visual inspection of all eight supplied PDF binaries; that limitation must remain explicit.
