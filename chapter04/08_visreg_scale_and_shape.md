@@ -1,20 +1,20 @@
 # 8. Separating scale and shape: VISReg
 
-SIGReg compares projected distributions with a Gaussian target through characteristic functions. VISReg addresses the same broad distributional problem with a different decomposition. It treats the centre, scale and shape of the embedding batch as distinct quantities. The separation is useful because a distribution can have an acceptable covariance while retaining a non-Gaussian shape, and a shape comparison can be made after coordinate scale has been removed.
+SIGReg compares projected distributions with a Gaussian target through characteristic functions. VISReg addresses the same distributional problem with a different decomposition. It separates the scale of the embedding coordinates from the shape of the normalized batch, and it allows the three regularization components to be reweighted independently.
 
-The aim is not to rank regularizers in isolation. It is to understand why the decomposition is made, what each term constrains, and what the resulting optimization does and does not guarantee.
+The purpose of this construction is not merely to add another anti-collapse penalty. It gives the optimizer two distinct jobs: maintain usable coordinate scale, and shape the normalized embedding distribution toward an isotropic Gaussian.
 
 ## 8.1 Three different properties of a batch
 
-Let the embeddings of a batch be \(Z\in\mathbb R^{B\times D}\), with \(B\) samples and \(D\) feature dimensions. Define the batch mean
+Let the embeddings of a batch be \(Z\in\mathbb R^{N\times D}\), with \(N\) samples and \(D\) feature dimensions. Define the batch mean and centered embeddings:
 
 \[
-\mu=\frac{1}{B}\sum_{b=1}^{B}z_b,
+\mu=\frac{1}{N}\sum_{n=1}^{N}z_n,
 \qquad
-Z_c=Z-\mu.
+\widehat Z=Z-\mu.
 \]
 
-Three separate questions can now be asked.
+Three distinct properties can now be considered.
 
 **Centre.** Is the embedding cloud centred at the origin? A nonzero mean shifts every projection, even if the covariance and higher-order shape are otherwise acceptable.
 
@@ -26,119 +26,111 @@ These properties should not be treated as one statistic. A variance term does no
 
 ## 8.2 The scale term
 
-Let \(\sigma_j(Z_c)\) denote the batch standard deviation of coordinate \(j\), computed with the population-style batch estimate used in the reference algorithm. VISReg uses an explicit scale penalty:
+Let \(\sigma_j(\widehat Z)\) denote the batch standard deviation of coordinate \(j\). VISReg uses the scale objective
 
 \[
 \mathcal L_{\mathrm{scale}}
 =
 \frac{1}{D}
 \sum_{j=1}^{D}
-\left(1-\sigma_j(Z_c)\right)^2.
+\left(1-\sigma_j(\widehat Z)\right)^2.
 \]
 
 The target standard deviation is one in each coordinate. The term penalizes both contraction below unit scale and expansion above it. Its minimum is attained when every coordinate has unit batch standard deviation.
 
-For one coordinate, the derivative with respect to the scalar standard deviation is
+The scalar derivative for coordinate \(j\) is
 
 \[
-\frac{\partial}{\partial\sigma_j}
-\left[
-\frac{1}{D}(1-\sigma_j)^2
-\right]
+\frac{\partial\mathcal L_{\mathrm{scale}}}
+{\partial\sigma_j}
 =
 -\frac{2}{D}(1-\sigma_j).
 \]
 
-At \(\sigma_j=0\), this scalar derivative equals \(-2/D\). The scale objective therefore has a direct first-order preference for increasing a collapsed standard-deviation statistic. This is the mechanism behind the paper's collapse-gradient analysis.
-
-This statement concerns the derivative with respect to \(\sigma_j\). It is not a universal lower bound on the gradient with respect to every encoder parameter. The derivative of a batch standard deviation with respect to raw embeddings depends on the batch, the variance estimator and the point at which the representation is evaluated. The composition from an embedding statistic back to network parameters depends on the architecture and can be affected by normalization, saturation and finite precision. The paper's gradient comparisons are controlled experiments under the tested setup, not a theorem about every neural network. [Wu, Balestriero, and Levine, 2026]
+At zero standard deviation, this derivative remains finite and nonzero. The paper contrasts this scale signal with SIGReg's characteristic-function gradient near collapsed embeddings, which diminishes in the collapse regime. The authors report controlled gradient comparisons in which the VISReg scale term supplies a corrective signal under the tested setup. This is not a universal lower bound on every encoder-parameter gradient: the chain rule through the batch standard deviation and the network still depends on the representation, architecture and numerical implementation. [Wu, Balestriero, and Levine, 2026]
 
 ## 8.3 Removing scale from the shape comparison
 
-Let \(\sigma(Z_c)\in\mathbb R^D\) be the vector of coordinate-wise standard deviations. VISReg constructs a normalized batch
+VISReg normalizes the centered batch coordinate-wise:
 
 \[
 \widetilde Z
 =
-\frac{Z_c}{\operatorname{sg}(\sigma(Z_c))},
+\frac{\widehat Z}
+{\operatorname{sg}(\sigma(\widehat Z))+\epsilon},
 \]
 
-where division is coordinate-wise and \(\operatorname{sg}\) denotes stop-gradient. The reference algorithm detaches the standard-deviation denominator. A numerical safeguard may be added in an implementation for zero or near-zero scale, but it is not part of the displayed scale or shape objective.
+where \(\epsilon>0\) stabilizes the denominator and \(\operatorname{sg}\) denotes stop-gradient.
 
-The normalization removes coordinate scale before the shape comparison. The stop-gradient means that the shape term does not differentiate through the standard-deviation denominator. The scale objective remains the direct mechanism for adjusting unnormalized coordinate spread, while the shape statistic compares normalized samples.
+The normalization removes coordinate scale before the shape comparison. The stop-gradient means that the shape term does not differentiate through the standard-deviation denominator. The scale objective remains the direct mechanism for adjusting the unnormalized coordinate spread, while the shape statistic compares normalized samples.
 
-This gradient boundary is not the same as an EMA target update. An EMA makes a target encoder follow the online encoder slowly. Here, stop-gradient is applied only to the scale statistic used in normalization. It changes which derivatives the shape objective contributes. The project describes VISReg as avoiding the usual EMA teacher-student heuristics; that statement should not be misread as saying the implementation contains no stop-gradient operation anywhere. [Wu, Balestriero, and Levine, 2026]
+This gradient boundary is not the same as an EMA target update. An EMA makes a target encoder follow the online encoder slowly. Here, stop-gradient is applied to the scale statistic used in normalization. It changes which derivatives the shape objective contributes. The two mechanisms should not be described as the same kind of teacher-student asymmetry.
 
-It is also useful to distinguish what normalization achieves from what it does not. It makes the shape comparison insensitive to the raw coordinate magnitudes that have been divided out. It does not remove every possible dependence between scale and shape in the full optimization problem, nor does it prove that every encoder parameter receives a nonzero gradient.
+The normalization also does not imply that the scale and shape objectives are interchangeable. The scale term acts on the unnormalized centered coordinates. The shape term acts on the normalized batch. Their separate coefficients allow the training objective to assign different importance to the two requirements.
 
 ## 8.4 Sliced Wasserstein distance
 
 The shape term compares projected normalized embeddings with projections of a standard Gaussian. For a unit direction \(w_k\in\mathbb S^{D-1}\), form the scalar samples
 
 \[
-u_k=\widetilde Z w_k\in\mathbb R^B.
+u_k=\widetilde Z w_k\in\mathbb R^N.
 \]
 
-Let \(u_{k,(1)}\le\cdots\le u_{k,(B)}\) denote the sorted projected values. Let \(q_1,\ldots,q_B\) be the corresponding standard-normal target quantiles, using the reference quantile locations
+Let \(u_{k,(1)}\le\cdots\le u_{k,(N)}\) denote the sorted projected values. Define the standard-normal reference quantiles by
 
 \[
-r_i=\frac{i}{B+1},
+r_i=\frac{i}{N+1},
 \qquad
 q_i=\Phi^{-1}(r_i),
-\qquad i=1,\ldots,B,
+\qquad i=1,\ldots,N,
 \]
 
 where \(\Phi\) is the standard-normal cumulative distribution function.
 
-For two equally weighted empirical distributions on the real line with the same number of samples, the optimal quadratic transport coupling matches their order statistics. Thus the squared one-dimensional Wasserstein distance can be written as
+For two equally weighted empirical distributions on the real line with the same number of samples, the optimal quadratic transport coupling matches their order statistics. Thus
 
 \[
 W_2^2(\widehat P,\widehat Q)
 =
-\frac{1}{B}
-\sum_{i=1}^{B}
-\left(u_{k,(i)}-q_i\right)^2.
+\frac{1}{N}
+\sum_{i=1}^{N}
+\left(u_{(i)}-q_i\right)^2.
 \]
 
-This identity follows from the monotone coupling on the line: crossing assignments cannot reduce the total squared transport cost, so sorted values are paired in order. The formula depends on equal sample weights and equal cardinalities. Weighted samples or unequal sample counts require the appropriate quantile or integral formulation.
-
-VISReg averages the one-dimensional transport discrepancy across \(K_s\) sampled directions:
+The factor \(1/N\) is the one-dimensional empirical Wasserstein distance. In the VISReg objective, the paper uses the squared Euclidean norm of the full sorted batch vector and averages over projection directions:
 
 \[
 \mathcal L_{\mathrm{shape}}
 =
-\frac{1}{K_sB}
+\frac{1}{K_s}
 \sum_{k=1}^{K_s}
-\sum_{i=1}^{B}
-\left(
-u_{k,(i)}-q_i
-\right)^2.
+\left\|
+\operatorname{sort}(\widetilde Z w_k)-q
+\right\|_2^2.
 \]
 
-Here \(K_s\) is the number of slices, not the embedding dimension. Each slice examines one direction through the normalized embedding cloud. More directions provide broader coverage of the sphere, but increase computation. As with SIGReg, a finite set of directions is a stochastic sketch rather than an exact all-directions certificate.
+Here \(K_s\) is the number of slices, not the embedding dimension. The published shape loss does not include an additional division by \(N\) outside the squared vector norm. This normalization convention matters when comparing the magnitudes of the scale, shape and center terms.
 
-The difference between SIGReg and VISReg lies in the one-dimensional statistic. SIGReg compares empirical characteristic functions with the target characteristic function. VISReg sorts projected samples and compares their empirical quantiles with Gaussian quantiles. Both use random projections; they do not compute the same discrepancy.
+The difference between SIGReg and VISReg lies in the one-dimensional statistic. SIGReg compares empirical characteristic functions with the target characteristic function. VISReg sorts projected samples and compares their empirical quantiles with Gaussian quantiles. Both use random projections, but they do not compute the same discrepancy. [Wu, Balestriero, and Levine, 2026]
 
 ## 8.5 Centre, scale and shape in one objective
 
 The centering term is
 
 \[
-\mathcal L_{\mathrm{center}}
-=
-\frac{1}{D}\|\mu\|_2^2.
+\mathcal L_{\mathrm{center}}=\|\mu\|_2^2.
 \]
 
-The regularizer combines the three components:
+VISReg assigns separate weights to its three regularization components:
 
 \[
 \mathcal L_{\mathrm{reg}}
 =
-\mathcal L_{\mathrm{scale}}
+\lambda_{\mathrm{scale}}\mathcal L_{\mathrm{scale}}
 +
-\mathcal L_{\mathrm{shape}}
+\lambda_{\mathrm{shape}}\mathcal L_{\mathrm{shape}}
 +
-\mathcal L_{\mathrm{center}}.
+\lambda_{\mathrm{center}}\mathcal L_{\mathrm{center}}.
 \]
 
 The method also retains a view-agreement signal. Let \(z_{n,v}\) denote the embedding of sample \(n\) in view \(v\), with \(V_g\) global views among \(V\) total views. Define the centre of the global-view embeddings as
@@ -168,32 +160,30 @@ The complete loss is
 =
 (1-\lambda)\mathcal L_{\mathrm{pred}}
 +
-\lambda\mathcal L_{\mathrm{reg}},
+\lambda\mathcal L_{\mathrm{reg}}.
 \]
 
-where \(\lambda\) is the trade-off between view agreement and regularization. The published formulation sums the three regularizer components and uses this single trade-off parameter. [Wu, Balestriero, and Levine, 2026]
+There are therefore four loss weights in the formulation: the outer \(\lambda\), and the three component weights inside \(\mathcal L_{\mathrm{reg}}\). The default component weights are one in the stated baseline; the authors ablate and reweight them, finding that increasing the shape weight can help on low-quality datasets. They also report different useful outer \(\lambda\) values for small and large datasets. These are optimization choices, not new terms in the objective. [Wu, Balestriero, and Levine, 2026]
 
-This expression makes the responsibilities explicit. The prediction term defines which views should agree. The regularizer constrains centre, scale and normalized shape. The method does not require a separate weight for each of the three components in its stated formulation.
+## 8.6 Computational scaling and distributed slices
 
-## 8.6 Why sorted one-dimensional transport is practical
-
-The shape comparison is performed after projecting each batch onto one-dimensional directions. The dominant matrix operation projects a \(B\times D\) embedding matrix onto \(K_s\) directions:
+The regularization computation projects the \(N\times D\) batch onto \(K_s\) random directions and sorts the \(N\) scalar values in each slice. Its two dominant operations are
 
 \[
-\widetilde ZW,
-\qquad
-W\in\mathbb R^{D\times K_s}.
+O(NDK_s)+O(K_sN\log N).
 \]
 
-The projection work is \(O(BDK_s)\). Sorting the \(B\) scalar values in each of the \(K_s\) slices requires an additional \(O(K_sB\log B)\) operation. The paper summarizes the principal scaling of the projection-based method as \(O(NDK)\), linear in batch size \(N\), embedding dimension \(D\), and slice count \(K\), with the slices distributed across GPUs.
+Because \(\log N\ll D\) at the scales considered, the paper treats the effective regularization complexity as \(O(NDK_s)\). This is linear in batch size, embedding dimension and number of slices when those are treated as separate scaling parameters.
 
-This distribution is central to the scaling claim. Each slice can be evaluated independently. If there are \(M\) workers, the slice set can be partitioned across them, and the resulting scalar loss contributions can be aggregated. The authors show that increasing the number of GPUs can compensate for a smaller per-step slice count. The claim is not that a fixed number of slices is mathematically sufficient in every dimension; it is that the sketch can be expanded by distributing independent projections rather than increasing the work on one device alone. [Wu, Balestriero, and Levine, 2026]
+The number of slices needed for a good approximation can, however, grow with embedding dimension. The authors show empirically that a single-GPU setting often needs \(K_s=C D\) for some factor \(C>1\), which makes the effective projection cost approximately \(O(CND^2)\). They address this by generating independent slices across GPUs. With \(M\) devices, each device can process a fraction of the total slice set, and the partial losses can be aggregated. Their experiments show that increasing the number of devices can compensate for a smaller number of slices per device. The paper therefore argues that \(K_s\) can remain fixed per device while scaling the training setup. This is an empirical scaling strategy, not a theorem that a fixed finite set of directions identifies every distribution. [Wu, Balestriero, and Levine, 2026]
 
 ## 8.7 What the experiments support
 
-VISReg reports controlled comparisons of regularizer gradients near collapse, tests on low-quality and long-tailed data, low-rank settings, out-of-distribution linear evaluation, transfer learning, dense prediction and generation guidance. The paper reports strong out-of-distribution results, including an ImageNet-22K-pretrained model whose OOD performance is comparable to DINOv2 trained on the substantially larger LVD-142M dataset.
+VISReg evaluates its regularizer through ablations, low-quality and long-tailed data, low-rank data, linear evaluation, transfer learning, out-of-distribution performance, dense prediction and image-generation guidance. The paper reports that the shape weight can be increased for low-quality datasets, that VISReg remains comparatively robust at lower slice counts, and that distributing slices across multiple GPUs can compensate for an insufficient per-device projection count.
 
-These experiments provide evidence for the proposed decomposition under the paper's architectures, data and optimization settings. They are not a theorem that every parameterization recovers from every collapsed initialization. A controlled gradient comparison does not prove that every implementation of SIGReg has vanishing gradients at every collapse point. A scalar derivative of the scale penalty does not prove that every network can recover from every degenerate state. An OOD score on a particular benchmark set does not establish universal superiority or task sufficiency. [Wu, Balestriero, and Levine, 2026]
+For downstream evaluation, the authors report that an ImageNet-22K-pretrained VISReg ViT-L/14 reaches an average score of 72.94 across their selected downstream datasets, compared with 72.93 for DINOv2-LVD142M in the reported table. This is a matched aggregate on the listed benchmarks, not evidence that the two methods are equivalent on every task. The paper also reports competitive OOD performance from ImageNet-1K pretraining and strong robustness in long-tailed and low-rank settings. [Wu, Balestriero, and Levine, 2026]
+
+These experiments support the proposed decomposition under the paper's architectures, data and optimization settings. They are not a theorem that every parameterization recovers from every collapsed initialization. A controlled gradient comparison does not prove that every network can recover from every degenerate state. An OOD score on a particular benchmark set does not establish universal superiority or task sufficiency.
 
 ## 8.8 The broader design principle
 
