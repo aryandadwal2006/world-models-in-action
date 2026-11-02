@@ -28,7 +28,7 @@ Passive pretraining and action-conditioned prediction therefore solve different 
 
 ## 12.2 V-JEPA 2-AC adds the control interface
 
-V-JEPA 2-AC is a post-training stage within the V-JEPA 2 paper. It freezes the pretrained visual encoder and learns a separate autoregressive predictor using robot video, action and end-effector state. The predictor receives an aligned history of visual features and control information, then estimates future visual features.
+V-JEPA 2-AC is a post-training stage within the V-JEPA 2 paper. It freezes the pretrained visual encoder and learns a separate autoregressive predictor using robot video, action and end-effector state. The predictor receives an aligned history of visual features and control information, then estimates future visual features. This is the central separation in the V-JEPA 2-AC post-training stage (Assran et al., 2025).
 
 The robot data come from DROID demonstrations. The paper uses end-effector position, orientation and gripper state to define a robot state vector. Actions are derived from changes in this state between adjacent observations. The data are therefore not merely passive images: the predictor receives a control signal aligned with the transition it must predict.
 
@@ -114,7 +114,7 @@ V-JEPA 2.1 adds a context loss on visible tokens. Let \(C\) denote visible posit
 
 The weighting emphasizes the visible features closest to the boundary between context and target. It encourages local consistency across that boundary without applying the same target constraint uniformly to every visible token. The full objective retains the masked-token prediction loss and adds the visible-context loss.
 
-The method also applies deep self-supervision at three intermediate encoder blocks and the final block. Intermediate features are combined and supervised alongside the final representation. The motivation is that local spatial information should not be required to survive only in the last encoder layer after many rounds of global feature mixing.
+The method also applies deep self-supervision at three intermediate encoder blocks and the final block. The dense context objective and its weighting follow the V-JEPA 2.1 paper (Mur-Labadia et al., 2026). Intermediate features are combined and supervised alongside the final representation. The motivation is that local spatial information should not be required to survive only in the last encoder layer after many rounds of global feature mixing.
 
 These changes affect where and which visual features are supervised. They do not add an action variable. V-JEPA 2.1 is still a video representation-learning method; its robot-planning experiments use a separately trained action-conditioned predictor.
 

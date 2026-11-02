@@ -90,7 +90,7 @@ The predictor may project context tokens and query embeddings into a different i
 
 ## 16.5 Loss, optimizer and EMA order
 
-The implementation computes a feature loss for each target block and averages across target positions and the batch. In the released I-JEPA training code, the target features are normalized and detached, and the prediction loss is implemented with smooth-\(L_1\) regression. The paper's concise mathematical formulation is written as an \(L_2\)-style feature distance. A reproduction should retain this distinction rather than treating equation and implementation as exactly identical.
+The implementation computes a feature loss for each target block and averages across target positions and the batch. In the released I-JEPA training code, the target features are normalized and detached, and the prediction loss is implemented with smooth-\(L_1\) regression. The paper's concise mathematical formulation is written as an \(L_2\)-style feature distance. A reproduction should retain this distinction rather than treating equation and implementation as exactly identical. The target-feature selection, detach path and optimizer/EMA ordering are checked against the released I-JEPA training code (Assran et al., 2023; [official implementation](https://github.com/facebookresearch/ijepa)).
 
 A conceptual training step is:
 

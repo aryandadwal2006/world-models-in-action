@@ -61,7 +61,7 @@ Goal matching is not a safety specification. Collision constraints, actuator lim
 
 The planner must solve an optimization problem over a sequence of actions. Gradient-based optimization is possible when the model and action parameterization are differentiable, but it can be sensitive to non-smooth constraints and model errors. Sampling-based methods search by evaluating candidate sequences.
 
-The Cross-Entropy Method (CEM), used in V-JEPA 2, maintains a distribution over action sequences. It samples candidates, evaluates their predicted costs, selects an elite subset with the best scores, and updates the sampling distribution toward those candidates. Repeating this procedure concentrates samples in regions of action space that the model predicts to be promising.
+The Cross-Entropy Method (CEM), used in V-JEPA 2, maintains a distribution over action sequences. It samples candidates, evaluates their predicted costs, selects an elite subset with the best scores, and updates the sampling distribution toward those candidates. Repeating this procedure concentrates samples in regions of action space that the model predicts to be promising. V-JEPA 2 uses CEM to optimize image-goal action sequences in its robot-planning system (Assran et al., 2025).
 
 The search budget matters. More samples and iterations can find lower-cost trajectories under the model, but the model may be inaccurate for the states and actions that the optimizer discovers. A stronger optimizer can therefore make real-world performance worse if it is allowed to exploit errors in the learned transition model.
 

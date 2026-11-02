@@ -86,7 +86,7 @@ F_\phi(S_t,A_t),
 
 The target may be a visual feature, a structured state vector or a combination. The stop-gradient indicates that the target representation is not updated by this transition loss; the precise target update depends on the chosen architecture. A predictor trained with teacher forcing receives the observed previous state at each step. If it will be rolled forward at inference, training should also examine the errors produced when predicted states become subsequent inputs.
 
-The action representation must match the control system. A discrete action label, a joint-position command, a velocity target and a Cartesian end-effector displacement describe different control interfaces. The time interval over which the action applies must also be explicit. A command observed at 10 Hz cannot be treated as though it were a continuous force applied over an unspecified interval.
+The action-conditioned post-training of V-JEPA 2 is one concrete example of aligning robot end-effector changes with subsequent visual features (Assran et al., 2025). The action representation must match the control system. A discrete action label, a joint-position command, a velocity target and a Cartesian end-effector displacement describe different control interfaces. The time interval over which the action applies must also be explicit. A command observed at 10 Hz cannot be treated as though it were a continuous force applied over an unspecified interval.
 
 ## 13.4 Data collection determines which questions can be answered
 
