@@ -105,7 +105,6 @@ def main():
 :table-caption: Table {chapter}
 :sectnumoffset: 3
 :leveloffset: 1
-:imagesdir: ../images/
 :table-number:
 :figure-number:
 :listing-number:
