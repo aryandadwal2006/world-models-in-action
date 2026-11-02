@@ -67,15 +67,10 @@ def convert(md):
         output.append(line)
         i += 1
 
-    asciidoc = "\n".join(output).replace(
-        "image::../images/chapter04/",
-        "image::chapter04/",
-    )
-    return re.sub(
-        r"(image::chapter04/[^\[]+)\[([^\]]*)\]",
-        lambda m: m.group(1) + "[" + m.group(2) + ",width=100%]",
-        asciidoc,
-    )
+    asciidoc = "\n".join(output)
+    if "image::" in asciidoc or "![" in asciidoc:
+        raise SystemExit("Chapter 4 is text-only: image embeds are not permitted")
+    return asciidoc
 
 
 def anchors(s):
