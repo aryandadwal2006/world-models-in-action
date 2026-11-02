@@ -1,178 +1,144 @@
-# 15. Memory, hierarchy and an agent around the world model
+# 15. The agent around the world model
 
-An action-conditioned predictor supplies a model of how candidate actions may change a represented state. It still does not specify which actions should be tried, what outcomes count as desirable, how information from earlier observations should be recovered, or how behaviour should change when the task changes.
+A transition predictor does not define a complete agent. The agent also needs a way to perceive the environment, choose objectives, select actions, retain relevant history and decide when to plan. LeCun's proposal for autonomous machine intelligence is useful because it makes these responsibilities explicit. It should be read as a research architecture and position paper, not as evidence that the complete system has been validated end to end. (LeCun, 2022)
 
-These responsibilities belong to the agent that uses the world model. LeCun's *A Path Towards Autonomous Machine Intelligence* proposes an architecture that makes them explicit. (LeCun, 2022) The paper is a research position and design proposal, not a report of a fully validated system implementing every component. Its value here is to clarify what must surround a predictive model if it is to support autonomous behaviour.
+## 15.1 Six responsibilities, not six interchangeable networks
 
-## 15.1 Six modules, six different responsibilities
+The proposal describes six top-level modules:
 
-The proposed architecture has six top-level modules:
+**Perception** maps sensor observations into a representation of the current situation. Its output should expose the distinctions needed by prediction and control, rather than merely compressing the raw input.
 
-1. **Perception** maps sensory observations into an internal state representation.
-2. **World Model** predicts possible future states under imagined action sequences.
-3. **Cost** assigns scalar energy to current and predicted states.
-4. **Actor** proposes actions and action sequences.
-5. **Short-Term Memory (STM)** stores and retrieves relevant past, current and predicted states, together with associated intrinsic costs.
-6. **Configurator** configures the other modules for the task at hand.
+**World Model** predicts how the represented situation may evolve. It may represent multiple possible futures and should be able to condition those futures on actions or other variables that affect the transition.
 
-The hierarchy inside Cost matters. The proposal places two components within the Cost module:
+**Cost** evaluates predicted states and trajectories according to goals, preferences and constraints. It supplies the criterion by which imagined futures are compared.
 
-- **Intrinsic Cost** computes immediate intrinsic energy from a state. It represents basic drives or intrinsic quantities that are not learned in the same way as the critic.
-- **Trainable Critic** predicts future intrinsic cost from states and experience.
+**Actor** selects actions. It can implement a direct policy or participate in a deliberative planning process.
 
-Intrinsic Cost and the Critic are not additional top-level peers beside Perception, World Model, Cost, Actor, STM and Configurator. They are components of Cost.
+**Short-Term Memory** retrieves information from previous observations when the current input is insufficient to determine the relevant state.
 
-This architecture separates several scalar functions that might otherwise be conflated. A JEPA prediction loss measures mismatch between a predicted and target representation. A compatibility energy scores whether a candidate configuration is compatible with a model. An agent-level cost evaluates whether a predicted state or trajectory is desirable. A critic estimates future cost. These scalars may interact, but they do not have the same meaning.
+**Configurator** specifies the task, subgoals and operating mode of the agent, and configures the other modules for the current objective.
 
-## 15.2 The information flow through the agent
+The physical environment remains outside this internal module list. It generates observations and receives actions. This distinction prevents an architecture diagram from suggesting that the World Model directly changes the world.
 
-At a high level, the agent operates as a closed loop.
+The names do not imply that each module must be a separate neural network. A practical implementation may share parameters or combine components. The purpose of the decomposition is to separate responsibilities that have different objectives and failure modes.
 
-An observation reaches Perception, which produces a state representation. The World Model uses that state, relevant memory and candidate actions to predict possible futures. Cost evaluates the predicted states. Actor uses those evaluations to select an action or action sequence. The selected action is sent to the environment, which produces a new observation. The loop repeats.
+## 15.2 Prediction and evaluation must remain separate
 
-STM is not merely a record of every past frame. It provides an associative mechanism for retrieving information relevant to a current query. The World Model can use stored states when predicting or completing a state estimate, and the Critic can use retrieved experience and associated intrinsic costs to estimate future cost.
-
-Configurator modulates the active modules according to the task. It can change what Perception emphasizes, what the World Model predicts, which costs matter and how the Actor behaves. The proposal treats this as an executive function, not simply as an extra task embedding appended to a fixed network.
-
-The physical environment sits outside the learned computational graph. Gradients can be propagated through differentiable Perception, World Model, Cost and Actor components when optimizing imagined trajectories. The agent then executes an action in the real environment and receives a new observation. The architecture should not be interpreted as backpropagating gradients through the robot or the physical world itself.
-
-## 15.3 Mode 1: reactive behaviour
-
-Mode 1 selects an action directly from the current state, possibly using STM:
+The World Model should answer what may happen under a proposed action. Cost should answer whether that predicted outcome is desirable. The distinction can be written as
 
 \[
-a_t=A_\psi(s_t,m_t),
-\]
-
-where \(s_t\) is the perceived state and \(m_t\) denotes retrieved memory. The policy does not deliberately search through multi-step imagined action sequences for every decision.
-
-Mode 1 can be computationally inexpensive at inference time. It can still be sophisticated, memory-dependent and task-configured. Its defining property is that action selection is reactive rather than the result of a fresh optimization over candidate trajectories through the World Model and Cost.
-
-The World Model need not stop learning while the agent operates in Mode 1. It can continue to predict the next state, compare that prediction with the new observation, and use the observed transition as a learning signal. Reactive action selection and predictive learning are separate operations.
-
-## 15.4 Mode 2: deliberate planning through imagined futures
-
-Mode 2 uses the World Model as an internal simulator. A typical planning cycle is:
-
-1. Perception estimates the current state and Cost evaluates its immediate energy.
-2. Actor proposes an initial action sequence.
-3. World Model predicts one or more possible state sequences under those actions.
-4. Cost evaluates the predicted states or trajectory.
-5. Actor modifies the proposed actions to reduce the predicted cost.
-6. The system executes the first action or a short prefix.
-7. A new observation updates the state estimate and the planning cycle is repeated.
-
-For a deterministic model and an additive cost, the sequence objective can be written schematically as
-
-\[
-J(\mathbf a)
+\widehat S_{t+1}=F_\phi(S_t,A_t),
+\qquad
+J(A_{t:t+H-1})
 =
-\sum_{k=1}^{H}C(\widehat s_{t+k})
+\sum_{k=0}^{H-1}c(\widehat S_{t+k},A_{t+k})
 +
-\sum_{k=0}^{H-1}c_a(a_{t+k}).
+V_{\mathrm{term}}(\widehat S_{t+H}).
 \]
 
-When the learned model and cost are differentiable, the system can optimize candidate actions by gradients through the imagined rollout. For discrete actions or non-differentiable objectives, it can use other search or planning procedures. The model is used to evaluate candidates internally; only a selected action is executed in the world.
+The transition model \(F_\phi\) describes consequences. The cost \(c\) evaluates them. The same transition model can be reused for different tasks by changing the objective, provided the representation and action interface retain the information those tasks require.
 
-Mode 2 is closely related to model-predictive control. Planning considers a finite horizon, but execution is followed by fresh observation and replanning. The distinction between an imagined action sequence and an executed action sequence is fundamental. The model may simulate many alternatives, but the physical environment experiences only the action that the Actor sends to it.
+LeCun places Intrinsic Cost and a Trainable Critic within the Cost module. Intrinsic Cost represents built-in preferences or constraints; the Trainable Critic estimates task-related cost from experience. They are subcomponents of Cost, not additional top-level modules. This separation allows some preferences to be specified independently of a learned task value.
 
-The proposal does not prescribe one universally correct optimizer. Gradient-based optimization, dynamic programming, tree search and sampling-based methods make different assumptions. Their effectiveness depends on the model, cost, action parameterization and available compute.
+The decomposition also exposes two distinct failure cases. If the model predicts the wrong future, a correct cost cannot repair the transition. If the model predicts accurately but the cost function rewards the wrong outcome, the planner can select an undesirable action. The two modules require separate evaluation.
 
-## 15.5 Distilling Mode 2 into Mode 1
+## 15.3 Mode 1: direct reactive behaviour
 
-Repeated deliberative search can be expensive. The proposal therefore allows the outputs of Mode 2 to train a reactive policy.
-
-Let \(\widetilde a_t\) be an action selected by Mode-2 planning for state \(s_t\). A policy \(A_\psi\) can be trained to imitate these planner-generated actions:
+Mode 1 maps a current representation directly to an action:
 
 \[
-\mathcal L_{\mathrm{distill}}(\psi)
+A_t=\pi_\psi(S_t).
+\]
+
+It does not need to search over imagined futures at every decision. A trained reactive policy can act quickly and with relatively low computational cost. This is useful when the control loop must run at high frequency or when planning is too expensive for every step.
+
+The limitation is that the policy must have learned an appropriate response for the states and tasks it encounters. It does not explicitly compare a new set of candidate trajectories when the goal changes. Its behaviour outside the training distribution depends on generalization rather than on an online search over predicted consequences.
+
+## 15.4 Mode 2: deliberation through imagined futures
+
+Mode 2 uses the World Model and Cost to evaluate candidate action sequences. It searches for actions whose predicted consequences have low cost. The planner can adapt to a new goal or a changed objective without retraining the reactive policy.
+
+This flexibility has a computational price. Search requires repeated model evaluations, and the chosen action depends on the accuracy of the imagined trajectories. The planner may also exploit prediction error, as described in the preceding section. Mode 2 is not automatically more reliable than Mode 1; it is more explicit about the candidate futures it evaluates.
+
+The two modes therefore solve different operating problems. Mode 1 is inexpensive at execution but may be less flexible. Mode 2 can deliberate over alternative futures but consumes more computation and depends on the model being reliable in the regions explored by the search.
+
+## 15.5 Distilling deliberation into a reactive policy
+
+A planner can generate training targets for a faster policy. Suppose Mode 2 chooses an action \(A^{\mathrm{M2}}(S)\) after searching from state \(S\). A reactive policy can be trained to imitate those decisions:
+
+\[
+\mathcal L_{\mathrm{distill}}
 =
-\mathbb E_{s_t}
+\mathbb E_{S\sim\mathcal D_{\mathrm{M2}}}
 \left[
-D\!\left(\widetilde a_t,A_\psi(s_t)\right)
-\right],
+\|\pi_\psi(S)-A^{\mathrm{M2}}(S)\|_2^2
+\right].
 \]
 
-where \(D\) is an action-space loss appropriate to the action representation. The resulting policy approximates the planner's decision with a direct state-to-action mapping.
+The resulting Mode 1 policy approximates the planner over the states represented in the distillation data. It can reduce the computational cost of repeatedly solving the planning problem.
 
-This is a form of amortized inference. Mode 2 computes a relatively expensive answer for sampled states. Mode 1 learns a function that approximates those answers quickly. The learned policy can later operate reactively, or it can provide an initialization for another Mode-2 search.
+Distillation does not transfer a guarantee of correctness. If Mode 2 exploits model errors, the selected actions can be wrong, and the reactive policy can learn to reproduce them. If the deployment state distribution differs from the distillation distribution, Mode 1 may not reproduce the planner's behaviour reliably. The improvement is computational: decisions obtained through search are converted into a faster mapping. It is not a proof that the policy is optimal outside the sampled states.
 
-The distillation target is not necessarily an expert action from an external teacher. It is an action that the agent's own model and cost considered desirable. Consequently, the distilled policy inherits the teacher planner's errors. If the World Model is biased or Cost is misaligned, policy distillation can make the same error faster and more consistently.
+## 15.6 Short-Term Memory as associative retrieval
 
-## 15.6 Short-Term Memory as associative state retrieval
+The current observation may not contain enough information to infer the relevant state. An object can be temporarily occluded; an earlier action can determine whether a container is open; a task may require remembering which subgoal has already been completed.
 
-A partially observed system may encounter the same physical configuration more than once without receiving identical observations. Relevant information may be absent from the current camera view, hidden behind an object, or distributed across observations separated in time.
-
-An associative memory stores information in a form that can be retrieved by content. A query derived from the current state can retrieve a related past state and its associated value or intrinsic cost. The retrieved information can support state completion, prediction or evaluation.
-
-This differs from simply appending a fixed number of recent frames to the current input. A temporal window retrieves information by adjacency in time. Associative memory retrieves information by similarity or a learned relation to the query. A past state can be relevant even if it is not the immediately preceding state.
-
-The proposed memory stores information about past, current and predicted states, together with associated intrinsic costs. The World Model can query and update this memory. The Critic can retrieve past states and their observed costs while learning to estimate future intrinsic cost.
-
-The paper leaves important implementation questions open: capacity, retrieval, write policy, key and value design, update rules and interference between stored states. These are research choices, not solved consequences of naming a module STM. The mathematical treatment of temporal state and recurrent memory belongs elsewhere in the book; the point here is the role associative retrieval plays in a complete predictive agent.
-
-## 15.7 Hierarchical prediction and H-JEPA
-
-A single predictor operating at one temporal resolution may have to represent both fine sensory changes and abstract long-term outcomes. A hierarchy separates these responsibilities.
-
-Let \(s_t^{(0)}\) denote a fine-scale state representation. Higher levels \(s_t^{(1)},s_t^{(2)},\ldots\) describe increasingly abstract states or events over longer intervals. A level-\(k\) predictor may estimate an abstract target over horizon \(\Delta_k\):
+The Short-Term Memory in LeCun's proposal is associative rather than merely chronological. A key derived from the current context is used to retrieve stored content associated with similar past situations. Abstractly,
 
 \[
-\widehat s_{t+\Delta_k}^{(k)}
-=
-F_k(s_{\le t}^{(k)},u_{t:t+\Delta_k}).
+M_t=\operatorname{Retrieve}(K_t,\mathcal M),
 \]
 
-The variable \(u\) at a high level need not be a physical motor command. It can encode a subgoal or a constraint that a lower-level model must satisfy. A high-level predictor may specify that an object should be moved to a region. A lower-level predictor then determines which sequence of intermediate states and physical actions can realize that subgoal.
+where \(K_t\) is the current retrieval key and \(\mathcal M\) is the memory. Retrieved content can be combined with the current representation before prediction or planning.
 
-This changes the planning problem. A high-level model can reason over a smaller number of abstract transitions, while lower-level models expand a subgoal into detailed predictions and actions. It can reduce the effective horizon and search complexity. However, abstraction is only useful if it preserves the constraints needed for execution. If a high-level representation discards a contact condition or obstacle, a lower-level controller may be unable to realize the proposed subgoal.
+Associative retrieval is useful when the present observation is ambiguous but a past episode contains relevant information. It also introduces a failure mode: the key must retrieve memories based on task-relevant similarity. If the representation ignores the distinction that determines which memory is relevant, the system may retrieve a plausible but incorrect episode. Memory therefore inherits the invariances and omissions of the perception system.
 
-LeCun's H-JEPA discussion is a proposed direction for organizing prediction across levels and time scales. (LeCun, 2022) It should not be described as a single canonical architecture with a settled training algorithm. The specific representations, interfaces, temporal resolutions and methods for training levels remain design questions.
+The architecture leaves important implementation questions open. What should be stored? How should keys and values be formed? When should a memory be updated or forgotten? How should the agent distinguish a genuinely similar situation from one that only looks similar in the current representation? These are part of the memory problem, not details solved by assigning a module name.
 
-## 15.8 Multiple futures and latent variables
+## 15.7 Hierarchical prediction separates time scales
 
-A deterministic predictor produces one future for a given context and action sequence. Yet the same action can lead to different outcomes because the system is partially observed, the environment is stochastic, or other agents intervene.
+A single predictor operating at the frame or control-step level may be inefficient for tasks with long horizons. A hierarchy can predict at several temporal scales. A high-level predictor proposes an abstract subgoal or a compressed future segment; a lower-level predictor estimates the intermediate states and actions required to realize it.
 
-A latent variable \(z\) can index alternative futures:
+Let \(S_t^{(0)}\) denote a low-level state representation. A higher-level representation can summarize a longer interval:
 
 \[
-\widehat s_{t+1:t+H}
-=
-g_\phi(s_{\le t},\mathbf a,z).
+S_k^{(1)}=G_1(S_{t:t+\Delta}).
 \]
 
-Different values of \(z\) can select different plausible continuations. In an energy-based formulation, the latent variable can select a configuration that reduces incompatibility between context and target. The latent should represent a restricted alternative, not an unrestricted copy of the target. Otherwise the model can transmit the answer through \(z\) and make prediction trivial.
+A high-level predictor can then estimate a temporally extended target:
 
-A hierarchy can also represent uncertainty at several levels. A high-level model may retain alternative subgoals, while lower-level predictors estimate the detailed transitions associated with each subgoal. The agent can use Cost to rank these possibilities and avoid expanding every possible trajectory indefinitely.
+\[
+\widehat S_{k+1}^{(1)}
+=
+F_1(S_k^{(1)},A_k^{(1)}).
+\]
 
-This is a computational problem as well as a statistical one. If a model branches into many futures at each time step, the number of candidate trajectories can grow exponentially with horizon. The system must use structure, learned priors, costs or search procedures to allocate computation to the futures that matter.
+A lower-level predictor refines this target into shorter-horizon states and actions. The abstraction reduces the need for one model to predict every low-level detail over the entire horizon.
 
-The proposal does not prescribe one complete solution to uncertainty. Latent-variable models, ensembles, stochastic predictors and explicit distributions each represent different assumptions. A stochastic output is not automatically calibrated, and multiple hypotheses are not useful if they omit the dangerous or relevant mode.
+The hierarchy also creates a consistency requirement. The high-level prediction must be realizable by the lower-level controller. If the high-level representation discards a constraint needed for execution, the lower-level model may be unable to realize the proposed subgoal. Hierarchical JEPA is therefore not simply a stack of identical encoders. Each level needs a target and temporal abstraction appropriate to its role, together with a relationship between levels that preserves executability.
 
-## 15.9 The Configurator remains an open problem
+## 15.8 The Configurator is an open problem
 
-The Configurator receives information from the other modules and changes how the system is organized for a task. LeCun describes it as executive control: it pre-configures Perception, World Model, Cost and Actor for the task, modulating the parameters and attention circuits of the modules it feeds. It can prime Perception to extract task-relevant information, configure the World Model for the current situation, and configure Cost to express the current goal. The Actor's policy is also described as configurable. The paper does not provide a finished algorithm for learning the Configurator.
+The Configurator is the least specified of the six modules. In the proposal, it configures the task, goals, constraints and relation between reactive and deliberative operation. It is intended to determine what the agent should work on and how the other modules should be arranged for that task.
 
-This role is broader than selecting a task-specific output head. It is intended to configure how several components function together. Yet the proposal does not provide a finished learning algorithm for discovering these configurations or prove that such modulation will be stable. The design raises difficult questions about what a task description must contain, how modules should communicate, and how configuration should change as the environment changes.
+That role raises questions which are not solved by drawing a box. Where do goals come from? How are constraints represented? How does the agent know when the task has changed? How are conflicts between intrinsic preferences and externally specified objectives resolved? What prevents the Configurator from selecting a convenient but inappropriate objective?
 
-The same restraint applies to the full architecture. The six-module design makes the responsibilities of an autonomous agent explicit, but it is not empirical evidence that one integrated implementation has solved them. The chapter's contribution is to show why a predictive representation is only one component in that system.
+LeCun's proposal makes this responsibility explicit, which is useful for reasoning about a general agent. It does not supply a complete general algorithm for the Configurator or demonstrate that the six modules form a reliable autonomous system.
 
-## 15.10 The role of a JEPA inside an agent
+## 15.9 What a JEPA contributes
 
-The architecture closes the argument developed throughout the chapter.
+A JEPA contributes a representation and a predictive relation. In an action-free visual model, it can supply features that summarize a scene and support prediction of withheld or future representations. In an action-conditioned system, a separate predictor can estimate consequences under proposed controls. The agent still requires a cost, a policy or planner, feedback, memory and a mechanism for configuring the task.
 
-A representation-learning objective defines which views should agree and which target features should be predictable. A distributional constraint controls the geometry of the embedding space. An action-conditioned model predicts the consequences of candidate interventions. A cost or energy ranks the predicted states. An Actor searches or selects actions. Memory supplies information that is absent from the current observation. Hierarchy allows prediction and control to operate at different temporal scales. A Configurator adapts these mechanisms to a task.
+The architectural conclusion is that representation prediction is one responsibility inside a larger agent. Its value depends on whether the representation preserves the distinctions needed by the predictor and whether the predictor remains reliable over the actions considered by the planner.
 
-No single feature-prediction loss provides all of these functions. The useful question is not whether a JEPA is itself an autonomous agent. It is what predictive information it supplies to an agent, and what other structures are required before that information can support reliable action.
+**Figure 4.25. The proposed agent separates six responsibilities.**
 
-![Six module predictive agent architecture](../images/chapter04/F18_agent_architecture.svg)
+Description: Perception supplies representations to the World Model. The World Model predicts imagined states, which are evaluated by Cost. Actor selects actions, Short-Term Memory retrieves relevant past information, and Configurator specifies tasks and modes. Intrinsic Cost and Trainable Critic are shown inside Cost, not as additional top-level modules.
 
-**Figure 4.30. The proposed agent has six top-level modules.** Perception, World Model, Cost, Actor, Short-Term Memory and Configurator are the six top-level modules. Intrinsic Cost and Trainable Critic are subcomponents of Cost; the physical environment remains outside the model graph.
+**Figure 4.26. Mode 1 executes a reactive policy; Mode 2 searches imagined futures.**
 
-![Reactive Mode 1 and deliberative Mode 2](../images/chapter04/F19_mode1_mode2.svg)
+Description: Mode 1 maps a representation directly to an action. Mode 2 uses the World Model and Cost to compare action sequences. Planner-selected actions can train a cheaper Mode 1 policy, but distillation transfers the planner's behaviour only over the training distribution.
 
-**Figure 4.31. Mode 1 is reactive; Mode 2 searches imagined futures.** Mode 1 maps state directly to action, while Mode 2 uses the world model and cost to evaluate candidate trajectories. Planner-generated actions can serve as training targets for a cheaper reactive policy.
+**Figure 4.27. Hierarchical prediction separates temporal scales.**
 
-![High level and low level predictive hierarchy](../images/chapter04/F20_hierarchy_memory.svg)
-
-**Figure 4.32. Hierarchical prediction separates time scales.** A high-level predictor proposes an abstract subgoal and a lower-level predictor refines it into intermediate states and actions. Memory and configuration can carry relevant context across the hierarchy.
+Description: A high-level predictor proposes an abstract subgoal or temporally extended state. A lower-level predictor refines it into intermediate states and actions. The hierarchy reduces the need for one predictor to represent every detail at every time scale.
