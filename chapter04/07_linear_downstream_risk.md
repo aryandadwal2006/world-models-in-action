@@ -145,7 +145,7 @@ Hence
 \frac{D^2}{\tau},
 \]
 
-with equality only when all eigenvalues equal \(\tau/D\). Under this fixed-trace, full-rank and homoskedastic linear model, isotropic covariance minimizes the trace of the OLS coefficient covariance.
+with equality only when all eigenvalues equal \(\tau/D\). Under this fixed-trace, full-rank and homoskedastic linear model, isotropic covariance minimizes the trace of the OLS coefficient covariance. This is the linear downstream-risk result developed in LeJEPA; its scope is the specified estimator and assumptions (Balestriero and LeCun, 2025).
 
 ## 7.4 What the calculation establishes
 

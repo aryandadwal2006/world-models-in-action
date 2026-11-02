@@ -42,7 +42,7 @@ A minimal sufficient representation would assign the same code to histories with
 
 Consider two images of the same cup under different lighting. If the lighting change leaves every downstream prediction unchanged, treating the images as equivalent is useful. Now consider two images with the cup at different distances from a gripper. If the gripper will move under the same command, those positions may lead to different collision or contact outcomes. Treating them as equivalent could be destructive.
 
-The correct invariances are therefore determined by the task, not by visual similarity alone.
+The correct invariances are therefore determined by the task, not by visual similarity alone. This task-relative view of a predictive state is also central to the autonomous-machine-intelligence proposal (LeCun, 2022).
 
 ## 6.3 The target encoder decides which differences count
 

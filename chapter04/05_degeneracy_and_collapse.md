@@ -95,7 +95,7 @@ Agreement asks: which outputs should be close?
 
 A representation constraint asks: what kinds of output distributions should be allowed?
 
-A negative-sample objective couples examples by asking a positive pair to be more similar than candidate negatives. A variance penalty asks that each coordinate retain a minimum amount of spread. A covariance penalty discourages linear redundancy. A distributional penalty compares the whole embedding distribution, or a sketch of it, with a chosen reference. These mechanisms are not interchangeable because they constrain different mathematical objects.
+A negative-sample objective couples examples by asking a positive pair to be more similar than candidate negatives. A variance penalty asks that each coordinate retain a minimum amount of spread. A covariance penalty discourages linear redundancy. A distributional penalty compares the whole embedding distribution, or a sketch of it, with a chosen reference. These mechanisms are not interchangeable because they constrain different mathematical objects. The contrastive, balanced-assignment and variance/covariance examples connect to methods developed earlier in Chapter 3; SIGReg and VISReg are treated here because they directly constrain the embedding distribution (Chen et al., 2020; Caron et al., 2020; Grill et al., 2020; Bardes et al., 2022; Balestriero and LeCun, 2025; Wu et al., 2026).
 
 Chapter 3 already developed contrastive and non-contrastive mechanisms in detail. Here the relevant point is narrower: feature prediction needs an explanation for why the target features do not all become identical and why non-identical features retain the right information.
 
