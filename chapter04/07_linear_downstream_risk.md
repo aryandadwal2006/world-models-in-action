@@ -1,216 +1,164 @@
-# 7. Linear downstream risk and the covariance spectrum
+# 7. Why the covariance spectrum affects linear readouts
 
-A representation is often evaluated by freezing its encoder and fitting a small predictor on top of the resulting embeddings. This procedure isolates one question: how accessible is the information in the representation to a restricted downstream estimator? The simplest case is linear regression. Its mathematics makes the effect of embedding geometry explicit.
+The covariance spectrum matters because a downstream model must estimate its parameters from a finite sample. If the representation varies strongly in some directions and barely varies in others, the regression problem is poorly conditioned. This is not a statement that isotropic embeddings are best for every task. It is a result about specific estimators under explicit assumptions.
 
-The aim of this section is not to prove that linear probes characterize every downstream task. It is to derive one concrete reason why a representation's covariance spectrum matters.
+## 7.1 The frozen-feature regression problem
 
-## 7.1 The frozen-feature problem
-
-Suppose a frozen encoder maps observations to \(K\)-dimensional features. For a downstream dataset, arrange \(N\) feature vectors as rows of
+Suppose an encoder is trained and then frozen. A downstream task provides pairs \((z_i,y_i)\), where \(z_i\in\mathbb R^D\) is a representation and \(y_i\) is a scalar target. A linear readout models
 
 \[
-X\in\mathbb R^{N\times K},
+y_i=z_i^\top\beta^\star+\varepsilon_i,
 \]
 
-and collect the scalar targets in \(y\in\mathbb R^N\). A linear probe predicts
+where \(\beta^\star\) is the population coefficient and \(\varepsilon_i\) is zero-mean observation noise.
+
+Let the centred design matrix be \(X\in\mathbb R^{N\times D}\), with rows \(z_i^\top\), and let \(\widehat\Sigma=X^\top X/N\) be the sample covariance. We focus on the population covariance \(\Sigma\) that the sample estimates. Assume \(\Sigma\) is positive definite and has eigen-decomposition
 
 \[
-\widehat y=X\beta.
+\Sigma=U\Lambda U^\top,
+\qquad
+\Lambda=\operatorname{diag}(\lambda_1,\ldots,\lambda_D),
 \]
 
-With a quadratic penalty on the coefficient vector, ridge regression solves
+with all \(\lambda_j>0\).
+
+The eigenvalues describe how much variation is available to estimate a coefficient along each principal direction. If an eigenvalue is small, many different coefficients along that direction can produce similar predictions on the finite sample. The readout must estimate that coefficient from weak evidence.
+
+## 7.2 Ridge shrinks weak directions more strongly
+
+For a normalized ridge objective
 
 \[
 \widehat\beta_\lambda
 =
-\arg\min_{\beta\in\mathbb R^K}
-\left\{
-\|y-X\beta\|_2^2+\lambda\|\beta\|_2^2
-\right\},
-\qquad \lambda>0.
+\arg\min_\beta
+\left[
+\frac{1}{N}\|y-X\beta\|_2^2
++
+\lambda\|\beta\|_2^2
+\right],
 \]
 
-Differentiating with respect to \(\beta\) and setting the gradient to zero gives
-
-\[
--2X^\top(y-X\widehat\beta_\lambda)
-+2\lambda\widehat\beta_\lambda=0.
-\]
-
-Therefore
+the solution is
 
 \[
 \widehat\beta_\lambda
 =
-(X^\top X+\lambda I)^{-1}X^\top y.
+(\widehat\Sigma+\lambda I)^{-1}
+\frac{X^\top y}{N}.
 \]
 
-The learned coefficient vector depends on the geometry of the feature matrix through \(X^\top X\). If the features are centred, this matrix is proportional to their empirical covariance. Its eigenvalues determine how much sample variation is available along each principal direction.
-
-## 7.2 Ridge bias depends on the weak directions
-
-Assume a linear downstream relationship
+Under the population approximation \(\widehat\Sigma\approx\Sigma\), the expected estimate is
 
 \[
-y=X\beta_{\mathrm{true}}+\varepsilon,
-\qquad
-\mathbb E[\varepsilon\mid X]=0.
+\mathbb E[\widehat\beta_\lambda\mid\Sigma]
+\approx
+(\Sigma+\lambda I)^{-1}\Sigma\beta^\star.
 \]
 
-Conditioning on \(X\),
+In the eigenbasis, each coefficient is multiplied by
 
 \[
-\begin{aligned}
-\mathbb E[\widehat\beta_\lambda\mid X]
-&=(X^\top X+\lambda I)^{-1}X^\top
-\mathbb E[y\mid X]\\
-&=(X^\top X+\lambda I)^{-1}X^\top X\beta_{\mathrm{true}}.
-\end{aligned}
+\frac{\lambda_j}{\lambda_j+\lambda}.
 \]
 
-Subtracting the true coefficient vector gives
+The corresponding bias component is
 
 \[
-\operatorname{Bias}(\widehat\beta_\lambda\mid X)
+\operatorname{Bias}_j
 =
--\lambda(X^\top X+\lambda I)^{-1}\beta_{\mathrm{true}}.
+-\frac{\lambda}{\lambda_j+\lambda}\beta^\star_j.
 \]
 
-Let the eigendecomposition of \(X^\top X\) be
+When \(\lambda_j\) is large relative to \(\lambda\), the coefficient is only mildly shrunk. When \(\lambda_j\) is small, the shrinkage is strong. If the downstream task places weight on a weak feature direction, ridge may suppress that task-relevant coefficient.
+
+Now hold the total feature variance fixed:
 
 \[
-X^\top X=Q\Lambda Q^\top,
-\qquad
-\Lambda=\operatorname{diag}(\lambda_1,\ldots,\lambda_K),
-\]
-
-with positive eigenvalues. In this basis, ridge shrinks the coefficient in direction \(q_k\) by the factor
-
-\[
-\frac{\lambda_k}{\lambda_k+\lambda}.
-\]
-
-Equivalently, the magnitude of the bias component in that direction is multiplied by
-
-\[
-\frac{\lambda}{\lambda_k+\lambda}.
-\]
-
-A direction with a large eigenvalue is well represented in the sample: the features vary substantially along it. Ridge therefore shrinks that coefficient less. A direction with a small eigenvalue is weakly supported by the data. Ridge shrinks its coefficient more strongly.
-
-This observation permits a controlled comparison of two feature geometries. Hold the total covariance trace fixed, but allow its eigenvalues to be distributed differently. Let \(\bar\lambda\) denote the mean eigenvalue. In the isotropic case, every eigenvalue equals \(\bar\lambda\). In the anisotropic case, at least one eigenvalue is smaller than \(\bar\lambda\).
-
-Choose a downstream task whose true coefficient vector aligns with the eigenvector associated with the smallest anisotropic eigenvalue, denoted \(\lambda_{\min}\). For this task,
-
-\[
-\|\operatorname{Bias}_{\mathrm{aniso}}\|
+\operatorname{tr}(\Sigma)
 =
-\frac{\lambda}{\lambda_{\min}+\lambda}
-\|\beta_{\mathrm{true}}\|,
-\]
-
-whereas for the isotropic geometry,
-
-\[
-\|\operatorname{Bias}_{\mathrm{iso}}\|
+\sum_{j=1}^{D}\lambda_j
 =
-\frac{\lambda}{\bar\lambda+\lambda}
-\|\beta_{\mathrm{true}}\|.
+\tau.
 \]
 
-Because \(\lambda_{\min}<\bar\lambda\),
+The average eigenvalue is \(\bar\lambda=\tau/D\). The largest possible worst-direction ridge bias is controlled by the smallest eigenvalue. Since
 
 \[
-\|\operatorname{Bias}_{\mathrm{aniso}}\|
->
-\|\operatorname{Bias}_{\mathrm{iso}}\|.
+\lambda_{\min}\leq \bar\lambda,
 \]
 
-The result is a worst-case statement. For any anisotropic covariance with the same total variance, there exists a downstream linear task aligned with its weakest eigen-direction for which ridge incurs greater bias than under the isotropic covariance. It does not say that every task aligned with every direction is worse. [Balestriero and LeCun, 2025]
+an anisotropic covariance has at least one direction no stronger than the isotropic covariance with eigenvalues all equal to \(\bar\lambda\). A task whose coefficient lies in that weak direction suffers at least as much shrinkage as in the isotropic case, and more if \(\lambda_{\min}<\bar\lambda\).
 
-## 7.3 OLS variance and the inverse spectrum
+This is a worst-case statement over task directions. It does not say that every downstream task performs worse with anisotropic features. A task aligned with a high-variance direction may be estimated well. The result says that severe anisotropy creates weak directions in which a linear task can become difficult.
 
-Ridge introduces bias by shrinking coefficients. To isolate estimator variance, set \(\lambda=0\). The resulting ordinary least-squares estimator is
+## 7.3 Ordinary least squares exposes the variance penalty
+
+Set \(\lambda=0\). Under full column rank, ordinary least squares gives
 
 \[
 \widehat\beta_{\mathrm{OLS}}
 =
-(X^\top X)^{-1}X^\top y,
+(X^\top X)^{-1}X^\top y.
 \]
 
-assuming \(X\) has full column rank. Under the classical homoskedastic linear model with
+Assume the classical homoskedastic model
 
 \[
-\operatorname{Cov}(\varepsilon\mid X)=\sigma^2 I,
+\operatorname{Cov}(\varepsilon\mid X)=\sigma_\varepsilon^2 I.
 \]
 
-its conditional covariance is
+The conditional coefficient covariance is
 
 \[
 \operatorname{Cov}(\widehat\beta_{\mathrm{OLS}}\mid X)
 =
-\sigma^2(X^\top X)^{-1}.
+\sigma_\varepsilon^2(X^\top X)^{-1}.
 \]
 
-The trace summarizes the total variance across coefficient directions:
+With \(X^\top X\approx N\Sigma\), the expected scale of the coefficient variance is governed by
 
 \[
-\operatorname{tr}\operatorname{Cov}(\widehat\beta_{\mathrm{OLS}}\mid X)
+\frac{\sigma_\varepsilon^2}{N}\operatorname{tr}(\Sigma^{-1})
 =
-\sigma^2\operatorname{tr}\left((X^\top X)^{-1}\right)
+\frac{\sigma_\varepsilon^2}{N}
+\sum_{j=1}^{D}\frac{1}{\lambda_j}.
+\]
+
+Small covariance eigenvalues appear in the denominator. They therefore contribute disproportionately to estimator variance.
+
+At fixed trace \(\sum_j\lambda_j=\tau\), convexity of \(u\mapsto1/u\) and Jensen's inequality give
+
+\[
+\frac{1}{D}\sum_{j=1}^{D}\frac{1}{\lambda_j}
+\geq
+\frac{1}{\frac{1}{D}\sum_{j=1}^{D}\lambda_j}
 =
-\sigma^2\sum_{k=1}^{K}\frac{1}{\lambda_k}.
+\frac{D}{\tau}.
 \]
 
-A small eigenvalue becomes a large reciprocal. Consequently, a weak feature direction makes the fitted coefficient sensitive to changes in the sampled data.
-
-Now hold total feature energy fixed:
+Hence
 
 \[
-\sum_{k=1}^{K}\lambda_k=T.
+\operatorname{tr}(\Sigma^{-1})
+\geq
+\frac{D^2}{\tau},
 \]
 
-The function \(f(u)=1/u\) is strictly convex for \(u>0\). Jensen's inequality gives
+with equality only when all eigenvalues equal \(\tau/D\). Under this fixed-trace, full-rank and homoskedastic linear model, isotropic covariance minimizes the trace of the OLS coefficient covariance.
 
-\[
-\frac{1}{K}\sum_{k=1}^{K}\frac{1}{\lambda_k}
-\ge
-\frac{1}{
-\frac{1}{K}\sum_{k=1}^{K}\lambda_k
-}
-=
-\frac{K}{T}.
-\]
+## 7.4 What the calculation establishes
 
-Thus,
+The two results isolate complementary effects. Ridge introduces shrinkage bias, which is strongest in weak feature directions. Ordinary least squares avoids ridge shrinkage but becomes statistically unstable when the design contains weak directions. Equalizing the covariance spectrum removes the weakest-direction disadvantage under the assumptions above.
 
-\[
-\sum_{k=1}^{K}\frac{1}{\lambda_k}
-\ge
-\frac{K^2}{T},
-\]
+The result concerns coefficient estimation for a linear readout. It does not prove that isotropic covariance minimizes prediction error for every task, that Gaussian embeddings are always preferable, or that isotropy guarantees physical sufficiency. A representation may be isotropic while encoding the wrong variables. A nonlinear downstream function may depend on distributional structure that covariance does not describe.
 
-with equality if and only if all eigenvalues are equal. Under the fixed-trace and full-rank assumptions, the isotropic covariance spectrum uniquely minimizes the trace of the OLS coefficient covariance. [Balestriero and LeCun, 2025]
+The motivation for the next step is therefore limited and precise. If downstream prediction uses nonlinear local estimators, the arrangement of samples within the embedding space matters beyond the covariance spectrum. The local density then enters the estimator's bias.
 
-This derivation explains why anisotropy can increase estimator variance even if the total amount of feature variance is unchanged. Concentrating variance into a few directions forces the remaining directions to become narrower. The inverse spectrum penalizes those narrow directions heavily.
+**Figure 4.10. Ridge shrinkage is direction-dependent.**
 
-## 7.4 What the linear result establishes
+Description: Coefficients aligned with large covariance eigenvalues are retained more strongly than coefficients aligned with weak eigenvalues. At fixed total variance, anisotropy creates a smallest-eigenvalue direction in which shrinkage is worst.
 
-The two calculations isolate complementary effects:
+**Figure 4.11. OLS variance grows with the inverse covariance spectrum.**
 
-- With positive ridge regularization, a task aligned with a weak covariance direction experiences stronger coefficient shrinkage and larger bias.
-- With ordinary least squares and homoskedastic noise, the sum of coefficient variances is proportional to the sum of inverse eigenvalues and is minimized by an isotropic spectrum at fixed total variance.
-
-These results rely on the linear model, the specified regularizer, the design assumptions and the comparison at fixed total variance. They describe the estimator's coefficients, not every possible measure of prediction error for an arbitrary nonlinear learner. In particular, they do not establish that a Gaussian feature distribution is optimal for all downstream tasks.
-
-The linear analysis does establish a concrete design pressure: if a foundation representation must support unknown linear readouts, severe anisotropy can make some readouts poorly conditioned. Equalizing second-order variation removes this weakest-direction disadvantage under the model just analysed.
-
-However, matching covariance does not determine the entire feature distribution. Two distributions can have identical covariance and very different local density structure. A nonlinear predictor that estimates a target by averaging nearby embeddings can be affected by that structure. The next section derives how the density gradient enters local prediction bias, and why the Fisher-information functional appears in the LeJEPA analysis.
-
-![Ridge shrinkage as a function of feature eigenvalue](../images/chapter04/F09_ridge_shrinkage.svg)
-
-**Figure 4.12. Ridge shrinkage depends on the feature eigenvalue.** For fixed regularization, ridge shrinks coefficients more strongly along weak feature directions. The worst-conditioned task can align with the smallest covariance eigenvalue.
-
-![OLS variance contributions from inverse covariance eigenvalues](../images/chapter04/F23_ols_inverse_spectrum.svg)
-
-**Figure 4.13. OLS variance is controlled by the inverse spectrum.** Under full-rank design and homoskedastic noise, coefficient variance is proportional to the inverse covariance spectrum. Small eigenvalues therefore contribute disproportionately.
+Description: Each principal direction contributes in proportion to the reciprocal of its covariance eigenvalue. A narrow direction therefore contributes a large coefficient-variance term, even when the total feature variance is unchanged.

@@ -1,163 +1,118 @@
-# 5. Why agreement alone is not enough
+# 5. Why prediction agreement can still collapse
 
-An objective that asks two representations to agree does not necessarily require either representation to contain information. The distinction is elementary, but it determines the design of non-contrastive self-supervised learning and joint-embedding prediction.
+The JEPA objective asks a predictor to match target features. It does not automatically require those features to vary with the input. This is the central difficulty of non-contrastive feature prediction: agreement is a relation between outputs, whereas information is a property of how those outputs depend on the observations.
 
-The collapse problem should be derived from the objective itself. It is not useful to describe it merely as an optimization instability or a nuisance that a particular architecture happens to avoid.
+The distinction should be derived from the loss rather than treated as an optimizer failure.
 
 ## 5.1 The constant solution
 
-Let \(X\) and \(X'\) be two views of the same observation. Consider an encoder \(f_\theta\) and a simple agreement loss,
+Consider the feature-prediction loss
 
 \[
-\mathcal L(\theta)
+\mathcal L
 =
-\mathbb E\left[
-\|f_\theta(X)-f_\theta(X')\|_2^2
+\mathbb E
+\left[
+\left\|
+g_\phi(f_\theta(X_C),Q_T)
+-
+f_{\bar\theta}(X)_T
+\right\|_2^2
 \right].
 \]
 
-Suppose the encoder ignores its input and returns the same vector \(c\) for every possible observation:
+Suppose the context encoder and target encoder both return the same constant vector \(c\) for every input, and the predictor returns \(c\) for every query. The loss becomes
 
 \[
-f_\theta(x)=c\qquad\text{for all }x.
-\]
-
-Then
-
-\[
-\mathcal L(\theta)
+\mathcal L
 =
 \mathbb E[\|c-c\|_2^2]
 =0.
 \]
 
-Because a squared distance cannot be negative, zero is a global minimum. The model has satisfied the objective perfectly while discarding all information about the input.
+Since squared distance is nonnegative, this is a global minimum of the stated objective. The model has satisfied the training criterion while discarding all information about the input.
 
-The argument does not depend on the particular value of \(c\). It can be the zero vector or any constant vector. It also does not depend on the use of two augmented image views. Any objective that only rewards agreement between outputs can admit this solution when both outputs are allowed to become the same constant.
+The argument does not depend on the value of \(c\). It can be zero or any fixed vector. It also does not depend on whether the loss is squared error, absolute error or another discrepancy that is zero when its arguments are equal. If both branches are allowed to emit the same constant, agreement alone cannot distinguish this solution from an informative one.
 
-The same problem occurs in feature prediction. If the context and target encoders both map every input to \(c\), and the predictor outputs \(c\), then
+This is an identifiability problem. The loss specifies a relation the outputs should satisfy, but it does not identify which solutions preserve useful information. Optimizing the objective cannot supply a requirement that the objective never expresses.
+
+## 5.2 A target update changes dynamics, not the mathematical requirement
+
+I-JEPA and the original V-JEPA use an online context encoder and an EMA target encoder. The target parameters evolve according to
 
 \[
-\|g_\phi(f_\theta(x),q)-f_{\bar\theta}(y)\|_2^2
+\bar\theta_{k+1}
 =
-\|c-c\|_2^2=0.
+m_k\bar\theta_k+(1-m_k)\theta_{k+1},
+\qquad 0\leq m_k<1.
 \]
 
-The feature prediction is perfect in the narrow sense measured by the objective. It is useless as a representation.
+The target is a smoothed history of the online parameters. A large momentum coefficient makes the target change slowly. Stop-gradient prevents the prediction loss from directly differentiating through the target features; the EMA update is a separate mechanism that changes target parameters.
 
-This is an identifiability problem: the training criterion does not distinguish an informative solution from a constant one. An optimizer cannot infer a requirement that the loss does not express.
+These choices can stabilize optimization. They do not remove the constant solution from the objective. If both branches are constant and the predictor matches them, the prediction loss remains zero. Whether training enters or escapes such a solution depends on initialization, data, architecture, normalization, optimizer and the complete training dynamics.
 
-## 5.2 Agreement and information are separate properties
+It is therefore incorrect to say that an EMA teacher mathematically prevents collapse in every JEPA. The teacher changes the moving-target problem faced by the online network. It does not, by itself, require the representation to encode any particular variable.
 
-The constant solution exposes two logically different requirements.
+## 5.3 Collapse can be partial
 
-The first is **consistency**. Two views or branches that should describe the same underlying content should produce compatible representations.
+Complete collapse maps every input to the same feature. A less obvious form occurs when the representation varies only in a low-dimensional subspace.
 
-The second is **non-degeneracy**. A representation should vary with the input in ways that preserve distinctions needed by the learning problem.
-
-Consistency does not imply non-degeneracy. If every input maps to the same vector, all views agree. Non-degeneracy alone does not imply consistency either. Two branches can each produce varied embeddings while assigning different meanings to corresponding samples.
-
-A useful objective therefore needs both kinds of pressure. In an abstract two-branch formulation,
+Let \(Z\in\mathbb R^{N\times D}\) be a batch of centred feature vectors and define the empirical covariance
 
 \[
-\mathcal L(Z,Z')
+\widehat\Sigma
 =
-\lambda\,s(Z,Z')
+\frac{1}{N-1}Z^\top Z.
+\]
+
+If the centred features span a subspace of dimension \(r<D\), then
+
+\[
+\operatorname{rank}(\widehat\Sigma)\leq r.
+\]
+
+At least \(D-r\) eigenvalues are zero. The representation uses only a subset of its nominal dimensions. This is dimensional collapse: the representation is not constant, but multiple coordinates may carry redundant combinations of the same few directions.
+
+Marginal variance alone does not rule this out. Two coordinates can both vary while being nearly identical or exact linear combinations. A variance floor can prevent each coordinate from becoming constant, yet still permit strong correlations. A covariance penalty can reduce linear redundancy, but it need not give every dimension useful scale unless scale is constrained separately.
+
+Nor does full rank establish semantic quality. A representation can fill every direction with nuisance variation and still discard the location, velocity or contact information a downstream model needs.
+
+## 5.4 Agreement and representation quality are separate constraints
+
+It is useful to separate the learning objective into two responsibilities:
+
+\[
+\mathcal L
+=
+\mathcal L_{\mathrm{agreement}}
 +
-r(Z)
-+
-r(Z'),
+\lambda\,\mathcal R(Z).
 \]
 
-where \(s\) measures agreement between corresponding views and \(r\) constrains the geometry of one branch independently. The expression is a decomposition of responsibilities, not a claim that one particular choice of \(r\) is universally sufficient.
+The first term specifies which examples or views should produce compatible outputs. The second constrains the distribution or geometry of the embeddings. This decomposition does not prescribe one universal regularizer. It makes explicit that the two terms answer different questions.
 
-This separation is the central motivation behind variance and distributional regularization. The cross-view term says which pairs should agree. The per-branch term says which embedding distributions are admissible.
+Agreement asks: which outputs should be close?
 
-## 5.3 Complete collapse and dimensional collapse
+A representation constraint asks: what kinds of output distributions should be allowed?
 
-Complete collapse occurs when every input is mapped to the same vector. If a batch of centred embeddings is represented by a matrix \(Z\in\mathbb R^{B\times D}\), then its covariance matrix is zero:
+A negative-sample objective couples examples by asking a positive pair to be more similar than candidate negatives. A variance penalty asks that each coordinate retain a minimum amount of spread. A covariance penalty discourages linear redundancy. A distributional penalty compares the whole embedding distribution, or a sketch of it, with a chosen reference. These mechanisms are not interchangeable because they constrain different mathematical objects.
 
-\[
-\widehat\Sigma_Z
-=
-\frac{1}{B-1}Z^\top Z
-=0
-\]
+Chapter 3 already developed contrastive and non-contrastive mechanisms in detail. Here the relevant point is narrower: feature prediction needs an explanation for why the target features do not all become identical and why non-identical features retain the right information.
 
-when the rows of \(Z\) are centred and identical before centring.
+## 5.5 A predictor is not an anti-collapse proof
 
-A less obvious failure occurs when the representation varies but occupies only a low-dimensional subspace. Suppose the embedding dimension is \(D\), but the centred embeddings have rank \(r\ll D\). Then the covariance spectrum has at most \(r\) nonzero eigenvalues. The representation uses only a small fraction of its nominal dimensionality.
+A predictor can make the two branches asymmetric. It can also make the optimization problem easier by learning a mapping from context features to target features. But adding a predictor does not logically eliminate every collapsed solution. If both encoders emit a constant and the predictor emits that same constant, the feature loss can still be zero.
 
-This is often called dimensional collapse or rank collapse. It does not mean every coordinate is constant. Several coordinates may vary, but they may be redundant linear combinations of the same few underlying directions.
+The same caution applies to stop-gradient, normalization and architectural asymmetry. Each changes the computation or optimization path. None should be described as a universal semantic guarantee.
 
-A coordinate-wise variance floor can prevent individual dimensions from becoming constant, yet still allow correlated or low-rank structure. Conversely, penalizing covariance alone does not guarantee that every dimension has sufficient spread. The two requirements address different degeneracies. (Bardes et al., 2022; Zbontar et al., 2021)
+There are methods that rely on explicit distributional constraints instead. LeJEPA uses view agreement together with SIGReg, which regularizes each view's embedding distribution toward an isotropic Gaussian. VISReg uses an invariance term together with separate scale, shape and centring constraints. Their objectives differ from the EMA-predictor recipes of I-JEPA and V-JEPA. The reason to introduce them is not to catalogue another pair of methods. It is to examine what representation geometry is being requested and what statistical argument supports that request.
 
-## 5.4 The information-theoretic view
+## 5.6 Non-collapse is only the first test
 
-For a deterministic encoder \(Z=f_\theta(X)\), complete collapse implies that \(Z\) is independent of \(X\):
+A representation can have nonzero variance, full-rank covariance and a roughly Gaussian marginal distribution while still failing to preserve a task-relevant distinction. A video encoder may vary strongly with appearance but ignore object velocity. A robot representation may encode gripper position but discard the relation between the gripper and a nearby object.
 
-\[
-I(X;Z)=0.
-\]
+Non-collapse rules out one class of trivial solutions. It does not establish predictive sufficiency. The next question is more demanding: for a specified downstream target and action space, does the representation preserve all distinctions in the history that change the relevant future distribution?
 
-Here \(I(X;Z)\) denotes mutual information. A constant representation contains no information about which input was observed. A low-rank representation may still contain information, but it can discard distinctions that matter to a downstream prediction problem.
+**Figure 4.7. Complete collapse and dimensional collapse are different failures.**
 
-It is tempting to say that the goal should be to maximize \(I(X;Z)\) without qualification. That is not sufficient either. A representation that preserves every nuisance detail may be unnecessarily difficult to learn or use. Some transformations of the input should be treated as irrelevant for a particular task. The real requirement is task-relative: preserve information needed for the predictions and decisions that matter, while making the chosen invariances explicit.
-
-This is why the target encoder matters. If it maps two observations to the same target feature, the predictive loss gives no reason to distinguish them. The objective cannot recover a distinction that the target representation has deliberately removed. That removal may be desirable for one task and destructive for another.
-
-## 5.5 Why different anti-collapse mechanisms exist
-
-Several families of methods modify the optimization problem so that the constant solution is no longer an attractive optimum or is avoided by the training dynamics.
-
-**Negative comparisons.** Contrastive objectives compare a positive pair against negative examples. When every sample maps to the same normalized vector, positive and negative similarities become equal, so the model cannot minimize the contrastive objective by collapsing all samples. The mechanism depends on the negative distribution and on how false negatives, batch size and sampling are handled.
-
-**Balanced assignments.** Clustering-based approaches assign embeddings to learned prototypes. A balancing constraint discourages every sample from selecting the same prototype. This shifts the comparison from sample-to-sample similarities to sample-to-prototype assignments, and introduces its own assumptions about assignment balance.
-
-**Asymmetric target branches.** Methods such as BYOL and I-JEPA use asymmetric training paths. A trainable online branch is matched to a target branch that does not receive the same gradient update. EMA updates can make the target change slowly. Stop-gradient changes the gradient path. A predictor can add a transformation between the online representation and the target. These choices can stabilize optimization, but one should not infer a universal theorem from their empirical success.
-
-**Moment constraints.** Variance and covariance penalties add explicit constraints on batch statistics. A variance floor discourages constant coordinates; a covariance penalty discourages pairwise linear redundancy. They are direct properties of the batch distribution rather than implicit consequences of branch architecture.
-
-**Distributional constraints.** Instead of matching only a few moments, a regularizer can compare the projected or full embedding distribution with a target distribution. This constrains a broader set of distributional properties, at the cost of introducing a target geometry and an approximation procedure.
-
-These families should not be treated as interchangeable tricks. They make different mathematical objects part of the objective. Negative samples constrain relations among examples; balanced assignments constrain prototype usage; EMA changes the target dynamics; variance, covariance and distributional penalties constrain statistics of the embedding batch. (Chen et al., 2020; Caron et al., 2020; Grill et al., 2020; Assran et al., 2023; Balestriero and LeCun, 2025)
-
-## 5.6 A moving target is not a proof of non-collapse
-
-Consider an online parameter vector \(\theta_t\) and an EMA target parameter vector \(\xi_t\):
-
-\[
-\xi_{t+1}
-=
-m\xi_t+(1-m)\theta_{t+1},
-\qquad 0\le m<1.
-\]
-
-Repeated substitution shows that the target is an exponentially weighted history of online parameters:
-
-\[
-\xi_t
-=
-m^t\xi_0
-+
-(1-m)\sum_{j=0}^{t-1}m^j\theta_{t-j}.
-\]
-
-The target therefore changes more slowly than the online network, depending on the momentum schedule. This can stabilize a teacher-student optimization process. It does not, by itself, remove every constant solution from the mathematical objective. Whether the training system avoids collapse depends on the full objective, network, data, normalization and optimization dynamics.
-
-The same care is needed with stop-gradient. It specifies which computational path receives a derivative. It is not a semantic constraint and does not guarantee that the representation contains the information required by an arbitrary task.
-
-LeJEPA provides a useful counterexample to the idea that every JEPA needs an EMA teacher and predictor. Its basic multi-view objective directly compares embeddings to the mean of global views while regularizing their distribution. Conversely, action-conditioned prediction can require a predictor because the target depends on actions or future information unavailable in the context. The presence or absence of a predictor should follow from the information structure of the problem.
-
-## 5.7 Non-collapse is necessary, not sufficient
-
-A representation with nonzero variance can still omit object position, velocity, contact state or another variable needed by an agent. A representation with full-rank covariance can still be arranged so that the task-relevant variable is difficult for a downstream estimator to access. A Gaussian distribution can have the desired statistics without being a sufficient state for physical prediction.
-
-The first objective is therefore modest: rule out degenerate solutions admitted by the training criterion. The next question is more demanding. Among non-degenerate representations, which ones make relevant downstream predictions easier, and under what assumptions can that statement be proved?
-
-The answer requires treating the embedding distribution as a geometric and statistical object rather than judging it only by whether it has collapsed.
-
-![Complete collapse and rank-deficient representation](../images/chapter04/F07_collapse_modes.svg)
-
-**Figure 4.10. Complete collapse and dimensional collapse.** A constant representation destroys all input information; a rank-deficient representation varies only along a subset of directions. Both can satisfy weak agreement objectives.
-
+Description: In complete collapse, all observations map to one point. In dimensional collapse, the embedding cloud varies but lies in a lower-dimensional subspace, leaving several directions unused or redundant. A nonzero variance in every coordinate does not by itself rule out the second failure.

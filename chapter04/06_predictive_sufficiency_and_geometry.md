@@ -1,119 +1,103 @@
-# 6. Predictive sufficiency and the geometry of a representation
+# 6. What should a predictive representation preserve?
 
-Avoiding a constant representation does not establish that the model has learned a useful state. A representation can vary across observations and still merge two situations that have different consequences. The question is therefore not whether the embedding contains variation. It is whether it preserves the distinctions needed for the predictions and decisions under consideration.
+A non-collapsed representation can still be a poor state. The relevant question is not whether the embedding varies, but whether it distinguishes histories that lead to different predictions or decisions. This makes representation quality a task-relative property.
 
-## 6.1 A task-relative definition of a useful state
+## 6.1 Predictive sufficiency is defined relative to a target
 
-Let \(X\) denote the available history of observations, \(A\) an action or action sequence, \(Y\) a future quantity relevant to a task, and
+Let \(X\) denote the observation history available to an agent, \(A\) an action or action sequence, \(Y\) a future quantity of interest, and
 
 \[
 Z=f_\theta(X)
 \]
 
-the learned representation. The representation is sufficient for the chosen prediction problem when conditioning on \(Z\) and \(A\) preserves the conditional distribution of \(Y\) that was available from \(X\) and \(A\):
+the learned representation. For the chosen prediction problem, \(Z\) is sufficient when
 
 \[
-P(Y\mid X,A)=P(Y\mid Z,A).
+p(Y\mid X,A)=p(Y\mid Z,A)
 \]
 
-This equality is task-relative. The target \(Y\), action domain, time horizon and data distribution must be specified. A representation sufficient for classifying an image need not be sufficient for predicting the motion of an object. A representation sufficient for short-horizon prediction may fail at a longer horizon. A representation that predicts passive video may fail to predict the effect of a control input.
+almost surely under the data distribution.
 
-The action appears on both sides of the equality for a reason. A state representation used for control should retain enough information that the future distribution can be predicted when the action is known. If two histories map to the same \(Z\) but respond differently to the same action, the representation has merged states that the controller must distinguish.
+The equality says that once the representation and action are known, the original history provides no additional information about the target distribution. This is a statistical definition, not a claim that \(Z\) equals the simulator's physical state.
+
+The target \(Y\), action set, prediction horizon and data distribution must be specified. A representation can be sufficient for object classification but insufficient for contact prediction. It can be sufficient for a short visual forecast but insufficient for a long physical rollout. It can be sufficient for passive future prediction yet insufficient for predicting the effect of a candidate action.
+
+The action appears on both sides because a controller needs to know whether two histories respond differently to the same command. If \(x_1\) and \(x_2\) map to the same \(Z\), but the same action produces different future distributions, then the representation has merged histories the controller must distinguish.
 
 ## 6.2 Predictive equivalence between histories
 
-The condition can be understood through an equivalence relation on histories. Fix a family of targets and a set of admissible actions. Define two histories \(x_1\) and \(x_2\) to be predictively equivalent when
+The condition can be understood as an equivalence relation. Fix the family of targets and admissible actions relevant to the task. Two histories \(x_1\) and \(x_2\) are predictively equivalent when
 
 \[
 x_1\sim x_2
 \quad\Longleftrightarrow\quad
-P(Y\mid X=x_1,A=a)
+p(Y\mid X=x_1,A=a)
 =
-P(Y\mid X=x_2,A=a)
+p(Y\mid X=x_2,A=a)
 \]
 
-for every relevant action \(a\) and target \(Y\) in the task specification.
+for every relevant target \(Y\) and action \(a\).
 
-A minimal sufficient predictive state would assign the same representation to histories in the same equivalence class and different representations when the relevant conditional future distributions differ. In practice, a neural representation may preserve more than the minimum needed, and the equivalence relation is only defined relative to the selected tasks and data.
+A minimal sufficient representation would assign the same code to histories within one equivalence class and different codes to histories whose relevant conditional futures differ. A learned encoder is not guaranteed to recover these classes. It is trained through a proxy target, and the target encoder may already identify some observations as equivalent.
 
-This perspective clarifies why a representation should not be called a physical state simply because it is temporally predictive. A learned feature may support some future predictions without preserving every hidden variable, and the relevant variables can change with the action space and objective. (LeCun, 2022)
+Consider two images of the same cup under different lighting. If the lighting change leaves every downstream prediction unchanged, treating the images as equivalent is useful. Now consider two images with the cup at different distances from a gripper. If the gripper will move under the same command, those positions may lead to different collision or contact outcomes. Treating them as equivalent could be destructive.
 
-## 6.3 The target encoder defines which distinctions count
+The correct invariances are therefore determined by the task, not by visual similarity alone.
 
-Suppose the target encoder maps two possible target observations to the same feature:
+## 6.3 The target encoder decides which differences count
+
+Suppose two target observations satisfy
 
 \[
 f_{\bar\theta}(y_1)=f_{\bar\theta}(y_2).
 \]
 
-A predictor matching this target representation has no direct loss-based reason to distinguish \(y_1\) from \(y_2\). The two targets are equivalent under the feature space used for training. This can be an intentional invariance, for example when a change in illumination should not affect the representation. It can also be a failure if the difference corresponds to object position, contact, velocity or another variable that matters downstream.
+A predictor matching this target feature has no direct reason to distinguish \(y_1\) from \(y_2\). The target encoder has made them equivalent for the loss.
 
-The target representation is thus not a neutral measurement instrument. It defines the geometry in which prediction errors are measured. The learned invariances of that target become the invariances of the predictive objective.
+This can be exactly what is wanted. The target may remove small lighting differences, sensor noise or background texture. But if it also removes object position, relative orientation or a contact configuration required downstream, the prediction loss cannot recover that distinction by itself.
 
-The same applies to dense and pooled representations. A globally pooled vector can be adequate for a scene-level classification target while discarding precise spatial correspondence. A dense token representation can preserve spatial structure, but its predictive objective may still fail to encode the variable required for a particular control task. Dense prediction changes the information being supervised; it does not certify control sufficiency.
+The target encoder is therefore part of the task specification. Its architecture, training data, augmentations and previous objectives define the geometry in which prediction errors are measured. A dense feature map may preserve spatial correspondence better than a pooled vector, but density alone does not guarantee that the right spatial information is present.
 
-## 6.4 Probes measure accessibility under a chosen decoder
+This also explains why a representation benchmark is not a universal measure of state quality. A feature can perform well on an image classification benchmark while discarding information needed for manipulation. A probe only measures the information that its target and readout ask for.
 
-A frozen representation is often evaluated by training a downstream predictor on top of it. The choice of predictor determines which notion of accessibility is measured.
+## 6.4 What a probe actually measures
 
-A linear probe asks whether the target can be estimated by a linear function of the representation. It is useful because it isolates the geometry exposed by a simple readout. A nonlinear probe asks whether a more expressive function can extract the information. A nearest-neighbour or kernel probe asks whether local geometry supports useful predictions. A planning evaluation asks whether a model and a planner can use predicted states to select successful actions in an environment.
+A frozen representation is often evaluated by fitting a predictor on top of it. The predictor class determines the claim supported by the result.
 
-These tests answer different questions. A strong linear probe indicates that certain information is readily accessible to a linear readout. A weak linear probe does not prove that information is absent; a nonlinear readout may recover it. Strong representation benchmarks do not establish that the latent state is Markov, causal or sufficient for control. Planning success is evidence about the complete model-planner-environment system, not an encoder in isolation.
+A linear probe asks whether the target is accessible through a linear map. A nonlinear probe asks whether a more expressive function can extract it. A nearest-neighbour or kernel estimator tests whether local geometry supports prediction. A closed-loop control evaluation tests whether the complete model and controller can use the representation to select actions in an environment.
 
-A useful evaluation therefore matches the readout to the claim. Representation quality, target-feature prediction, action-conditioned prediction and closed-loop control should not be collapsed into one leaderboard or one metric. (Balestriero and LeCun, 2025; Assran et al., 2025)
+These tests are not interchangeable. A weak linear probe does not prove that the information is absent; it may be encoded in a form that a linear map cannot extract. A strong nonlinear probe does not show that the information is easy to use for planning. Successful planning is evidence about the complete system, including the transition predictor, cost, search procedure and feedback loop.
 
-## 6.5 Covariance as a first view of embedding geometry
+A useful evaluation should therefore match the readout to the claim. Representation quality, feature prediction, action-conditioned prediction and closed-loop control should be reported separately.
 
-Let a batch of \(B\) embeddings in \(D\) dimensions be arranged as rows of a matrix
+## 6.5 Covariance describes only second-order geometry
 
-\[
-Z=
-\begin{bmatrix}
-z_1^\top\\
-\vdots\\
-z_B^\top
-\end{bmatrix}
-\in\mathbb R^{B\times D}.
-\]
-
-Let \(\bar z\) be the batch mean and \(Z_c\) the centred matrix. The empirical covariance is
+Arrange \(N\) centred embeddings in a matrix \(Z\in\mathbb R^{N\times D}\). The empirical covariance is
 
 \[
 \widehat\Sigma
 =
-\frac{1}{B-1}Z_c^\top Z_c.
+\frac{1}{N-1}Z^\top Z.
 \]
 
-The covariance matrix describes coordinate-wise variance and pairwise linear dependence. Its eigenvectors give principal directions of variation; its eigenvalues quantify the variance along those directions.
+Its diagonal entries are coordinate variances. Its off-diagonal entries measure pairwise linear co-variation. Its eigenvectors give principal directions of variation, while its eigenvalues quantify variance along those directions.
 
-If the eigenvalues are all equal, the covariance is isotropic:
+If the eigenvalues are equal, the covariance is isotropic:
 
 \[
 \widehat\Sigma=\sigma^2 I_D.
 \]
 
-If a small number of eigenvalues dominate while others are close to zero, the embedding cloud is anisotropic or approximately low rank. The model may use only a small set of directions, even when every coordinate has some nonzero marginal variance.
+If a few eigenvalues dominate while others are small, the embedding cloud is anisotropic. The representation varies more in some directions than others. This can matter for downstream estimation: a small eigenvalue means the dataset contains little variation along that feature direction.
 
-Covariance is useful because it provides a tractable description of second-order geometry. It is not a description of the full distribution. Two distributions can share the same mean and covariance while differing in multimodality, tail behaviour or support. Zero covariance does not imply statistical independence, and a full-rank covariance matrix does not imply that the representation preserves the right semantic variables.
+Covariance is not the full distribution. Two distributions can have identical means and covariance while differing in skewness, multimodality, tails or support. Zero covariance does not imply independence, and a full-rank covariance matrix does not imply semantic sufficiency.
 
-This limitation motivates the distinction between moment regularization and distributional regularization. Before introducing the latter, however, it is useful to understand why covariance geometry matters even for a simple downstream estimator.
+The covariance spectrum is nevertheless a useful starting point because it determines the conditioning of simple linear readouts. The next section derives that dependence for ridge regression and ordinary least squares. This gives a concrete reason to care about weak feature directions before considering more complicated nonlinear estimators.
 
-## 6.6 Why the spectrum matters
+**Figure 4.8. Predictive equivalence is defined by downstream futures, not visual similarity.**
 
-Consider two embedding distributions with the same total variance,
+Description: Two histories that differ only in nuisance appearance are grouped into one predictive-equivalence class when their target distributions agree. Histories that look similar but respond differently to the same action must remain distinguishable.
 
-\[
-\operatorname{tr}(\Sigma)
-=
-\sum_{k=1}^{D}\lambda_k.
-\]
+**Figure 4.9. Equal total variance can hide very different covariance spectra.**
 
-An isotropic distribution spreads this variance equally across directions. An anisotropic distribution concentrates it unevenly. The total amount of variation can be identical while the weakest direction is much narrower in the anisotropic case.
-
-A downstream estimator that relies on a narrow direction may be poorly conditioned. Regularization can shrink its coefficient strongly because the data provide little variation along that direction. Without regularization, small eigenvalues can amplify estimator variance. These are not merely visual differences between point clouds. They affect the statistical stability of downstream prediction.
-
-The next section derives this dependence for ridge regression and ordinary least squares. The derivation is deliberately limited to those estimators and their assumptions. It is not a proof that isotropic covariance is optimal for every nonlinear task or every controller.
-
-![Isotropic and anisotropic embedding clouds with equal covariance trace](../images/chapter04/F08_covariance_geometry.svg)
-
-**Figure 4.11. Equal trace does not imply equal embedding geometry.** An isotropic and an anisotropic cloud can have the same covariance trace. The anisotropic representation has weak directions that can make downstream estimation sensitive.
+Description: An isotropic embedding distributes variance equally across directions. An anisotropic embedding concentrates variance in a few directions and leaves weak directions with small eigenvalues. Both clouds can have the same covariance trace, but their downstream estimation problems are differently conditioned.

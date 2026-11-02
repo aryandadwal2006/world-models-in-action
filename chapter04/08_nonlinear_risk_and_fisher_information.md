@@ -1,14 +1,14 @@
-# 8. Nonlinear downstream risk and Fisher information
+# 8. Nonlinear readouts, local density and Fisher information
 
-The covariance spectrum is only a second-order description of an embedding distribution. It does not determine how samples are arranged locally. This matters for nonlinear predictors that estimate a target by examining nearby embeddings. Their predictions depend not only on the target function, but also on where training samples are concentrated.
+A covariance matrix describes global second-order geometry. It does not say where points are concentrated within that geometry. For nonlinear readouts that estimate a target by averaging nearby examples, this local density matters.
 
-The key quantity is the score of the embedding density,
+The LeJEPA analysis makes this dependence explicit. Under a specified family of smooth regression functions and local estimators, the leading prediction bias contains the score of the embedding density,
 
 \[
-s_p(z)=\nabla\log p(z),
+s_p(z)=\nabla\log p(z).
 \]
 
-and the global statistic that measures its expected squared magnitude,
+The expected squared magnitude of this score is the Fisher-information functional
 
 \[
 J(p)
@@ -16,62 +16,40 @@ J(p)
 \mathbb E_{Z\sim p}
 \left[\|\nabla\log p(Z)\|_2^2\right]
 =
-\int_{\mathbb R^K}
+\int
 \|\nabla\log p(z)\|_2^2p(z)\,dz.
 \]
 
-LeJEPA calls \(J(p)\) the Fisher-information functional of the embedding density. It appears naturally when the bias of local nonparametric estimators is expanded and integrated over query points. The derivation explains why matching only mean and covariance leaves a gap.
+This is a property of the embedding distribution. It is not a property of the encoder architecture alone.
 
-## 8.1 A local estimator sees both the target and the sample density
+## 8.1 Local regression depends on where examples are concentrated
 
-Let \(Z\in\mathbb R^K\) be a frozen embedding with density \(p(z)\). Let the downstream regression function be
+Let \(Z\in\mathbb R^D\) be a frozen representation with density \(p(z)\), and let the downstream regression function be
 
 \[
 \eta(z)=\mathbb E[Y\mid Z=z].
 \]
 
-A local estimator predicts \(\eta(q)\) at a query point \(q\) by averaging labels from training embeddings near \(q\). Two examples are radius-based k-nearest-neighbour regression and Nadaraya–Watson kernel regression.
-
-For a fixed radius \(r_0\), the radius-based estimator is
-
-\[
-\widehat\eta_{\mathrm{kNN}}(q)
-=
-\frac{1}{|\mathcal N_{r_0}(q)|}
-\sum_{i\in\mathcal N_{r_0}(q)}Y_i,
-\qquad
-\mathcal N_{r_0}(q)
-=
-\{i:\|Z_i-q\|_2\le r_0\}.
-\]
-
-The number of neighbours is not fixed. It depends on the local density of embeddings. In a dense region, many training points fall inside the ball; in a sparse region, fewer do.
-
-The Nadaraya–Watson estimator uses a smooth kernel:
+A local estimator predicts \(\eta(q)\) by averaging labels from examples whose embeddings lie near a query \(q\). In a kernel estimator,
 
 \[
 \widehat\eta_h(q)
 =
-\frac{
-\sum_{i=1}^{N}K_h(q-Z_i)Y_i
-}{
-\sum_{i=1}^{N}K_h(q-Z_i)
-},
+\frac{\sum_{i=1}^{N}K_h(q-Z_i)Y_i}
+{\sum_{i=1}^{N}K_h(q-Z_i)},
 \qquad
-K_h(u)=h^{-K}K(u/h).
+K_h(u)=h^{-D}K(u/h).
 \]
 
-The kernel assigns higher weight to nearby samples. The bandwidth \(h\) controls the size of the neighbourhood. The denominator normalizes the empirical weights.
+The kernel weights nearby points more heavily. The bandwidth \(h\) controls the neighbourhood size. The denominator normalizes the weights.
 
-Both estimators average labels around the query, but they do so with different weighting profiles. Their bias depends on the shape of the target function and on how training points are distributed around the query.
+The estimator is affected by two local properties. The target function may curve within the neighbourhood, so averaging nearby labels can differ from the value at its centre. The embedding density may be asymmetric around the query, so one side of the neighbourhood contributes more examples than the other. The second effect creates a bias even when the target function is locally smooth.
 
-## 8.2 Deriving the density-gradient term
+## 8.2 Where the density score enters
 
-Consider the large-sample conditional expectation of the kernel estimator:
+For large samples, the conditional expectation of the Nadaraya–Watson estimator is approximately
 
 \[
-\mathbb E[\widehat\eta_h(q)]
-\approx
 \frac{
 \int \eta(q+u)p(q+u)K_h(u)\,du
 }{
@@ -79,48 +57,20 @@ Consider the large-sample conditional expectation of the kernel estimator:
 }.
 \]
 
-The numerator contains the product \(\eta(q+u)p(q+u)\). The denominator contains \(p(q+u)\). To understand the ratio for small bandwidth, expand both functions around \(q\).
-
-For the regression function,
+Assume a normalized, symmetric kernel with zero first moment and isotropic second moment:
 
 \[
-\eta(q+u)
-=
-\eta(q)
-+
-\nabla\eta(q)^\top u
-+
-\frac12u^\top\nabla^2\eta(q)u
-+
-o(\|u\|^2).
+\int K(v)\,dv=1,
+\qquad
+\int vK(v)\,dv=0,
+\qquad
+\int vv^\top K(v)\,dv=\mu_2(K)I_D.
 \]
 
-For the embedding density,
+Expand the regression function and density around \(q\) to second order. Odd terms vanish after integration because the kernel is symmetric. The remaining terms include the Laplacian of the regression function and the cross term between its gradient and the density gradient. After division by the denominator, the leading bias is
 
 \[
-p(q+u)
-=
-p(q)
-+
-\nabla p(q)^\top u
-+
-\frac12u^\top\nabla^2p(q)u
-+
-o(\|u\|^2).
-\]
-
-Assume a normalized, symmetric, radially structured kernel with zero first moment and isotropic second moment:
-
-\[
-\int K(v)\,dv=1,\qquad
-\int vK(v)\,dv=0,\qquad
-\int vv^\top K(v)\,dv=\mu_2(K)I_K.
-\]
-
-The symmetry makes the first-order terms vanish after integration. The second-order terms contribute traces of the Hessians. Multiplying the expansions in the numerator also produces a cross term between the target gradient and the density gradient. After dividing by the denominator and retaining the leading order in \(h\), the pointwise bias is
-
-\[
-\operatorname{Bias}\big[\widehat\eta_h(q)\big]
+\operatorname{Bias}[\widehat\eta_h(q)]
 =
 \frac{h^2\mu_2(K)}{2}
 \left[
@@ -128,38 +78,18 @@ The symmetry makes the first-order terms vanish after integration. The second-or
 +
 2\nabla\eta(q)^\top\nabla\log p(q)
 \right]
-+
-o(h^2).
++o(h^2).
 \]
 
-Here \(\Delta\eta(q)=\operatorname{tr}(\nabla^2\eta(q))\) is the Laplacian of the downstream regression function.
+The first term, \(\Delta\eta(q)\), is target curvature. The second term measures the alignment of target change with the direction in which the embedding density increases. If more training points lie on one side of the query, their labels pull the local average toward that side. If the target function changes along the same direction, the estimator is biased.
 
-The expression contains two distinct terms.
+The same density-score coupling appears in the leading bias of radius-based \(k\)-nearest-neighbour regression. The coefficient differs because a uniform ball and a smooth kernel have different second moments. The presence of \(\nabla\log p(q)\) is the common feature.
 
-**Target curvature.** The Laplacian \(\Delta\eta(q)\) measures the local curvature of the target function. Even if training points are distributed symmetrically around \(q\), averaging nearby target values can differ from the target value at the centre when the function is curved.
+This expansion requires smoothness. The density must be positive and sufficiently differentiable around the query, the kernel must have finite moments, and the regression function must have the required derivatives. The asymptotic regime also assumes a bandwidth small enough to localize the estimator while leaving enough samples in each neighbourhood. The equation should not be applied to arbitrary discrete or highly singular embedding distributions without checking these conditions.
 
-**Density-gradient coupling.** The term \(\nabla\eta(q)^\top\nabla\log p(q)\) measures the alignment between the direction in which the target changes and the direction in which embedding density increases relative to its local value. If nearby points are concentrated more heavily on one side of the query, the local average is pulled toward that side. When the target function changes along the same direction, the resulting average is systematically shifted.
+## 8.3 From pointwise bias to the Fisher-information functional
 
-The same density-gradient coupling appears for radius-based k-NN. Its leading bias is
-
-\[
-\operatorname{Bias}\big[\widehat\eta_{\mathrm{kNN}}(q)\big]
-=
-\frac{r_0^2}{2(K+2)}
-\left[
-\Delta\eta(q)
-+
-2\nabla\eta(q)^\top\nabla\log p(q)
-\right]
-+
-o(r_0^2).
-\]
-
-The coefficients differ because a uniform ball and a smooth kernel have different second moments. The dependence on the local score \(\nabla\log p(q)\) is common to both estimators. The k-NN expansion assumes a smooth embedding density with bounded derivatives through order three, finite covariance and finite Fisher information, together with a twice continuously differentiable target function. [Balestriero and LeCun, 2025]
-
-## 8.3 From a pointwise bias to Fisher information
-
-A downstream representation is evaluated over a distribution of query points, not at one fixed \(q\). Let queries follow the embedding density \(p\). The integrated squared bias is
+The downstream risk is evaluated over query points, not at one fixed location. Let queries be drawn from the embedding density \(p\). The integrated squared bias is
 
 \[
 \operatorname{ISB}
@@ -168,245 +98,145 @@ A downstream representation is evaluated over a distribution of query points, no
 \operatorname{Bias}(q)^2p(q)\,dq.
 \]
 
-The density-dependent part of the pointwise bias contains
+The density-dependent term in the pointwise expansion is
+\(\nabla\eta(q)^\top\nabla\log p(q)\). To understand its expected contribution, consider a class of downstream functions whose gradients have isotropic second moment:
 
 \[
-\nabla\eta(q)^\top\nabla\log p(q).
-\]
-
-To expose its contribution, consider the assumptions used in the k-NN analysis of LeJEPA. The density is sufficiently smooth, has bounded derivatives through the required order, finite covariance and finite Fisher information. The regression function is twice continuously differentiable. In addition, the downstream gradient is assumed to have mean zero and an isotropic second-moment matrix:
-
-\[
-\mathbb E[\nabla\eta(Z)]=0,
+\mathbb E_\eta[\nabla\eta(Z)]=0,
 \qquad
-\mathbb E[
+\mathbb E_\eta[
 \nabla\eta(Z)\nabla\eta(Z)^\top
 ]
 =
-\tau_g^2 I_K,
+\tau_g^2 I_D.
 \]
 
-with \(\tau_g^2>0\). Queries are drawn from \(p\), and the embedding covariance is subject to a fixed scalar constraint.
-
-Under these conditions, averaging the squared gradient coupling over downstream functions gives
+Then
 
 \[
 \begin{aligned}
-\mathbb E_\eta
+&\mathbb E_\eta
 \mathbb E_{Z\sim p}
 \left[
-\big(\nabla\eta(Z)^\top\nabla\log p(Z)\big)^2
-\right]
-&=
+(\nabla\eta(Z)^\top\nabla\log p(Z))^2
+\right]\\
+&\quad=
 \tau_g^2
 \mathbb E_{Z\sim p}
-\left[
-\|\nabla\log p(Z)\|_2^2
-\right]\\
-&=
-\tau_g^2 J(p).
+\left[\|\nabla\log p(Z)\|_2^2\right]\\
+&\quad=\tau_g^2J(p).
 \end{aligned}
 \]
 
-The functional
+The functional \(J(p)\) measures the expected squared score. It is large when the log-density changes sharply over regions carrying substantial probability mass. In a local estimator, this corresponds to density variation that can make one side of a neighbourhood contribute more strongly than the other.
 
-\[
-\boxed{
-J(p)=
-\int
-\|\nabla\log p(z)\|_2^2p(z)\,dz
-}
-\]
+The complete integrated-bias expression also contains a curvature term and a cross term involving the target Hessian and gradient. Those terms do not disappear merely because the score term has been identified. The LeJEPA analysis controls them under its stated regularity and downstream-function assumptions, yielding a density-dependent contribution proportional to \(J(p)\) plus bounded terms. The conclusion is not that every nonlinear estimator has risk exactly equal to \(J(p)\), but that this functional governs a specific part of the risk bound for the estimator classes analysed.
 
-is the expected squared score of the embedding density. It is a property of the density itself, not of one coordinate variance or one covariance entry.
+## 8.4 Gaussianity follows from a fixed-covariance inequality
 
-The full k-NN expansion also contains a curvature term and a cross term involving the target Hessian. The score-gradient term contributes \(\tau_g^2J(p)\). The curvature term is independent of the embedding density under the stated derivative prior. The cross term vanishes only under an additional orthogonality or zero-covariance condition between the Laplacian and gradient of the target function. Without that extra condition, it is a finite term of the same asymptotic order as the Fisher-information term, not a smaller-order remainder. The paper therefore writes the result as
-
-\[
-\mathbb E_{\eta}[\operatorname{ISB}_{\mathrm{kNN}}]
-=
-\left(\frac{r_0^2}{K+2}\right)^2
-\left\{
-\tau_g^2J(p)+O(1)
-\right\}
-+o(r_0^4).
-\]
-
-The expression isolates the part that varies with the embedding density. It does not say that the entire integrated bias equals the Fisher-information term for every downstream-function prior. The minimization over \(p\) follows because the remaining terms are bounded and do not provide a competing density-dependent contribution under the paper's assumptions. (Balestriero and LeCun, 2025)
-
-For Nadaraya–Watson regression, the paper considers a smoothness class with bounded target gradient and Laplacian. If
-
-\[
-\|\nabla\eta(q)\|_2\le L,
-\qquad
-|\Delta\eta(q)|\le B,
-\]
-
-then the integrated squared bias is bounded by
-
-\[
-\operatorname{ISB}_{\mathrm{kernel}}
-\le
-\left(
-\frac{h^2\mu_2(K)}{2}
-\right)^2
-\left[
-2B^2+8L^2J(p)
-\right]
-+
-o(h^4).
-\]
-
-The kernel result additionally assumes a normalized, symmetric and isotropic kernel with finite second moment and finite roughness, a sufficiently light-tailed embedding density, and the usual small-bandwidth asymptotic regime. In particular, the pointwise expansion is stated where \(p(q)>0\), with \(h\to0\) and \(Nh^K\to\infty\). The theorem bounds worst-case integrated squared bias over a smoothness class of target functions. These conditions delimit the result. [Balestriero and LeCun, 2025]
-
-The pointwise variance also depends on the density:
-
-\[
-\operatorname{Var}[\widehat\eta_h(q)]
-\approx
-\frac{R(K)}{Nh^K}\frac{v(q)}{p(q)},
-\qquad
-R(K)=\int K(u)^2\,du,
-\]
-
-where \(v(q)=\operatorname{Var}(Y\mid Z=q)\). A query in a sparse part of the embedding distribution has fewer nearby training samples and therefore higher pointwise variance. But the paper evaluates the integrated variance under the same density used to sample queries. Multiplying by \(p(q)\) and integrating cancels the density:
-
-\[
-\begin{aligned}
-\mathcal V(h;p)
-&=\int \operatorname{Var}[\widehat\eta_h(q)]p(q)\,dq\\
-&\approx
-\frac{R(K)}{Nh^K}\int v(q)\,dq.
-\end{aligned}
-\]
-
-Under this evaluation measure, the leading integrated variance is independent of \\(p\\). The density-dependent optimization therefore enters through the integrated squared bias bound, while the leading integrated variance does not distinguish candidate embedding densities. This is a more precise statement than saying that every pointwise variance term is independent of the density.
-
-The Fisher-information functional appears because the local estimators are biased by nonuniform sample density. The representation controls that density. For the estimator families considered, the density score is therefore part of the downstream prediction error.
-
-## 8.4 Why an isotropic Gaussian minimizes the functional
-
-The next step is a variational statement about probability densities. Let \(p\) be a mean-zero density on \(\mathbb R^K\), with positive-definite covariance matrix
+The Fisher-information functional has a useful lower bound. Let \(p\) be a mean-zero density with positive-definite covariance
 
 \[
 \Sigma=\mathbb E[ZZ^\top].
 \]
 
-Under the regularity conditions needed for integration by parts and finite Fisher information, define the score
+Assume sufficient decay and differentiability for integration by parts, and finite Fisher information. Since \(p(z)\nabla\log p(z)=\nabla p(z)\),
 
 \[
-s_p(z)=\nabla\log p(z).
-\]
-
-Because \(s_p(z)p(z)=\nabla p(z)\), integration by parts gives
-
-\[
-\mathbb E[Zs_p(Z)^\top]
+\mathbb E[Z\,s_p(Z)^\top]
 =
 \int z\,\nabla p(z)^\top dz
 =
--I_K.
+-I_D.
 \]
 
-Now consider the positive-semidefinite matrix
+Now consider the expected outer product
 
 \[
-\mathbb E\left[
-\left(s_p(Z)+\Sigma^{-1}Z\right)
-\left(s_p(Z)+\Sigma^{-1}Z\right)^\top
+\mathbb E
+\left[
+(s_p(Z)+\Sigma^{-1}Z)
+(s_p(Z)+\Sigma^{-1}Z)^\top
 \right].
 \]
 
-Expanding the expectation and using
-\(\mathbb E[s_p(Z)s_p(Z)^\top]\) for the Fisher-information matrix, together with
-\(\mathbb E[ZZ^\top]=\Sigma\), yields
+It is positive semidefinite. Expanding it and using the identity above gives
 
 \[
-\mathbb E[s_p(Z)s_p(Z)^\top]-\Sigma^{-1}
-\succeq 0.
+\mathbb E[s_p(Z)s_p(Z)^\top]
+-
+\Sigma^{-1}
+\succeq0.
 \]
 
-Taking traces gives
+Taking the trace yields
 
 \[
-J(p)\ge\operatorname{tr}(\Sigma^{-1}).
+J(p)\geq\operatorname{tr}(\Sigma^{-1}).
 \]
 
-Equality requires
+Equality requires the score to be linear in \(z\):
 
 \[
-s_p(z)=-\Sigma^{-1}z
+\nabla\log p(z)=-\Sigma^{-1}z.
 \]
 
-almost everywhere. Integrating this score identity gives a Gaussian density with covariance \(\Sigma\):
+Integrating this relation gives the Gaussian density with covariance \(\Sigma\). Thus, among densities with a fixed covariance matrix, the Gaussian uniquely minimizes the Fisher-information functional.
 
-\[
-p(z)=\mathcal N(0,\Sigma).
-\]
+This is the first optimization. It identifies the best shape for a given covariance. It does not yet say which covariance is best.
 
-Thus, for a fixed covariance matrix, the Gaussian uniquely minimizes the Fisher-information functional.
+## 8.5 Isotropy follows from a fixed total-variance constraint
 
-A second optimization determines the covariance shape. Write the positive eigenvalues of \(\Sigma\) as \(\lambda_1,\ldots,\lambda_K\). Then
+Let the eigenvalues of \(\Sigma\) be \(\lambda_1,\ldots,\lambda_D>0\). Then
 
 \[
 \operatorname{tr}(\Sigma^{-1})
 =
-\sum_{k=1}^{K}\frac{1}{\lambda_k}.
+\sum_{j=1}^{D}\frac{1}{\lambda_j}.
 \]
 
 Under a fixed trace constraint
 
 \[
-\sum_{k=1}^{K}\lambda_k=c,
+\sum_{j=1}^{D}\lambda_j=\tau,
 \]
 
 strict convexity of \(u\mapsto1/u\) gives
 
 \[
-\sum_{k=1}^{K}\frac{1}{\lambda_k}
-\ge
-\frac{K^2}{c},
+\sum_{j=1}^{D}\frac{1}{\lambda_j}
+\geq
+\frac{D^2}{\tau},
 \]
 
-with equality only when \(\lambda_k=c/K\) for every \(k\). The covariance must therefore be isotropic:
+with equality only when all eigenvalues equal \(\tau/D\). The covariance is then isotropic:
 
 \[
-\Sigma=\frac{c}{K}I_K.
+\Sigma=\frac{\tau}{D}I_D.
 \]
 
-Combining the two steps gives the unique minimizer under fixed total variance:
+Combining the two steps gives the isotropic Gaussian as the unique minimizer of \(J(p)\) under a fixed total-variance constraint:
 
 \[
-p^*(z)
+p^\star
 =
-\mathcal N\!\left(0,\frac{c}{K}I_K\right).
+\mathcal N\!\left(0,\frac{\tau}{D}I_D\right).
 \]
 
-LeJEPA also considers other scalar covariance constraints, including determinant, Frobenius norm and spectral radius. For the specific constraints analysed in the paper, the minimizer remains an isotropic Gaussian with the scale selected to satisfy the constraint.
+Gaussianity and isotropy arise from different arguments. The first minimizes Fisher information among distributions with a fixed covariance. The second minimizes the inverse-covariance trace among covariances with fixed total variance.
 
-## 8.5 What the result does and does not say
+## 8.6 The scope of the result
 
-The argument has a clear chain:
+The argument supports a principled target distribution for the downstream risk framework analysed in LeJEPA. It is not a theorem that Gaussian embeddings are optimal for every task, every estimator or every control problem. The conclusion depends on the local-estimator approximation, smoothness conditions, downstream-function class and covariance constraint.
 
-1. Local prediction bias depends on the gradient of the downstream function and the score of the embedding density.
-2. Under the stated smoothness and gradient assumptions, integrated bias contains the Fisher-information functional \(J(p)\).
-3. For a fixed covariance, the Gaussian uniquely minimizes \(J(p)\).
-4. Under a fixed scalar covariance constraint, isotropic covariance minimizes the Gaussian value \(\operatorname{tr}(\Sigma^{-1})\).
+It is also important to distinguish isotropy from Gaussianity. A non-Gaussian distribution can have zero mean and identity covariance. Such a distribution satisfies the same second-order constraint but can have a different score field and a larger Fisher-information functional. Covariance regularization alone cannot enforce the full distributional property that appears in this risk argument.
 
-This explains the Gaussian target in LeJEPA. It is not a theorem that Gaussian latents are best for every task, every estimator, every control problem or every conditional dynamics model. The result is derived for specified downstream estimator families and risk criteria. Its value is that it gives a principled target under those assumptions, rather than choosing a distribution only because it seems convenient.
+The result motivates the next section. If the target is an isotropic Gaussian, a training objective needs to compare a high-dimensional empirical embedding distribution with that target. SIGReg does so through one-dimensional projections and characteristic functions rather than by estimating a full density.
 
-It is also important to distinguish isotropy from Gaussianity. A distribution can have covariance proportional to the identity and still be non-Gaussian. Such a distribution matches second-order geometry but may have a different score field and a larger value of \(J(p)\). Covariance regularization alone cannot enforce the density property that appears in the local-estimation risk.
+**Figure 4.12. Local prediction bias contains a density-gradient term.**
 
-The next section turns this theoretical target into a practical objective. SIGReg does not estimate a full high-dimensional density. It compares one-dimensional projections with the corresponding Gaussian projections. The distinction between the all-directions theorem and the finite stochastic sketch used during training is essential.
+Description: A query lies in an asymmetric neighbourhood of training embeddings. More samples occur on one side, pulling the local estimate toward the denser region. The score \(\nabla\log p(q)\) describes this local imbalance.
 
-![Local-regression query in an asymmetric sample density](../images/chapter04/F10_local_density_bias.svg)
+**Figure 4.13. Fisher information and covariance optimality are separate steps.**
 
-**Figure 4.14. Local regression is affected by density asymmetry.** An asymmetric neighbourhood pulls a local estimate toward the denser side. The embedding-density score enters the leading local-regression bias.
-
-![Fisher information score field over a density](../images/chapter04/F22_fisher_score_field.svg)
-
-**Figure 4.15. Fisher information measures the squared score field.** The score vector points toward increasing density. Its expected squared norm defines the Fisher-information functional used in the nonlinear-risk argument.
-
-![Gaussian and isotropic covariance optimality conditions](../images/chapter04/F29_gaussian_optimum.svg)
-
-**Figure 4.16. Gaussianity and isotropy arise from separate minimizations.** At fixed covariance, the Gaussian minimizes Fisher information. Under a fixed scalar covariance constraint, isotropy minimizes the trace of the inverse covariance.
+Description: The first comparison holds covariance fixed and shows that the Gaussian minimizes the score-based Fisher-information functional. The second holds total variance fixed and shows that isotropic covariance minimizes the inverse-eigenvalue trace.
