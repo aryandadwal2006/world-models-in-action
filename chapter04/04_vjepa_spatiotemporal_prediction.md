@@ -1,149 +1,93 @@
-# 4. V-JEPA: predicting spatiotemporal features from video
+# 4. V-JEPA: extending prediction through time
 
-An image contains spatial relationships, but it does not directly reveal how those relationships change. A single frame may show an object at a particular position without specifying whether it is moving, accelerating, being pushed or resting. Video adds temporal evidence. The challenge is to define a prediction problem that makes this evidence useful without requiring the model to reconstruct every pixel of every frame.
+An image describes a scene at one instant. It does not directly specify how that scene changes. A sequence adds temporal evidence: an object may move, a hand may make contact, or a tool may alter another object's state. V-JEPA extends feature prediction from a spatial grid to a spatiotemporal grid. It asks the model to predict selected video features from the remainder of the clip.
 
-V-JEPA extends feature prediction from a spatial grid to a spatiotemporal grid. Its target positions have both spatial and temporal coordinates. The model observes part of a video clip and predicts target features at selected positions. This still does not make the objective action-conditioned. The video supplies evidence about what tends to happen; the model is not necessarily told which intervention caused the observed transition. (Bardes et al., 2024)
+This is a more demanding representation-learning problem than image masking, but it is not automatically a causal or action-conditioned dynamics model. That distinction depends on which frames are visible and whether the predictor receives an explicit action.
 
-## 4.1 A video is a volume of tokens
+## 4.1 Video tokens have spatial and temporal coordinates
 
-Let a clip contain \(T\) frames:
-
-\[
-X=(x_1,x_2,\ldots,x_T).
-\]
-
-A video tokenizer converts the clip into spatiotemporal tokens. A token location can be indexed by
+Let a video clip contain frames \(X=(x_1,\ldots,x_T)\). A video encoder converts short spatiotemporal volumes, or tubelets, into tokens. Each token can be indexed by
 
 \[
 r=(t,h,w),
 \]
 
-where \(t\) denotes temporal position and \(h,w\) spatial position. In the original V-JEPA configuration, the video tokenizer uses tubelets spanning two consecutive frames and a \(16\times16\) spatial patch. A token is therefore a small spatiotemporal volume, not simply a patch from one independently processed frame.
+where \(t\) is temporal position and \(h,w\) are spatial coordinates.
 
-The context encoder receives a selected subset of tokens. The target encoder computes target features for the clip, and the predictor estimates target features at selected spatiotemporal positions:
-
-\[
-Z_C=f_\theta(X_C,C),\qquad
-H_Y=f_{\bar\theta}(X)_Y,
-\]
+A context mask selects visible tokens \(C\), and a target mask selects positions \(T\). The online encoder processes the visible subset, while the target encoder processes the complete clip:
 
 \[
-\widehat H_Y=g_\phi(Z_C,Q_Y),
+Z_C=f_\theta(X_C),
+\qquad
+H_T=[f_{\bar\theta}(X)]_T.
 \]
 
-where \(C\) is the visible set and \(Q_Y\) describes the requested target positions. The query includes time as well as space. A model can be asked to predict a feature at a later time, at a different spatial location, or both.
+The predictor uses the context representation and the spatiotemporal target query to estimate \(\widehat H_T\). The loss compares this estimate with \(H_T\).
 
-As in I-JEPA, the target features come from the target encoder's output at selected positions. The target is not an RGB crop. The objective is to predict a learned feature that summarizes the target pathway's representation of the clip.
+The additional time coordinate changes what can be predicted. A target at the same spatial position in a later frame may depend on motion. A target at a different position may depend on object displacement or interaction. A target extended over several frames may require the predictor to estimate a temporally coherent feature sequence.
 
-## 4.2 Why temporal masking is different from image masking
+## 4.2 Why the target is masked across time
 
-Adjacent video frames are highly redundant. An object may move only a few pixels between consecutive frames. If the model sees nearly all of a frame or nearby frames, it may infer the target from trivial local continuity. A task that is too easy can reward a shortcut rather than a representation that captures useful temporal relations.
+Video contains strong redundancy. Nearby frames often show nearly the same background and similar object appearance. If a target patch is hidden at one frame but visible at adjacent frames, the model may infer it from a near-duplicate rather than learn a useful relation across the clip.
 
-V-JEPA samples spatially contiguous regions and extends them across the temporal dimension of the clip. Its target masks therefore select spatiotemporal regions rather than independent random holes in individual frames. The paper uses two families of target masks. A short-range mask is the union of eight randomly sampled target blocks, each covering 15% of a frame; a long-range mask is the union of two blocks, each covering 70% of a frame. The aspect ratio of each sampled block lies between 0.75 and 1.5. The unions produce an average masking ratio of approximately 90%. The values 15% and 70% describe the spatial scale of the sampled blocks, not the fraction of the complete video removed by the final union. Both mask families extend each selected spatial block through the clip's full temporal dimension. (Bardes et al., 2024)
+The original V-JEPA uses 3D multi-block masking. It samples spatially contiguous blocks and extends each selected spatial region through the temporal dimension. Its reported short-range configuration takes the union of eight target blocks with spatial scale \(0.15\); its long-range configuration takes the union of two blocks with spatial scale \(0.7\). Block aspect ratios are sampled between \(0.75\) and \(1.5\). The union of blocks produces an average masking ratio near \(90\%\) in the reported setup. These settings define the experiments in the paper; they are not universal constants of video JEPA.
 
-The encoder paths also matter. The visible complement is applied at the input of the context encoder by dropping masked tokens. The target encoder processes the complete clip; target positions are selected from its contextualized output. Thus, the model does not create a target by encoding an isolated RGB crop.
+The spatial mask is repeated across the clip's temporal dimension. The context encoder therefore cannot inspect the same spatial region in neighbouring frames. It must use other spatial regions and the remaining temporal evidence to predict the target tube.
 
-The geometry of a target tube matters. If the same spatial region is hidden across time, the model cannot simply inspect the corresponding patch in another nearby frame. It must use the rest of the clip to predict the target features. If a target is withheld at only one time but visible at neighbouring times, temporal interpolation may be sufficient. Both are valid prediction problems, but they test different conditional information.
+Mask scale changes the inference problem. Smaller blocks can test whether local and moderately distributed context predicts withheld content. Larger blocks remove more of the scene and require broader evidence. Combining the two exposes the predictor to more than one spatial scale. It still does not force a strictly past-to-future prediction, because the visible context may include frames both before and after a target time.
 
-V-JEPA keeps the core I-JEPA insight and changes the coordinate system of prediction. A target is no longer described only by its location in an image. Its time coordinate is also part of the query. The training distribution can emphasize spatial context, temporal context or their interaction.
+## 4.3 The original objective predicts target features
 
-## 4.3 The feature target and the loss
-
-Let \(H_Y\) be target features at selected spatiotemporal positions and \(\widehat H_Y\) the corresponding predictions. The original V-JEPA paper uses an \(L_1\) feature-prediction loss:
+The original V-JEPA predicts the target encoder's features, not RGB pixels. Its paper formulates the feature regression with an \(L_1\) loss:
 
 \[
 \mathcal L_{\mathrm{V\text{-}JEPA}}
 =
-\frac{1}{|Y|d}
-\sum_{r\in Y}
+\frac{1}{|T|D}
+\sum_{r\in T}
 \left\|
 \widehat h_r-h_r
-\right\|_1.
+\right\|_1,
 \]
 
-This differs from the squared-error form often used to introduce generic feature prediction. The discrepancy function changes the statistical estimator approached by an ideal deterministic predictor.
+where \(D\) is feature dimension and \(h_r\) is the target feature at spatiotemporal position \(r\). The target feature is supplied by the slowly updated target encoder and detached from the prediction-loss gradient.
 
-For a scalar random target \(H\), the constant \(a\) minimizing expected absolute deviation,
+This choice has a statistical interpretation. For a scalar target \(H\), the constant \(a\) minimizing \(\mathbb E[|H-a|\mid C]\) is a conditional median. Squared error instead selects the conditional mean. A coordinate-wise vector \(L_1\) loss therefore favours coordinate-wise conditional medians, with possible non-uniqueness. This does not mean V-JEPA explicitly models a multimodal probability distribution. It means the chosen pointwise loss has a different optimum from squared-error regression.
+
+The target encoder is updated through an EMA of the online encoder, as in I-JEPA. The target branch is not updated by backpropagation through the feature loss. This creates a moving target that changes more slowly than the online context encoder. It is an optimization design, not a universal guarantee against collapse.
+
+## 4.4 Temporal evidence is not the same as an action
+
+A video model can exploit temporal regularities. If a hand approaches a cup, the next observed frames may often show a grasp. The model can learn that this visual pattern predicts a particular feature configuration. Yet it has not necessarily learned the effect of a chosen intervention.
+
+The distinction is between two conditional distributions:
 
 \[
-a^*=\arg\min_a\mathbb E[|H-a|\mid C=c],
+p(Z_{t+1}\mid X_{1:t})
+\qquad\text{and}\qquad
+p(Z_{t+1}\mid X_{1:t},A_t).
 \]
 
-is a conditional median of \(H\) given the context. The constant minimizing expected squared error is the conditional mean. In multiple dimensions, an \(L_1\) vector loss is typically applied coordinate-wise; its minimizers are coordinate-wise conditional medians, subject to possible non-uniqueness. This property should not be used to claim that V-JEPA explicitly models a full multimodal distribution. It describes the pointwise estimator favoured by the chosen loss under its assumptions.
+The first describes future features under the action distribution present in the observed trajectories. The second conditions on a specified action \(A_t\). If the action is omitted, the predictor cannot be asked to compare the consequences of two alternative commands while holding the history fixed.
 
-The paper motivates its \(L_1\) choice in the context of feature prediction and target-update dynamics. The predictor estimates target features from the context representation, while the target encoder is updated as a moving average. The EMA target provides a slowly changing feature target while the online encoder and predictor are trained. This arrangement is specific to the original V-JEPA recipe.
+Temporal order alone also does not guarantee that context is past-only. The original V-JEPA paper studies both full-clip multi-block masking and more restrictive causal-prefix variants. The standard multi-block objective can expose the context encoder to frames later than a selected target position. It is therefore not a causal next-frame objective. The paper's ablations show that the full-clip context setting can be effective for learning video representations; they do not turn it into an intervention model.
 
-## 4.4 Target updates and gradient paths
+This distinction should be maintained even when an evaluation is called action anticipation. Predicting a likely human action label from a video is a semantic forecast. Predicting the physical consequences of a robot command requires the command itself to be an input and requires training data that connects actions to subsequent observations.
 
-The original V-JEPA retains an online context encoder and an EMA target encoder. A stop-gradient is applied to target features in the prediction loss, so gradients from feature regression update the context encoder and predictor rather than directly updating the target branch. The target parameters change through the momentum update.
+## 4.5 What V-JEPA demonstrates
 
-The training step can be described as follows:
+The original V-JEPA results show that masked spatiotemporal feature prediction can produce useful frozen video representations. Evaluation on action recognition and video understanding tasks indicates that features learned from temporal context transfer to downstream tasks. The paper also studies mask design and the contribution of temporal information.
 
-1. Sample a clip and a spatiotemporal target mask.
-2. Construct visible context tokens and target positions.
-3. Encode visible tokens with the online context encoder.
-4. Encode the clip with the target encoder and select target features.
-5. Supply target positions as queries to the predictor.
-6. Compute the \(L_1\) discrepancy between predicted and target features.
-7. Update the online encoder and predictor by gradient descent.
-8. Update the target encoder using EMA.
+Those results support a limited but important conclusion: it is possible to learn video features by predicting withheld spatiotemporal representations without reconstructing every pixel. They do not demonstrate a complete dynamics model, a calibrated distribution over futures or successful planning under candidate actions.
 
-This sequence makes the information paths explicit. The target branch supplies a feature target, not a gradient path through the prediction loss. The EMA update is a separate parameter update. The phrase “stop-gradient teacher” can obscure the distinction between detaching the target tensor in the loss and changing target parameters through a moving average.
+A representation can be useful for recognizing motion while omitting variables needed for physical prediction. It can support classification without being Markov. It can predict features of observed clips without remaining accurate when its own predictions are fed back as inputs. Each stronger claim needs a different evaluation.
 
-Neither mechanism by itself proves that collapse is impossible for every objective and architecture. The result depends on the complete training system, including mask construction, data, optimizer, normalization, target update and predictor.
+The progression from I-JEPA to V-JEPA therefore adds temporal evidence but not control. To predict what follows a chosen action, the action must enter the conditioning information. V-JEPA 2 makes that transition explicit by retaining a pretrained visual encoder and training a separate action-conditioned predictor on robot trajectories.
 
-## 4.5 What time contributes to the representation
+**Figure 4.5. A spatiotemporal mask with full-clip context is not inherently causal.**
 
-Video feature prediction can make temporal relations useful to the training objective. If a target feature depends on motion, persistence or an interaction visible in context, a predictor that ignores those relations may incur larger error. The model can therefore learn features that support motion understanding and temporal anticipation.
+Description: A spatial target region is withheld through several frames, while the context contains the remaining tokens from the clip. Some context may lie after a target time. A separate causal-prefix design would restrict context to earlier frames only.
 
-But temporal evidence is not the same as physical state. A feature that predicts the next visible frame need not encode velocity explicitly. A feature that supports action anticipation need not encode force, contact or mass. A feature that predicts what usually follows an observed action may reflect correlations in the dataset rather than the effect of an intervention selected by the learner.
+**Figure 4.6. Masked video prediction and action-conditioned prediction answer different questions.**
 
-Consider a clip of a hand approaching a cup. The next observed frame may show the cup being grasped. A video predictor can learn that this visual pattern is often followed by a particular feature configuration. Without an explicit action variable and suitable intervention data, however, it does not necessarily learn what would happen if the hand moved away, approached from another direction or pushed the cup instead. Observed sequences mix environment dynamics with the policy that generated them.
-
-The claim that video prediction can learn useful temporal structure follows from the objective. The stronger claim that video prediction alone teaches a causal model of how the world responds to actions does not.
-
-## 4.6 Representation evaluation is not target prediction
-
-A video encoder may produce a grid of feature vectors, but that does not mean every useful property is immediately available to a linear classifier. The original V-JEPA work evaluates frozen representations through downstream protocols, including video classification. One practical finding is that attentive pooling can improve substantially over simple average pooling for the unnormalized token features. A learnable query uses cross-attention to extract a task-specific representation from the feature grid.
-
-This has a broader implication. The pretraining objective determines which relationships the model is optimized to preserve, but a downstream readout determines how those relationships are accessed. A linear probe tests whether a distinction is linearly accessible from frozen features. An attentive probe tests whether a small trainable attention mechanism can combine token features to expose the distinction. They are different tests.
-
-The evaluation protocol must be stated alongside reported scores. A result obtained using an attentive head is not a pure measure of linear separability. A fine-tuned score is not a frozen-feature score. A feature-prediction loss is not a classification metric. These evidence types should not be mixed.
-
-The original V-JEPA paper reports strong frozen-feature performance on video understanding benchmarks using large-scale video pretraining. These results establish that spatiotemporal feature prediction can yield useful visual representations under the tested protocols. They do not show that the model can plan under candidate actions or remain accurate over recursive rollouts.
-
-## 4.7 What V-JEPA does not condition on
-
-The phrase *future prediction* is sometimes used loosely in discussions of video models. A masked target can occur later than visible context, but temporal ordering is not enough to establish a controlled transition model.
-
-The original paper explicitly compares three masking regimes: random tubes, causal multi-block masks, and multi-block masks sampled across the entire clip. In the causal variant, the context is restricted to the first six or twelve frames of a sixteen-frame clip before spatiotemporal blocks are removed. The standard multi-block setting, by contrast, can use context from the whole clip, including frames later than a target position. In the reported frozen evaluation, the full-clip multi-block setting outperforms the causal-prefix alternatives on Kinetics-400, Something-Something-v2 and ImageNet-1K. The result is important for interpretation: the principal V-JEPA recipe is a strong masked-video representation objective, not simply a causal next-frame predictor. Temporal ordering exists in the data, but the mask does not impose a past-only information boundary. (Bardes et al., 2024)
-
-To be action-conditioned, the predictor must receive a variable representing the candidate action or intervention. A controlled latent transition might be written as
-
-\[
-\widehat s_{t+1}=g_\phi(s_{\leq t},a_t),
-\]
-
-where \(a_t\) identifies the action whose consequence is being predicted. If the action is absent, the model estimates what tends to occur under the trajectory distribution in its data. It may infer likely actions from visual motion, but that is not the same as conditioning on a chosen action.
-
-This distinction matters when a planner compares alternatives. To evaluate actions \(a\) and \(a'\), the model must be able to produce different predictions when the action changes while the observed context is held fixed. An action-free model has no explicit input with which to represent this counterfactual difference.
-
-The original V-JEPA is therefore a video representation-learning method, not the complete action-conditioned system used for physical planning. The next extension adds that interface as a separate post-training stage rather than simply renaming the original video encoder.
-
-## 4.8 From video features to controlled dynamics
-
-I-JEPA asks which features at hidden image locations can be predicted from visible spatial context. V-JEPA asks which features at hidden space-time locations can be predicted from visible video context. The model gains temporal evidence, and its target grid can express motion and interactions over a clip.
-
-Neither method is required to distinguish outcomes under a specified action. That requires the model to receive actions, train on trajectories with aligned observations and actions, and be evaluated on action-conditioned predictions. The distinction is not terminological. It changes the conditional distribution the model must estimate.
-
-V-JEPA 2 makes this separation explicit. It first scales action-free video pretraining, then adds a distinct action-conditioned predictor trained on robot trajectory data. V-JEPA 2.1 later strengthens dense feature prediction, but its robot-planning experiments again use a separately trained action-conditioned predictor. These stages will be treated separately rather than combined into one undifferentiated “V-JEPA family”.
-
-![V-JEPA spatiotemporal target tube](../images/chapter04/F06_vjepa_spatiotemporal_mask.svg)
-
-**Figure 4.8. A spatial mask extended through time.** The same spatial selection can be withheld across several frames. Because visible context may include later frames, this standard multi-block mask is not inherently causal.
-
-![Masked video prediction and action-conditioned prediction](../images/chapter04/F32_masked_video_vs_action.svg)
-
-**Figure 4.9. Masked video prediction versus action-conditioned prediction.** Masked video prediction asks for withheld features without an action input. A controlled predictor instead conditions alternative futures on candidate actions, a separate extension from original V-JEPA.
-
-The next section examines what the target representation is allowed to forget, and how the geometry of the resulting features affects downstream estimation.
+Description: The masked-video path estimates withheld features from visible video context. The controlled path receives an explicit action alongside the current state and predicts a resulting feature or state. Changing the action while holding context fixed must be able to change the controlled prediction.

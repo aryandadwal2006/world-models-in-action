@@ -1,187 +1,114 @@
-# 2. The prediction problem in representation space
+# 2. What exactly is being predicted?
 
-The expression “predict a representation” is compact, but it hides several modelling decisions. A method must specify what information is available, what is withheld, what the target encoder observes, and which variable tells the predictor what it is expected to estimate. These decisions define the actual statistical problem. The loss function alone does not.
+The notation of a JEPA is compact, but the statistical problem is determined by the variables supplied to it. A method must say what the context contains, what the target contains, how the target location is specified and how target examples are sampled. If these choices are left implicit, two objectives that use the same encoder and loss can be mistaken for the same task even when they condition on different information.
 
-## 2.1 Context, target and query
+## 2.1 The joint distribution defines the task
 
-Let \(X\) denote the information available to the model and \(Y\) the target information it is asked to predict. The variables need not be individual frames. \(X\) may be a crop, a set of visible image patches, a video prefix or a history of observations. \(Y\) may be a hidden image block, selected video tokens, a later observation, or a representation from another modality.
-
-A query \(Q\) specifies which part of the target is requested. For an image, it may contain spatial positions. For video, it may contain spatial and temporal positions. For an action-conditioned model, the conditioning information must also include the action or action sequence. The query is part of the problem definition, not just an implementation convenience.
-
-A general representation-prediction system can be written as
+Let \(X\) denote the available observation, \(C\) the context-selection variable, \(T\) the target-selection variable and \(Q\) the query supplied to the predictor. Let \(Y_T\) denote the target-side observation at the selected positions. The data pipeline induces a joint distribution
 
 \[
-S_X=f_\theta(X),\qquad
-S_Y=f_{\bar\theta}(Y),\qquad
-\widehat S_Y=g_\phi(S_X,Q).
+p_{\mathcal D}(X,C,T,Q,Y_T).
 \]
 
-The training objective is an expectation over the joint distribution of context, target and query:
+The predictor does not learn an abstract relation between context and target in isolation. It learns under this distribution. A different context sampler changes what can be observed. A different target sampler changes what must be inferred. A different temporal stride changes the time interval separating context and target. A different query changes which part of the target representation is requested.
+
+For example, predicting a small block adjacent to a visible block can be solved using local continuity. Predicting a distant object region may require information distributed across the scene. Predicting a feature from a later video frame requires temporal evidence. Predicting the consequence of a robot command requires the command itself to be part of the condition.
+
+It is therefore more accurate to describe a JEPA as learning a conditional prediction problem than as simply learning to “predict missing patches”. The patches are one way to instantiate the variables.
+
+## 2.2 The mask is part of the conditional distribution
+
+Let \(M\) denote the sampled mask. It determines the visible input \(X_C\) and the target positions \(T\). The predictor is trained against a distribution of the form
 
 \[
-\mathcal L_{\mathrm{pred}}(\theta,\bar\theta,\phi)
-=
-\mathbb E_{(X,Y,Q)\sim p_{\mathrm{data}}}
-\left[
-d\!\left(
-g_\phi(f_\theta(X),Q),
-f_{\bar\theta}(Y)
-\right)
-\right].
+p(Z_T\mid X_C,Q_T,M).
 \]
 
-The distribution \(p_{\mathrm{data}}(X,Y,Q)\) is as important as the function \(d\). It determines which contexts occur, which targets are sampled, and which information the model must use to make a prediction. Changing the mask sampler changes the conditional distribution the predictor faces. Changing temporal stride changes the prediction horizon. Changing the action distribution changes the interventions represented in the training data.
+A mask is not a neutral deletion operation. It determines which evidence remains available and which distinctions the model must infer. If a target can be recovered from a tiny adjacent region, the model may rely on local texture. If the target is far from the visible region, it must combine more global context. If the target is hidden across several frames, the model must use temporal information that survives elsewhere in the clip.
 
-## 2.2 A feature-space target is not the same as a cropped input
+There is no universally correct mask independent of the task. A mask that makes targets almost trivial can reward shortcuts. A mask that removes nearly all useful evidence can make the conditional target highly uncertain. The objective is shaped by the range of conditional problems sampled during training, not merely by the choice of neural architecture.
 
-The context and target branches do not necessarily receive symmetric inputs. In I-JEPA, for example, the context encoder processes the selected context tokens, while the target encoder processes the full image before the target positions are selected from its feature map. The model therefore has access to a target feature at a location that is hidden from the context branch. It does not simply encode an isolated target crop through an otherwise identical pathway.
+The query matters for the same reason. A target feature is indexed by a location. If the predictor is not told which location it should estimate, it must either produce all target positions or infer the requested position from another convention. Supplying explicit position information makes the prediction interface well-defined.
 
-This detail matters because a target encoder defines the features being predicted. The representation may contain spatial context from outside the target block. The target is not equivalent to an independently encoded patch unless the architecture explicitly makes it so. (Assran et al., 2023)
+## 2.3 What does squared-error prediction return?
 
-The same caution applies to video. A visible-context encoder and an unmasked target encoder create different information paths. The predictor is asked to infer target features from the context pathway, not to copy the target encoder's input. Positional information tells it where the target lies in the image or clip. The masking pattern determines whether the prediction requires local continuity, global scene context, temporal context or some combination.
-
-A figure of a JEPA should therefore show the information flow, not just three boxes labelled encoder, predictor and target. In particular, it should make clear which pixels or tokens each branch receives and where target positions are selected.
-
-## 2.3 The mask defines a conditional distribution
-
-The target sampler determines what is unknown. Suppose \(M\) denotes a random mask and \(Y_M\) the selected target under that mask. The predictor is trained against a family of conditional distributions
-
-\[
-p(Y_M\mid X_{\neg M},M),
-\]
-
-where \(X_{\neg M}\) denotes the visible context. A mask selecting a small region near visible content may make the target predictable from local texture or continuity. A large, distant target may require broader context. A target spanning later times may require temporal information. If the context removes a variable essential to the target, uncertainty remains even for an ideal predictor.
-
-There is no mask geometry that is optimal independently of the intended prediction problem. A method that makes targets too easy can reward shortcuts. A method that makes targets too ambiguous can produce weak or noisy learning signals. The target distribution is part of the inductive bias.
-
-This is why image, video and dense-feature objectives should not be described as though they were the same prediction task at different resolutions. I-JEPA's spatial blocks test relations between visible and withheld image regions. The original V-JEPA uses masked spatiotemporal features, which can be spatially or temporally withheld. V-JEPA 2.1 changes the target supervision again by including dense features from visible as well as masked tokens and by applying supervision at intermediate depths. That choice asks the representation to preserve spatially structured information across the token grid. It is not the same as adding an action input. (Bardes et al., 2024; Assran et al., 2025; Mur-Labadia et al., 2026)
-
-## 2.4 The deterministic squared-error predictor
-
-A simple predictor minimizes squared distance in the target representation space. For a fixed context \(X=x\) and query \(Q=q\), let the random target feature be \(H=f_{\bar\theta}(Y)\). The optimal deterministic prediction is
+Suppose the target feature is a random vector \(H\), and the predictor must output one deterministic vector \(a\) after observing context \(X_C=x\) and query \(Q=q\). Under squared error, its ideal output solves
 
 \[
 a^*(x,q)
 =
 \arg\min_a
 \mathbb E\!\left[
-\|H-a\|_2^2\mid X=x,Q=q
+\|H-a\|_2^2\mid X_C=x,Q=q
 \right].
 \]
 
-Assume the conditional second moment exists and define
+Let
 
 \[
-\mu(x,q)=\mathbb E[H\mid X=x,Q=q].
+\mu(x,q)
+=
+\mathbb E[H\mid X_C=x,Q=q].
 \]
 
-Add and subtract \(\mu(x,q)\):
+Write \(H-a=(H-\mu)+(\mu-a)\). Expanding the squared norm gives
 
 \[
 \begin{aligned}
 \mathbb E[\|H-a\|_2^2\mid x,q]
 &=
-\mathbb E[\|H-\mu+\mu-a\|_2^2\mid x,q]\\
-&=
-\mathbb E[\|H-\mu\|_2^2\mid x,q]
-+\|\mu-a\|_2^2\\
-&\quad+
-2\,\mathbb E[(H-\mu)^\top(\mu-a)\mid x,q].
+\mathbb E[\|H-\mu\|_2^2\mid x,q]\\
+&\quad+\|\mu-a\|_2^2\\
+&\quad+2\,\mathbb E[(H-\mu)^\top(\mu-a)\mid x,q].
 \end{aligned}
 \]
 
-The cross term is zero because \(\mathbb E[H-\mu\mid x,q]=0\). Hence
+The final term is zero because \(\mathbb E[H-\mu\mid x,q]=0\). The first term does not depend on \(a\). The minimum is therefore attained at
 
 \[
-\mathbb E[\|H-a\|_2^2\mid x,q]
-=
-\mathbb E[\|H-\mu\|_2^2\mid x,q]
-+\|a-\mu\|_2^2.
+a^*(x,q)=\mathbb E[H\mid X_C=x,Q=q].
 \]
 
-The first term does not depend on \(a\), so the unique minimizer is
+A deterministic squared-error predictor estimates the conditional mean of the target features. It does not necessarily select one of the possible target outcomes.
+
+This matters when the conditional target is multimodal. Imagine a scene in which a ball may pass to the left or right of an obstacle. If the two outcomes are represented by distant feature vectors and occur with similar probability, their mean may lie between them. The mean can minimize squared error without corresponding to a plausible physical outcome. The predictor has averaged uncertainty rather than represented the alternatives.
+
+For absolute error, the scalar minimizer is a conditional median. Applied coordinate-wise to a vector, an \(L_1\) loss produces coordinate-wise conditional medians, which may also combine components from different modes. A point-estimation loss therefore does not, by itself, represent a full distribution over possible futures.
+
+## 2.4 When one prediction is not enough
+
+If the task requires multiple alternatives, the model needs an output or inference mechanism capable of representing them. One option is to introduce a latent variable \(U\) that selects a hypothesis:
 
 \[
-a^*(x,q)=\mathbb E[H\mid X=x,Q=q].
+\widehat Z_T=g_\phi(Z_C,Q_T,U).
 \]
 
-This is a property of squared-error regression. It is not a pathology unique to JEPA.
+Another is to predict parameters of a conditional distribution. These extensions change the prediction problem: training must specify how latent hypotheses or distributional outputs are supervised and how uncertainty is evaluated.
 
-## 2.5 What happens when the target is multimodal?
+A latent variable also introduces a possible shortcut. If it can carry the target feature directly, the predictor may ignore the context. The model must constrain how the latent is sampled or inferred, or otherwise prevent it from becoming an unrestricted channel for the answer. A latent variable should represent uncertainty that remains after conditioning on context, not leak the target into the predictor.
 
-A conditional mean can fail to correspond to any single plausible outcome. Consider a one-dimensional target with two equally likely values, \(-1\) and \(+1\), given the same context. The conditional mean is zero, even though zero is never observed. A deterministic squared-error predictor returns the point between the two modes.
+Not every JEPA requires a multimodal output. For a target that is nearly determined by context, a deterministic feature estimate can be adequate. The point is to match the output parameterization to the conditional uncertainty of the task. A low pointwise error on an averaged feature is not evidence that alternative outcomes have been represented.
 
-In an image or video representation, the same phenomenon can arise when one context is compatible with distinct futures. A single predicted feature may average across alternatives. Whether this is harmful depends on the geometry of the target space and the downstream task. For a representation-learning objective, a mean feature may still be useful. For a planner that must distinguish mutually exclusive outcomes, a single averaged future can be misleading.
+## 2.5 The target branch is not an independent copy of the target crop
 
-A system that needs multiple alternatives must represent them explicitly, for example through a latent variable, a distribution over future features, an ensemble or multiple hypotheses. Merely naming the model a world model does not supply uncertainty. The conditional distribution and the prediction objective must support it.
+In I-JEPA and V-JEPA, the target encoder processes the complete image or video before target features are selected. The context encoder receives only visible tokens. This asymmetry is central: the target feature is contextualized by the target encoder's view of the full observation, while the predictor must estimate it from a restricted context.
 
-This observation will matter when introducing the latent variable \(z\) in energy-based prediction. It can index alternative compatible futures, but it must not become an unconstrained channel through which the target is copied.
+The target is therefore not generally the output of encoding an isolated crop. Encoding a patch in isolation could discard its relation to the surrounding scene, while the full-image target feature can include global context. The target pathway defines what the predictor is being asked to approximate.
 
-## 2.6 When is a predictor necessary?
+A second design choice is how the target parameters change. In the original I-JEPA and V-JEPA recipes, the target encoder is updated as an exponential moving average (EMA) of the online context encoder. The target tensor is detached during the prediction loss; the target parameters change through the EMA update rather than through backpropagation. These are two distinct operations. Stop-gradient specifies the derivative path. EMA specifies how the target network evolves between training steps.
 
-A predictor is useful when the target contains information that is not directly available in the context, or when the model must transform context information into a target-specific representation. A future feature conditioned on a history and an action is an obvious example. A masked region whose location is specified by a query is another.
+Neither choice is a universal requirement for every method called JEPA. LeJEPA, for example, uses direct view agreement with an explicit distributional regularizer rather than the same teacher-predictor arrangement. What matters is that the optimization has a well-defined target and a reason the target cannot simply follow the predictor's current output.
 
-However, a separate predictor network is not a universal requirement of joint-embedding learning. For symmetric views that are intended to represent the same content, a loss can directly bring the view embeddings toward a shared centre. LeJEPA uses a multi-view construction in which a mean of global-view embeddings serves as the centre and local and global view embeddings are drawn toward it. Its basic recipe does not require the EMA teacher and predictor arrangement used by I-JEPA or V-JEPA. (Balestriero and LeCun, 2025)
+## 2.6 A predictor is useful when the target contains withheld information
 
-The choice depends on information asymmetry:
+If two branches receive equivalent views and the objective only asks their embeddings to agree, a direct consistency loss may be sufficient. A predictor becomes important when the target contains information intentionally absent from the context, or when the target representation is defined by a distinct branch. The predictor must then map from what is available to what is requested.
 
-- If the task is to make two views of the same underlying sample agree, direct view agreement may be appropriate.
-- If the target is a hidden part specified by a location or query, a predictor can map context features to that target.
-- If the target is a future that depends on a selected action, the predictor must receive the action and the model must be trained on aligned action-observation transitions.
-- If the target is linguistic, the predictor maps visual context to a text representation; that is a cross-modal prediction problem, not a physical dynamics model.
+This distinction prevents a common overgeneralization: a predictor is not a decorative network inserted into every self-supervised system. Its role follows from the information flow. If the target can be obtained from the context by a simple agreement relation, a separate predictor may be unnecessary. If the target depends on masked locations, later observations or an action that is not present in the context, the prediction interface must account for that missing condition.
 
-The predictor should be justified by the conditional problem, not included merely because a previous JEPA implementation has one.
+**Figure 4.2. The mask and query define the conditional prediction problem.**
 
-### A linguistic target: VL-JEPA
+Description: A single observation is divided into visible context and withheld target positions. The query identifies the target locations, while the mask sampler determines which evidence remains available. Nearby, distant, temporal and action-conditioned targets correspond to different conditional distributions.
 
-The target representation need not be visual. In VL-JEPA, a visual context and a text query are used to predict an embedding of a target text response. The primary predictive objective operates in the continuous text-embedding space rather than requiring autoregressive token generation at every training step. A language decoder can be applied when an explicit text answer is required.
+**Figure 4.3. A conditional mean can fall between plausible target modes.**
 
-This is another instance of the same conditional structure: the visual context and query define what is available, and the text embedding defines the target. It also makes the limit of the abstraction clear. Predicting a linguistic representation from an image is cross-modal prediction; it is not, by itself, an action-conditioned model of physical dynamics.
-
-## 2.7 Target updates are a separate design choice
-
-The notation \(f_{\bar\theta}\) does not imply a particular update rule. Several possibilities exist:
-
-1. An EMA target encoder, updated from the trainable encoder after each optimization step.
-2. A target branch that receives no gradient but is updated by another rule.
-3. A frozen encoder used as a fixed feature target.
-4. Shared or symmetric branches for multi-view objectives.
-5. A predictor-free objective in which the view embeddings are compared directly.
-
-For an EMA target,
-
-\[
-\bar\theta_{t+1}
-=
-m_t\bar\theta_t+(1-m_t)\theta_{t+1}.
-\]
-
-This update makes the target a smoothed history of the online parameters. It does not define the meaning of JEPA and is not a general proof that every collapse solution is impossible. The target-update rule, the loss, the mask sampler and the architecture form a method-specific training system.
-
-It is important not to conflate the EMA used to update a target encoder with the stop-gradient applied to a tensor in a regularizer. Both affect gradient flow, but they serve different purposes. VISReg, for example, detaches the scale statistic in the shape normalization to separate scale and shape gradients. That is not the same mechanism as using an EMA teacher.
-
-## 2.8 What a low prediction loss establishes
-
-A low value of \(\mathcal L_{\mathrm{pred}}\) establishes that the predictor matches the selected target representation under the training distribution, the chosen mask or query sampler, the normalization and the optimization procedure. It does not establish, without additional evidence, that:
-
-- the target representation preserves every variable relevant to a downstream task;
-- the representation is a sufficient state for physical prediction;
-- action effects are identified from passive observations;
-- predictions remain accurate under recursive rollout;
-- the model captures multiple futures or calibrated uncertainty;
-- a planner will find desirable or safe actions;
-- the result generalizes to unobserved action-state combinations.
-
-The next section examines the simplest failure permitted by an unconstrained agreement objective: every input can receive the same representation and achieve zero prediction error.
-
-![General JEPA context, query, predictor and target information flow](../images/chapter04/F33_general_prediction_flow.svg)
-
-**Figure 4.3. The context, target and query define the prediction problem.** The predictor receives context and a query, while a target pathway supplies the reference feature. The target branch is not necessarily an input to the predictor.
-
-![Spatial, spatiotemporal, future and action-conditioned targets](../images/chapter04/F03_target_types.svg)
-
-**Figure 4.4. Four different conditional prediction problems.** A target may be spatially hidden, spatiotemporally masked, later in time, or conditioned on an action. The target's relation to the available context defines the prediction task.
-
-![Two-mode target distribution and conditional mean](../images/chapter04/F04_conditional_mean.svg)
-
-**Figure 4.5. The conditional mean can lie between plausible outcomes.** For two equally likely target modes, the squared-error optimum is their conditional mean. That mean need not itself be a plausible physical outcome.
+Description: Two separated clusters represent alternative target features compatible with the same context. A squared-error predictor returns their probability-weighted mean, which may lie between the clusters rather than on either plausible outcome.

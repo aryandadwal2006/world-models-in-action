@@ -1,207 +1,104 @@
-# 1. Compatibility, energy and prediction
+# 1. From representation learning to prediction
 
-A predictive model can estimate an observation, represent a distribution over possible outcomes, or assign a score to a candidate configuration. These descriptions are related, but they are not interchangeable. A joint-embedding predictive architecture does not try to reproduce every detail of an observation. It learns a representation in which a selected target is compatible with the information available in a context.
+Chapter 3 ended with an encoder. Given an observation \(x\), an encoder produces a feature vector or feature map \(z=f_\theta(x)\). The representation is useful only insofar as it preserves distinctions needed by a later task. That leaves a question which the encoder alone does not answer: how should a model learn which information in one part of an observation predicts information somewhere else?
 
-The most useful starting point is therefore not an encoder architecture. It is the notion of **compatibility**.
+A joint-embedding predictive architecture (JEPA) makes the relation explicit. It selects a context, selects a target, encodes both into a shared feature space, and trains a predictor to estimate the target features from the context features. The prediction is made in representation space rather than directly in pixel space.
 
-## 1.1 A score over candidate targets
+This change is easy to state and easy to misunderstand. It does not mean that the model predicts an abstract state whose meaning is already known. The target encoder defines the feature being predicted. The mask defines which information is withheld. The predictor learns the relation between the two. Whether the resulting representation is a useful state is a further question, not a consequence of the name JEPA.
 
-Let \(x\) denote information available to a model and \(y\) a candidate target. A model can assign a scalar score
+## 1.1 The problem left by an encoder
 
-\[
-E_\theta(x,y)\in\mathbb R.
-\]
+Suppose a camera observes a table with a cup, a hand and a robot gripper. An encoder can map the image to a grid of features. But the grid by itself does not tell us which features should be related. One training task might require identifying the cup. Another might require locating its rim. A third might ask what visual change is likely after the gripper closes.
 
-Adopt the convention that lower values indicate greater compatibility. Given \(x\), an inference procedure can select a target by solving
+These tasks depend on overlapping information, but they do not ask for the same target. An image-level category may ignore the cup's exact position. A localization task cannot. A prediction of the result of closing the gripper must preserve information about contact and geometry. The representation-learning objective must therefore specify which relation the encoder is being trained to support.
 
-\[
-\widehat y(x)=\arg\min_{y\in\mathcal Y}E_\theta(x,y).
-\]
+Pixel reconstruction is one possible choice. It asks a decoder to reproduce the withheld pixels. That objective can be useful when appearance itself matters, but it also rewards detail that may not matter to the task. A model may spend capacity reproducing texture, lighting or small image variations even when the useful prediction concerns object identity, spatial arrangement or motion.
 
-This is a ranking or optimization rule. It identifies which candidate the model prefers, but it does not specify a probability for that candidate.
+Feature prediction changes the target. Instead of asking the decoder to reproduce a missing image region, the model asks a predictor to estimate the target encoder's features at the corresponding positions. The training signal is still derived from the observation, but the object being matched is a learned representation.
 
-A probability density can be defined from an energy by choosing a Gibbs distribution,
+Neither target is automatically superior. Reconstructing appearance can preserve detail that a feature encoder discards. Predicting features can avoid spending the entire objective on pixel-level fidelity. The decision is about what the downstream system needs to retain.
 
-\[
-p_\theta(y\mid x)
-=
-\frac{\exp[-E_\theta(x,y)]}{Z_\theta(x)},
-\qquad
-Z_\theta(x)
-=
-\int_{\mathcal Y}\exp[-E_\theta(x,y')]\,d\nu(y'),
-\]
+## 1.2 Context, target and predictor
 
-where \(\nu\) is a specified base measure on the target space. The normalizer \(Z_\theta(x)\), called the partition function, makes the density integrate to one. For a high-dimensional continuous target, computing this integral can be intractable. An energy-based model may therefore use its score directly for ranking or optimization without evaluating a normalized density.
+Let \(x\) be an observation, such as an image or a video clip. A sampling rule divides its information into a context and a target. Write \(x_C\) for the input available to the context branch and \(T\) for the positions whose features are to be predicted.
 
-The distinction matters in representation learning. A feature discrepancy can be used as a training loss or compatibility score without defining a calibrated distribution over future observations. A planner can minimize a scalar objective without that objective being a negative log probability. Probability requires a normalization convention and a base measure; optimization requires a scalar criterion and a search domain.
-
-## 1.2 Introducing a latent configuration
-
-A context and target may be compatible for several different reasons. There may be hidden factors, alternative explanations or multiple plausible completions. Introduce a latent variable \(z\) to represent a configuration that is not directly observed:
+The context encoder produces
 
 \[
-E_\theta(x,y,z).
+z_C=f_\theta(x_C).
 \]
 
-There are at least two ways to eliminate the latent variable from this expression. The first is to select the lowest-energy configuration,
+A target encoder produces a feature map from the target-side observation. The target features at the selected positions are
 
 \[
-F_{\min}(x,y)=\inf_z E_\theta(x,y,z).
+z_T=\left[f_{\bar\theta}(x)\right]_T.
 \]
 
-This asks whether there exists a latent configuration that makes the pair compatible. It is a minimization over \(z\).
+The notation \([\,\cdot\,]_T\) means that features are selected at target positions \(T\). It does not mean that the target encoder necessarily receives only a cropped target patch. In I-JEPA and V-JEPA, the target encoder processes the full image or clip before the selected target features are read out.
 
-The second is to aggregate over latent configurations,
+The predictor receives the context representation and information identifying the requested target positions:
 
 \[
-F_{\mathrm{marg}}(x,y)
-=
--\log\int_{\mathcal Z}
-\exp[-E_\theta(x,y,z)]\,d\nu(z).
+\widehat z_T=g_\phi(z_C,q_T).
 \]
 
-This is a negative log marginal score, up to any normalization terms needed to define the relevant conditional distribution. It combines contributions from all latent configurations rather than retaining only the minimum. If many configurations have similar energy, their combined volume can matter. The minimum-energy and marginal constructions therefore need not rank two candidate targets in the same way.
+Here \(q_T\) is a query containing the target locations. For an image, these locations are spatial. For a video, they include temporal as well as spatial coordinates. In a controlled dynamics model, the condition must also include the action whose consequence is being predicted.
 
-A latent variable is useful when context alone does not determine one target. A video prefix, for example, may be compatible with several continuations. Different values of \(z\) can select different continuations without requiring the model to average them into one deterministic prediction.
-
-The latent also creates a shortcut. If it has enough capacity to encode the target representation itself, the predictor can ignore the context and transmit the answer through \(z\). The model can then achieve low energy without learning a relation between context and target. The latent must be constrained by its dimension, distribution, inference mechanism or another design choice. The exact constraint determines how many alternatives can be represented and how information is divided between context and latent state.
-
-LeCun's JEPA formulation treats this restriction as a central design requirement: the latent should account for uncertainty that cannot be explained by context, not provide an unrestricted channel for copying the target. This is a conceptual requirement in the position paper, not a claim that it defines one universal mutual-information penalty. (LeCun, 2022)
-
-## 1.3 Joint-embedding prediction
-
-A joint-embedding predictive architecture moves the comparison from observation space to a learned representation space.
-
-Let
-
-\[
-s_x=f_\theta(x),
-\qquad
-s_y=f_{\bar\theta}(y)
-\]
-
-be representations of the context and target. A predictor maps the context representation, and possibly a query \(q\), to a target representation:
-
-\[
-\widehat s_y=g_\phi(s_x,q).
-\]
-
-The query specifies which target is requested. In an image model it may identify spatial positions. In a video model it may identify spatiotemporal positions. In an action-conditioned model it must also include the action or control sequence whose consequence is being predicted.
-
-A feature-space compatibility score is
-
-\[
-E_{\theta,\bar\theta,\phi}(x,y,q)
-=
-d\!\left(
-g_\phi(f_\theta(x),q),
-f_{\bar\theta}(y)
-\right),
-\]
-
-where \(d\) measures the discrepancy between predicted and target features. For squared Euclidean distance,
-
-\[
-d(u,v)=\|u-v\|_2^2.
-\]
-
-Training lowers this discrepancy for context-target-query triples sampled from the data distribution. The target representation determines which discrepancies count. A difference removed by \(f_{\bar\theta}\) contributes little or nothing to the objective; a difference retained by the target encoder remains visible to the loss.
-
-This is the essential change from pixel reconstruction. A pixel-level objective treats discrepancies in the observation as the quantities to explain. A latent prediction objective treats discrepancies in a learned representation as the quantities to explain. Neither choice is universally correct. Fine contact geometry or precise texture may require detailed observation-level information. Object identity, spatial layout or motion may be represented more compactly. Feature prediction changes what is supervised; it does not establish in advance that the representation is sufficient for an agent.
-
-A latent vector is not semantic merely because it is internal. Its invariances are determined by the data, target encoder, mask distribution, temporal sampling, architecture and objective. The representation is a modelling choice. Its usefulness must be evaluated against the distinctions required by downstream predictions and decisions.
-
-## 1.4 Invariance and alternative futures are different operations
-
-A context need not determine a unique target. There are two conceptually different ways to handle multiple outcomes.
-
-The first is **invariance in the target representation**. Suppose observations \(y_1,\ldots,y_m\) differ in details that are irrelevant to the task. If the target encoder maps them to the same representation,
-
-\[
-f_{\bar\theta}(y_1)
-=
-\cdots
-=
-f_{\bar\theta}(y_m),
-\]
-
-then the objective treats them as equivalent targets. A predictor can match that shared representation without choosing among the observation-level differences.
-
-This is appropriate only when those differences are genuinely irrelevant. If the encoder removes object position, contact state or gripper aperture when the task depends on those variables, the invariance is destructive. The training objective has no direct reason to recover information that the target representation has removed.
-
-The second operation is a **latent variable that selects among alternatives**. For example,
-
-\[
-\widehat s_y=g_\phi(f_\theta(x),z).
-\]
-
-For a fixed context \(x\), different values of \(z\) can produce different predicted representations. The latent preserves distinctions between possible outcomes but allows the model to select among them. A vehicle approaching a fork may turn left or right. The two futures remain different, but the current image does not determine which one will occur.
-
-These mechanisms are not interchangeable. Invariance says that two outcomes should count as the same for the task. A latent variable says that the outcomes remain different, but the available context does not determine which one should be predicted. The first removes a distinction; the second represents an unresolved choice.
-
-## 1.5 The latent must not become a copy of the answer
-
-Suppose the latent \(z\) can carry a vector with the same information as the target representation \(s_y\), and the predictor is expressive enough to ignore the context and output \(z\). It can choose \(z=s_y\), giving
-
-\[
-d\!\left(g_\phi(s_x,z),s_y\right)=0
-\]
-
-without learning how the context relates to the target.
-
-The objective would be minimized for the wrong reason. The predictor would not be estimating the target from context; the latent would be transmitting the target directly.
-
-A useful architecture must therefore decide which information is permitted to enter the latent variable and how that information is selected. Its capacity may be limited, its distribution may be constrained, or its values may be inferred through a separate mechanism. A model that needs several plausible futures must preserve enough capacity to represent them, while preventing the latent from making every target trivially predictable.
-
-This is a design tension rather than a universal recipe. A discrete latent with a small codebook, a low-dimensional continuous latent and a stochastic latent with a prior make different assumptions. Their suitability depends on the structure and number of alternatives the task requires.
-
-## 1.6 Prediction loss, compatibility energy and task cost
-
-Three scalar quantities appear repeatedly in predictive agent systems.
-
-**Prediction loss** compares the model output with a training target. A generic feature-prediction objective is
+The learning objective compares the predicted target features with the target encoder's features:
 
 \[
 \mathcal L_{\mathrm{pred}}
 =
-\mathbb E_{(x,y,q)\sim p_{\mathrm{data}}}
+\mathbb E_{(x,C,T)\sim\mathcal D}
 \left[
-d\!\left(
-g_\phi(f_\theta(x),q),
-f_{\bar\theta}(y)
+\ell\!\left(
+g_\phi(f_\theta(x_C),q_T),
+[f_{\bar\theta}(x)]_T
 \right)
 \right].
 \]
 
-It is defined by the chosen representation, target sampling distribution and discrepancy function. It answers whether the predictor matches the selected target features.
+The expectation is over the training distribution \(\mathcal D\), including the observations and the sampled context-target configurations. The function \(\ell\) measures disagreement in the chosen feature space. Squared error, absolute error and smooth-\(L_1\) loss make different statistical choices; the architecture does not fix one universal discrepancy.
 
-**Compatibility energy** scores a candidate configuration under a learned model. It may have the same mathematical form as a prediction discrepancy, but its interpretation depends on how the score is trained and used. It is not necessarily a calibrated probability.
+A JEPA is therefore not specified by three network boxes alone. It is specified by the input distribution, the context sampler, the target sampler, the target encoder, the query representation, the predictor and the feature loss. Changing any of these can change what the model is required to learn.
 
-**Task cost** evaluates a predicted state or trajectory according to an agent's objective. It may penalize distance from a goal, collision, excessive force, energy use or discomfort. It answers whether a predicted outcome is desirable.
+## 1.3 Why the target is a feature
 
-A common scalar notation does not make these quantities interchangeable. A small prediction loss does not imply that a future is desirable. A low compatibility energy does not imply safety. A task cost need not equal the discrepancy used to train the representation.
+Let \(r(x)\) be a representation that an ideal downstream task would use. A pixel loss compares the prediction with the observation \(x\). A feature loss compares it with \(f_{\bar\theta}(x)\). This gives the target encoder an important role: it decides which differences in the observation remain visible to the prediction objective.
 
-This distinction becomes essential when an action-conditioned model is placed inside a planner. The model predicts what may happen under a candidate action. A separate cost evaluates the predicted outcome. The planner searches for actions that reduce that cost. A predictive representation supplies part of this process; it does not specify the complete decision problem.
+If a change in illumination is removed by the target encoder, the predictor is not penalized for failing to reproduce it. If object position is retained, the predictor must estimate position-dependent features. The target encoder therefore supplies an implicit definition of which distinctions count.
 
-## 1.7 What does the target represent?
+That definition can be helpful or harmful. An encoder that removes background texture may make prediction easier without damaging a control task. An encoder that removes the relative position of two objects may make prediction easier while destroying information required for collision avoidance. Feature prediction does not discover the correct invariances independently of its target representation; it learns to match the invariances already expressed by that representation.
 
-A target is not necessarily a future observation. The word *prediction* refers to estimating a withheld quantity from available information. The target's temporal and informational relation to the context must be stated.
+This is why low prediction error is not itself evidence of a good state. It establishes that one branch can match selected outputs of another branch on the sampled training distribution. To establish that the features are useful, they must be tested on predictions or decisions that were not built into the pretraining loss.
 
-- A **spatial target** is a hidden region or set of patches from the same image. It asks what can be inferred about a withheld part of the observation.
-- A **spatiotemporal target** is a masked region of a video clip. It asks which features are compatible with the visible space-time context.
-- A **future target** is sampled from a later observation or state. Its prediction horizon depends on temporal stride and sampling.
-- An **action-conditioned target** is predicted after specifying an intervention. The action is part of the condition, not simply a label attached to the observed outcome.
-- A **cross-modal target** belongs to a different modality. A visual context may be used to predict a text representation, for example.
+## 1.4 A score is not yet a probability or a task objective
 
-These are different conditional prediction problems. The phrase *predictive representation* includes all of them, but it does not make them equivalent. A masked image objective does not become a physical dynamics model because its target is hidden. A video objective does not become causal because the target occurs later in time. An action-conditioned objective requires the action to be represented in the model input and aligned with the transition being predicted. (Assran et al., 2023; Bardes et al., 2024; Assran et al., 2025; Chen et al., 2025/2026)
+It is useful to describe the feature discrepancy as a compatibility score. Define
 
-![Energy landscape with multiple compatible target modes](../images/chapter04/F01_energy_landscape.svg)
+\[
+E(x_C,q_T,z_T)
+=
+\ell\!\left(g_\phi(f_\theta(x_C),q_T),z_T\right).
+\]
 
-**Figure 4.1. Energy across candidate targets.** For a fixed context, several candidate targets may occupy low-energy regions. The energy ranks compatibility; a probability interpretation requires a normalization and base measure.
+A smaller value means that the candidate target feature is more compatible with the context and query under the learned model. Averaging this score over training examples gives a prediction loss.
 
-![Prediction discrepancy, compatibility score and task cost](../images/chapter04/F02_scalar_roles.svg)
+The score is not automatically a probability. To turn an energy \(E\) into a normalized conditional density, one must choose a base measure and a partition function:
 
-**Figure 4.2. Three distinct scalar objectives.** A feature discrepancy is a training signal, an energy scores compatibility, and a task cost evaluates desirability. One system may use all three, but they are not interchangeable.
+\[
+p(z_T\mid x_C,q_T)
+=
+\frac{\exp[-E(x_C,q_T,z_T)]}
+{\int \exp[-E(x_C,q_T,z)]\,d\nu(z)}.
+\]
 
-The next section defines the context, target and query variables more carefully. This is necessary before discussing the optimization objective, the information it can preserve, or the degenerate solutions it admits.
+For a high-dimensional continuous feature space, the normalizing integral may be intractable. A model can therefore use an energy for ranking candidates without having a calibrated probability distribution over them.
+
+A task cost is different again. A planner may care about reaching a goal, avoiding collision or limiting force. The prediction loss teaches the model to match observed target features; a task cost evaluates whether an imagined outcome is desirable. Conflating these quantities makes a learned model appear more capable than its objective warrants.
+
+This distinction will become important when the chapter moves from masked prediction to robot control. A predictor can estimate a future feature. A planner needs a way to compare futures. The two operations are connected, but they are not the same.
+
+**Figure 4.1. The prediction target is a representation, not a reconstructed patch.**
+
+Description: A context encoder processes the visible part of an image or clip. A separate target pathway encodes the complete observation and supplies features at selected positions. The predictor receives the context features and target-location query, then estimates the selected target features.
