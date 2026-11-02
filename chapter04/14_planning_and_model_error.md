@@ -1,206 +1,132 @@
-# 14. Planning with a learned predictive model
+# 14. Planning with a learned predictor
 
-An action-conditioned predictor estimates how a representation may change under a specified control input. Planning adds another problem: choose a sequence of controls so that the predicted outcome satisfies an objective.
+A transition model becomes useful for control when it can evaluate the consequences of candidate actions. The planner supplies the objective that distinguishes desirable futures from undesirable ones. Prediction and planning are linked through imagined trajectories, but they optimize different quantities.
 
-The predictor and the planner therefore have different responsibilities. The predictor estimates consequences. The planner compares those consequences and searches over possible actions. Their interaction creates capabilities that neither component has alone, but it also creates failure modes that are absent from ordinary representation evaluation.
+## 14.1 From a one-step transition to a trajectory
 
-## 14.1 From a one-step prediction to a candidate trajectory
-
-Let \(z_t\) denote the current latent state, \(a_t\) a control input, and \(g_\phi\) an action-conditioned transition predictor. A deterministic one-step model has the form
+Suppose the model receives a state \(S_t\) and an action \(A_t\), and predicts the next state:
 
 \[
-\widehat z_{t+1}=g_\phi(z_t,a_t).
+\widehat S_{t+1}=F_\phi(S_t,A_t).
 \]
 
-A model with observation history or proprioception can include those variables as additional inputs. For a candidate action sequence
+Applying the predictor repeatedly gives an imagined trajectory under an action sequence:
 
 \[
-\mathbf a_{t:t+H-1}
+\widehat S_{t+k+1}
 =
-(a_t,a_{t+1},\ldots,a_{t+H-1}),
+F_\phi(\widehat S_{t+k},A_{t+k}).
 \]
 
-the model is iterated to produce a predicted latent trajectory:
+The model can therefore evaluate a sequence before the agent executes it. For a finite horizon \(H\), a general planning objective is
 
 \[
-\widehat z_{t+k+1}
-=
-g_\phi(\widehat z_{t+k},a_{t+k}),
-\qquad k=0,\ldots,H-1.
-\]
-
-This is a model rollout. It is not a prediction of the real environment at every intermediate step. It is the trajectory implied by repeated application of the learned transition function.
-
-A planner evaluates the candidate sequence using a cost. A simple goal-conditioned objective is
-
-\[
-J(\mathbf a_{t:t+H-1})
-=
-d(\widehat z_{t+H},z_g)
+\min_{A_{t:t+H-1}}
+\mathbb E
+\left[
+\sum_{k=0}^{H-1}
+c(\widehat S_{t+k},A_{t+k})
 +
-\sum_{k=0}^{H-1}c_a(a_{t+k}),
+V_{\mathrm{term}}(\widehat S_{t+H})
+\right].
 \]
 
-where \(z_g\) is a goal representation, \(d\) measures terminal mismatch, and \(c_a\) penalizes action magnitude or another control preference. A more general objective can accumulate state costs:
+The immediate cost \(c\) evaluates states and actions during the imagined trajectory. The terminal value \(V_{\mathrm{term}}\) estimates the value beyond the explicit rollout. Without a terminal term, a finite-horizon planner can prefer a trajectory that makes quick progress during the search window but ends in a poor state just beyond it.
+
+The objective is not the same as the feature-prediction loss. The predictor is trained to match observed transitions. The planner minimizes a task cost evaluated on predicted states. A low transition error does not imply that the task cost is low, and a low task cost under the model does not guarantee that the real environment will produce the imagined state.
+
+## 14.2 Image goals and feature-space distance
+
+In image-goal control, the goal may be an image \(X_g\) rather than a vector of physical coordinates. An encoder maps the current observation and goal image into features:
 
 \[
-J(\mathbf a)
-=
-\sum_{k=1}^{H}c_z(\widehat z_{t+k})
-+
-\sum_{k=0}^{H-1}c_a(a_{t+k})
-+
-c_T(\widehat z_{t+H}).
-\]
-
-The components have different meanings. The transition model predicts latent states. The goal or cost function evaluates them. The action penalty expresses a control preference. The planner searches over the sequence.
-
-A low training prediction loss does not specify any of these planning choices. A latent predictor cannot decide by itself whether a future is desirable.
-
-## 14.2 Image goals and latent distance
-
-A common goal-conditioned setup supplies a target image \(o_g\). The current observation and goal image are encoded into representations,
-
-\[
-z_t=f_\theta(o_t),
+Z_t=E(X_t),
 \qquad
-z_g=f_\theta(o_g).
+Z_g=E(X_g).
 \]
 
-For each candidate action sequence, the transition model predicts a future representation \(\widehat z_{t+H}\). The planner can then minimize a goal discrepancy such as
+A simple terminal cost is a feature discrepancy,
 
 \[
-d(\widehat z_{t+H},z_g).
+c_{\mathrm{goal}}(\widehat Z_{t+H},Z_g)
+=
+\|\widehat Z_{t+H}-Z_g\|_1.
 \]
 
-This avoids requiring the model to decode every predicted state into an image before the planner can compare it with the goal. It can also make the objective insensitive to appearance variation that the encoder has learned to ignore.
+This cost is useful only to the extent that the representation preserves distinctions relevant to the goal. If two visually different states are mapped to similar features, the planner may consider them interchangeable. If a feature distance ignores contact, collision or object orientation, it may reward an unsafe or incomplete outcome.
 
-But latent distance is only a proxy for physical success. If the encoder discards gripper aperture, contact state or a small obstacle, a low latent distance can correspond to an unsafe or unsuccessful physical state. The goal representation and the transition representation must preserve the variables needed to distinguish success from failure.
-
-A visual goal can also be ambiguous. The same image may be reached through different object configurations, contact conditions or robot postures. Whether those states are interchangeable depends on the task. A goal encoder does not automatically resolve this ambiguity.
+Goal matching is not a safety specification. Collision constraints, actuator limits and force limits must be represented separately when they matter. A latent distance can rank visual similarity; it does not certify that the path between two feature vectors is physically safe.
 
 ## 14.3 Searching over action sequences
 
-The action space may be continuous and the sequence horizon long. Directly evaluating every possible sequence is usually infeasible. Planning therefore relies on an optimization or search procedure.
+The planner must solve an optimization problem over a sequence of actions. Gradient-based optimization is possible when the model and action parameterization are differentiable, but it can be sensitive to non-smooth constraints and model errors. Sampling-based methods search by evaluating candidate sequences.
 
-One option is gradient-based optimization. If the transition model and cost are differentiable, gradients can be propagated through the imagined rollout to the candidate action variables:
+The Cross-Entropy Method (CEM), used in V-JEPA 2, maintains a distribution over action sequences. It samples candidates, evaluates their predicted costs, selects an elite subset with the best scores, and updates the sampling distribution toward those candidates. Repeating this procedure concentrates samples in regions of action space that the model predicts to be promising.
 
-\[
-\nabla_{\mathbf a}J(\mathbf a).
-\]
+The search budget matters. More samples and iterations can find lower-cost trajectories under the model, but the model may be inaccurate for the states and actions that the optimizer discovers. A stronger optimizer can therefore make real-world performance worse if it is allowed to exploit errors in the learned transition model.
 
-The optimizer changes the action sequence to reduce predicted cost. This is possible because the learned model is a differentiable computation graph. It does not imply that gradients pass through the physical environment. The agent optimizes actions inside its model, executes a selected action in the environment, and then obtains a new observation.
-
-A derivative-free alternative is the cross-entropy method (CEM). It maintains a distribution over candidate action sequences:
-
-\[
-\mathbf a^{(i)}\sim q_\psi(\mathbf a),
-\qquad i=1,\ldots,N.
-\]
-
-Each sampled sequence is rolled through the learned model and assigned a cost. The method selects an elite set with low predicted cost and refits the sampling distribution to those candidates. Repeating this procedure concentrates samples around sequences that the model predicts to be promising.
-
-CEM does not require gradients through the predictor, though it still depends on the predictor's accuracy. It can also search over actions whose parameterization is inconvenient for direct gradient descent. Its effectiveness depends on the sample count, number of iterations, distribution family, horizon and action bounds.
-
-Neither gradient descent nor CEM is intrinsically a guarantee of good physical behaviour. They optimize the objective supplied to them under the model they are given. If that objective or model is wrong, a more effective optimizer may find a more convincing failure.
+The planner is optimizing the model's prediction, not the true environment. This is the source of model exploitation.
 
 ## 14.4 Receding-horizon feedback
 
-A planner normally does not execute an entire optimized sequence open loop. It executes the first action or a short prefix, obtains a new observation, estimates the current state again, and replans.
+An open-loop plan would execute the entire optimized action sequence without observing the environment again. Small model errors can then accumulate over the full horizon. A common alternative is receding-horizon control:
 
-At time \(t\), solve
+1. Observe the current environment and encode its state.
+2. Optimize a candidate action sequence over a finite horizon.
+3. Execute only the first action or short initial segment.
+4. Receive a new observation and update the current state.
+5. Replan from the new observation.
+
+The next observation corrects some of the prediction error before the remaining actions are executed. This feedback loop does not make the model exact, and it does not guarantee safety. It limits how long the controller relies on one open-loop imagined trajectory.
+
+The horizon remains a trade-off. A short horizon limits accumulated prediction error but may miss actions whose benefit appears later. A long horizon can represent delayed consequences, but the predictor must remain accurate through repeated application and the search becomes more demanding.
+
+## 14.5 Why optimization can make model error worse
+
+Let the true transition be \(F^\star\) and the learned model be
 
 \[
-\mathbf a^*_{t:t+H-1}
-=
-\arg\min_{\mathbf a_{t:t+H-1}}
-J_t(\mathbf a_{t:t+H-1}).
+F_\phi(s,a)=F^\star(s,a)+\epsilon_\phi(s,a),
 \]
 
-Execute \(a_t^*\), observe the environment at \(t+1\), update the representation and solve a new optimization problem. This is the receding-horizon principle used in model-predictive control.
+where \(\epsilon_\phi\) denotes prediction error in an appropriate state representation. If the planner searches for actions that minimize model-predicted cost, it may find regions where \(\epsilon_\phi\) makes the predicted outcome look unusually good.
 
-Replanning limits how long the system commits to a single predicted trajectory. It can compensate for disturbances and moderate model errors because the next plan starts from a fresh observation. It does not remove systematic bias. If the model repeatedly underestimates a collision risk or ignores a hidden state, replanning can repeatedly choose the same unsafe action.
+This is not random evaluation error. The optimizer actively selects actions based on the model's outputs. Even if prediction errors are small on average under the training distribution, the minimum predicted cost across many candidates can be biased toward sequences with optimistic errors.
 
-Feedback is therefore a robustness mechanism, not a proof of safety.
+The effect intensifies with search. More samples increase the chance of finding a sequence that exploits a model defect. The optimizer does exactly what it is designed to do: it finds the best candidate according to the supplied model. The failure is that the model is not accurate enough over the region the optimizer explores.
 
-## 14.5 Why planning can fail when prediction looks good
-
-Prediction error is usually measured on trajectories sampled from a data distribution. A planner does not sample actions according to that same distribution. It actively searches for sequences that minimize the model's estimated cost. This creates a form of distribution shift.
-
-Consider a model that is accurate on ordinary actions but slightly wrong in a particular region of the action space. A planner searches many candidates and may discover a sequence that exploits the error. The predicted trajectory appears to reach the goal cheaply, so the optimizer prefers it. In the real environment, the sequence fails.
-
-This is often called model exploitation or model bias exploitation. The planner is not necessarily behaving irrationally. It is solving the optimization problem it was given. The problem is that the model's predictions are trusted outside the region where they have been validated.
-
-Several effects make this more likely:
-
-- **Horizon growth.** Small one-step errors compound when the model is iterated over many steps.
-- **Action distribution shift.** The optimizer may choose actions that were rare or absent in the training trajectories.
-- **Representation aliasing.** Two physical states that respond differently to an action may have similar latent representations.
-- **Unmodelled state.** Proprioception, contact, friction or other hidden variables may be omitted.
-- **Cost mismatch.** A goal-distance objective may reward a state that violates a safety or feasibility constraint.
-- **Search pressure.** Evaluating many candidate sequences increases the chance of finding a sequence whose predicted value is optimistic because of model error.
-
-A planning result must therefore report the model, training data, action representation, horizon, planner, objective, search budget, environment and execution protocol. Reporting only a representation benchmark or a one-step prediction score is insufficient.
+Mitigations include collecting data near planner-proposed states, penalizing uncertain predictions, using ensembles to identify disagreement, constraining candidate actions to supported regions, and replanning frequently. Each helps only under assumptions. Ensemble agreement does not prove correctness if all models share the same bias. A penalty on uncertainty is useful only if the uncertainty estimate is calibrated enough to detect unfamiliar states. Restricting actions to the data support can reduce extrapolation but may also exclude useful behaviours.
 
 ## 14.6 Multiple futures and uncertainty
 
-A deterministic transition model maps one context and action to one predicted future. Real environments may have multiple possible outcomes because of stochastic dynamics, partial observability, other agents or model uncertainty.
+For a fixed state and action, the next state may be stochastic because of unobserved variables, sensor noise or genuinely random dynamics. A deterministic predictor trained with a pointwise loss estimates a statistic of the conditional target, such as a mean under squared error or a median under absolute error. It may not preserve several distinct outcomes.
 
-A more complete model represents a conditional distribution,
+For planning, uncertainty matters when different plausible futures have different costs. One option is to predict a distribution or several latent hypotheses and evaluate candidate actions across those outcomes. Another is to maintain an ensemble of transition models and examine their disagreement. These are different approximations to uncertainty; neither guarantees that all relevant futures have been represented.
 
-\[
-p_\phi(z_{t+1:t+H}\mid z_{\le t},\mathbf a_{t:t+H-1}),
-\]
+A model that outputs one plausible feature sequence can still be useful in near-deterministic settings. In ambiguous settings, averaging incompatible futures can produce a feature vector that corresponds to no realizable state. The planner must then be designed around the output semantics of the predictor rather than treating every predicted vector as a physical state.
 
-or a set of alternative hypotheses. A latent variable can index possible futures, but it must be structured so that it selects meaningful alternatives rather than simply copying the target.
+## 14.7 Prediction quality, task value and safety
 
-A planner using uncertain predictions has to decide how to evaluate risk. It might minimize expected cost,
+Three evaluations should remain separate.
 
-\[
-J_{\mathrm{mean}}(\mathbf a)
-=
-\mathbb E_{Z\sim p_\phi(\cdot\mid\mathbf a)}
-[C(Z)],
-\]
+**Transition accuracy** measures whether the model predicts observed or intervened outcomes.
 
-or it might penalize high-cost tails, worst-case outcomes or violations of a chance constraint. These choices produce different behaviour. Expected cost can prefer a sequence with a small probability of catastrophic failure if most outcomes are cheap. A risk-sensitive objective can prefer a more conservative action.
+**Task value** measures whether the imagined outcome satisfies the goal or cost function.
 
-The uncertainty estimate itself must be evaluated. A stochastic predictor does not guarantee calibrated probabilities. An ensemble does not automatically capture all uncertainty. A multi-hypothesis model can still omit a mode. The planner's risk criterion is only as reliable as the predictive distribution it receives.
+**Safety** measures whether the trajectory respects constraints on collision, force, workspace, velocity or other hazards.
 
-## 14.7 Safety is not a latent distance
+A model can be accurate while the planner chooses an undesirable action because its cost is wrong. A model can predict a goal-like final image while the intermediate trajectory collides with an obstacle. A trajectory can satisfy a learned feature cost while violating an unmodelled physical constraint.
 
-Suppose a planner minimizes only the distance between a predicted latent and a goal latent. Unless the representation and objective explicitly preserve and penalize unsafe states, the optimizer has no reason to avoid them.
+This is why a world model does not replace a task specification or a safety layer. It supplies imagined consequences that other components use. Closed-loop deployment must evaluate the full system under the hazards and constraints of the actual environment.
 
-A manipulation system may need explicit constraints on collision, force, velocity, joint limits and gripper state. A navigation system may need obstacle constraints and a margin around forbidden regions. These constraints can be imposed in the cost, in the action parameterization, through a separate safety filter, or by a combination of mechanisms.
+**Figure 4.22. Receding-horizon planning executes an action and then replans.**
 
-The role of a world model is to predict consequences that the planner can evaluate. It does not decide by itself which consequences are acceptable. Nor does a low energy or a low feature distance imply a safe state.
+Description: A planner samples and evaluates action sequences using a learned transition model. It executes only the first action, obtains a new observation and repeats the optimization from the updated state.
 
-## 14.8 What a physical planning result demonstrates
+**Figure 4.23. Search can exploit optimistic prediction errors.**
 
-A successful physical planning experiment demonstrates that a complete system worked under the reported conditions. The system includes at least:
+Description: Several candidate trajectories have similar true outcomes, but one is assigned an artificially low model-predicted cost. An optimizer selects that trajectory because it appears best under the model, even though it fails when executed in the environment.
 
-1. an observation encoder and state representation;
-2. a predictor conditioned on relevant actions and state variables;
-3. training trajectories that support the requested predictions;
-4. a goal representation and task cost;
-5. a planner and a specified optimization budget;
-6. an execution interface and feedback loop;
-7. an environment and a measured success criterion.
+**Figure 4.24. A point prediction can hide distinct plausible futures.**
 
-The V-JEPA 2-AC experiments are an example of this system-level evidence. The visual encoder is pretrained from passive data, the action-conditioned predictor is post-trained on robot trajectories, and an image-goal planner searches candidate action sequences. The reported physical outcome belongs to that complete configuration. (Assran et al., 2025) It should not be attributed to the visual encoder alone.
-
-A responsible evaluation should distinguish simulated from physical results, familiar from unfamiliar environments, one-step from multi-step training, and matched from unmatched planner budgets. Success rates should be read with the number of trials, task definition and uncertainty across trials. A single aggregate score cannot certify safety or generalization to all objects, robots and environments.
-
-A predictive model becomes useful for action only when it can be queried with interventions and integrated into an objective, search procedure and feedback loop. The final section examines the larger architecture proposed to organize these capabilities, including memory, multiple levels of prediction and the distinction between fast reactive behaviour and deliberative planning.
-
-![Receding horizon planning loop](../images/chapter04/F16_planning_loop.svg)
-
-**Figure 4.27. A planner executes the first action and replans.** Candidate action sequences are evaluated through imagined rollouts, but only the first action is executed. A fresh observation closes the feedback loop and starts the next optimization.
-
-![Predicted trajectory versus real environment failure](../images/chapter04/F17_model_exploitation.svg)
-
-**Figure 4.28. Search can exploit prediction error.** An optimizer may find a sequence with deceptively low model-predicted cost that fails in the real environment. More search can intensify this failure by selecting optimistic model errors.
-
-![Multiple future outcomes from one context and action](../images/chapter04/F27_multiple_futures.svg)
-
-**Figure 4.29. A single deterministic prediction can hide multiple futures.** One context and action can admit several plausible outcomes. A distribution or latent selector can preserve these alternatives instead of collapsing them into one averaged feature.
+Description: One state-action pair leads to several separated outcome modes. A deterministic point estimate may lie between them, whereas a distribution or multiple hypotheses can preserve the alternatives relevant to planning.
