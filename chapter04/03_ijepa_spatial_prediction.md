@@ -83,7 +83,7 @@ m\bar\theta+(1-m)\theta,
 
 with a momentum coefficient \(m\) scheduled during training. This update makes the target evolve more slowly than the online model. It reduces the tendency for the target to move immediately in response to the predictor's current error, but it is not, by itself, a theorem that rules out every degenerate solution.
 
-The distinction between paper equation and released implementation is not cosmetic. A mathematical description should state the objective being analysed; an implementation description should state the numerical operations actually used. When those differ, report both rather than silently treating one as the other.
+The distinction between paper equation and released implementation is not cosmetic. A mathematical description should state the objective being analysed; an implementation description should state the numerical operations actually used. When those differ, report both rather than silently treating one as the other. The target/context paths and EMA update are described in the I-JEPA paper; the normalization and smooth-💡L1 details above refer to the released training code (Assran et al., 2023; [official implementation](https://github.com/facebookresearch/ijepa)).
 
 ## 3.5 Why spatial prediction can produce useful features
 

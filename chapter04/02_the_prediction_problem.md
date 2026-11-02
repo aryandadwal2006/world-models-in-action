@@ -28,7 +28,7 @@ A mask is not a neutral deletion operation. It determines which evidence remains
 
 There is no universally correct mask independent of the task. A mask that makes targets almost trivial can reward shortcuts. A mask that removes nearly all useful evidence can make the conditional target highly uncertain. The objective is shaped by the range of conditional problems sampled during training, not merely by the choice of neural architecture.
 
-The query matters for the same reason. A target feature is indexed by a location. If the predictor is not told which location it should estimate, it must either produce all target positions or infer the requested position from another convention. Supplying explicit position information makes the prediction interface well-defined.
+The query matters for the same reason. A target feature is indexed by a location. If the predictor is not told which location it should estimate, it must either produce all target positions or infer the requested position from another convention. Supplying explicit position information makes the prediction interface well-defined. I-JEPA uses spatial target queries, while V-JEPA extends the query to spatiotemporal positions (Assran et al., 2023; Bardes et al., 2024).
 
 ## 2.3 What does squared-error prediction return?
 

@@ -60,7 +60,7 @@ g_\phi(f_\theta(x_C),q_T),
 
 The expectation is over the training distribution \(\mathcal D\), including the observations and the sampled context-target configurations. The function \(\ell\) measures disagreement in the chosen feature space. Squared error, absolute error and smooth-\(L_1\) loss make different statistical choices; the architecture does not fix one universal discrepancy.
 
-A JEPA is therefore not specified by three network boxes alone. It is specified by the input distribution, the context sampler, the target sampler, the target encoder, the query representation, the predictor and the feature loss. Changing any of these can change what the model is required to learn.
+A JEPA is therefore not specified by three network boxes alone. It is specified by the input distribution, the context sampler, the target sampler, the target encoder, the query representation, the predictor and the feature loss. Changing any of these can change what the model is required to learn. This formulation follows the predictive-architecture proposal and the original image and video JEPA constructions (LeCun, 2022; Assran et al., 2023; Bardes et al., 2024).
 
 ## 1.3 Why the target is a feature
 
