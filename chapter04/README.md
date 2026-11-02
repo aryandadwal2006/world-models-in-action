@@ -1,42 +1,27 @@
 # Chapter 4: Predicting in representation space
 
-This directory contains the canonical, section-by-section reader-facing source of Chapter 4. Each numbered section is a separate Markdown file. The consolidated AsciiDoc and PDF are generated only after the sources and figures are checked.
+This directory contains the canonical, section-by-section source of Chapter 4. Each numbered section is a separate Markdown file. The manuscript is being rewritten to improve its explanations, mathematical progression and continuity with Chapter 3.
 
 ## Governing argument
-1. Compatibility, energy, probability and task cost.
-2. Context, target, query, target distribution and squared-error prediction.
-3. I-JEPA spatial context-to-target prediction.
-4. V-JEPA spatiotemporal masking and its distinction from causal future prediction.
-5. Constant and rank-deficient collapse.
-6. Task-relative predictive sufficiency and embedding geometry.
-7. Linear downstream risk under ridge and least squares.
-8. Nonlinear local-regression risk and Fisher information.
-9. Characteristic functions, Cramér–Wold and SIGReg.
-10. VISReg's separation of centre, scale and shape.
-11. VL-JEPA and prediction of text embeddings from visual context.
-12. V-JEPA 2's two-stage system and V-JEPA 2.1 dense-feature supervision.
-13. Action-conditioned prediction and intervention assumptions.
-14. Planning, feedback and model exploitation.
-15. Memory, hierarchy, Mode 1/Mode 2 and predictive-agent architecture.
-16. A tensor-level walkthrough of one JEPA training step.
-17. Synthesis and exercises.
+
+A representation becomes useful to a world model when the system can predict information absent from the current context. JEPA formulates this as prediction in a learned feature space. The target definition determines what must be preserved; the distribution of embeddings affects how downstream estimators use those features; and explicit action conditioning is required before passive prediction becomes a model of controlled consequences.
+
 ## Source files
-The 17 section files are named `01_...` through `17_...`. `references.md` is the reader-facing bibliography source, `figure-register.md` maps all embedded figures to their assets, and `source-audit.md` records the primary-source review and access limitations.
 
-## Figures
-The chapter embeds 34 original explanatory SVG diagrams from `../images/chapter04/`. They explain the derivations and information paths, are not copies or tracings of paper artwork, and remain editable vector assets.
+The 17 numbered Markdown files are the reader-facing sources. `references.md` is the bibliography source, `source-audit.md` records the primary-source review and its access limitations, and `figure-register.md` contains text-only figure briefs.
 
-## Editorial and technical rules
-- Define mathematical objects before using them; derive central equations.
-- Distinguish identities, theorems under assumptions, empirical results and architectural proposals.
-- Do not infer action-conditioned dynamics from an action-free video objective.
-- Do not infer physical sufficiency, causality, calibrated uncertainty or planning competence from low representation loss or a probe score.
-- Scope LeJEPA's Gaussian-optimality result to its stated estimators, risk functionals, covariance constraints and regularity assumptions.
-- Cramér–Wold concerns all directions; finite stochastic projections are an approximation.
-- A derivative with respect to a scale statistic is not a guarantee about every encoder-parameter gradient.
-- An energy is not a probability density without a normalization and base measure.
-- Do not claim experiments were reproduced when only papers or code were inspected.
-- Use professional academic prose, with no author-facing process commentary.
+## Figure policy
 
-## Source inventory and access
-The supplied papers and first-principles JEPA notes remain in `rough-draft/chapter4/`. Their source mapping and review boundary are recorded in `references.md` and `source-audit.md`. The GitHub connector exposed the PDF names, sizes and blob identifiers, but did not expose the stored binary PDF bytes for local page-by-page visual inspection. Matching versioned primary-source texts were reviewed; this is not a claim that all eight exact repository PDF binaries were visually inspected on every page.
+Chapter 4 contains **no inserted figures and no image assets**. Where a figure would materially clarify an argument, the section contains only a numbered caption and a short description. No SVG, PNG, raster, or other image embed may be added until the prose is complete and figure artwork is explicitly requested.
+
+## Editorial rules
+
+- Define mathematical objects before using them; derive the equations that carry the argument.
+- Explain why each assumption is needed and what changes when it is relaxed.
+- Distinguish a training objective from the statistical quantity it approximates and from the downstream task it is meant to support.
+- Distinguish spatial masking, spatiotemporal masking, future prediction and action-conditioned prediction.
+- Do not infer causality, physical sufficiency, calibrated uncertainty or planning competence from low representation loss.
+- Scope theorems to their assumptions and empirical results to their actual protocols.
+- Explain papers only where their mechanism advances the chapter's argument; do not turn the chapter into a publication survey.
+- Use Chapter 3's incremental explanatory clarity without copying its section structure.
+- Keep author-facing process commentary out of reader-facing text.

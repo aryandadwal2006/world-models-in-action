@@ -1,15 +1,5 @@
 name: Chapter 4 manuscript PDF
 on:
-  push:
-    branches: [manuscript]
-    paths:
-      - 'chapter04/**'
-      - 'images/chapter04/**'
-      - 'manuscript/assemble-ch04.py'
-      - 'manuscript/verify-ch04-manuscript.py'
-      - 'manuscript/build-ch04-pdf.sh'
-      - 'manuscript/verify-ch04-pdf.sh'
-      - '.github/workflows/chapter4-pdf.yml'
   workflow_dispatch:
 permissions:
   contents: write

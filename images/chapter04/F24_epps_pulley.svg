@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="520" viewBox="0 0 1100 520"><defs><marker id="a" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0L9 4.5L0 9Z" fill="#65717D"/></marker><marker id="b" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0L9 4.5L0 9Z" fill="#3B6FB6"/></marker></defs><style>text{font-family:Arial,Helvetica,sans-serif;fill:#242A31}.h{font-size:22px;font-weight:700}.s{font-size:18px;fill:#65717D}.r{fill:#F4F6F8;stroke:#AAB3BD;stroke-width:2}.br{fill:#EAF0F7;stroke:#3B6FB6;stroke-width:2.5}.ar{stroke:#65717D;stroke-width:3;fill:none;marker-end:url(#a)}.ba{stroke:#3B6FB6;stroke-width:3;fill:none;marker-end:url(#b)}</style>
-<text x="550" y="60" font-size="23" fill="#242A31" text-anchor="middle">SIGReg compares empirical and target characteristic functions</text>
-<path d="M100 260H1000 M550 110V410" stroke="#242A31" stroke-width="2"/>
-<path d="M120 260 C200 95 280 95 360 260 S520 425 600 260 S760 95 840 260 S960 425 990 330" stroke="#3B6FB6" stroke-width="4" fill="none"/>
-<path d="M120 260 C205 130 285 130 360 260 S515 390 600 260 S755 130 840 260 S960 390 990 330" stroke="#65717D" stroke-width="4" fill="none" stroke-dasharray="9 7"/>
-<text x="290" y="150" font-size="18" fill="#3B6FB6" text-anchor="middle">empirical</text><text x="800" y="165" font-size="18" fill="#65717D" text-anchor="middle">Gaussian target</text>
-<text x="550" y="455" font-size="18" fill="#65717D" text-anchor="middle">The squared discrepancy is integrated with a weight; numerical quadrature approximates it.</text>
-</svg>
