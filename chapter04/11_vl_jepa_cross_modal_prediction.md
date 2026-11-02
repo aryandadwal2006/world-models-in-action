@@ -1,37 +1,43 @@
-# 11. Cross-modal prediction: when the target is language
+# 11. When the target belongs to another modality
 
-The image and video examples establish that a predictor can be trained to infer a hidden representation rather than reconstruct the observation itself. They do not establish that the target representation must belong to the same modality as the input. VL-JEPA makes this distinction explicit. Its visual input is an image or video, but its prediction target is a text embedding. A language query specifies which aspect of the visual evidence should be expressed.
+So far, the examples have used visual context and visual target features. The JEPA construction does not require the target to belong to the same modality as the input. VL-JEPA makes this point concrete: it predicts a text representation from visual evidence, with a language query specifying what should be expressed.
 
-This extension clarifies the generality of prediction in representation space. It does not, by itself, make a vision-language model a model of physical dynamics.
+The important idea is not a catalogue of vision-language tasks. It is that the target space is a design choice. The visual encoder, query and target encoder play separate roles.
 
-## 11.1 The visual context, query and target are different variables
+## 11.1 The query is not the answer
 
-Let \(X_V\) denote the visual input, \(X_Q\) a text query, and \(Y\) the target text. The query is not the target. It specifies the question being asked; the target is the answer representation against which the prediction is trained.
-
-A minimal mathematical description is
+Let \(X_V\) denote an image or video, \(X_Q\) a text query and \(Y\) the target text. The visual encoder produces
 
 \[
-S_V=f_\theta\(X_V\),\qquad
-S_Y=e_\psi\(Y\),\qquad
+S_V=f_\theta(X_V),
+\]
+
+while a text encoder maps the answer to
+
+\[
+S_Y=e_\psi(Y).
+\]
+
+The predictor combines visual features and the query:
+
+\[
 \widehat S_Y=p_\phi(S_V,X_Q).
 \]
 
-The visual encoder \(f_\theta\) converts an image or video into visual features. The target encoder \(e_\psi\) maps the answer text to a continuous representation. The predictor \(p_\phi\) combines the visual features with the query and estimates a vector in the target encoder's space.
+The query tells the model which question is being asked; the target text is the answer against which its prediction is trained. For one video, a query might ask which object a person is about to touch. A different query could ask what action the person is performing. The visual evidence is shared, but the requested conditional prediction changes.
 
-Consider a video showing a person reaching toward a wall. One query asks which object the person is about to touch; another asks what action the person is performing. The frames are identical, but the requested answer changes. The query therefore selects the conditional prediction problem.
-
-This separation is useful because a visual sequence does not determine one universally appropriate description. Captioning, object identification, question answering and retrieval impose different output requirements. A query-conditioned predictor can share visual features across them rather than treating each question as a new perception problem.
+This is the same role played by a spatial query in I-JEPA or a spatiotemporal query in V-JEPA. The query specifies the requested target. It is not itself the target representation.
 
 ## 11.2 Why predict a text embedding?
 
-A token-generative model produces a sequence of discrete symbols. An embedding-predictive model instead maps the target text through an encoder and learns to estimate the resulting vector. The difference is in the object being predicted and the geometry in which errors are measured.
+A token-generative model predicts a sequence of discrete symbols. VL-JEPA instead estimates a continuous representation produced by a text encoder. Semantically related descriptions can be close in that target space even when their word sequences differ. The objective therefore compares meanings as represented by the chosen text encoder, rather than requiring the predictor to reproduce one exact sequence of tokens.
 
-For normalized predicted and target embeddings (ar{hat s}_i) and (ar s_i), a one-direction batch contrastive objective can be written as
+VL-JEPA uses a bidirectional InfoNCE objective between predicted and target text embeddings. For normalized predicted and target embeddings \(\bar{\hat s}_i\) and \(\bar s_i\), one direction has the form
 
 \[
-\mathcal L_{\widehat S\rightarrow S}
+\mathcal L_{\hat S\rightarrow S}
 =
--\frac{1}{B}\sum_{i=1}^{B}
+-\frac1B\sum_{i=1}^{B}
 \log
 \frac{
 \exp(\bar{\hat s}_i^\top\bar s_i/\tau)
@@ -41,43 +47,32 @@ For normalized predicted and target embeddings (ar{hat s}_i) and (ar s_i), a o
 },
 \]
 
-where \(B\) is the batch size and (	au) is a temperature. The reverse direction exchanges predicted and target embeddings. VL-JEPA averages the two directions, combining an alignment signal for paired examples with a uniformity pressure that discourages all examples from occupying the same representation.
+where \(B\) is batch size and \(\tau\) is temperature. The reverse direction exchanges the predicted and target roles. The positive pair is encouraged to align, while other batch targets provide contrastive comparisons. This is the paper's objective; it does not use SIGReg as its collapse regularizer. (Chen et al., 2026)
 
-The loss is important to identify correctly. VL-JEPA uses bidirectional InfoNCE in the reported formulation. It does not use SIGReg as its regularizer. The paper discusses non-sample-contrastive alternatives, including VICReg and SIGReg, as possibilities for future investigation rather than as part of its method (Chen et al., 2026).
+The choice of text encoder defines which linguistic distinctions remain visible. If two phrasings are close in its embedding space, the predictor is not strongly penalized for treating them as similar. If two answers differ in a small but important detail and the text encoder maps them too close, the target may be inadequate for that task. Embedding prediction does not remove the need to evaluate the target geometry.
 
-An embedding target can place semantically related descriptions near one another even when their token sequences differ. For example, "the light turns off" and "the room becomes dark" may be represented as related descriptions of the same event. Whether they are close is determined by the text encoder and its training, not by the fact that the outputs are vectors. The same geometry can be harmful when two answers differ in a small but consequential detail. Embedding prediction changes the target space; it does not make the target encoder a neutral or universally sufficient representation.
+## 11.3 Prediction and language generation are different operations
 
-## 11.3 Prediction and decoding are separate operations
+The text decoder is not required to train the embedding-prediction objective. Some tasks can use the predicted representation directly. For retrieval, it can be compared with candidate text embeddings. For classification, encoded label descriptions can be ranked against it. Captioning or open-ended question answering requires a readable string, so a decoder is invoked to turn the predicted embedding into language.
 
-The text decoder is not required for the main embedding-prediction loss. It is used when the system must turn a predicted vector into human-readable language. Other tasks can consume the embedding directly.
+The published VL-JEPA system uses a frozen V-JEPA 2 ViT-L visual encoder. Its predictor is initialized from Transformer layers of Llama 3.2, while its text target encoder is initialized from EmbeddingGemma. Projection heads map predicted and target features into a shared 1,536-dimensional space. These are the paper's implementation choices, not requirements of cross-modal prediction. Training is staged: large-scale visual-text alignment is followed by query-conditioned supervised fine-tuning for tasks such as visual question answering. (Chen et al., 2026)
 
-For retrieval, the predicted feature can be compared with embeddings of candidate texts. For classification, candidate label descriptions can be encoded and ranked against it. Neither operation requires generating a sentence token by token. Captioning and open-ended question answering do require readable language, so a decoder is needed for those outputs.
+Because the embedding can be updated without decoding every frame into text, the paper also evaluates selective decoding for streaming video. In its EgoExo4D protocol, decoding at 0.35 Hz matches the reported performance of uniform decoding at 1 Hz, with approximately 2.85 times fewer decoding operations. This is a result for that evaluation protocol, not a general latency guarantee. (Chen et al., 2026)
 
-The published VL-JEPA instantiation uses a frozen V-JEPA 2 ViT-L visual encoder. Its predictor is initialized from Transformer layers of Llama 3.2, while the target text encoder is initialized from EmbeddingGemma. Projection heads map predicted and target features into a shared 1,536-dimensional space. Visual tokens and query tokens are jointly attended by the predictor. These are implementation choices in the paper, not defining requirements of cross-modal prediction (Chen et al., 2026).
+## 11.4 A language query is not a control input
 
-Training is staged. An initial large-scale phase learns visual-text alignment from image-text and video-text pairs without task queries. A second, query-conditioned supervised fine-tuning phase introduces tasks such as visual question answering while retaining the pretrained alignment used for classification and retrieval. The two phases expose the model to different query distributions and should not be conflated (Chen et al., 2026).
-
-The embedding/decoder separation also permits selective decoding. A system can update a stream of semantic embeddings as video frames arrive and invoke the text decoder only when the representation changes enough to warrant a new description. On the paper's EgoExo4D evaluation, selective decoding at 0.35 Hz matched the reported performance of uniform decoding at 1 Hz, using approximately 2.85 times fewer decoding operations. This is a result for that protocol, not a general latency guarantee (Chen et al., 2026).
-
-![VL-JEPA visual context, query and text-target pathways](../images/chapter04/F34_vljepa_cross_modal_prediction.svg)
-
-**Figure 4.23. Cross-modal prediction separates the query from the target.** The predictor combines visual features with a text query to estimate a target-text embedding. During training, that estimate is compared with the encoded target; at inference, decoding is optional when an embedding-level decision is sufficient.
-
-> **Description.** The visual pathway supplies image or video features, while a separate text query specifies the requested semantic output. A target-text encoder supplies the training representation. The predicted feature can be decoded when readable language is required, but the decoder is not part of the embedding prediction itself.
-
-## 11.4 A language query is not a physical action
-
-VL-JEPA evaluates semantic tasks that include action anticipation and next-step forecasting. Their outputs are descriptions or labels inferred from video context. These evaluations show that a visual representation can support useful predictions about likely events or human actions (Chen et al., 2026). They do not establish that the model can compare candidate robot commands or predict the physical consequences of a selected control.
-
-The distinction can be expressed by comparing the two conditional computations:
+A query may ask a hypothetical question, but that wording does not make the model an intervention model. The predictor estimates a text embedding that answers the query. A controlled transition model estimates the consequence of a specified action:
 
 \[
-\widehat S_Y=p_\phi(f_\theta\(X_V\),X_Q),
+\widehat S_Y=p_\phi(f_\theta(X_V),X_Q),
 \qquad
 \widehat S_{t+1}=F_\omega(S_t,A_t).
 \]
 
-The first predicts a language-derived representation from visual evidence and a query. The second predicts a future state under a specified action. A prompt such as "What would happen if the switch were pushed?" asks for a hypothetical semantic answer, but the presence of hypothetical wording does not establish an intervention model. That requires action-conditioned data, an explicit control interface, appropriate action coverage, and evaluation of predicted state changes.
+The first is cross-modal semantic prediction. The second is action-conditioned dynamics. To compare candidate robot commands, the predictor must receive the candidate action and be trained on trajectories that connect actions to subsequent observations. A natural-language question about what might happen is not a substitute for that action interface.
 
-The target need not share the input modality. The conditioning variable, however, must still represent the quantity whose effect the model is meant to estimate. This is the boundary between cross-modal prediction and controlled dynamics. The next section examines the separate data and training requirements that arise when actions become explicit inputs to a world model.
+VL-JEPA therefore extends the range of possible target modalities without collapsing the distinction between representation prediction and controlled dynamics. The target may be text, but the conditioning variable must still correspond to the quantity whose effect the model is meant to estimate.
 
+**Figure 4.18. Cross-modal prediction separates visual context, query and text target.**
+
+Description: Visual features and a text query enter a predictor. A separate text encoder supplies the target feature during training. The predicted embedding can be compared with candidate texts directly or decoded when a readable answer is required.
